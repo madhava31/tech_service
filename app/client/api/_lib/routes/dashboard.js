@@ -660,8 +660,20 @@ export async function getBusinessHealth() {
     const decidedCount = pipeline.stages
       .filter((s) => s.key !== 'draft')
       .reduce((sum, s) => sum + s.count, 0);
-    // Every quotation that reached either artifact — purchase_order stage count + performa_invoice stage count.
-    const convertedCount = pipeline.stages.find((s) => s.key === 'purchase_order').count + pipeline.stages.find((s) => s.key === 'performa_invoice').count;
+    // Distinct quotations that reached either artifact — NOT fulfillment.purchaseOrderCount +
+    // performaInvoiceCount (those are row counts per table, so a quotation with both a PO and a
+    // PI would be counted twice, letting convertedCount exceed decidedCount and the score exceed
+    // 100%). COUNT(DISTINCT quotation_id) across both tables avoids that double-count.
+    const convertedRow = await db
+      .prepare(
+        `SELECT COUNT(DISTINCT quotation_id) AS c FROM (
+           SELECT quotation_id FROM purchase_order
+           UNION
+           SELECT quotation_id FROM performa_invoice
+         ) t`
+      )
+      .get();
+    const convertedCount = Number(convertedRow.c);
     const conversionsScore = decidedCount > 0 ? (convertedCount / decidedCount) * 100 : null;
 
     // Repeat Business — % of customers with 2+ orders.
