@@ -234,15 +234,15 @@ export default function InventoryOperations() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#292E2A] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E4E8F2] pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[#F5F7F4] tracking-tight">Inventory Operations</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#17202A] text-[#60A5FA] border border-[#233547]">
+            <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">Inventory Operations</h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]">
               Control Center
             </span>
           </div>
-          <p className="text-sm text-[#A5AEA8] mt-1">
+          <p className="text-sm text-[#7A839E] mt-1">
             Operational control center for stock monitoring, adjustments, returns, transfers, and reservation management.
           </p>
         </div>
@@ -254,7 +254,7 @@ export default function InventoryOperations() {
               setSelectedWarehouseId(e.target.value ? Number(e.target.value) : '');
               setPage(1);
             }}
-            className="px-3 py-2 bg-[#171918] border border-[#292E2A] rounded-lg text-sm text-[#F5F7F4] focus:border-[#B8F23A] focus:outline-none"
+            className="px-3 py-2 bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg text-sm text-[#141B34] focus:border-[#3B6FD4] focus:outline-none"
           >
             <option value="">All Warehouses</option>
             {warehouses.map((w) => (
@@ -266,23 +266,23 @@ export default function InventoryOperations() {
 
           <button
             onClick={() => setShowAdjustmentModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#171918] border border-[#292E2A] text-[#F5F7F4] hover:bg-[#1D211E] rounded-lg text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] hover:bg-[#F7F8FC] rounded-lg text-sm font-medium transition-colors"
           >
-            <Sliders className="w-4 h-4 text-[#B8F23A]" />
+            <Sliders className="w-4 h-4 text-[#3B6FD4]" />
             + Stock Adjustment
           </button>
 
           <button
             onClick={() => setShowReturnModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#171918] border border-[#292E2A] text-[#F5F7F4] hover:bg-[#1D211E] rounded-lg text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] hover:bg-[#F7F8FC] rounded-lg text-sm font-medium transition-colors"
           >
-            <RotateCcw className="w-4 h-4 text-[#60A5FA]" />
+            <RotateCcw className="w-4 h-4 text-[#3B6FD4]" />
             + Stock Return
           </button>
 
           <button
             onClick={() => setShowTransferModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#B8F23A] text-[#101312] hover:bg-[#a3db2e] rounded-lg text-sm font-semibold transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#3B6FD4] text-[#F4F6FC] hover:bg-[#2F5CB8] rounded-lg text-sm font-semibold transition-colors shadow-sm"
           >
             <ArrowRightLeft className="w-4 h-4" />
             + Warehouse Transfer
@@ -292,57 +292,57 @@ export default function InventoryOperations() {
 
       {/* Top Operational KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Stock Items</div>
-          <div className="text-xl font-bold text-[#F5F7F4] mt-1">{overview?.totalStockItems ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">{overview?.totalTrackedProducts ?? 0} tracked</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Stock Items</div>
+          <div className="text-xl font-bold text-[#141B34] mt-1">{overview?.totalStockItems ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">{overview?.totalTrackedProducts ?? 0} tracked</div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Available Stock</div>
-          <div className="text-xl font-bold text-[#4ADE80] mt-1">{overview?.totalAvailable ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">On-hand: {overview?.totalOnHand ?? 0}</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Available Stock</div>
+          <div className="text-xl font-bold text-[#2FBF71] mt-1">{overview?.totalAvailable ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">On-hand: {overview?.totalOnHand ?? 0}</div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Low Stock</div>
-          <div className="text-xl font-bold text-[#FBBF24] mt-1">{overview?.lowStockCount ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">Below threshold</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Low Stock</div>
+          <div className="text-xl font-bold text-[#E8A33D] mt-1">{overview?.lowStockCount ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">Below threshold</div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Critical Stock</div>
-          <div className="text-xl font-bold text-[#F87171] mt-1">{overview?.criticalStockCount ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">Urgent restock</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Critical Stock</div>
+          <div className="text-xl font-bold text-[#E5484D] mt-1">{overview?.criticalStockCount ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">Urgent restock</div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Out of Stock</div>
-          <div className="text-xl font-bold text-[#EF4444] mt-1">{overview?.outOfStockCount ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">0 Available</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Out of Stock</div>
+          <div className="text-xl font-bold text-[#DC2626] mt-1">{overview?.outOfStockCount ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">0 Available</div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Incoming Stock</div>
-          <div className="text-xl font-bold text-[#60A5FA] mt-1">{overview?.incomingStockQuantity ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">Inbound receipts</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Incoming Stock</div>
+          <div className="text-xl font-bold text-[#3B6FD4] mt-1">{overview?.incomingStockQuantity ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">Inbound receipts</div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Reserved Stock</div>
-          <div className="text-xl font-bold text-[#C084FC] mt-1">{overview?.totalReserved ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">Allocated units</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Reserved Stock</div>
+          <div className="text-xl font-bold text-[#9333EA] mt-1">{overview?.totalReserved ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">Allocated units</div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3.5">
-          <div className="text-xs text-[#A5AEA8] font-medium">Pending Res.</div>
-          <div className="text-xl font-bold text-[#F472B6] mt-1">{overview?.pendingReservationsCount ?? '—'}</div>
-          <div className="text-[11px] text-[#6D756F] mt-0.5">{overview?.pendingReservationsUnits ?? 0} units</div>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3.5">
+          <div className="text-xs text-[#7A839E] font-medium">Pending Res.</div>
+          <div className="text-xl font-bold text-[#DB2777] mt-1">{overview?.pendingReservationsCount ?? '—'}</div>
+          <div className="text-[11px] text-[#A8AEC4] mt-0.5">{overview?.pendingReservationsUnits ?? 0} units</div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1 border-b border-[#292E2A] overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1 border-b border-[#E4E8F2] overflow-x-auto no-scrollbar">
         {[
           { key: 'overview', label: 'Overview', icon: Boxes },
           { key: 'alerts', label: 'Stock Alerts', icon: ShieldAlert, count: overview?.criticalStockCount },
@@ -363,14 +363,14 @@ export default function InventoryOperations() {
               onClick={() => handleTabChange(tab.key as TabType)}
               className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
                 isActive
-                  ? 'border-[#B8F23A] text-[#B8F23A] bg-[#1D211E]/40'
-                  : 'border-transparent text-[#A5AEA8] hover:text-[#F5F7F4] hover:bg-[#171918]'
+                  ? 'border-[#3B6FD4] text-[#3B6FD4] bg-[#F7F8FC]/40'
+                  : 'border-transparent text-[#7A839E] hover:text-[#141B34] hover:bg-[#FFFFFF]'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
               {!!tab.count && tab.count > 0 && (
-                <span className="px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-[#EF4444]/20 text-[#F87171] border border-[#EF4444]/30">
+                <span className="px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-[#DC2626]/20 text-[#E5484D] border border-[#DC2626]/30">
                   {tab.count}
                 </span>
               )}
@@ -381,12 +381,12 @@ export default function InventoryOperations() {
 
       {/* Main Content Area */}
       {loading ? (
-        <div className="p-12 text-center text-[#A5AEA8] bg-[#171918] rounded-xl border border-[#292E2A]">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#B8F23A] mb-2" />
+        <div className="p-12 text-center text-[#7A839E] bg-[#FFFFFF] rounded-xl border border-[#E4E8F2]">
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#3B6FD4] mb-2" />
           Loading inventory operations data...
         </div>
       ) : error ? (
-        <div className="p-6 text-center text-[#F87171] bg-[#2D1616] rounded-xl border border-[#572727]">
+        <div className="p-6 text-center text-[#E5484D] bg-[#F7E0E0] rounded-xl border border-[#F4D4D5]">
           {error}
         </div>
       ) : (
@@ -396,15 +396,15 @@ export default function InventoryOperations() {
             <div className="space-y-6">
               {/* Critical Alerts Banner */}
               {alerts.length > 0 && (
-                <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-4">
+                <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-bold text-[#F5F7F4] flex items-center gap-2">
-                      <ShieldAlert className="w-4 h-4 text-[#F87171]" />
+                    <h2 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-[#E5484D]" />
                       Active Operational Alerts
                     </h2>
                     <button
                       onClick={() => handleTabChange('alerts')}
-                      className="text-xs text-[#60A5FA] hover:underline flex items-center gap-1"
+                      className="text-xs text-[#3B6FD4] hover:underline flex items-center gap-1"
                     >
                       View All Alerts <ArrowRight className="w-3 h-3" />
                     </button>
@@ -415,10 +415,10 @@ export default function InventoryOperations() {
                         key={al.id}
                         className={`p-3 rounded-lg border text-xs flex items-center justify-between gap-3 ${
                           al.severity === 'CRITICAL'
-                            ? 'bg-[#2D1616]/60 border-[#572727] text-[#F87171]'
+                            ? 'bg-[#F7E0E0]/60 border-[#F4D4D5] text-[#E5484D]'
                             : al.severity === 'WARNING'
-                            ? 'bg-[#2B2314]/60 border-[#54411C] text-[#FBBF24]'
-                            : 'bg-[#17202A]/60 border-[#233547] text-[#60A5FA]'
+                            ? 'bg-[#F7EFE0]/60 border-[#F4E9D7] text-[#E8A33D]'
+                            : 'bg-[#E1E6F6]/60 border-[#D9DFF4] text-[#3B6FD4]'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
@@ -435,7 +435,7 @@ export default function InventoryOperations() {
                           </div>
                         </div>
                         <div className="shrink-0 text-right">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#101312]">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F4F6FC]">
                             {al.recommendedAction}
                           </span>
                         </div>
@@ -448,29 +448,29 @@ export default function InventoryOperations() {
               {/* Grid: Critical Stock + Out of Stock Summary Tables */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Critical Stock */}
-                <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-4 space-y-3">
+                <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-[#F5F7F4] flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-[#FBBF24]" />
+                    <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#E8A33D]" />
                       Critical Threshold Items
                     </h3>
-                    <button onClick={() => handleTabChange('critical')} className="text-xs text-[#60A5FA] hover:underline">
+                    <button onClick={() => handleTabChange('critical')} className="text-xs text-[#3B6FD4] hover:underline">
                       View All ({overview?.criticalStockCount})
                     </button>
                   </div>
                   {criticalItems.length === 0 ? (
-                    <p className="text-xs text-[#6D756F] py-4 text-center">No critical stock items</p>
+                    <p className="text-xs text-[#A8AEC4] py-4 text-center">No critical stock items</p>
                   ) : (
-                    <div className="divide-y divide-[#292E2A]">
+                    <div className="divide-y divide-[#E4E8F2]">
                       {criticalItems.slice(0, 5).map((item) => (
                         <div key={item.productId} className="py-2.5 flex items-center justify-between text-xs">
                           <div>
-                            <div className="font-semibold text-[#F5F7F4]">{item.partNo}</div>
-                            <div className="text-[11px] text-[#A5AEA8] truncate max-w-[200px]">{item.description}</div>
+                            <div className="font-semibold text-[#141B34]">{item.partNo}</div>
+                            <div className="text-[11px] text-[#7A839E] truncate max-w-[200px]">{item.description}</div>
                           </div>
                           <div className="text-right">
-                            <div className="font-semibold text-[#FBBF24]">Available: {item.availableQuantity}</div>
-                            <div className="text-[10px] text-[#6D756F]">Crit. Threshold: {item.criticalStockThreshold}</div>
+                            <div className="font-semibold text-[#E8A33D]">Available: {item.availableQuantity}</div>
+                            <div className="text-[10px] text-[#A8AEC4]">Crit. Threshold: {item.criticalStockThreshold}</div>
                           </div>
                         </div>
                       ))}
@@ -479,32 +479,32 @@ export default function InventoryOperations() {
                 </div>
 
                 {/* Out of Stock */}
-                <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-4 space-y-3">
+                <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-[#F5F7F4] flex items-center gap-2">
-                      <PackageX className="w-4 h-4 text-[#EF4444]" />
+                    <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
+                      <PackageX className="w-4 h-4 text-[#DC2626]" />
                       Out of Stock Items
                     </h3>
-                    <button onClick={() => handleTabChange('out-of-stock')} className="text-xs text-[#60A5FA] hover:underline">
+                    <button onClick={() => handleTabChange('out-of-stock')} className="text-xs text-[#3B6FD4] hover:underline">
                       View All ({overview?.outOfStockCount})
                     </button>
                   </div>
                   {oosItems.length === 0 ? (
-                    <p className="text-xs text-[#6D756F] py-4 text-center">No out of stock items</p>
+                    <p className="text-xs text-[#A8AEC4] py-4 text-center">No out of stock items</p>
                   ) : (
-                    <div className="divide-y divide-[#292E2A]">
+                    <div className="divide-y divide-[#E4E8F2]">
                       {oosItems.slice(0, 5).map((item) => (
                         <div key={item.productId} className="py-2.5 flex items-center justify-between text-xs">
                           <div>
-                            <div className="font-semibold text-[#F5F7F4]">{item.partNo}</div>
-                            <div className="text-[11px] text-[#A5AEA8] truncate max-w-[200px]">{item.description}</div>
+                            <div className="font-semibold text-[#141B34]">{item.partNo}</div>
+                            <div className="text-[11px] text-[#7A839E] truncate max-w-[200px]">{item.description}</div>
                           </div>
                           <div className="text-right">
                             <span
                               className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                                 item.incomingQuantity > 0
-                                  ? 'bg-[#17202A] text-[#60A5FA] border border-[#233547]'
-                                  : 'bg-[#2D1616] text-[#F87171] border border-[#572727]'
+                                  ? 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
+                                  : 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
                               }`}
                             >
                               {item.incomingQuantity > 0 ? `INCOMING (${item.incomingQuantity})` : 'NO INCOMING STOCK'}
@@ -521,13 +521,13 @@ export default function InventoryOperations() {
 
           {/* TAB 2: ALERTS */}
           {activeTab === 'alerts' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {alerts.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No active stock alerts detected.</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No active stock alerts detected.</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Severity</th>
                       <th className="py-3 px-4">Alert Type</th>
                       <th className="py-3 px-4">Part Number & Product</th>
@@ -538,32 +538,32 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4">Recommended Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {alerts.map((al) => (
-                      <tr key={al.id} className="hover:bg-[#1D211E]/50">
+                      <tr key={al.id} className="hover:bg-[#F7F8FC]/50">
                         <td className="py-3 px-4">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               al.severity === 'CRITICAL'
-                                ? 'bg-[#2D1616] text-[#F87171] border border-[#572727]'
+                                ? 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
                                 : al.severity === 'WARNING'
-                                ? 'bg-[#2B2314] text-[#FBBF24] border border-[#54411C]'
-                                : 'bg-[#17202A] text-[#60A5FA] border border-[#233547]'
+                                ? 'bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D7]'
+                                : 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
                             }`}
                           >
                             {al.severity}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-semibold text-[#F5F7F4]">{al.alertType}</td>
+                        <td className="py-3 px-4 font-semibold text-[#141B34]">{al.alertType}</td>
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-[#F5F7F4]">{al.partNumber}</div>
-                          <div className="text-[11px] text-[#A5AEA8]">{al.description}</div>
+                          <div className="font-semibold text-[#141B34]">{al.partNumber}</div>
+                          <div className="text-[11px] text-[#7A839E]">{al.description}</div>
                         </td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{al.warehouseName}</td>
-                        <td className="py-3 px-4 text-right font-medium text-[#F5F7F4]">{al.onHand}</td>
-                        <td className="py-3 px-4 text-right text-[#C084FC]">{al.reserved}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#4ADE80]">{al.available}</td>
-                        <td className="py-3 px-4 text-[#B8F23A] font-medium">{al.recommendedAction}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{al.warehouseName}</td>
+                        <td className="py-3 px-4 text-right font-medium text-[#141B34]">{al.onHand}</td>
+                        <td className="py-3 px-4 text-right text-[#9333EA]">{al.reserved}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#2FBF71]">{al.available}</td>
+                        <td className="py-3 px-4 text-[#3B6FD4] font-medium">{al.recommendedAction}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -574,13 +574,13 @@ export default function InventoryOperations() {
 
           {/* TAB 3: CRITICAL STOCK */}
           {activeTab === 'critical' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {criticalItems.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No critical stock items</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No critical stock items</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Part Number</th>
                       <th className="py-3 px-4">Description</th>
                       <th className="py-3 px-4 text-right">On Hand</th>
@@ -591,20 +591,20 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4 text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {criticalItems.map((item) => (
-                      <tr key={item.productId} className="hover:bg-[#1D211E]/50">
-                        <td className="py-3 px-4 font-bold text-[#F5F7F4]">{item.partNo}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{item.description}</td>
-                        <td className="py-3 px-4 text-right font-medium text-[#F5F7F4]">{item.onHandQuantity}</td>
-                        <td className="py-3 px-4 text-right text-[#C084FC]">{item.reservedQuantity}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#FBBF24]">{item.availableQuantity}</td>
-                        <td className="py-3 px-4 text-right text-[#A5AEA8]">{item.criticalStockThreshold}</td>
-                        <td className="py-3 px-4 text-right text-[#60A5FA]">{item.incomingQuantity}</td>
+                      <tr key={item.productId} className="hover:bg-[#F7F8FC]/50">
+                        <td className="py-3 px-4 font-bold text-[#141B34]">{item.partNo}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{item.description}</td>
+                        <td className="py-3 px-4 text-right font-medium text-[#141B34]">{item.onHandQuantity}</td>
+                        <td className="py-3 px-4 text-right text-[#9333EA]">{item.reservedQuantity}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#E8A33D]">{item.availableQuantity}</td>
+                        <td className="py-3 px-4 text-right text-[#7A839E]">{item.criticalStockThreshold}</td>
+                        <td className="py-3 px-4 text-right text-[#3B6FD4]">{item.incomingQuantity}</td>
                         <td className="py-3 px-4 text-center">
                           <Link
                             to={`/inventory/stock/${item.productId}`}
-                            className="text-[#60A5FA] hover:underline text-xs font-semibold"
+                            className="text-[#3B6FD4] hover:underline text-xs font-semibold"
                           >
                             View Stock
                           </Link>
@@ -619,13 +619,13 @@ export default function InventoryOperations() {
 
           {/* TAB 4: OUT OF STOCK */}
           {activeTab === 'out-of-stock' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {oosItems.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No out of stock items</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No out of stock items</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Part Number</th>
                       <th className="py-3 px-4">Description</th>
                       <th className="py-3 px-4 text-right">On Hand</th>
@@ -636,27 +636,27 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4">Last Stock Out</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {oosItems.map((item) => (
-                      <tr key={item.productId} className="hover:bg-[#1D211E]/50">
-                        <td className="py-3 px-4 font-bold text-[#F87171]">{item.partNo}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{item.description}</td>
-                        <td className="py-3 px-4 text-right text-[#F5F7F4]">{item.onHandQuantity}</td>
-                        <td className="py-3 px-4 text-right text-[#C084FC]">{item.reservedQuantity}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#EF4444]">{item.availableQuantity}</td>
+                      <tr key={item.productId} className="hover:bg-[#F7F8FC]/50">
+                        <td className="py-3 px-4 font-bold text-[#E5484D]">{item.partNo}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{item.description}</td>
+                        <td className="py-3 px-4 text-right text-[#141B34]">{item.onHandQuantity}</td>
+                        <td className="py-3 px-4 text-right text-[#9333EA]">{item.reservedQuantity}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#DC2626]">{item.availableQuantity}</td>
                         <td className="py-3 px-4">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                               item.incomingStatus === 'INCOMING'
-                                ? 'bg-[#17202A] text-[#60A5FA] border border-[#233547]'
-                                : 'bg-[#2D1616] text-[#F87171] border border-[#572727]'
+                                ? 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
+                                : 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
                             }`}
                           >
                             {item.incomingStatus} {item.incomingQuantity > 0 ? `(${item.incomingQuantity})` : ''}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{formatDate(item.lastStockIn)}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{formatDate(item.lastStockOut)}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{formatDate(item.lastStockIn)}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{formatDate(item.lastStockOut)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -667,13 +667,13 @@ export default function InventoryOperations() {
 
           {/* TAB 5: RESTOCK QUEUE */}
           {activeTab === 'restock-queue' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {restockQueue.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No items requiring restock</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No items requiring restock</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Priority</th>
                       <th className="py-3 px-4">Part Number & Product</th>
                       <th className="py-3 px-4 text-right">Available</th>
@@ -685,34 +685,34 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {restockQueue.map((item) => (
-                      <tr key={item.productId} className="hover:bg-[#1D211E]/50">
+                      <tr key={item.productId} className="hover:bg-[#F7F8FC]/50">
                         <td className="py-3 px-4">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               item.priority === 'CRITICAL'
-                                ? 'bg-[#2D1616] text-[#F87171] border border-[#572727]'
+                                ? 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
                                 : item.priority === 'HIGH'
-                                ? 'bg-[#2B2314] text-[#FBBF24] border border-[#54411C]'
-                                : 'bg-[#17202A] text-[#60A5FA] border border-[#233547]'
+                                ? 'bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D7]'
+                                : 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
                             }`}
                           >
                             {item.priority}
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="font-bold text-[#F5F7F4]">{item.partNumber}</div>
-                          <div className="text-[11px] text-[#A5AEA8]">{item.description}</div>
+                          <div className="font-bold text-[#141B34]">{item.partNumber}</div>
+                          <div className="text-[11px] text-[#7A839E]">{item.description}</div>
                         </td>
-                        <td className="py-3 px-4 text-right font-bold text-[#FBBF24]">{item.available}</td>
-                        <td className="py-3 px-4 text-right text-[#A5AEA8]">{item.reorderPoint}</td>
-                        <td className="py-3 px-4 text-right text-[#A5AEA8]">{item.safetyStock}</td>
-                        <td className="py-3 px-4 text-right text-[#60A5FA]">{item.incoming}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#B8F23A]">{item.suggestedRestockQuantity}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{item.reason}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#E8A33D]">{item.available}</td>
+                        <td className="py-3 px-4 text-right text-[#7A839E]">{item.reorderPoint}</td>
+                        <td className="py-3 px-4 text-right text-[#7A839E]">{item.safetyStock}</td>
+                        <td className="py-3 px-4 text-right text-[#3B6FD4]">{item.incoming}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#3B6FD4]">{item.suggestedRestockQuantity}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{item.reason}</td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#1D211E] text-[#F5F7F4] border border-[#292E2A]">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F7F8FC] text-[#141B34] border border-[#E4E8F2]">
                             {item.status}
                           </span>
                         </td>
@@ -726,13 +726,13 @@ export default function InventoryOperations() {
 
           {/* TAB 6: INCOMING STOCK */}
           {activeTab === 'incoming' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {incomingItems.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No incoming stock records found</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No incoming stock records found</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Receipt Ref</th>
                       <th className="py-3 px-4">Part Number</th>
                       <th className="py-3 px-4">Description</th>
@@ -744,22 +744,22 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4">Created At</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {incomingItems.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-[#1D211E]/50">
-                        <td className="py-3 px-4 font-bold text-[#60A5FA]">{item.receiptNumber}</td>
-                        <td className="py-3 px-4 font-semibold text-[#F5F7F4]">{item.partNumber}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{item.description}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{item.warehouseName}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#60A5FA]">{item.incomingQuantity}</td>
-                        <td className="py-3 px-4 text-right text-[#4ADE80]">{item.available}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{item.source}</td>
+                      <tr key={idx} className="hover:bg-[#F7F8FC]/50">
+                        <td className="py-3 px-4 font-bold text-[#3B6FD4]">{item.receiptNumber}</td>
+                        <td className="py-3 px-4 font-semibold text-[#141B34]">{item.partNumber}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{item.description}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{item.warehouseName}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#3B6FD4]">{item.incomingQuantity}</td>
+                        <td className="py-3 px-4 text-right text-[#2FBF71]">{item.available}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{item.source}</td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#17202A] text-[#60A5FA] border border-[#233547]">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]">
                             {item.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{formatDate(item.createdAt)}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{formatDate(item.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -770,13 +770,13 @@ export default function InventoryOperations() {
 
           {/* TAB 7: PENDING RESERVATIONS */}
           {activeTab === 'pending-reservations' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {pendingReservations.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No active stock reservations found</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No active stock reservations found</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Reservation ID</th>
                       <th className="py-3 px-4">Part Number</th>
                       <th className="py-3 px-4">Description</th>
@@ -787,27 +787,27 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4 text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {pendingReservations.map((resItem) => (
-                      <tr key={resItem.id} className="hover:bg-[#1D211E]/50">
-                        <td className="py-3 px-4 font-bold text-[#C084FC]">RES-{resItem.id}</td>
-                        <td className="py-3 px-4 font-semibold text-[#F5F7F4]">{resItem.part_no}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{resItem.product_description}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{resItem.warehouse_name}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#C084FC]">{resItem.quantity}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{resItem.reference_type || '—'} {resItem.reference_id || ''}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{formatDate(resItem.created_at)}</td>
+                      <tr key={resItem.id} className="hover:bg-[#F7F8FC]/50">
+                        <td className="py-3 px-4 font-bold text-[#9333EA]">RES-{resItem.id}</td>
+                        <td className="py-3 px-4 font-semibold text-[#141B34]">{resItem.part_no}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{resItem.product_description}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{resItem.warehouse_name}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#9333EA]">{resItem.quantity}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{resItem.reference_type || '—'} {resItem.reference_id || ''}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{formatDate(resItem.created_at)}</td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => handleReleaseReservation(resItem.id)}
-                              className="px-2.5 py-1 bg-[#171918] border border-[#572727] text-[#F87171] hover:bg-[#2D1616] rounded text-[11px] font-medium"
+                              className="px-2.5 py-1 bg-[#FFFFFF] border border-[#F4D4D5] text-[#E5484D] hover:bg-[#F7E0E0] rounded text-[11px] font-medium"
                             >
                               Release
                             </button>
                             <button
                               onClick={() => handleFulfillReservation(resItem.id)}
-                              className="px-2.5 py-1 bg-[#1B2E1E] border border-[#2B5230] text-[#4ADE80] hover:bg-[#2B5230] rounded text-[11px] font-semibold"
+                              className="px-2.5 py-1 bg-[#E0F5EA] border border-[#D6F2E4] text-[#2FBF71] hover:bg-[#D6F2E4] rounded text-[11px] font-semibold"
                             >
                               Fulfill
                             </button>
@@ -823,13 +823,13 @@ export default function InventoryOperations() {
 
           {/* TAB 8: RECENT MOVEMENTS */}
           {activeTab === 'movements' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {movements.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No inventory movements found</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No inventory movements found</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Date/Time</th>
                       <th className="py-3 px-4">Type</th>
                       <th className="py-3 px-4">Part Number</th>
@@ -841,32 +841,32 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4">Reason / Reference</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {movements.map((m) => (
-                      <tr key={m.id} className="hover:bg-[#1D211E]/50">
-                        <td className="py-3 px-4 text-[#A5AEA8]">{formatDate(m.created_at)}</td>
+                      <tr key={m.id} className="hover:bg-[#F7F8FC]/50">
+                        <td className="py-3 px-4 text-[#7A839E]">{formatDate(m.created_at)}</td>
                         <td className="py-3 px-4">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               m.movement_type === 'STOCK_IN'
-                                ? 'bg-[#1B2E1E] text-[#4ADE80] border border-[#2B5230]'
+                                ? 'bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4]'
                                 : m.movement_type === 'STOCK_OUT'
-                                ? 'bg-[#2D1616] text-[#F87171] border border-[#572727]'
+                                ? 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
                                 : m.movement_type === 'TRANSFER_IN' || m.movement_type === 'TRANSFER_OUT'
-                                ? 'bg-[#17202A] text-[#60A5FA] border border-[#233547]'
-                                : 'bg-[#2B2314] text-[#FBBF24] border border-[#54411C]'
+                                ? 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
+                                : 'bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D7]'
                             }`}
                           >
                             {m.movement_type}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-bold text-[#F5F7F4]">{m.part_no}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{m.product_description}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{m.warehouse_name}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#F5F7F4]">{m.quantity}</td>
-                        <td className="py-3 px-4 text-right text-[#A5AEA8]">{m.before_on_hand}</td>
-                        <td className="py-3 px-4 text-right font-medium text-[#4ADE80]">{m.after_on_hand}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{m.reason || m.reference_id || '—'}</td>
+                        <td className="py-3 px-4 font-bold text-[#141B34]">{m.part_no}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{m.product_description}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{m.warehouse_name}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#141B34]">{m.quantity}</td>
+                        <td className="py-3 px-4 text-right text-[#7A839E]">{m.before_on_hand}</td>
+                        <td className="py-3 px-4 text-right font-medium text-[#2FBF71]">{m.after_on_hand}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{m.reason || m.reference_id || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -877,13 +877,13 @@ export default function InventoryOperations() {
 
           {/* TAB 9: TRANSFERS */}
           {activeTab === 'transfers' && (
-            <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
               {transfers.length === 0 ? (
-                <div className="p-8 text-center text-[#A5AEA8] text-sm">No warehouse transfers recorded</div>
+                <div className="p-8 text-center text-[#7A839E] text-sm">No warehouse transfers recorded</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Transfer Ref</th>
                       <th className="py-3 px-4">Date</th>
                       <th className="py-3 px-4">Source Warehouse</th>
@@ -895,29 +895,29 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {transfers.map((t) => (
-                      <tr key={t.id} className="hover:bg-[#1D211E]/50">
-                        <td className="py-3 px-4 font-bold text-[#60A5FA]">
+                      <tr key={t.id} className="hover:bg-[#F7F8FC]/50">
+                        <td className="py-3 px-4 font-bold text-[#3B6FD4]">
                           <Link to={`/inventory/operations/transfers/${t.id}`} className="hover:underline">
                             {t.transferNumber}
                           </Link>
                         </td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{formatDate(t.createdAt)}</td>
-                        <td className="py-3 px-4 font-medium text-[#F87171]">{t.sourceWarehouseName}</td>
-                        <td className="py-3 px-4 font-medium text-[#4ADE80]">{t.destinationWarehouseName}</td>
-                        <td className="py-3 px-4 font-bold text-[#F5F7F4]">{t.partNumber}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#F5F7F4]">{t.quantity}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{formatDate(t.createdAt)}</td>
+                        <td className="py-3 px-4 font-medium text-[#E5484D]">{t.sourceWarehouseName}</td>
+                        <td className="py-3 px-4 font-medium text-[#2FBF71]">{t.destinationWarehouseName}</td>
+                        <td className="py-3 px-4 font-bold text-[#141B34]">{t.partNumber}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#141B34]">{t.quantity}</td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1B2E1E] text-[#4ADE80] border border-[#2B5230]">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4]">
                             {t.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{t.createdBy}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{t.createdBy}</td>
                         <td className="py-3 px-4 text-center">
                           <Link
                             to={`/inventory/operations/transfers/${t.id}`}
-                            className="text-[#60A5FA] hover:underline text-xs font-semibold"
+                            className="text-[#3B6FD4] hover:underline text-xs font-semibold"
                           >
                             Details
                           </Link>
@@ -935,37 +935,37 @@ export default function InventoryOperations() {
             <div className="space-y-4">
               {auditSummary && (
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
-                  <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3">
-                    <div className="text-[11px] text-[#A5AEA8]">Total Events</div>
-                    <div className="text-lg font-bold text-[#F5F7F4]">{auditSummary.totalMovements}</div>
+                  <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3">
+                    <div className="text-[11px] text-[#7A839E]">Total Events</div>
+                    <div className="text-lg font-bold text-[#141B34]">{auditSummary.totalMovements}</div>
                   </div>
-                  <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3">
-                    <div className="text-[11px] text-[#A5AEA8]">Stock In Units</div>
-                    <div className="text-lg font-bold text-[#4ADE80]">{auditSummary.stockInUnits}</div>
+                  <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3">
+                    <div className="text-[11px] text-[#7A839E]">Stock In Units</div>
+                    <div className="text-lg font-bold text-[#2FBF71]">{auditSummary.stockInUnits}</div>
                   </div>
-                  <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3">
-                    <div className="text-[11px] text-[#A5AEA8]">Stock Out Units</div>
-                    <div className="text-lg font-bold text-[#F87171]">{auditSummary.stockOutUnits}</div>
+                  <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3">
+                    <div className="text-[11px] text-[#7A839E]">Stock Out Units</div>
+                    <div className="text-lg font-bold text-[#E5484D]">{auditSummary.stockOutUnits}</div>
                   </div>
-                  <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3">
-                    <div className="text-[11px] text-[#A5AEA8]">Return Units</div>
-                    <div className="text-lg font-bold text-[#60A5FA]">{auditSummary.returnUnits}</div>
+                  <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3">
+                    <div className="text-[11px] text-[#7A839E]">Return Units</div>
+                    <div className="text-lg font-bold text-[#3B6FD4]">{auditSummary.returnUnits}</div>
                   </div>
-                  <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3">
-                    <div className="text-[11px] text-[#A5AEA8]">Adjustments</div>
-                    <div className="text-lg font-bold text-[#FBBF24]">{auditSummary.adjustmentUnits}</div>
+                  <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3">
+                    <div className="text-[11px] text-[#7A839E]">Adjustments</div>
+                    <div className="text-lg font-bold text-[#E8A33D]">{auditSummary.adjustmentUnits}</div>
                   </div>
-                  <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-3">
-                    <div className="text-[11px] text-[#A5AEA8]">Transfers</div>
-                    <div className="text-lg font-bold text-[#C084FC]">{auditSummary.transferUnits}</div>
+                  <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-3">
+                    <div className="text-[11px] text-[#7A839E]">Transfers</div>
+                    <div className="text-lg font-bold text-[#9333EA]">{auditSummary.transferUnits}</div>
                   </div>
                 </div>
               )}
 
-              <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden">
+              <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+                    <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
                       <th className="py-3 px-4">Timestamp</th>
                       <th className="py-3 px-4">Type</th>
                       <th className="py-3 px-4">Part Number</th>
@@ -976,17 +976,17 @@ export default function InventoryOperations() {
                       <th className="py-3 px-4">Reference / Reason</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#292E2A] text-xs">
+                  <tbody className="divide-y divide-[#E4E8F2] text-xs">
                     {auditMovements.map((m) => (
-                      <tr key={m.id} className="hover:bg-[#1D211E]/50">
-                        <td className="py-3 px-4 text-[#A5AEA8]">{formatDate(m.created_at)}</td>
-                        <td className="py-3 px-4 font-bold text-[#F5F7F4]">{m.movement_type}</td>
-                        <td className="py-3 px-4 font-bold text-[#B8F23A]">{m.part_no}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{m.warehouse_name}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#F5F7F4]">{m.quantity}</td>
-                        <td className="py-3 px-4 text-right text-[#A5AEA8]">{m.before_on_hand}</td>
-                        <td className="py-3 px-4 text-right font-semibold text-[#4ADE80]">{m.after_on_hand}</td>
-                        <td className="py-3 px-4 text-[#A5AEA8]">{m.reason || m.reference_id || '—'}</td>
+                      <tr key={m.id} className="hover:bg-[#F7F8FC]/50">
+                        <td className="py-3 px-4 text-[#7A839E]">{formatDate(m.created_at)}</td>
+                        <td className="py-3 px-4 font-bold text-[#141B34]">{m.movement_type}</td>
+                        <td className="py-3 px-4 font-bold text-[#3B6FD4]">{m.part_no}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{m.warehouse_name}</td>
+                        <td className="py-3 px-4 text-right font-bold text-[#141B34]">{m.quantity}</td>
+                        <td className="py-3 px-4 text-right text-[#7A839E]">{m.before_on_hand}</td>
+                        <td className="py-3 px-4 text-right font-semibold text-[#2FBF71]">{m.after_on_hand}</td>
+                        <td className="py-3 px-4 text-[#7A839E]">{m.reason || m.reference_id || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1122,27 +1122,27 @@ function StockAdjustmentModal({
   const projectedAvailable = Math.max(0, projectedOnHand - currentReserved);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-[#171918] border border-[#292E2A] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-[#292E2A] pb-3">
-          <h3 className="text-lg font-bold text-[#F5F7F4] flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-[#B8F23A]" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141B34]/40 backdrop-blur-sm p-4">
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lift">
+        <div className="flex items-center justify-between border-b border-[#E4E8F2] pb-3">
+          <h3 className="text-lg font-bold text-[#141B34] flex items-center gap-2">
+            <Sliders className="w-5 h-5 text-[#3B6FD4]" />
             Stock Adjustment
           </h3>
-          <button onClick={onClose} className="text-[#A5AEA8] hover:text-[#F5F7F4]">
+          <button onClick={onClose} className="text-[#7A839E] hover:text-[#141B34]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {error && <div className="p-3 bg-[#2D1616] border border-[#572727] text-[#F87171] text-xs rounded-lg">{error}</div>}
+        {error && <div className="p-3 bg-[#F7E0E0] border border-[#F4D4D5] text-[#E5484D] text-xs rounded-lg">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Warehouse</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Warehouse</label>
             <select
               value={warehouseId}
               onChange={(e) => setWarehouseId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -1153,11 +1153,11 @@ function StockAdjustmentModal({
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Product</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Product</label>
             <select
               value={productId}
               onChange={(e) => setProductId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -1169,11 +1169,11 @@ function StockAdjustmentModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[#A5AEA8] font-medium mb-1">Adjustment Direction</label>
+              <label className="block text-[#7A839E] font-medium mb-1">Adjustment Direction</label>
               <select
                 value={direction}
                 onChange={(e) => setDirection(e.target.value as 'INCREASE' | 'DECREASE')}
-                className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4] font-semibold"
+                className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34] font-semibold"
               >
                 <option value="INCREASE">INCREASE (+)</option>
                 <option value="DECREASE">DECREASE (-)</option>
@@ -1181,61 +1181,61 @@ function StockAdjustmentModal({
             </div>
 
             <div>
-              <label className="block text-[#A5AEA8] font-medium mb-1">Quantity</label>
+              <label className="block text-[#7A839E] font-medium mb-1">Quantity</label>
               <input
                 type="number"
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="e.g. 10"
-                className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4] font-bold"
+                className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34] font-bold"
                 required
               />
             </div>
           </div>
 
           {/* Stock Impact Preview */}
-          <div className="p-3 bg-[#1D211E] border border-[#292E2A] rounded-lg space-y-1">
-            <div className="text-[11px] font-bold text-[#B8F23A] uppercase tracking-wider mb-1">Stock Impact Calculation</div>
-            <div className="flex justify-between text-[#A5AEA8]">
+          <div className="p-3 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg space-y-1">
+            <div className="text-[11px] font-bold text-[#3B6FD4] uppercase tracking-wider mb-1">Stock Impact Calculation</div>
+            <div className="flex justify-between text-[#7A839E]">
               <span>Current On Hand:</span>
-              <span className="font-semibold text-[#F5F7F4]">{currentOnHand}</span>
+              <span className="font-semibold text-[#141B34]">{currentOnHand}</span>
             </div>
-            <div className="flex justify-between text-[#A5AEA8]">
+            <div className="flex justify-between text-[#7A839E]">
               <span>Reserved Quantity:</span>
-              <span className="font-semibold text-[#C084FC]">{currentReserved}</span>
+              <span className="font-semibold text-[#9333EA]">{currentReserved}</span>
             </div>
-            <div className="flex justify-between text-[#A5AEA8]">
+            <div className="flex justify-between text-[#7A839E]">
               <span>Current Available:</span>
-              <span className="font-semibold text-[#4ADE80]">{currentAvailable}</span>
+              <span className="font-semibold text-[#2FBF71]">{currentAvailable}</span>
             </div>
-            <div className="flex justify-between font-bold border-t border-[#292E2A] pt-1 mt-1 text-[#F5F7F4]">
+            <div className="flex justify-between font-bold border-t border-[#E4E8F2] pt-1 mt-1 text-[#141B34]">
               <span>Projected Available:</span>
-              <span className={projectedOnHand < currentReserved ? 'text-[#F87171]' : 'text-[#B8F23A]'}>
+              <span className={projectedOnHand < currentReserved ? 'text-[#E5484D]' : 'text-[#3B6FD4]'}>
                 {projectedAvailable}
               </span>
             </div>
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Reason</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Reason</label>
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
               required
             />
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Notes / Audit Ref</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Notes / Audit Ref</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Additional comments..."
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             />
           </div>
 
@@ -1243,14 +1243,14 @@ function StockAdjustmentModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-[#171918] border border-[#292E2A] text-[#A5AEA8] hover:text-[#F5F7F4] rounded-lg font-medium"
+              className="px-4 py-2 bg-[#FFFFFF] border border-[#E4E8F2] text-[#7A839E] hover:text-[#141B34] rounded-lg font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-[#B8F23A] text-[#101312] font-semibold rounded-lg hover:bg-[#a3db2e] disabled:opacity-50"
+              className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] font-semibold rounded-lg hover:bg-[#2F5CB8] disabled:opacity-50"
             >
               {submitting ? 'Applying...' : 'Confirm Adjustment'}
             </button>
@@ -1313,27 +1313,27 @@ function StockReturnModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-[#171918] border border-[#292E2A] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-[#292E2A] pb-3">
-          <h3 className="text-lg font-bold text-[#F5F7F4] flex items-center gap-2">
-            <RotateCcw className="w-5 h-5 text-[#60A5FA]" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141B34]/40 backdrop-blur-sm p-4">
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lift">
+        <div className="flex items-center justify-between border-b border-[#E4E8F2] pb-3">
+          <h3 className="text-lg font-bold text-[#141B34] flex items-center gap-2">
+            <RotateCcw className="w-5 h-5 text-[#3B6FD4]" />
             Record Stock Return
           </h3>
-          <button onClick={onClose} className="text-[#A5AEA8] hover:text-[#F5F7F4]">
+          <button onClick={onClose} className="text-[#7A839E] hover:text-[#141B34]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {error && <div className="p-3 bg-[#2D1616] border border-[#572727] text-[#F87171] text-xs rounded-lg">{error}</div>}
+        {error && <div className="p-3 bg-[#F7E0E0] border border-[#F4D4D5] text-[#E5484D] text-xs rounded-lg">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Destination Warehouse</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Destination Warehouse</label>
             <select
               value={warehouseId}
               onChange={(e) => setWarehouseId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -1344,11 +1344,11 @@ function StockReturnModal({
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Returned Product</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Returned Product</label>
             <select
               value={productId}
               onChange={(e) => setProductId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -1359,25 +1359,25 @@ function StockReturnModal({
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Returned Quantity</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Returned Quantity</label>
             <input
               type="number"
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="e.g. 5"
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4] font-bold text-sm"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34] font-bold text-sm"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[#A5AEA8] font-medium mb-1">Reference Type</label>
+              <label className="block text-[#7A839E] font-medium mb-1">Reference Type</label>
               <select
                 value={referenceType}
                 onChange={(e) => setReferenceType(e.target.value)}
-                className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+                className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
               >
                 <option value="SALE_REPORT">Sale Report</option>
                 <option value="INVOICE">Invoice</option>
@@ -1387,36 +1387,36 @@ function StockReturnModal({
             </div>
 
             <div>
-              <label className="block text-[#A5AEA8] font-medium mb-1">Reference ID / Number</label>
+              <label className="block text-[#7A839E] font-medium mb-1">Reference ID / Number</label>
               <input
                 type="text"
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
                 placeholder="e.g. SR-2026-001"
-                className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+                className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Reason for Return</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Reason for Return</label>
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
               required
             />
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Notes</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Notes</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Inspection notes or details..."
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             />
           </div>
 
@@ -1424,14 +1424,14 @@ function StockReturnModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-[#171918] border border-[#292E2A] text-[#A5AEA8] hover:text-[#F5F7F4] rounded-lg font-medium"
+              className="px-4 py-2 bg-[#FFFFFF] border border-[#E4E8F2] text-[#7A839E] hover:text-[#141B34] rounded-lg font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-[#60A5FA] text-[#101312] font-semibold rounded-lg hover:bg-[#3b82f6] disabled:opacity-50"
+              className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] font-semibold rounded-lg hover:bg-[#2563EB] disabled:opacity-50"
             >
               {submitting ? 'Recording...' : 'Confirm Return'}
             </button>
@@ -1531,28 +1531,28 @@ function WarehouseTransferModal({
   const destProjectedOnHand = destCurrentOnHand + qtyNum;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-[#171918] border border-[#292E2A] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-[#292E2A] pb-3">
-          <h3 className="text-lg font-bold text-[#F5F7F4] flex items-center gap-2">
-            <ArrowRightLeft className="w-5 h-5 text-[#B8F23A]" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#141B34]/40 backdrop-blur-sm p-4">
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lift">
+        <div className="flex items-center justify-between border-b border-[#E4E8F2] pb-3">
+          <h3 className="text-lg font-bold text-[#141B34] flex items-center gap-2">
+            <ArrowRightLeft className="w-5 h-5 text-[#3B6FD4]" />
             Warehouse Transfer
           </h3>
-          <button onClick={onClose} className="text-[#A5AEA8] hover:text-[#F5F7F4]">
+          <button onClick={onClose} className="text-[#7A839E] hover:text-[#141B34]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {error && <div className="p-3 bg-[#2D1616] border border-[#572727] text-[#F87171] text-xs rounded-lg">{error}</div>}
+        {error && <div className="p-3 bg-[#F7E0E0] border border-[#F4D4D5] text-[#E5484D] text-xs rounded-lg">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[#A5AEA8] font-medium mb-1">Source Warehouse</label>
+              <label className="block text-[#7A839E] font-medium mb-1">Source Warehouse</label>
               <select
                 value={sourceWarehouseId}
                 onChange={(e) => setSourceWarehouseId(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F87171] font-semibold"
+                className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#E5484D] font-semibold"
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -1563,11 +1563,11 @@ function WarehouseTransferModal({
             </div>
 
             <div>
-              <label className="block text-[#A5AEA8] font-medium mb-1">Destination Warehouse</label>
+              <label className="block text-[#7A839E] font-medium mb-1">Destination Warehouse</label>
               <select
                 value={destinationWarehouseId}
                 onChange={(e) => setDestinationWarehouseId(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#4ADE80] font-semibold"
+                className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#2FBF71] font-semibold"
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -1579,11 +1579,11 @@ function WarehouseTransferModal({
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Product</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Product</label>
             <select
               value={productId}
               onChange={(e) => setProductId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -1594,60 +1594,60 @@ function WarehouseTransferModal({
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Transfer Quantity</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Transfer Quantity</label>
             <input
               type="number"
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="e.g. 20"
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4] font-bold text-sm"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34] font-bold text-sm"
               required
             />
           </div>
 
           {/* Pre-Impact Preview */}
-          <div className="p-3 bg-[#1D211E] border border-[#292E2A] rounded-lg space-y-1">
-            <div className="text-[11px] font-bold text-[#B8F23A] uppercase tracking-wider mb-1">Transfer Pre-Impact Check</div>
-            <div className="flex justify-between text-[#A5AEA8]">
+          <div className="p-3 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg space-y-1">
+            <div className="text-[11px] font-bold text-[#3B6FD4] uppercase tracking-wider mb-1">Transfer Pre-Impact Check</div>
+            <div className="flex justify-between text-[#7A839E]">
               <span>Source Available Stock:</span>
-              <span className="font-semibold text-[#F5F7F4]">{srcCurrentAvailable}</span>
+              <span className="font-semibold text-[#141B34]">{srcCurrentAvailable}</span>
             </div>
-            <div className="flex justify-between text-[#A5AEA8]">
+            <div className="flex justify-between text-[#7A839E]">
               <span>Source Reserved Stock (Untouched):</span>
-              <span className="font-semibold text-[#C084FC]">{srcStock?.reservedQuantity || 0}</span>
+              <span className="font-semibold text-[#9333EA]">{srcStock?.reservedQuantity || 0}</span>
             </div>
-            <div className="flex justify-between text-[#A5AEA8]">
+            <div className="flex justify-between text-[#7A839E]">
               <span>Projected Source Available:</span>
-              <span className={srcProjectedAvailable < 0 ? 'text-[#F87171] font-bold' : 'text-[#4ADE80] font-semibold'}>
+              <span className={srcProjectedAvailable < 0 ? 'text-[#E5484D] font-bold' : 'text-[#2FBF71] font-semibold'}>
                 {srcProjectedAvailable}
               </span>
             </div>
-            <div className="flex justify-between text-[#A5AEA8] border-t border-[#292E2A] pt-1 mt-1">
+            <div className="flex justify-between text-[#7A839E] border-t border-[#E4E8F2] pt-1 mt-1">
               <span>Projected Dest On-Hand:</span>
-              <span className="font-semibold text-[#B8F23A]">{destProjectedOnHand}</span>
+              <span className="font-semibold text-[#3B6FD4]">{destProjectedOnHand}</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Transfer Reference</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Transfer Reference</label>
             <input
               type="text"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder="e.g. TRF-REQ-882"
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             />
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Notes</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Notes</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Internal notes or dispatch details..."
-              className="w-full px-3 py-2 bg-[#1D211E] border border-[#292E2A] rounded-lg text-[#F5F7F4]"
+              className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E4E8F2] rounded-lg text-[#141B34]"
             />
           </div>
 
@@ -1655,14 +1655,14 @@ function WarehouseTransferModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-[#171918] border border-[#292E2A] text-[#A5AEA8] hover:text-[#F5F7F4] rounded-lg font-medium"
+              className="px-4 py-2 bg-[#FFFFFF] border border-[#E4E8F2] text-[#7A839E] hover:text-[#141B34] rounded-lg font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-[#B8F23A] text-[#101312] font-semibold rounded-lg hover:bg-[#a3db2e] disabled:opacity-50"
+              className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] font-semibold rounded-lg hover:bg-[#2F5CB8] disabled:opacity-50"
             >
               {submitting ? 'Transferring...' : 'Execute Transfer'}
             </button>

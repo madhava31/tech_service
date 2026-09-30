@@ -37,12 +37,12 @@ function matchesDate(dateStr: string | null | undefined, range: { start: string;
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  draft: '#A5AEA8',
-  sent: '#708D31',
-  accepted: '#B8F23A',
-  rejected: '#E25757',
-  po_created: '#7E95FF',
-  pi_created: '#7E95FF',
+  draft: '#7A839E',
+  sent: '#6B78D6',
+  accepted: '#3B6FD4',
+  rejected: '#E5484D',
+  po_created: '#6B78D6',
+  pi_created: '#6B78D6',
 };
 
 export default function Quotations() {
@@ -131,14 +131,14 @@ export default function Quotations() {
   }, [rows]);
 
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 bg-[#101312] text-[#F5F7F4] min-h-screen">
+    <div className="p-4 md:p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Quotations
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#A5AEA8]">
+          <p className="margin-0 text-[13.5px] text-[#7A839E]">
             Every quotation with its stage, value and follow-up position.
           </p>
         </div>
@@ -146,13 +146,13 @@ export default function Quotations() {
           <a
             href={api.export.quotationsUrl(statusFilter ? { status: statusFilter } : undefined)}
             download
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#292E2A] text-[#34D399] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#1c211e] transition-colors no-underline cursor-pointer"
+            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#E4E8F2] text-[#2FBF71] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#F7F8FC] transition-colors no-underline cursor-pointer"
           >
             Export Excel
           </a>
           <Link
             to="/quotations/new"
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#3a4a1f] text-[#B8F23A] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#1b2013] transition-colors no-underline"
+            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#E3EAF7] transition-colors no-underline"
           >
             + New quotation
           </Link>
@@ -160,16 +160,16 @@ export default function Quotations() {
       </div>
 
       {error && (
-        <div className="p-3 rounded-[10px] border border-[#4a2a2a] bg-[#1b1414] text-[#E25757] text-[12.5px]">
+        <div className="p-3 rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] text-[#E5484D] text-[12.5px]">
           {error}
         </div>
       )}
 
       {/* Main Table Container Card */}
-      <section className="bg-[#171918] border border-[#292E2A] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4 shadow-xl">
+      <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4 shadow-card">
         
         {/* Stage Filter Chips & Expandable Search Toggle */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#20251f] pb-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
           {/* Status Stage Chips */}
           <div className="flex gap-2 flex-wrap items-center">
             {[
@@ -188,12 +188,12 @@ export default function Quotations() {
                   onClick={() => setStatusFilter(chip.key)}
                   className={`inline-flex items-center gap-2 h-[32px] px-3 rounded-[8px] text-[12px] cursor-pointer transition-colors border ${
                     active
-                      ? 'bg-[#23271f] border-[#3a4a1f] text-[#B8F23A] font-semibold'
-                      : 'bg-transparent border-[#292E2A] text-[#A5AEA8] hover:border-[#3a4237]'
+                      ? 'bg-[#F7F8FC] border-[#D9E2F4] text-[#3B6FD4] font-semibold'
+                      : 'bg-transparent border-[#E4E8F2] text-[#7A839E] hover:border-[#D4DAEA]'
                   }`}
                 >
                   <span>{chip.name}</span>
-                  <span className="text-[#6d756f] text-[11px]">{count}</span>
+                  <span className="text-[#A8AEC4] text-[11px]">{count}</span>
                 </button>
               );
             })}
@@ -209,19 +209,19 @@ export default function Quotations() {
               aria-label={isSearchOpen ? 'Hide search options' : 'Show search options'}
               className={`inline-flex items-center gap-2 h-[32px] px-3.5 rounded-[8px] text-[12px] font-semibold cursor-pointer transition-all border ${
                 isSearchOpen || hasSearchFilters
-                  ? 'bg-[#1D211E] border-[#B8F23A] text-[#B8F23A] shadow-xs'
-                  : 'bg-[#101312] border-[#292E2A] text-[#F5F7F4] hover:border-[#3a4237]'
+                  ? 'bg-[#F7F8FC] border-[#3B6FD4] text-[#3B6FD4] shadow-xs'
+                  : 'bg-[#F4F6FC] border-[#E4E8F2] text-[#141B34] hover:border-[#D4DAEA]'
               }`}
             >
-              <Search className="w-3.5 h-3.5 text-[#B8F23A]" />
+              <Search className="w-3.5 h-3.5 text-[#3B6FD4]" />
               <span>Search & Filter</span>
               {hasSearchFilters && (
-                <span className="w-2 h-2 rounded-full bg-[#B8F23A] animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-[#3B6FD4] animate-pulse" />
               )}
               {isSearchOpen ? (
-                <ChevronUp className="w-3.5 h-3.5 ml-0.5 text-[#B8F23A]" />
+                <ChevronUp className="w-3.5 h-3.5 ml-0.5 text-[#3B6FD4]" />
               ) : (
-                <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-[#A5AEA8]" />
+                <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-[#7A839E]" />
               )}
             </button>
 
@@ -229,14 +229,14 @@ export default function Quotations() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] bg-[#1D211E] border border-[#292E2A] text-[#A5AEA8] text-[12px] hover:text-[#F5F7F4] hover:border-[#3a4237] cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] text-[12px] hover:text-[#141B34] hover:border-[#D4DAEA] cursor-pointer transition-colors"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset All</span>
               </button>
             )}
 
-            <span className="text-[11.5px] text-[#6d756f] ml-1">
+            <span className="text-[11.5px] text-[#A8AEC4] ml-1">
               Showing {filtered.length} of {rows.length}
             </span>
           </div>
@@ -246,17 +246,17 @@ export default function Quotations() {
         {isSearchOpen && (
           <div
             id="quotation-search-panel"
-            className="bg-[#101312] border border-[#292E2A] rounded-[12px] p-4 transition-all duration-200 animate-in fade-in slide-in-from-top-2 shadow-2xl"
+            className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-[12px] p-4 transition-all duration-200 animate-in fade-in slide-in-from-top-2 shadow-lift"
           >
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#20251f]">
-              <div className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#A5AEA8]">
-                <Filter className="w-3.5 h-3.5 text-[#B8F23A]" />
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#EEF1F9]">
+              <div className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#7A839E]">
+                <Filter className="w-3.5 h-3.5 text-[#3B6FD4]" />
                 <span>Advanced Quotation Search</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(false)}
-                className="text-[#6d756f] hover:text-[#F5F7F4] p-1 rounded-md transition-colors"
+                className="text-[#A8AEC4] hover:text-[#141B34] p-1 rounded-md transition-colors"
                 aria-label="Close search panel"
               >
                 <X className="w-4 h-4" />
@@ -267,7 +267,7 @@ export default function Quotations() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               {/* 1. Search Quotation Number */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6d756f] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
                   Quotation No.
                 </label>
                 <input
@@ -275,13 +275,13 @@ export default function Quotations() {
                   placeholder="e.g. TSQOT2627/1"
                   value={searchNumber}
                   onChange={(e) => setSearchNumber(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[12.5px] outline-none focus:border-[#B8F23A] placeholder-[#6d756f] transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] transition-colors"
                 />
               </div>
 
               {/* 2. Search Customer Company */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6d756f] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
                   Customer / Company
                 </label>
                 <input
@@ -289,19 +289,19 @@ export default function Quotations() {
                   placeholder="e.g. Basil"
                   value={searchCompany}
                   onChange={(e) => setSearchCompany(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[12.5px] outline-none focus:border-[#B8F23A] placeholder-[#6d756f] transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] transition-colors"
                 />
               </div>
 
               {/* 3. Date Range */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6d756f] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
                   Time Period
                 </label>
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value as DateFilter)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[12.5px] outline-none focus:border-[#B8F23A] cursor-pointer transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] cursor-pointer transition-colors"
                 >
                   <option value="all">All Dates</option>
                   <option value="today">Today</option>
@@ -312,7 +312,7 @@ export default function Quotations() {
 
               {/* 4. Min Amount */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6d756f] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
                   Min Amount (₹)
                 </label>
                 <input
@@ -320,13 +320,13 @@ export default function Quotations() {
                   placeholder="Min ₹"
                   value={minAmount}
                   onChange={(e) => setMinAmount(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[12.5px] outline-none focus:border-[#B8F23A] placeholder-[#6d756f] tabular-nums transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] tabular-nums transition-colors"
                 />
               </div>
 
               {/* 5. Max Amount */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6d756f] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
                   Max Amount (₹)
                 </label>
                 <input
@@ -334,21 +334,21 @@ export default function Quotations() {
                   placeholder="Max ₹"
                   value={maxAmount}
                   onChange={(e) => setMaxAmount(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[12.5px] outline-none focus:border-[#B8F23A] placeholder-[#6d756f] tabular-nums transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] tabular-nums transition-colors"
                 />
               </div>
             </div>
 
             {/* Panel Footer / Clear Action */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#20251f]">
-              <span className="text-[11.5px] text-[#A5AEA8]">
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#EEF1F9]">
+              <span className="text-[11.5px] text-[#7A839E]">
                 {filtered.length} matching quotations
               </span>
               {hasSearchFilters && (
                 <button
                   type="button"
                   onClick={clearSearchPanelFilters}
-                  className="px-3 py-1 bg-[#1D211E] hover:bg-[#292E2A] text-[#E25757] border border-[#E25757]/30 text-xs font-semibold rounded-lg transition-colors inline-flex items-center space-x-1"
+                  className="px-3 py-1 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#E5484D] border border-[#E5484D]/30 text-xs font-semibold rounded-lg transition-colors inline-flex items-center space-x-1"
                 >
                   <X className="w-3 h-3" />
                   <span>Clear Search Filters</span>
@@ -362,46 +362,46 @@ export default function Quotations() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
             <thead>
-              <tr className="border-b border-[#20251f]">
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+              <tr className="border-b border-[#EEF1F9]">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   QUOTATION
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   CUSTOMER
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   DATE
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   AMOUNT
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   STAGE
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   ACTION
                 </th>
               </tr>
             </thead>
             <tbody>
               {paged.map((q) => {
-                const color = STAGE_COLORS[q.status] || '#A5AEA8';
+                const color = STAGE_COLORS[q.status] || '#7A839E';
                 return (
                   <tr
                     key={q.id}
-                    className="border-b border-[#1a1f1c] hover:bg-[#1a1e1c] transition-colors"
+                    className="border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors"
                   >
                     <td className="p-[11px_10px]">
                       <Link
                         to={`/quotations/${q.id}`}
-                        className="text-[#B8F23A] hover:underline font-medium"
+                        className="text-[#3B6FD4] hover:underline font-medium"
                       >
                         {q.number}
                       </Link>
                     </td>
-                    <td className="p-[11px_10px] text-[#F5F7F4]">{q.company_name || '—'}</td>
-                    <td className="p-[11px_10px] text-[#A5AEA8]">{q.date}</td>
-                    <td className="p-[11px_10px] text-right font-medium text-[#F5F7F4]">
+                    <td className="p-[11px_10px] text-[#141B34]">{q.company_name || '—'}</td>
+                    <td className="p-[11px_10px] text-[#7A839E]">{q.date}</td>
+                    <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
                       ₹{Number(q.total || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                     </td>
                     <td className="p-[11px_10px]">
@@ -413,7 +413,7 @@ export default function Quotations() {
                     <td className="p-[11px_10px] text-right">
                       <Link
                         to={`/quotations/${q.id}`}
-                        className="text-[12px] text-[#A5AEA8] hover:text-[#B8F23A] hover:underline"
+                        className="text-[12px] text-[#7A839E] hover:text-[#3B6FD4] hover:underline"
                       >
                         View →
                       </Link>
@@ -423,7 +423,7 @@ export default function Quotations() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-[#A5AEA8] text-[13px]">
+                  <td colSpan={6} className="text-center py-8 text-[#7A839E] text-[13px]">
                     No quotations found matching your search criteria.
                   </td>
                 </tr>

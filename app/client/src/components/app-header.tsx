@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../auth';
-import { useNavigate } from 'react-router-dom';
 import { GlobalSearchModal } from './GlobalSearchModal';
+import {
+  SearchIcon,
+  RefreshCwIcon,
+  CalendarDaysIcon,
+  BellIcon,
+  ChevronDownIcon,
+  CheckIcon,
+  MenuIcon,
+  LogOutIcon,
+} from 'lucide-react';
 import {
   getDateRangePresets,
   DATE_RANGE_EVENT,
@@ -18,7 +27,6 @@ export function AppHeader({
   onRefresh?: () => void;
 }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
@@ -80,70 +88,67 @@ export function AppHeader({
     if (onRefresh) onRefresh();
   };
 
+  const iconBtn =
+    'w-[38px] h-[38px] rounded-full bg-white border border-[#E4E8F2] text-[#7A839E] hover:text-[#3B6FD4] hover:border-[#CBD3E6] cursor-pointer grid place-items-center transition-colors shadow-card';
+
   return (
     <>
-      <header className="sticky top-0 z-40 flex items-center gap-3.5 px-6 py-3 bg-[rgba(16,19,18,0.86)] backdrop-blur-md border-b border-[#1c211e] select-none">
-        {/* Mobile Toggle Button */}
+      <header className="sticky top-0 z-40 flex items-center gap-3 px-4 tablet-lg:px-6 py-3 bg-[rgba(244,246,252,0.72)] backdrop-blur-xl select-none">
+        {/* Mobile nav toggle */}
         <button
           type="button"
           data-navtoggle="1"
           aria-label="Open navigation"
           onClick={onMobileToggle}
-          className="tablet-lg:hidden inline-flex items-center justify-center w-[34px] h-[34px] rounded-[9px] bg-[#171918] border border-[#292E2A] text-[#A5AEA8] hover:text-[#F5F7F4] hover:border-[#3a4237] cursor-pointer shrink-0 transition-colors"
+          className={`tablet-lg:hidden shrink-0 ${iconBtn}`}
         >
-          ≡
+          <MenuIcon className="size-4" />
         </button>
 
-        {/* Global Command Center Search Input Button */}
-        <div className="flex-1 min-w-0 max-w-[480px]">
+        {/* Global search */}
+        <div className="flex-1 min-w-0 max-w-[520px]">
           <button
             type="button"
             onClick={() => setSearchModalOpen(true)}
-            className="w-full flex items-center justify-between h-[36px] px-3 rounded-[9px] bg-[#171918] border border-[#292E2A] hover:border-[#B8F23A]/60 text-[#A5AEA8] hover:text-[#F5F7F4] cursor-pointer transition-all duration-150 group shadow-sm"
+            className="w-full flex items-center justify-between h-[38px] px-4 rounded-full bg-white border border-[#E4E8F2] hover:border-[#CBD3E6] text-[#7A839E] cursor-pointer transition-all duration-150 group shadow-card"
           >
-            <div className="flex items-center gap-2.5 truncate">
-              <span className="text-[#B8F23A] text-sm">🔍</span>
-              <span className="text-xs font-medium text-[#A5AEA8] group-hover:text-[#F5F7F4] truncate">
-                Search anything... (Products, Stock, QTN, PO, PI, Customers)
+            <span className="flex items-center gap-2.5 truncate">
+              <SearchIcon className="size-4 text-[#3B6FD4] shrink-0" />
+              <span className="text-xs font-medium text-[#7A839E] group-hover:text-[#141B34] truncate">
+                Search products, stock, QTN, PO, PI, customers…
               </span>
-            </div>
-            <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-[#A5AEA8] bg-[#101312] px-2 py-0.5 rounded border border-[#292E2A]">
+            </span>
+            <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-[#7A839E] bg-[#F4F6FC] px-2 py-0.5 rounded-md border border-[#E4E8F2] shrink-0">
               <span>⌘</span> <span>K</span>
             </kbd>
           </button>
         </div>
 
-        {/* Header Actions & Controls */}
+        {/* Actions */}
         <div className="ml-auto flex items-center gap-2">
-          {/* Refresh Button */}
-          <button
-            type="button"
-            aria-label="Refresh data"
-            onClick={handleRefreshClick}
-            className="w-[34px] h-[34px] rounded-[9px] bg-[#171918] border border-[#292E2A] text-[#A5AEA8] hover:text-[#F5F7F4] hover:border-[#3a4237] cursor-pointer grid place-items-center transition-colors"
-          >
-            <span ref={refreshRef} aria-hidden="true" className="block text-[14px] leading-none">
-              ⟳
+          <button type="button" aria-label="Refresh data" onClick={handleRefreshClick} className={iconBtn}>
+            <span ref={refreshRef} aria-hidden="true" className="block leading-none">
+              <RefreshCwIcon className="size-4" />
             </span>
           </button>
 
-          {/* Date Range Selector Pill with Dropdown */}
+          {/* Date range */}
           <div className="relative hidden md:block" ref={dateMenuRef}>
             <button
               type="button"
               onClick={() => setDateRangeOpen(!dateRangeOpen)}
-              className="flex items-center gap-2 h-[34px] px-3 rounded-[9px] bg-[#171918] border border-[#292E2A] hover:border-[#3a4237] text-[12.5px] text-[#A5AEA8] hover:text-[#F5F7F4] cursor-pointer transition-colors"
+              className="flex items-center gap-2 h-[38px] px-4 rounded-full bg-white border border-[#E4E8F2] hover:border-[#CBD3E6] text-[12.5px] text-[#7A839E] cursor-pointer transition-colors shadow-card"
               title="Click to change date range"
             >
-              <span aria-hidden="true">▤</span>
-              <span className="font-medium text-[#F5F7F4]">{selectedRange.label}</span>
-              <span className="text-[9px] text-[#A5AEA8]">▼</span>
+              <CalendarDaysIcon className="size-4 text-[#3B6FD4]" />
+              <span className="font-bold text-[#141B34]">{selectedRange.label}</span>
+              <ChevronDownIcon className={`size-3.5 transition-transform ${dateRangeOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {dateRangeOpen && (
-              <div className="absolute right-0 top-11 z-50 min-w-[180px] p-1.5 rounded-[10px] bg-[#1D211E] border border-[#333c31] shadow-[0_18px_40px_rgba(0,0,0,0.55)] animate-in fade-in duration-150">
-                <div className="px-2 py-1 border-b border-[#292E2A] mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#A5AEA8]">Filter by Period</span>
+              <div className="absolute right-0 top-12 z-50 min-w-[190px] p-1.5 rounded-card bg-white border border-[#E4E8F2] shadow-lift animate-in fade-in duration-150">
+                <div className="px-2 py-1 border-b border-[#E4E8F2] mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#A8AEC4]">Filter by Period</span>
                 </div>
                 <div className="space-y-0.5">
                   {presets.map((p) => {
@@ -153,14 +158,14 @@ export function AppHeader({
                         key={p.id}
                         type="button"
                         onClick={() => handleSelectPreset(p)}
-                        className={`w-full text-left px-2 py-1.5 rounded-[7px] text-[12px] font-medium transition-colors flex items-center justify-between ${
+                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12px] font-semibold transition-colors flex items-center justify-between ${
                           isActive
-                            ? 'bg-[#171918] text-[#B8F23A] font-bold border border-[#292E2A]'
-                            : 'text-[#A5AEA8] hover:text-[#F5F7F4] hover:bg-[#292E2A]/50'
+                            ? 'bg-[#EEF1F9] text-[#3B6FD4] font-bold'
+                            : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F7F8FC]'
                         }`}
                       >
                         <span>{p.label}</span>
-                        {isActive && <span className="text-[#B8F23A] text-xs">✓</span>}
+                        {isActive && <CheckIcon className="size-3.5 text-[#3B6FD4]" />}
                       </button>
                     );
                   })}
@@ -169,37 +174,32 @@ export function AppHeader({
             )}
           </div>
 
-          {/* Notifications Button */}
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative w-[34px] h-[34px] rounded-[9px] bg-[#171918] border border-[#292E2A] text-[#A5AEA8] hover:text-[#F5F7F4] hover:border-[#3a4237] cursor-pointer grid place-items-center transition-colors"
-          >
-            <span aria-hidden="true">◔</span>
-            <span className="absolute top-[6px] right-[6px] w-[6px] h-[6px] rounded-full bg-[#B8F23A]" />
+          {/* Notifications */}
+          <button type="button" aria-label="Notifications" className={`relative ${iconBtn}`}>
+            <BellIcon className="size-4" />
+            <span className="absolute top-[8px] right-[9px] w-[7px] h-[7px] rounded-full bg-[#E5484D] ring-2 ring-white" />
           </button>
 
-          {/* User Profile Dropdown Button */}
+          {/* User */}
           {user && (
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 h-[34px] pl-1 pr-2.5 rounded-[9px] bg-[#171918] border border-[#292E2A] hover:border-[#3a4237] text-[#F5F7F4] text-[12.5px] cursor-pointer transition-colors"
+                className="flex items-center gap-2 h-[38px] pl-1 pr-3 rounded-full bg-white border border-[#E4E8F2] hover:border-[#CBD3E6] text-[#141B34] text-[12.5px] cursor-pointer transition-colors shadow-card"
               >
-                <span className="w-[26px] h-[26px] rounded-[7px] bg-[#1D211E] text-[#B8F23A] grid place-items-center text-[11px] font-bold">
+                <span className="w-[30px] h-[30px] rounded-full bg-[#3B6FD4] text-white grid place-items-center text-[11px] font-extrabold">
                   {getInitials(user.username)}
                 </span>
-                <span className="hidden sm:inline font-medium truncate max-w-[100px]">
-                  {user.username}
-                </span>
+                <span className="hidden sm:inline font-bold truncate max-w-[100px]">{user.username}</span>
+                <ChevronDownIcon className={`size-3.5 text-[#A8AEC4] transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 top-11 z-50 min-w-[160px] p-1.5 rounded-[10px] bg-[#1D211E] border border-[#333c31] shadow-[0_18px_40px_rgba(0,0,0,0.55)] animate-in fade-in duration-150">
-                  <div className="px-2 py-1.5 border-b border-[#292E2A] mb-1">
-                    <p className="text-[12px] font-bold text-[#F5F7F4]">{user.username}</p>
-                    <p className="text-[10px] text-[#A5AEA8] uppercase tracking-wider">{user.role}</p>
+                <div className="absolute right-0 top-12 z-50 min-w-[180px] p-1.5 rounded-card bg-white border border-[#E4E8F2] shadow-lift animate-in fade-in duration-150">
+                  <div className="px-2.5 py-2 border-b border-[#E4E8F2] mb-1">
+                    <p className="text-[12.5px] font-bold text-[#141B34]">{user.username}</p>
+                    <p className="text-[10px] text-[#A8AEC4] uppercase tracking-wider font-bold">{user.role}</p>
                   </div>
                   <button
                     type="button"
@@ -207,8 +207,9 @@ export function AppHeader({
                       setUserMenuOpen(false);
                       logout();
                     }}
-                    className="w-full text-left px-2 py-1.5 text-[12.5px] text-[#E25757] hover:bg-[#23271f] rounded-[7px] transition-colors"
+                    className="w-full flex items-center gap-2 text-left px-2.5 py-2 text-[12.5px] font-semibold text-[#C8323A] hover:bg-[#FCEBEC] rounded-lg transition-colors"
                   >
+                    <LogOutIcon className="size-3.5" />
                     Sign Out
                   </button>
                 </div>
@@ -218,7 +219,7 @@ export function AppHeader({
         </div>
       </header>
 
-      {/* Global Command Palette Overlay Modal */}
+      {/* Global command palette */}
       <GlobalSearchModal isOpen={searchModalOpen} onClose={() => setSearchModalOpen(false)} />
     </>
   );

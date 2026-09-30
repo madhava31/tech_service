@@ -22,7 +22,7 @@ export function RevenueLineChart({
   const containerRef = useRef<HTMLDivElement>(null);
 
   if (!data || data.length === 0) {
-    return <p className="text-xs text-[#A5AEA8] py-8 text-center">No revenue analytics data recorded.</p>;
+    return <p className="text-xs text-[#7A839E] py-8 text-center">No revenue analytics data recorded.</p>;
   }
 
   const height = 260;
@@ -79,21 +79,21 @@ export function RevenueLineChart({
       >
         <defs>
           <linearGradient id="limeRevenueGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#B8F23A" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#B8F23A" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="#3B6FD4" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#3B6FD4" stopOpacity="0.0" />
           </linearGradient>
         </defs>
 
         {/* Minimal Dark Gridlines */}
-        <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="#292E2A" strokeDasharray="3 3" />
-        <line x1={padding.left} y1={padding.top + innerHeight / 2} x2={width - padding.right} y2={padding.top + innerHeight / 2} stroke="#292E2A" strokeDasharray="3 3" />
-        <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#292E2A" />
+        <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="#E4E8F2" strokeDasharray="3 3" />
+        <line x1={padding.left} y1={padding.top + innerHeight / 2} x2={width - padding.right} y2={padding.top + innerHeight / 2} stroke="#E4E8F2" strokeDasharray="3 3" />
+        <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#E4E8F2" />
 
         {/* Area Gradient Fill */}
         <path d={areaD} fill="url(#limeRevenueGrad)" className="revenue-area-fill" />
 
         {/* Lime Primary Line */}
-        <path d={pathD} fill="none" stroke="#B8F23A" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
+        <path d={pathD} fill="none" stroke="#3B6FD4" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
 
         {/* Data Nodes */}
         {points.map((pt, i) => (
@@ -102,8 +102,8 @@ export function RevenueLineChart({
             cx={pt.x}
             cy={pt.y}
             r={hoverIndex === i ? 6 : 3.5}
-            fill={hoverIndex === i ? '#B8F23A' : '#171918'}
-            stroke="#B8F23A"
+            fill={hoverIndex === i ? '#3B6FD4' : '#FFFFFF'}
+            stroke="#3B6FD4"
             strokeWidth={hoverIndex === i ? 2.5 : 2}
             className="transition-all duration-150"
           />
@@ -117,20 +117,20 @@ export function RevenueLineChart({
               y1={padding.top}
               x2={activePoint.x}
               y2={height - padding.bottom}
-              stroke="#B8F23A"
+              stroke="#3B6FD4"
               strokeDasharray="4 4"
               strokeWidth="1.5"
               opacity="0.6"
             />
-            <circle cx={activePoint.x} cy={activePoint.y} r={7} fill="#B8F23A" stroke="#101312" strokeWidth="2.5" />
+            <circle cx={activePoint.x} cy={activePoint.y} r={7} fill="#3B6FD4" stroke="#F4F6FC" strokeWidth="2.5" />
           </g>
         )}
       </svg>
 
       {/* Axis Labels */}
-      <div className="flex justify-between mt-2 px-1 text-[11px] font-semibold text-[#A5AEA8]">
+      <div className="flex justify-between mt-2 px-1 text-[11px] font-semibold text-[#7A839E]">
         {data.map((d, i) => (
-          <span key={i} className={hoverIndex === i ? 'text-[#B8F23A] font-bold' : ''}>
+          <span key={i} className={hoverIndex === i ? 'text-[#3B6FD4] font-bold' : ''}>
             {d.label}
           </span>
         ))}
@@ -139,14 +139,14 @@ export function RevenueLineChart({
       {/* Cursor Tooltip */}
       {activePoint && (
         <div
-          className="absolute bg-[#0B0D0D] text-white px-3 py-2 rounded-lg text-xs font-bold border border-[#292E2A] shadow-xl pointer-events-none z-30 whitespace-nowrap transition-all duration-75"
+          className="absolute bg-[#141B34] text-white px-3 py-2 rounded-lg text-xs font-bold border border-[#E4E8F2] shadow-card pointer-events-none z-30 whitespace-nowrap transition-all duration-75"
           style={{
             left: `${mousePos.x}px`,
             top: `${mousePos.y - 45}px`,
             transform: 'translate(-50%, -100%)',
           }}
         >
-          <div className="text-[#B8F23A] text-[10px] uppercase tracking-wider">{activePoint.label}</div>
+          <div className="text-[#3B6FD4] text-[10px] uppercase tracking-wider">{activePoint.label}</div>
           <div className="text-sm mt-0.5">{formatValue(activePoint.value)}</div>
         </div>
       )}

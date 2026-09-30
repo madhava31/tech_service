@@ -205,30 +205,30 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 flex items-start justify-center pt-12 sm:pt-20 px-4 animate-fadeIn"
+      className="fixed inset-0 bg-[#141B34]/45 backdrop-blur-xs z-50 flex items-start justify-center pt-12 sm:pt-20 px-4 animate-fadeIn"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[#171918] border border-[#292E2A] rounded-xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl max-w-2xl w-full shadow-lift overflow-hidden flex flex-col max-h-[85vh]">
         {/* Search Header */}
-        <div className="p-4 border-b border-[#292E2A] flex items-center gap-3 bg-[#101312]">
-          <span className="text-xl text-[#B8F23A]">🔍</span>
+        <div className="p-4 border-b border-[#E4E8F2] flex items-center gap-3 bg-[#F4F6FC]">
+          <span className="text-xl text-[#3B6FD4]">🔍</span>
           <input
             ref={inputRef}
             type="text"
-            className="w-full bg-transparent text-[#F5F7F4] placeholder-[#A5AEA8] outline-none text-sm sm:text-base font-medium"
+            className="w-full bg-transparent text-[#141B34] placeholder-[#7A839E] outline-none text-sm sm:text-base font-medium"
             placeholder="Search anything (e.g. 2ml, 2ml stock, QTN/2627/0001, AIC, PO/2627/0001)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          {loading && <span className="text-xs text-[#B8F23A] animate-spin font-mono">⏳</span>}
+          {loading && <span className="text-xs text-[#3B6FD4] animate-spin font-mono">⏳</span>}
           {query && (
-            <button onClick={() => setQuery('')} className="text-[#A5AEA8] hover:text-[#F5F7F4] text-xs font-bold px-2 py-0.5 rounded bg-[#1D211E]">
+            <button onClick={() => setQuery('')} className="text-[#7A839E] hover:text-[#141B34] text-xs font-bold px-2 py-0.5 rounded bg-[#F7F8FC]">
               Clear
             </button>
           )}
-          <span className="text-[10px] font-mono text-[#A5AEA8] bg-[#1D211E] px-2 py-1 rounded border border-[#292E2A] shrink-0">
+          <span className="text-[10px] font-mono text-[#7A839E] bg-[#F7F8FC] px-2 py-1 rounded border border-[#E4E8F2] shrink-0">
             ESC
           </span>
         </div>
@@ -240,9 +240,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
             <div className="space-y-4 py-2">
               {recentSearches.length > 0 && (
                 <div>
-                  <div className="flex justify-between items-center text-[10px] font-bold text-[#A5AEA8] uppercase tracking-wider mb-2 px-2">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-[#7A839E] uppercase tracking-wider mb-2 px-2">
                     <span>Recent Searches</span>
-                    <button onClick={clearRecentSearches} className="text-[#E25757] hover:underline text-[10px]">
+                    <button onClick={clearRecentSearches} className="text-[#E5484D] hover:underline text-[10px]">
                       Clear All
                     </button>
                   </div>
@@ -251,7 +251,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                       <button
                         key={idx}
                         onClick={() => setQuery(s)}
-                        className="text-xs text-[#F5F7F4] bg-[#1D211E] border border-[#292E2A] hover:border-[#333C31] hover:bg-[#292E2A] px-3 py-1 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="text-xs text-[#141B34] bg-[#F7F8FC] border border-[#E4E8F2] hover:border-[#D4DAEA] hover:bg-[#E4E8F2] px-3 py-1 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <span>🕒</span> {s}
                       </button>
@@ -260,15 +260,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                 </div>
               )}
 
-              <div className="bg-[#101312] border border-[#292E2A] p-4 rounded-xl text-xs space-y-2">
-                <div className="font-bold text-[#B8F23A] uppercase tracking-wider text-[10px]">💡 Smart Search Tips</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#A5AEA8]">
-                  <div><strong className="text-[#F5F7F4]">"2ml"</strong> → Product search</div>
-                  <div><strong className="text-[#F5F7F4]">"2ml stock"</strong> → Direct stock inventory</div>
-                  <div><strong className="text-[#F5F7F4]">"QTN/2627/0001"</strong> → Quotation detail</div>
-                  <div><strong className="text-[#F5F7F4]">"AIC"</strong> → Customer 360 page</div>
-                  <div><strong className="text-[#F5F7F4]">"PO/2627/0001"</strong> → Purchase order detail</div>
-                  <div><strong className="text-[#F5F7F4]">"overdue AIC"</strong> → Customer overdue followups</div>
+              <div className="bg-[#F4F6FC] border border-[#E4E8F2] p-4 rounded-xl text-xs space-y-2">
+                <div className="font-bold text-[#3B6FD4] uppercase tracking-wider text-[10px]">💡 Smart Search Tips</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#7A839E]">
+                  <div><strong className="text-[#141B34]">"2ml"</strong> → Product search</div>
+                  <div><strong className="text-[#141B34]">"2ml stock"</strong> → Direct stock inventory</div>
+                  <div><strong className="text-[#141B34]">"QTN/2627/0001"</strong> → Quotation detail</div>
+                  <div><strong className="text-[#141B34]">"AIC"</strong> → Customer 360 page</div>
+                  <div><strong className="text-[#141B34]">"PO/2627/0001"</strong> → Purchase order detail</div>
+                  <div><strong className="text-[#141B34]">"overdue AIC"</strong> → Customer overdue followups</div>
                 </div>
               </div>
             </div>
@@ -276,15 +276,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
 
           {/* Loading Indicator State */}
           {query.trim() && loading && !searchResponse && (
-            <div className="p-8 text-center text-xs text-[#A5AEA8] space-y-2">
-              <div className="animate-spin text-lg text-[#B8F23A]">⏳</div>
+            <div className="p-8 text-center text-xs text-[#7A839E] space-y-2">
+              <div className="animate-spin text-lg text-[#3B6FD4]">⏳</div>
               <div>Searching ERP database for "{query}"...</div>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="p-4 border border-[#E25757]/40 bg-[#E25757]/10 text-[#E25757] rounded-xl text-xs flex justify-between items-center">
+            <div className="p-4 border border-[#E5484D]/40 bg-[#E5484D]/10 text-[#E5484D] rounded-xl text-xs flex justify-between items-center">
               <div>
                 <span className="font-bold">Search Error: </span>
                 <span>{error}</span>
@@ -293,7 +293,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                 onClick={() => {
                   setQuery(query);
                 }}
-                className="px-3 py-1 bg-[#1D211E] text-[#F5F7F4] hover:bg-[#292E2A] rounded border border-[#292E2A] font-semibold text-xs"
+                className="px-3 py-1 bg-[#F7F8FC] text-[#141B34] hover:bg-[#E4E8F2] rounded border border-[#E4E8F2] font-semibold text-xs"
               >
                 Retry
               </button>
@@ -304,8 +304,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {query.trim() && !loading && !error && searchResponse && flatResultsList.length === 0 && (
             <div className="text-center py-12 text-xs space-y-2">
               <div className="text-2xl">🔍</div>
-              <div className="font-bold text-[#F5F7F4]">No results found for "{query}"</div>
-              <div className="text-[#A5AEA8] max-w-sm mx-auto leading-relaxed">
+              <div className="font-bold text-[#141B34]">No results found for "{query}"</div>
+              <div className="text-[#7A839E] max-w-sm mx-auto leading-relaxed">
                 Check spelling or try searching by Product Name, Part Number (e.g. 09923031), Customer, Quotation (QTN...), PO, or PI.
               </div>
             </div>
@@ -317,7 +317,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               {Object.entries(searchResponse.groups).map(([groupKey, groupItems]) => {
                 return (
                   <div key={groupKey} className="space-y-1">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-[#A5AEA8] px-2.5 py-1 bg-[#101312]/60 rounded">
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-[#7A839E] px-2.5 py-1 bg-[#F4F6FC]/60 rounded">
                       {getGroupTitle(groupKey)}
                     </div>
                     <div className="space-y-1">
@@ -332,27 +332,27 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                             onClick={() => handleSelectResult(item)}
                             className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                               isSelected
-                                ? 'bg-[#1D211E] border-[#B8F23A] shadow-[inset_2px_0_0_#B8F23A]'
-                                : 'bg-[#101312]/80 border-[#292E2A] hover:bg-[#1D211E]/80 hover:border-[#333C31]'
+                                ? 'bg-[#F7F8FC] border-[#3B6FD4] shadow-[inset_2px_0_0_#3B6FD4]'
+                                : 'bg-[#F4F6FC]/80 border-[#E4E8F2] hover:bg-[#F7F8FC]/80 hover:border-[#D4DAEA]'
                             }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <span className="text-lg shrink-0">{getItemIcon(item.type)}</span>
                               <div className="min-w-0">
-                                <div className="text-xs font-bold text-[#F5F7F4] truncate flex items-center gap-2">
+                                <div className="text-xs font-bold text-[#141B34] truncate flex items-center gap-2">
                                   <span>{item.title}</span>
                                   {item.type === 'PRODUCT_STOCK' && (
-                                    <span className="text-[10px] bg-[#B8F23A]/10 text-[#B8F23A] border border-[#B8F23A]/30 px-1.5 py-0.2 rounded">
+                                    <span className="text-[10px] bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30 px-1.5 py-0.2 rounded">
                                       Inventory
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-[#A5AEA8] truncate mt-0.5">{item.subtitle}</div>
+                                <div className="text-[11px] text-[#7A839E] truncate mt-0.5">{item.subtitle}</div>
                               </div>
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-[10px] font-mono text-[#6D756F] group-hover:text-[#A5AEA8]">
+                              <span className="text-[10px] font-mono text-[#A8AEC4] group-hover:text-[#7A839E]">
                                 Press ↵
                               </span>
                             </div>
@@ -368,13 +368,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
         </div>
 
         {/* Footer Shortcut Bar */}
-        <div className="p-3 bg-[#101312] border-t border-[#292E2A] flex items-center justify-between text-[11px] text-[#A5AEA8]">
+        <div className="p-3 bg-[#F4F6FC] border-t border-[#E4E8F2] flex items-center justify-between text-[11px] text-[#7A839E]">
           <div className="flex items-center gap-3">
-            <span><kbd className="bg-[#1D211E] px-1.5 py-0.5 rounded border border-[#292E2A]">↑</kbd> <kbd className="bg-[#1D211E] px-1.5 py-0.5 rounded border border-[#292E2A]">↓</kbd> Navigate</span>
-            <span><kbd className="bg-[#1D211E] px-1.5 py-0.5 rounded border border-[#292E2A]">↵</kbd> Direct Open</span>
-            <span><kbd className="bg-[#1D211E] px-1.5 py-0.5 rounded border border-[#292E2A]">ESC</kbd> Close</span>
+            <span><kbd className="bg-[#F7F8FC] px-1.5 py-0.5 rounded border border-[#E4E8F2]">↑</kbd> <kbd className="bg-[#F7F8FC] px-1.5 py-0.5 rounded border border-[#E4E8F2]">↓</kbd> Navigate</span>
+            <span><kbd className="bg-[#F7F8FC] px-1.5 py-0.5 rounded border border-[#E4E8F2]">↵</kbd> Direct Open</span>
+            <span><kbd className="bg-[#F7F8FC] px-1.5 py-0.5 rounded border border-[#E4E8F2]">ESC</kbd> Close</span>
           </div>
-          <span className="font-mono text-[#B8F23A] text-[10px]">Direct Navigation Engine</span>
+          <span className="font-mono text-[#3B6FD4] text-[10px]">Direct Navigation Engine</span>
         </div>
       </div>
     </div>

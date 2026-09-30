@@ -27,17 +27,17 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-1 tablet-lg:grid-cols-[1.05fr_1fr] bg-[#101312] text-[#F5F7F4] font-sans antialiased selection:bg-[#B8F23A]/25">
+    <div className="min-h-screen grid grid-cols-1 tablet-lg:grid-cols-[1.05fr_1fr] bg-[#F4F6FC] text-[#141B34] font-sans antialiased selection:bg-[#3B6FD4]/25">
       {/* Brand Showcase Sidebar */}
-      <aside className="hidden tablet-lg:flex relative overflow-hidden bg-[#0B0D0D] border-r border-[#1c211e] p-10 flex-col justify-between gap-10 select-none">
+      <aside className="hidden tablet-lg:flex relative overflow-hidden bg-[#E9EDF7] border-r border-[#F7F8FC] p-10 flex-col justify-between gap-10 select-none">
         {/* Brand Header */}
         <div className="flex items-center gap-2.75">
-          <div className="w-8 h-8 rounded-[9px] border border-[#3a4a1f] bg-[#1D211E] text-[#B8F23A] grid place-items-center text-[12px] font-semibold tracking-[.02em]">
+          <div className="w-8 h-8 rounded-[9px] border border-[#D9E2F4] bg-[#F7F8FC] text-[#3B6FD4] grid place-items-center text-[12px] font-semibold tracking-[.02em]">
             TS
           </div>
           <div className="flex flex-col leading-[1.1]">
             <span className="text-[13.5px] font-semibold tracking-[.04em]">TECHNICON</span>
-            <span className="text-[10.5px] tracking-[.18em] text-[#A5AEA8]">SERVICES</span>
+            <span className="text-[10.5px] tracking-[.18em] text-[#7A839E]">SERVICES</span>
           </div>
         </div>
 
@@ -46,22 +46,22 @@ export default function Login() {
           <h1 className="margin-0 text-[38px] font-medium tracking-[-.025em] leading-[1.1] text-pretty">
             The quotation-to-invoice line, in one view.
           </h1>
-          <p className="margin-0 text-[14px] leading-[1.6] text-[#A5AEA8] text-pretty">
+          <p className="margin-0 text-[14px] leading-[1.6] text-[#7A839E] text-pretty">
             Revenue, pipeline, follow-ups and product performance — reading straight from your live Technicon records.
           </p>
 
           {/* Metric Strip */}
-          <div className="grid grid-cols-3 border border-[#292E2A] rounded-[12px] bg-[#171918] overflow-hidden">
-            <div className="p-[12px_14px] border-r border-[#1f2421] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#6d756f]">REVENUE</span>
+          <div className="grid grid-cols-3 border border-[#E4E8F2] rounded-[12px] bg-[#FFFFFF] overflow-hidden">
+            <div className="p-[12px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">REVENUE</span>
               <span className="text-[18px] font-medium">₹24.12L</span>
             </div>
-            <div className="p-[12px_14px] border-r border-[#1f2421] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#6d756f]">ORDERS</span>
+            <div className="p-[12px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">ORDERS</span>
               <span className="text-[18px] font-medium">380</span>
             </div>
             <div className="p-[12px_14px] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#6d756f]">CUSTOMERS</span>
+              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">CUSTOMERS</span>
               <span className="text-[18px] font-medium">152</span>
             </div>
           </div>
@@ -71,13 +71,13 @@ export default function Login() {
         <svg viewBox="0 0 560 180" aria-hidden="true" className="w-full max-w-[560px] h-auto opacity-90">
           <defs>
             <linearGradient id="loginArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#B8F23A" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#B8F23A" stopOpacity="0" />
+              <stop offset="0%" stopColor="#3B6FD4" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#3B6FD4" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <line x1="0" x2="560" y1="150" y2="150" stroke="#20251f" />
-          <line x1="0" x2="560" y1="100" y2="100" stroke="#1a1f1c" />
-          <line x1="0" x2="560" y1="50" y2="50" stroke="#1a1f1c" />
+          <line x1="0" x2="560" y1="150" y2="150" stroke="#EEF1F9" />
+          <line x1="0" x2="560" y1="100" y2="100" stroke="#F7F8FC" />
+          <line x1="0" x2="560" y1="50" y2="50" stroke="#F7F8FC" />
           <path
             d="M 0 132 C 62 128, 78 108, 140 112 C 202 116, 218 72, 280 66 C 342 60, 358 92, 420 74 C 482 56, 498 28, 560 22 L 560 160 L 0 160 Z"
             fill="url(#loginArea)"
@@ -85,7 +85,7 @@ export default function Login() {
           <path
             d="M 0 132 C 62 128, 78 108, 140 112 C 202 116, 218 72, 280 66 C 342 60, 358 92, 420 74 C 482 56, 498 28, 560 22"
             fill="none"
-            stroke="#B8F23A"
+            stroke="#3B6FD4"
             strokeWidth="2"
             strokeLinecap="round"
           />
@@ -98,7 +98,7 @@ export default function Login() {
           {/* Header */}
           <div className="flex flex-col gap-1.75">
             <h2 className="margin-0 text-[26px] font-medium tracking-[-.02em]">Sign in</h2>
-            <p className="margin-0 text-[13px] text-[#A5AEA8]">
+            <p className="margin-0 text-[13px] text-[#7A839E]">
               Use your Technicon Services work account.
             </p>
           </div>
@@ -107,18 +107,18 @@ export default function Login() {
           {error && (
             <div
               role="alert"
-              className="flex gap-2.5 items-start p-[11px_13px] rounded-[10px] border border-[#4a2a2a] bg-[#1b1414] animate-in fade-in duration-200"
+              className="flex gap-2.5 items-start p-[11px_13px] rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] animate-in fade-in duration-200"
             >
-              <span aria-hidden="true" className="text-[#E25757] text-[13px] leading-[1.3]">
+              <span aria-hidden="true" className="text-[#E5484D] text-[13px] leading-[1.3]">
                 !
               </span>
-              <span className="text-[12.5px] text-[#f0c9c9]">{error}</span>
+              <span className="text-[12.5px] text-[#F6D5D6]">{error}</span>
             </div>
           )}
 
           {/* Login Form */}
           <form onSubmit={submit} className="flex flex-col gap-3.5">
-            <label className="flex flex-col gap-1.75 text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+            <label className="flex flex-col gap-1.75 text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
               USERNAME / WORK EMAIL
               <input
                 type="text"
@@ -127,11 +127,11 @@ export default function Login() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoFocus
-                className="h-[42px] px-3.25 rounded-[10px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[13.5px] tracking-normal outline-none focus:border-[#B8F23A] hover:border-[#3a4237] transition-colors"
+                className="h-[42px] px-3.25 rounded-[10px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[13.5px] tracking-normal outline-none focus:border-[#3B6FD4] hover:border-[#D4DAEA] transition-colors"
               />
             </label>
 
-            <label className="flex flex-col gap-1.75 text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+            <label className="flex flex-col gap-1.75 text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
               PASSWORD
               <span className="relative flex items-center">
                 <input
@@ -140,12 +140,12 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-[42px] pl-3.25 pr-[66px] rounded-[10px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[13.5px] tracking-normal outline-none focus:border-[#B8F23A] hover:border-[#3a4237] transition-colors"
+                  className="w-full h-[42px] pl-3.25 pr-[66px] rounded-[10px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[13.5px] tracking-normal outline-none focus:border-[#3B6FD4] hover:border-[#D4DAEA] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute right-[7px] h-[28px] px-2.25 rounded-[7px] bg-[#1D211E] border border-[#292E2A] text-[#A5AEA8] text-[11px] tracking-normal cursor-pointer hover:text-[#F5F7F4] hover:border-[#3a4237] transition-colors"
+                  className="absolute right-[7px] h-[28px] px-2.25 rounded-[7px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] text-[11px] tracking-normal cursor-pointer hover:text-[#141B34] hover:border-[#D4DAEA] transition-colors"
                 >
                   {showPass ? 'Hide' : 'Show'}
                 </button>
@@ -153,15 +153,15 @@ export default function Login() {
             </label>
 
             <div className="flex items-center justify-between gap-3 py-1">
-              <label className="flex items-center gap-2 text-[12.5px] text-[#A5AEA8] cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-[12.5px] text-[#7A839E] cursor-pointer select-none">
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="w-[15px] h-[15px] accent-[#B8F23A] cursor-pointer"
+                  className="w-[15px] h-[15px] accent-[#3B6FD4] cursor-pointer"
                 />
                 Keep me signed in
               </label>
-              <a href="#" onClick={(e) => e.preventDefault()} className="text-[12.5px] text-[#B8F23A] hover:underline">
+              <a href="#" onClick={(e) => e.preventDefault()} className="text-[12.5px] text-[#3B6FD4] hover:underline">
                 Forgot password?
               </a>
             </div>
@@ -169,7 +169,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={busy}
-              className={`flex items-center justify-center gap-2.25 h-[44px] rounded-[11px] bg-transparent border border-[#3a4a1f] text-[#B8F23A] font-medium text-[14px] cursor-pointer hover:bg-[#1b2013] transition-colors ${
+              className={`flex items-center justify-center gap-2.25 h-[44px] rounded-[11px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[14px] cursor-pointer hover:bg-[#E3EAF7] transition-colors ${
                 busy ? 'opacity-65 cursor-not-allowed' : ''
               }`}
             >
@@ -189,20 +189,20 @@ export default function Login() {
 
           {/* Divider */}
           <div className="flex items-center gap-3">
-            <span className="flex-1 h-px bg-[#1f2421]" />
-            <span className="text-[11px] tracking-[.08em] text-[#6d756f]">OR</span>
-            <span className="flex-1 h-px bg-[#1f2421]" />
+            <span className="flex-1 h-px bg-[#EEF1F9]" />
+            <span className="text-[11px] tracking-[.08em] text-[#A8AEC4]">OR</span>
+            <span className="flex-1 h-px bg-[#EEF1F9]" />
           </div>
 
           <button
             type="button"
             onClick={() => setError('SSO login is managed by your workspace administrator.')}
-            className="h-[42px] rounded-[11px] bg-[#171918] border border-[#292E2A] text-[#F5F7F4] text-[13.5px] cursor-pointer hover:border-[#3a4237] transition-colors"
+            className="h-[42px] rounded-[11px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[13.5px] cursor-pointer hover:border-[#D4DAEA] transition-colors"
           >
             Continue with company SSO
           </button>
 
-          <p className="margin-0 text-[11.5px] text-[#6d756f] text-center text-pretty">
+          <p className="margin-0 text-[11.5px] text-[#A8AEC4] text-center text-pretty">
             Access is granted by your workspace admin.
           </p>
         </div>

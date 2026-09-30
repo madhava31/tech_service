@@ -173,7 +173,7 @@ export default function ReceivingQueue() {
 
             <form onSubmit={handleReceiveStock} className="flex-col gap-3">
               <div className="p-2 rounded bg-secondary-dark text-xs font-mono">
-                <div>Part: <strong className="text-white">{selectedItem.part_no}</strong> ({selectedItem.product_description})</div>
+                <div>Part: <strong className="text-[#141B34]">{selectedItem.part_no}</strong> ({selectedItem.product_description})</div>
                 <div>Supplier: {selectedItem.supplier_name}</div>
                 <div>Ordered: {selectedItem.ordered_quantity} | Already Received: {selectedItem.receivedQuantity} | <strong>Remaining: {selectedItem.pendingQuantity}</strong></div>
               </div>

@@ -1,6 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentType } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
+import {
+  LayoutGridIcon,
+  FileTextIcon,
+  FileCheckIcon,
+  ReceiptIcon,
+  ClipboardListIcon,
+  GitBranchIcon,
+  UserCogIcon,
+  Building2Icon,
+  PackageIcon,
+  WarehouseIcon,
+  BarChart3Icon,
+  SettingsIcon,
+  NetworkIcon,
+  ShieldIcon,
+  ChevronRightIcon,
+  PlusIcon,
+} from 'lucide-react';
+
+// Styling note: active states use literal hex rather than a custom theme key.
+// A custom key silently renders nothing when the Tailwind config hasn't been picked
+// up (e.g. a dev server started before the config changed), which made white text on
+// an unpainted navy background invisible. Literal values can't fail that way.
 
 interface NavSubItemDef {
   label: string;
@@ -12,17 +35,19 @@ interface NavSubItemDef {
 interface NavItemDef {
   label: string;
   path: string;
+  icon: ComponentType<{ className?: string }>;
   children?: NavSubItemDef[];
 }
 
 const MAIN_NAV: NavItemDef[] = [
-  { label: 'Dashboard', path: '/' },
-  { label: 'Quotations', path: '/quotations' },
-  { label: 'Purchase Orders', path: '/purchase-orders' },
-  { label: 'Performa Invoices', path: '/performa-invoices' },
+  { label: 'Dashboard', path: '/', icon: LayoutGridIcon },
+  { label: 'Quotations', path: '/quotations', icon: FileTextIcon },
+  { label: 'Purchase Orders', path: '/purchase-orders', icon: FileCheckIcon },
+  { label: 'Performa Invoices', path: '/performa-invoices', icon: ReceiptIcon },
   {
     label: 'Sale Reports',
     path: '/sale-reports',
+    icon: ClipboardListIcon,
     children: [
       { label: 'Sale Report List', path: '/sale-reports', exact: true },
       { label: 'Create Sale Report', path: '/sale-reports/new' },
@@ -32,6 +57,7 @@ const MAIN_NAV: NavItemDef[] = [
   {
     label: 'Sales Pipeline',
     path: '/sales/pipeline',
+    icon: GitBranchIcon,
     children: [
       { label: 'Pipeline Control', path: '/sales/pipeline', exact: true },
       { label: 'Due Today Follow-ups', path: '/follow-ups/due-today' },
@@ -40,15 +66,16 @@ const MAIN_NAV: NavItemDef[] = [
       { label: 'Sales Activity Log', path: '/sales/activity' },
     ],
   },
-  { label: 'Sales Engineers', path: '/sales/engineers' },
-  { label: 'Companies', path: '/companies' },
-  { label: 'Products', path: '/products' },
+  { label: 'Sales Engineers', path: '/sales/engineers', icon: UserCogIcon },
+  { label: 'Companies', path: '/companies', icon: Building2Icon },
+  { label: 'Products', path: '/products', icon: PackageIcon },
 ];
 
 const INVENTORY_NAV: NavItemDef[] = [
   {
     label: 'Inventory',
     path: '/inventory',
+    icon: WarehouseIcon,
     children: [
       { label: 'Overview', path: '/inventory', exact: true },
       { label: 'Warehouses', path: '/inventory/warehouses' },
@@ -64,6 +91,7 @@ const REPORTS_NAV: NavItemDef[] = [
   {
     label: 'Reports',
     path: '/reports',
+    icon: BarChart3Icon,
     children: [
       { label: 'Business Health', path: '/business-health' },
       { label: 'Customer Health', path: '/customer-health' },
@@ -76,10 +104,15 @@ const REPORTS_NAV: NavItemDef[] = [
 ];
 
 const SYSTEM_NAV: NavItemDef[] = [
-  { label: 'Settings', path: '/settings' },
-  { label: 'Multi-Firm & Branches', path: '/settings/multi-firm' },
-  { label: 'Admin', path: '/admin' },
+  { label: 'Settings', path: '/settings', icon: SettingsIcon },
+  { label: 'Multi-Firm & Branches', path: '/settings/multi-firm', icon: NetworkIcon },
+  { label: 'Admin', path: '/admin', icon: ShieldIcon },
 ];
+
+const ITEM_BASE =
+  'w-full flex items-center gap-2.5 px-2.5 h-9 rounded-[10px] text-[13px] font-semibold no-underline transition-colors duration-150';
+const ITEM_ACTIVE = 'bg-[#3B6FD4] text-white shadow-[0_2px_8px_rgba(59,111,212,0.30)]';
+const ITEM_IDLE = 'text-[#525C7A] hover:bg-[#EDF1F9] hover:text-[#141B34]';
 
 function CollapsibleNavItem({
   item,
@@ -134,36 +167,31 @@ function CollapsibleNavItem({
     }
   };
 
+  const Icon = item.icon;
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col">
       <button
         type="button"
         onClick={handleParentClick}
-        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-[13.5px] transition-all duration-200 border cursor-pointer select-none ${
-          isGroupActive
-            ? 'bg-[#1D211E] text-[#F5F7F4] border-[#333c31] shadow-[inset_2px_0_0_#B8F23A]'
-            : 'bg-transparent text-[#A5AEA8] border-transparent hover:bg-[#161A18] hover:text-[#F5F7F4]'
+        aria-expanded={expanded}
+        className={`${ITEM_BASE} justify-between cursor-pointer select-none ${
+          isGroupActive ? ITEM_ACTIVE : ITEM_IDLE
         }`}
       >
-        <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className={`w-1.5 h-1.5 rounded-[2px] shrink-0 ${isGroupActive ? 'bg-[#B8F23A]' : 'bg-[#3c443d]'}`}
-          />
-          <span className="font-medium">{item.label}</span>
-        </div>
-        <svg
-          className={`w-3.5 h-3.5 text-[#A5AEA8] transition-transform duration-200 ${expanded ? 'rotate-90 text-[#B8F23A]' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+        <span className="flex items-center gap-2.5 min-w-0">
+          <Icon className={`size-4 shrink-0 ${isGroupActive ? 'text-white' : 'text-[#94A0BC]'}`} />
+          <span className="truncate">{item.label}</span>
+        </span>
+        <ChevronRightIcon
+          className={`size-3.5 shrink-0 transition-transform duration-200 ${expanded ? 'rotate-90' : ''} ${
+            isGroupActive ? 'text-white/75' : 'text-[#B3BBD0]'
+          }`}
+        />
       </button>
 
       {expanded && (
-        <div className="flex flex-col gap-1 pl-3.5 ml-2.5 border-l border-[#242e27]">
+        <div className="flex flex-col gap-px pl-3 ml-[19px] border-l border-[#E1E7F3] mt-1 mb-1">
           {item.children.map((child) => {
             const active = isChildActive(child);
             const targetPath = child.isDetailPattern && active ? currentPath : (child.isDetailPattern ? '/sale-reports' : child.path);
@@ -173,17 +201,17 @@ function CollapsibleNavItem({
                 to={targetPath}
                 onClick={() => onMobileClose && onMobileClose()}
                 aria-current={active ? 'page' : undefined}
-                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12.5px] no-underline transition-all duration-150 ${
+                className={`flex items-center gap-2 pl-2.5 pr-2 h-[30px] rounded-lg text-[12.5px] no-underline transition-colors duration-150 ${
                   active
-                    ? 'bg-[#1e251d] text-[#B8F23A] font-semibold'
-                    : 'text-[#A5AEA8] hover:text-[#F5F7F4] hover:bg-[#161A18]'
+                    ? 'bg-[#E8EEFA] text-[#3B6FD4] font-bold'
+                    : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F3F6FC]'
                 }`}
               >
                 <span
                   aria-hidden="true"
-                  className={`w-1 h-1 rounded-full shrink-0 ${active ? 'bg-[#B8F23A]' : 'bg-[#4b554d]'}`}
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-[#3B6FD4]' : 'bg-[#C7CFE2]'}`}
                 />
-                <span>{child.label}</span>
+                <span className="truncate">{child.label}</span>
               </Link>
             );
           })}
@@ -205,8 +233,8 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
   };
 
   const renderNavGroup = (title: string, items: NavItemDef[]) => (
-    <nav aria-label={title} className="flex flex-col gap-1">
-      <div className="text-[10.5px] tracking-[.14em] text-[#6d756f] px-2 pb-1.5 uppercase font-medium">
+    <nav aria-label={title} className="flex flex-col gap-px">
+      <div className="text-[10px] tracking-[.13em] text-[#A3ABC2] px-2.5 pt-1 pb-1 uppercase font-bold">
         {title}
       </div>
       {items.map((item) => {
@@ -224,23 +252,17 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
         }
 
         const active = isCurrent(item.path);
+        const Icon = item.icon;
         return (
           <Link
             key={item.path}
             to={item.path}
             onClick={() => onMobileClose && onMobileClose()}
             aria-current={active ? 'page' : undefined}
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] no-underline transition-all duration-200 border ${
-              active
-                ? 'bg-[#1D211E] text-[#F5F7F4] border-[#333c31] shadow-[inset_2px_0_0_#B8F23A]'
-                : 'bg-transparent text-[#A5AEA8] border-transparent hover:bg-[#161A18] hover:text-[#F5F7F4]'
-            }`}
+            className={`${ITEM_BASE} ${active ? ITEM_ACTIVE : ITEM_IDLE}`}
           >
-            <span
-              aria-hidden="true"
-              className={`w-1.5 h-1.5 rounded-[2px] shrink-0 ${active ? 'bg-[#B8F23A]' : 'bg-[#3c443d]'}`}
-            />
-            <span>{item.label}</span>
+            <Icon className={`size-4 shrink-0 ${active ? 'text-white' : 'text-[#94A0BC]'}`} />
+            <span className="truncate">{item.label}</span>
           </Link>
         );
       })}
@@ -258,33 +280,47 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
     <aside
       data-nav="1"
       data-scroll="1"
-      className="w-[246px] shrink-0 bg-[#0B0D0D] border-r border-[#292E2A] flex flex-col p-[18px_14px_14px] gap-[22px] h-screen sticky top-0 overflow-y-auto z-50 select-none no-scrollbar"
+      className="w-[236px] shrink-0 bg-white border-r border-[#DFE5F2] shadow-[1px_0_0_rgba(20,27,52,0.02),4px_0_24px_rgba(20,27,52,0.04)] flex flex-col h-screen sticky top-0 overflow-y-auto z-50 select-none no-scrollbar"
     >
-      {/* Brand Header */}
-      <div className="flex items-center gap-2.5 px-1 py-0.5">
-        <div className="w-[30px] h-[30px] rounded-[9px] border border-[#3a4a1f] bg-[#1D211E] text-[#B8F23A] grid place-items-center text-[12px] font-semibold tracking-[.02em] shrink-0">
+      {/* Brand */}
+      <Link
+        to="/"
+        className="flex items-center gap-2.5 px-4 h-[60px] shrink-0 no-underline border-b border-[#EDF1F9]"
+      >
+        <div className="w-[34px] h-[34px] rounded-[10px] bg-[#3B6FD4] text-white grid place-items-center text-[11.5px] font-extrabold shrink-0 shadow-[0_2px_8px_rgba(59,111,212,0.28)]">
           TS
         </div>
-        <div className="flex flex-col leading-[1.1]">
-          <span className="text-[13.5px] font-semibold tracking-[.04em] text-[#F5F7F4]">TECHNICON</span>
-          <span className="text-[10.5px] tracking-[.18em] text-[#A5AEA8]">SERVICES</span>
+        <div className="flex flex-col leading-[1.15]">
+          <span className="text-[13px] font-extrabold tracking-[.03em] text-[#141B34]">TECHNICON</span>
+          <span className="text-[9.5px] tracking-[.2em] text-[#8992AB] font-bold">SERVICES</span>
         </div>
+      </Link>
+
+      <div className="flex flex-col gap-2 px-2.5 py-3">
+        {/* Primary action */}
+        <Link
+          to="/quotations/new"
+          onClick={() => onMobileClose && onMobileClose()}
+          className="flex items-center justify-center gap-1.5 h-9 rounded-[10px] bg-[#3B6FD4] text-white text-[12.5px] font-bold no-underline shadow-[0_2px_8px_rgba(59,111,212,0.30)] hover:bg-[#2F5CB8] transition-colors"
+        >
+          <PlusIcon className="size-4" />
+          <span>New Quotation</span>
+        </Link>
+
+        {renderNavGroup('MAIN', MAIN_NAV)}
+        {renderNavGroup('INVENTORY', INVENTORY_NAV)}
+        {renderNavGroup('REPORTS', REPORTS_NAV)}
+        {renderNavGroup('SYSTEM', SYSTEM_NAV)}
       </div>
 
-      {/* Navigation Sections */}
-      {renderNavGroup('MAIN', MAIN_NAV)}
-      {renderNavGroup('INVENTORY', INVENTORY_NAV)}
-      {renderNavGroup('REPORTS', REPORTS_NAV)}
-      {renderNavGroup('SYSTEM', SYSTEM_NAV)}
-
-      {/* User Profile Block */}
-      <div className="mt-auto border-t border-[#1c211e] pt-3 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-[#1D211E] border border-[#333c31] grid place-items-center text-[12px] font-bold text-[#B8F23A] shrink-0">
+      {/* User */}
+      <div className="mt-auto shrink-0 border-t border-[#EDF1F9] px-3 py-3 flex items-center gap-2.5 bg-[#FBFCFE]">
+        <div className="w-8 h-8 rounded-full bg-[#E8EEFA] grid place-items-center text-[11.5px] font-extrabold text-[#3B6FD4] shrink-0">
           {getInitials(user.username)}
         </div>
         <div className="flex flex-col leading-[1.25] min-w-0">
-          <span className="text-[12.5px] font-medium text-[#F5F7F4] truncate">{user.username}</span>
-          <span className="text-[11px] text-[#6d756f] capitalize">{user.role} Operations</span>
+          <span className="text-[12.5px] font-bold text-[#141B34] truncate">{user.username}</span>
+          <span className="text-[10.5px] text-[#A3ABC2] capitalize font-semibold">{user.role}</span>
         </div>
       </div>
     </aside>
@@ -292,17 +328,17 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
 
   return (
     <>
-      {/* Desktop Fixed Sidebar */}
+      {/* Desktop */}
       <div className="hidden tablet-lg:block">{sidebarContent}</div>
 
-      {/* Mobile Off-Canvas Drawer */}
+      {/* Mobile drawer */}
       {mobileOpen && (
         <div className="tablet-lg:hidden fixed inset-0 z-50 flex">
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-[#141B34]/40 backdrop-blur-sm transition-opacity"
             onClick={onMobileClose}
           />
-          <div className="relative z-10 w-[246px] h-full shadow-[40px_0_80px_rgba(0,0,0,0.6)] animate-in slide-in-from-left duration-200">
+          <div className="relative z-10 h-full animate-in slide-in-from-left duration-200">
             {sidebarContent}
           </div>
         </div>
@@ -310,4 +346,3 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
     </>
   );
 }
-

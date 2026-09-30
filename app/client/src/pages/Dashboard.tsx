@@ -34,6 +34,8 @@ import {
   SparklesIcon,
   AlertCircleIcon,
   CheckCircle2Icon,
+  ChevronDownIcon,
+  CheckIcon,
 } from 'lucide-react';
 
 function formatCurrency(n: number) {
@@ -56,17 +58,17 @@ function formatDate(d: string) {
 function FollowUpRow({ item }: { item: DashboardFollowUp }) {
   return (
     <Link
-      className="flex items-center justify-between p-2.5 rounded-lg bg-[#171918] hover:bg-[#1D211E] transition-colors border border-[#292E2A]"
+      className="flex items-center justify-between p-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F7F8FC] transition-colors border border-[#E4E8F2]"
       to={`/quotations/${item.quotation_id}`}
     >
       <div className="flex flex-col min-w-0">
-        <span className="text-xs font-bold text-[#F5F7F4] truncate">{item.company_name || '—'}</span>
-        <span className="text-[11px] text-[#A5AEA8]">
+        <span className="text-xs font-bold text-[#141B34] truncate">{item.company_name || '—'}</span>
+        <span className="text-[11px] text-[#7A839E]">
           {item.quotation_number} · Due: {formatDate(item.follow_up_date)}
         </span>
-        {item.notes && <span className="text-[11px] text-[#A5AEA8] italic mt-0.5">"{item.notes}"</span>}
+        {item.notes && <span className="text-[11px] text-[#7A839E] italic mt-0.5">"{item.notes}"</span>}
       </div>
-      <span className="text-xs font-bold text-[#B8F23A] flex items-center gap-1 shrink-0 ml-2">
+      <span className="text-xs font-bold text-[#3B6FD4] flex items-center gap-1 shrink-0 ml-2">
         View <ArrowRightIcon className="size-3" />
       </span>
     </Link>
@@ -84,9 +86,9 @@ const ACTIVITY_META: Record<ActivityType, { icon: ComponentType; to: (id: number
 // Widget Error Boundary Fallback Component
 function WidgetErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="p-4 rounded-lg bg-red-950/40 border border-red-800/60 text-red-300 flex items-center justify-between gap-3 text-xs font-semibold">
+    <div className="p-4 rounded-lg bg-[#FCEBEC] border border-[#F2C4C6] text-[#C8323A] flex items-center justify-between gap-3 text-xs font-semibold">
       <span>{message}</span>
-      <Button size="sm" variant="destructive" onClick={onRetry} className="h-7 text-xs gap-1 bg-red-800 hover:bg-red-700">
+      <Button size="sm" variant="destructive" onClick={onRetry} className="h-7 text-xs gap-1 bg-[#E5484D] hover:bg-[#C8323A]">
         <RefreshCwIcon className="size-3" /> Retry
       </Button>
     </div>
@@ -226,13 +228,13 @@ export default function Dashboard() {
       : '/quotations';
 
   return (
-    <div className="dashboard-analytics-theme bg-[#101312] text-[#F5F7F4] min-h-screen p-4 md:p-6 -m-4 md:-m-6 flex flex-col gap-6">
-      
-      {/* 1. DARK TOP BAR & PAGE HEADER */}
+    <div className="text-[#141B34] px-4 tablet-lg:px-6 pt-1 flex flex-col gap-5">
+
+      {/* 1. PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#F5F7F4] tracking-tight">Business Analytics</h1>
-          <p className="text-xs text-[#A5AEA8] mt-0.5">Real-time view of revenue, quotations, customers and business performance.</p>
+          <h1 className="text-3xl font-extrabold text-[#141B34] tracking-tight">Business Analytics</h1>
+          <p className="text-xs text-[#7A839E] mt-0.5">Real-time view of revenue, quotations, customers and business performance.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -240,9 +242,9 @@ export default function Dashboard() {
             size="sm"
             onClick={() => fetchAllData(currentRange)}
             disabled={refreshing}
-            className="h-9 border-[#292E2A] bg-[#171918] text-[#F5F7F4] hover:bg-[#1D211E] text-xs font-semibold gap-1.5"
+            className="h-9 border-[#E4E8F2] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F7F8FC] text-xs font-semibold gap-1.5"
           >
-            <RefreshCwIcon className={`size-3.5 ${refreshing ? 'animate-spin text-[#B8F23A]' : 'text-[#A5AEA8]'}`} />
+            <RefreshCwIcon className={`size-3.5 ${refreshing ? 'animate-spin text-[#3B6FD4]' : 'text-[#7A839E]'}`} />
             <span>Refresh</span>
           </Button>
 
@@ -252,18 +254,18 @@ export default function Dashboard() {
               variant="outline"
               size="sm"
               onClick={() => setDateDropdownOpen(!dateDropdownOpen)}
-              className="h-9 border-[#292E2A] bg-[#171918] text-[#F5F7F4] hover:bg-[#1D211E] text-xs font-semibold gap-2"
+              className="h-9 border-[#E4E8F2] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F7F8FC] text-xs font-semibold gap-2"
               title="Click to change period"
             >
-              <CalendarIcon className="size-3.5 text-[#B8F23A]" />
+              <CalendarIcon className="size-3.5 text-[#3B6FD4]" />
               <span>{currentRange.label}</span>
-              <span className="text-[8px] text-[#A5AEA8]">▼</span>
+              <ChevronDownIcon className="size-3 text-[#A8AEC4]" />
             </Button>
 
             {dateDropdownOpen && (
-              <div className="absolute right-0 top-11 z-50 min-w-[180px] p-1.5 rounded-[10px] bg-[#1D211E] border border-[#333c31] shadow-[0_18px_40px_rgba(0,0,0,0.55)] animate-in fade-in duration-150">
-                <div className="px-2 py-1 border-b border-[#292E2A] mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#A5AEA8]">Filter by Period</span>
+              <div className="absolute right-0 top-11 z-50 min-w-[180px] p-1.5 rounded-[10px] bg-[#F7F8FC] border border-[#D4DAEA] shadow-[0_18px_40px_rgba(20,27,52,0.14)] animate-in fade-in duration-150">
+                <div className="px-2 py-1 border-b border-[#E4E8F2] mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A839E]">Filter by Period</span>
                 </div>
                 <div className="space-y-0.5">
                   {presets.map((p) => {
@@ -275,12 +277,12 @@ export default function Dashboard() {
                         onClick={() => handleSelectRangePreset(p)}
                         className={`w-full text-left px-2 py-1.5 rounded-[7px] text-[12px] font-medium transition-colors flex items-center justify-between ${
                           isActive
-                            ? 'bg-[#171918] text-[#B8F23A] font-bold border border-[#292E2A]'
-                            : 'text-[#A5AEA8] hover:text-[#F5F7F4] hover:bg-[#292E2A]/50'
+                            ? 'bg-[#FFFFFF] text-[#3B6FD4] font-bold border border-[#E4E8F2]'
+                            : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#E4E8F2]/50'
                         }`}
                       >
                         <span>{p.label}</span>
-                        {isActive && <span className="text-[#B8F23A] text-xs">✓</span>}
+                        {isActive && <CheckIcon className="size-3.5 text-[#3B6FD4]" />}
                       </button>
                     );
                   })}
@@ -289,7 +291,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <Button asChild size="sm" className="h-9 gap-2 font-bold bg-[#B8F23A] text-[#101312] hover:bg-[#D8F98D]">
+          <Button asChild size="sm" className="h-9 gap-2 font-bold bg-[#3B6FD4] text-[#F4F6FC] hover:bg-[#2F5CB8]">
             <Link to="/quotations/new">
               <PlusIcon className="size-4" />
               <span>+ New Quotation</span>
@@ -304,31 +306,64 @@ export default function Dashboard() {
       ) : !data ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl bg-[#171918]" />
+            <Skeleton key={i} className="h-20 w-full rounded-xl bg-[#FFFFFF]" />
           ))}
         </div>
       ) : (
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden shadow-xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#292E2A]">
-          <div className="p-4 flex flex-col justify-center">
-            <span className="text-[11px] font-bold text-[#A5AEA8] uppercase tracking-wider">Historical Revenue</span>
-            <span className="text-2xl font-extrabold text-[#F5F7F4] mt-0.5">{formatCurrency(data.historicalRevenue)}</span>
-            <span className="text-[11px] text-[#A5AEA8] mt-0.5">2024 Closed Volume</span>
-          </div>
-          <div className="p-4 flex flex-col justify-center">
-            <span className="text-[11px] font-bold text-[#A5AEA8] uppercase tracking-wider">Accepted Revenue</span>
-            <span className="text-2xl font-extrabold text-[#B8F23A] mt-0.5">{formatCurrency(data.acceptedQuotationRevenue)}</span>
-            <span className="text-[11px] text-[#A5AEA8] mt-0.5">{data.counts.quotations} Active Proposals</span>
-          </div>
-          <div className="p-4 flex flex-col justify-center">
-            <span className="text-[11px] font-bold text-[#A5AEA8] uppercase tracking-wider">Open Quotations</span>
-            <span className="text-2xl font-extrabold text-[#F5F7F4] mt-0.5">{data.counts.quotations}</span>
-            <span className="text-[11px] text-[#A5AEA8] mt-0.5">{data.counts.companies} Client Accounts</span>
-          </div>
-          <div className="p-4 flex flex-col justify-center">
-            <span className="text-[11px] font-bold text-[#A5AEA8] uppercase tracking-wider">Purchase Orders</span>
-            <span className="text-2xl font-extrabold text-[#F5F7F4] mt-0.5">{data.counts.purchaseOrders}</span>
-            <span className="text-[11px] text-[#A5AEA8] mt-0.5">{data.counts.products} Catalog Items</span>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            {
+              label: 'Historical Revenue',
+              value: formatCurrency(data.historicalRevenue),
+              foot: '2024 Closed Volume',
+              accent: false,
+            },
+            {
+              label: 'Accepted Revenue',
+              value: formatCurrency(data.acceptedQuotationRevenue),
+              foot: `${data.counts.quotations} Active Proposals`,
+              accent: true,
+            },
+            {
+              label: 'Open Quotations',
+              value: String(data.counts.quotations),
+              foot: `${data.counts.companies} Client Accounts`,
+              accent: false,
+            },
+            {
+              label: 'Purchase Orders',
+              value: String(data.counts.purchaseOrders),
+              foot: `${data.counts.products} Catalog Items`,
+              accent: false,
+            },
+          ].map((kpi) => (
+            <div
+              key={kpi.label}
+              className={`rounded-card border p-4 flex flex-col justify-center transition-shadow hover:shadow-lift ${
+                kpi.accent
+                  ? 'bg-[#3B6FD4] border-transparent shadow-[0_2px_8px_rgba(59,111,212,0.30)]'
+                  : 'bg-white border-[#E4E8F2] shadow-card'
+              }`}
+            >
+              <span
+                className={`text-[10.5px] font-bold uppercase tracking-[0.08em] ${
+                  kpi.accent ? 'text-white/70' : 'text-[#7A839E]'
+                }`}
+              >
+                {kpi.label}
+              </span>
+              <span
+                className={`text-[26px] leading-tight font-extrabold tracking-tight mt-1 ${
+                  kpi.accent ? 'text-white' : 'text-[#141B34]'
+                }`}
+              >
+                {kpi.value}
+              </span>
+              <span className={`text-[11px] mt-0.5 ${kpi.accent ? 'text-white/70' : 'text-[#7A839E]'}`}>
+                {kpi.foot}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
@@ -336,24 +371,24 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Revenue Analytics Primary Card (8 Cols) */}
-        <Card className="lg:col-span-8 bg-[#171918] border-[#292E2A] text-[#F5F7F4] flex flex-col justify-between shadow-xl">
+        <Card className="lg:col-span-8 bg-[#FFFFFF] border-[#E4E8F2] text-[#141B34] flex flex-col justify-between shadow-card">
           <CardHeader className="p-5 pb-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-base font-bold text-[#F5F7F4]">Revenue Analytics</CardTitle>
-                <CardDescription className="text-xs text-[#A5AEA8] mt-0.5">Revenue performance across the selected period.</CardDescription>
+                <CardTitle className="text-base font-bold text-[#141B34]">Revenue Analytics</CardTitle>
+                <CardDescription className="text-xs text-[#7A839E] mt-0.5">Revenue performance across the selected period.</CardDescription>
               </div>
 
               {/* Interactive Period Tabs */}
-              <div className="flex items-center gap-1 bg-[#101312] p-1 rounded-lg border border-[#292E2A] text-xs font-semibold text-[#A5AEA8]">
+              <div className="flex items-center gap-1 bg-[#F4F6FC] p-1 rounded-lg border border-[#E4E8F2] text-xs font-semibold text-[#7A839E]">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setActivePeriodTab('thisMonth')}
                   className={`h-7 px-2.5 text-xs transition-colors ${
                     activePeriodTab === 'thisMonth'
-                      ? 'bg-[#171918] text-[#B8F23A] font-bold shadow-2xs'
-                      : 'text-[#A5AEA8] hover:text-[#F5F7F4]'
+                      ? 'bg-[#FFFFFF] text-[#3B6FD4] font-bold shadow-2xs'
+                      : 'text-[#7A839E] hover:text-[#141B34]'
                   }`}
                 >
                   This Month
@@ -364,8 +399,8 @@ export default function Dashboard() {
                   onClick={() => setActivePeriodTab('thisQuarter')}
                   className={`h-7 px-2.5 text-xs transition-colors ${
                     activePeriodTab === 'thisQuarter'
-                      ? 'bg-[#171918] text-[#B8F23A] font-bold shadow-2xs'
-                      : 'text-[#A5AEA8] hover:text-[#F5F7F4]'
+                      ? 'bg-[#FFFFFF] text-[#3B6FD4] font-bold shadow-2xs'
+                      : 'text-[#7A839E] hover:text-[#141B34]'
                   }`}
                 >
                   This Quarter
@@ -376,8 +411,8 @@ export default function Dashboard() {
                   onClick={() => setActivePeriodTab('thisYear')}
                   className={`h-7 px-2.5 text-xs transition-colors ${
                     activePeriodTab === 'thisYear'
-                      ? 'bg-[#171918] text-[#B8F23A] font-bold shadow-2xs'
-                      : 'text-[#A5AEA8] hover:text-[#F5F7F4]'
+                      ? 'bg-[#FFFFFF] text-[#3B6FD4] font-bold shadow-2xs'
+                      : 'text-[#7A839E] hover:text-[#141B34]'
                   }`}
                 >
                   This Year
@@ -387,10 +422,10 @@ export default function Dashboard() {
 
             {/* Dynamic Revenue Display */}
             <div className="mt-3">
-              <div className="text-3xl font-extrabold text-[#F5F7F4] tracking-tight">
+              <div className="text-3xl font-extrabold text-[#141B34] tracking-tight">
                 {!data ? '—' : formatCurrency(displayedRevenue)}
               </div>
-              <div className="text-xs font-semibold text-[#A5AEA8] mt-0.5">
+              <div className="text-xs font-semibold text-[#7A839E] mt-0.5">
                 {displayedSubtitle}
               </div>
             </div>
@@ -398,7 +433,7 @@ export default function Dashboard() {
 
           <CardContent className="p-5 pt-2">
             {!data ? (
-              <Skeleton className="h-[240px] w-full rounded-lg bg-[#101312]" />
+              <Skeleton className="h-[240px] w-full rounded-lg bg-[#F4F6FC]" />
             ) : (
               <RevenueLineChart data={displayedChartData} />
             )}
@@ -406,16 +441,16 @@ export default function Dashboard() {
         </Card>
 
         {/* Customer Performance Card (4 Cols) */}
-        <Card className="lg:col-span-4 bg-[#171918] border-[#292E2A] text-[#F5F7F4] flex flex-col justify-between shadow-xl">
+        <Card className="lg:col-span-4 bg-[#FFFFFF] border-[#E4E8F2] text-[#141B34] flex flex-col justify-between shadow-card">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#F5F7F4]">Customer Performance</CardTitle>
-            <CardDescription className="text-xs text-[#A5AEA8] mt-0.5">Key accounts generating revenue.</CardDescription>
+            <CardTitle className="text-base font-bold text-[#141B34]">Customer Performance</CardTitle>
+            <CardDescription className="text-xs text-[#7A839E] mt-0.5">Key accounts generating revenue.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0">
             {!data ? (
-              <Skeleton className="h-44 w-full rounded-lg bg-[#101312]" />
+              <Skeleton className="h-44 w-full rounded-lg bg-[#F4F6FC]" />
             ) : (
-              <HorizontalBarChart data={topCompaniesChartData} color="#B8F23A" />
+              <HorizontalBarChart data={topCompaniesChartData} color="#3B6FD4" />
             )}
           </CardContent>
         </Card>
@@ -426,10 +461,10 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Quotation Pipeline Conversion Funnel (7 Cols) */}
-        <Card className="lg:col-span-7 bg-[#171918] border-[#292E2A] text-[#F5F7F4] shadow-xl">
+        <Card className="lg:col-span-7 bg-[#FFFFFF] border-[#E4E8F2] text-[#141B34] shadow-card">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#F5F7F4]">Quotation Pipeline Funnel</CardTitle>
-            <CardDescription className="text-xs text-[#A5AEA8] mt-0.5">Proposal conversion rate and stage distribution.</CardDescription>
+            <CardTitle className="text-base font-bold text-[#141B34]">Quotation Pipeline Funnel</CardTitle>
+            <CardDescription className="text-xs text-[#7A839E] mt-0.5">Proposal conversion rate and stage distribution.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0">
             {pipelineError ? (
@@ -438,7 +473,7 @@ export default function Dashboard() {
                 onRetry={() => api.dashboard.pipeline({ start: currentRange.start, end: currentRange.end }).then(setPipeline)}
               />
             ) : !pipeline ? (
-              <Skeleton className="h-48 w-full rounded-lg bg-[#101312]" />
+              <Skeleton className="h-48 w-full rounded-lg bg-[#F4F6FC]" />
             ) : (
               <PipelineDonutChart
                 stages={pipelineStages}
@@ -450,13 +485,13 @@ export default function Dashboard() {
         </Card>
 
         {/* Key Business Insights (5 Cols) */}
-        <Card className="lg:col-span-5 bg-[#171918] border-[#292E2A] text-[#F5F7F4] shadow-xl flex flex-col justify-between">
+        <Card className="lg:col-span-5 bg-[#FFFFFF] border-[#E4E8F2] text-[#141B34] shadow-card flex flex-col justify-between">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#F5F7F4] flex items-center gap-2">
-              <SparklesIcon className="size-4 text-[#B8F23A]" />
+            <CardTitle className="text-base font-bold text-[#141B34] flex items-center gap-2">
+              <SparklesIcon className="size-4 text-[#3B6FD4]" />
               <span>Key Business Insights</span>
             </CardTitle>
-            <CardDescription className="text-xs text-[#A5AEA8] mt-0.5">Operational summary derived from active data.</CardDescription>
+            <CardDescription className="text-xs text-[#7A839E] mt-0.5">Operational summary derived from active data.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0 space-y-3">
             {attentionError ? (
@@ -464,22 +499,22 @@ export default function Dashboard() {
             ) : attention && attention.items.length > 0 ? (
               <Link
                 to={attention.items[0].route}
-                className="p-3 rounded-lg bg-[#1D211E] border border-[#292E2A] hover:border-[#3a4237] transition-colors flex items-start gap-3 block"
+                className="p-3 rounded-lg bg-[#F7F8FC] border border-[#E4E8F2] hover:border-[#D4DAEA] transition-colors flex items-start gap-3 block"
               >
-                <AlertCircleIcon className="size-4 text-[#E25757] mt-0.5 shrink-0" />
+                <AlertCircleIcon className="size-4 text-[#E5484D] mt-0.5 shrink-0" />
                 <div className="text-xs">
-                  <span className="font-bold text-[#F5F7F4] block">{attention.items[0].title}</span>
-                  <span className="text-[#A5AEA8] mt-0.5 block">{attention.items[0].description}</span>
+                  <span className="font-bold text-[#141B34] block">{attention.items[0].title}</span>
+                  <span className="text-[#7A839E] mt-0.5 block">{attention.items[0].description}</span>
                 </div>
               </Link>
             ) : null}
 
             {data && (
-              <div className="p-3 rounded-lg bg-[#1D211E] border border-[#292E2A] flex items-start gap-3">
-                <CheckCircle2Icon className="size-4 text-[#B8F23A] mt-0.5 shrink-0" />
+              <div className="p-3 rounded-lg bg-[#F7F8FC] border border-[#E4E8F2] flex items-start gap-3">
+                <CheckCircle2Icon className="size-4 text-[#3B6FD4] mt-0.5 shrink-0" />
                 <div className="text-xs">
-                  <span className="font-bold text-[#F5F7F4] block">{data.counts.companies} Active Client Accounts</span>
-                  <span className="text-[#A5AEA8] mt-0.5 block">Generating {formatCurrency(data.acceptedQuotationRevenue)} in accepted proposal revenue.</span>
+                  <span className="font-bold text-[#141B34] block">{data.counts.companies} Active Client Accounts</span>
+                  <span className="text-[#7A839E] mt-0.5 block">Generating {formatCurrency(data.acceptedQuotationRevenue)} in accepted proposal revenue.</span>
                 </div>
               </div>
             )}
@@ -487,12 +522,12 @@ export default function Dashboard() {
             {followUps && (
               <Link
                 to={followUpsViewAllLink}
-                className="p-3 rounded-lg bg-[#1D211E] border border-[#292E2A] hover:border-[#3a4237] transition-colors flex items-start gap-3 block"
+                className="p-3 rounded-lg bg-[#F7F8FC] border border-[#E4E8F2] hover:border-[#D4DAEA] transition-colors flex items-start gap-3 block"
               >
-                <CalendarIcon className="size-4 text-[#708D31] mt-0.5 shrink-0" />
+                <CalendarIcon className="size-4 text-[#6B78D6] mt-0.5 shrink-0" />
                 <div className="text-xs">
-                  <span className="font-bold text-[#F5F7F4] block">{followUps.summary.totalScheduledCount} Scheduled Customer Follow-Ups</span>
-                  <span className="text-[#A5AEA8] mt-0.5 block">
+                  <span className="font-bold text-[#141B34] block">{followUps.summary.totalScheduledCount} Scheduled Customer Follow-Ups</span>
+                  <span className="text-[#7A839E] mt-0.5 block">
                     {followUps.summary.overdueCount > 0
                       ? `${followUps.summary.overdueCount} overdue touchpoints requiring immediate action.`
                       : 'All scheduled touchpoints are currently up to date.'}
@@ -509,13 +544,13 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Today's Scheduled Follow-Ups (6 Cols) */}
-        <Card className="lg:col-span-6 bg-[#171918] border-[#292E2A] text-[#F5F7F4] shadow-xl">
+        <Card className="lg:col-span-6 bg-[#FFFFFF] border-[#E4E8F2] text-[#141B34] shadow-card">
           <CardHeader className="p-5 pb-3 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base font-bold text-[#F5F7F4]">Follow-Up Activity</CardTitle>
-              <CardDescription className="text-xs text-[#A5AEA8] mt-0.5">Scheduled customer touchpoints.</CardDescription>
+              <CardTitle className="text-base font-bold text-[#141B34]">Follow-Up Activity</CardTitle>
+              <CardDescription className="text-xs text-[#7A839E] mt-0.5">Scheduled customer touchpoints.</CardDescription>
             </div>
-            <Button asChild size="sm" variant="ghost" className="h-7 text-xs font-bold text-[#B8F23A] hover:bg-[#1D211E]">
+            <Button asChild size="sm" variant="ghost" className="h-7 text-xs font-bold text-[#3B6FD4] hover:bg-[#F7F8FC]">
               <Link to={followUpsViewAllLink}>View All →</Link>
             </Button>
           </CardHeader>
@@ -523,9 +558,9 @@ export default function Dashboard() {
             {followUpsError ? (
               <WidgetErrorState message="Unable to load follow-ups." onRetry={() => api.dashboard.followUps().then(setFollowUps)} />
             ) : !followUps ? (
-              <Skeleton className="h-36 w-full rounded-lg bg-[#101312]" />
+              <Skeleton className="h-36 w-full rounded-lg bg-[#F4F6FC]" />
             ) : followUps.summary.totalScheduledCount === 0 ? (
-              <p className="text-xs text-[#A5AEA8] py-6 text-center">No scheduled follow-ups.</p>
+              <p className="text-xs text-[#7A839E] py-6 text-center">No scheduled follow-ups.</p>
             ) : (
               <div className="space-y-2">
                 {followUps.overdue.slice(0, 3).map((f) => (
@@ -543,16 +578,16 @@ export default function Dashboard() {
         </Card>
 
         {/* Top Product Performance Leaderboard (6 Cols) */}
-        <Card className="lg:col-span-6 bg-[#171918] border-[#292E2A] text-[#F5F7F4] shadow-xl">
+        <Card className="lg:col-span-6 bg-[#FFFFFF] border-[#E4E8F2] text-[#141B34] shadow-card">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#F5F7F4]">Product Performance</CardTitle>
-            <CardDescription className="text-xs text-[#A5AEA8] mt-0.5">Best selling catalog items.</CardDescription>
+            <CardTitle className="text-base font-bold text-[#141B34]">Product Performance</CardTitle>
+            <CardDescription className="text-xs text-[#7A839E] mt-0.5">Best selling catalog items.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0">
             {!data ? (
-              <Skeleton className="h-36 w-full rounded-lg bg-[#101312]" />
+              <Skeleton className="h-36 w-full rounded-lg bg-[#F4F6FC]" />
             ) : (
-              <HorizontalBarChart data={topProductsChartData} color="#708D31" />
+              <HorizontalBarChart data={topProductsChartData} color="#6B78D6" />
             )}
           </CardContent>
         </Card>
@@ -560,10 +595,10 @@ export default function Dashboard() {
       </div>
 
       {/* 6. ROW 4: RECENT SYSTEM ACTIVITY TIMELINE (12 COLS) */}
-      <Card className="bg-[#171918] border-[#292E2A] text-[#F5F7F4] shadow-xl">
+      <Card className="bg-[#FFFFFF] border-[#E4E8F2] text-[#141B34] shadow-card">
         <CardHeader className="p-5 pb-3">
-          <CardTitle className="text-base font-bold text-[#F5F7F4]">Recent System Activity</CardTitle>
-          <CardDescription className="text-xs text-[#A5AEA8] mt-0.5">Operational audit log of recent transactions.</CardDescription>
+          <CardTitle className="text-base font-bold text-[#141B34]">Recent System Activity</CardTitle>
+          <CardDescription className="text-xs text-[#7A839E] mt-0.5">Operational audit log of recent transactions.</CardDescription>
         </CardHeader>
         <CardContent className="p-5 pt-0">
           {recentActivityError ? (
@@ -572,37 +607,37 @@ export default function Dashboard() {
               onRetry={() => api.dashboard.recentActivity().then((d) => setRecentActivity(d.activity))}
             />
           ) : recentActivity === null ? (
-            <Skeleton className="h-32 w-full rounded-lg bg-[#101312]" />
+            <Skeleton className="h-32 w-full rounded-lg bg-[#F4F6FC]" />
           ) : recentActivity.length === 0 ? (
-            <p className="text-xs text-[#A5AEA8] py-4 text-center">No activity recorded yet.</p>
+            <p className="text-xs text-[#7A839E] py-4 text-center">No activity recorded yet.</p>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-[#292E2A] hover:bg-transparent">
-                  <TableHead className="text-xs h-8 text-[#A5AEA8]">Document</TableHead>
-                  <TableHead className="text-xs h-8 text-[#A5AEA8]">Account</TableHead>
-                  <TableHead className="text-xs h-8 text-[#A5AEA8]">Status</TableHead>
-                  <TableHead className="text-xs h-8 text-right text-[#A5AEA8]">Date</TableHead>
+                <TableRow className="border-[#E4E8F2] hover:bg-transparent">
+                  <TableHead className="text-xs h-8 text-[#7A839E]">Document</TableHead>
+                  <TableHead className="text-xs h-8 text-[#7A839E]">Account</TableHead>
+                  <TableHead className="text-xs h-8 text-[#7A839E]">Status</TableHead>
+                  <TableHead className="text-xs h-8 text-right text-[#7A839E]">Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentActivity.map((item) => {
                   const meta = ACTIVITY_META[item.type];
                   return (
-                    <TableRow key={`${item.type}-${item.id}`} className="border-[#292E2A] hover:bg-[#1D211E] cursor-pointer">
-                      <TableCell className="py-2.5 text-xs font-bold text-[#F5F7F4]">
-                        <Link to={meta.to(item.id)} className="hover:underline flex items-center gap-2 text-[#B8F23A]">
+                    <TableRow key={`${item.type}-${item.id}`} className="border-[#E4E8F2] hover:bg-[#F7F8FC] cursor-pointer">
+                      <TableCell className="py-2.5 text-xs font-bold text-[#141B34]">
+                        <Link to={meta.to(item.id)} className="hover:underline flex items-center gap-2 text-[#3B6FD4]">
                           <span className="shrink-0"><meta.icon /></span>
                           <span>{item.number}</span>
                         </Link>
                       </TableCell>
-                      <TableCell className="py-2.5 text-xs text-[#A5AEA8]">{item.company_name || '—'}</TableCell>
+                      <TableCell className="py-2.5 text-xs text-[#7A839E]">{item.company_name || '—'}</TableCell>
                       <TableCell className="py-2.5">
-                        <Badge variant="outline" className="text-[10px] capitalize font-semibold border-[#292E2A] text-[#F5F7F4] bg-[#101312]">
+                        <Badge variant="outline" className="text-[10px] capitalize font-semibold border-[#E4E8F2] text-[#141B34] bg-[#F4F6FC]">
                           {item.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-2.5 text-xs text-[#A5AEA8] text-right font-medium">{formatDate(item.date)}</TableCell>
+                      <TableCell className="py-2.5 text-xs text-[#7A839E] text-right font-medium">{formatDate(item.date)}</TableCell>
                     </TableRow>
                   );
                 })}

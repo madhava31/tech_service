@@ -38,7 +38,7 @@ function ResultTable({ result }: { result: AiAskResponse }) {
       <div className="overflow-x-auto my-2">
         <table className="w-full text-[12px] border-collapse">
           <thead>
-            <tr className="border-b border-[#20251f] text-[#6d756f]">
+            <tr className="border-b border-[#EEF1F9] text-[#A8AEC4]">
               <th className="text-left py-1.5 px-2">Company</th>
               <th className="text-left py-1.5 px-2">Last Purchase</th>
               <th className="text-right py-1.5 px-2">Total Revenue</th>
@@ -46,10 +46,10 @@ function ResultTable({ result }: { result: AiAskResponse }) {
           </thead>
           <tbody>
             {data.customers.map((c: any, i: number) => (
-              <tr key={i} className="border-b border-[#1a1f1c]">
-                <td className="py-1.5 px-2 text-[#F5F7F4]">{c.company_name}</td>
-                <td className="py-1.5 px-2 text-[#A5AEA8]">{formatDate(c.last_purchase)}</td>
-                <td className="py-1.5 px-2 text-right font-medium text-[#F5F7F4]">{formatCurrency(c.total_revenue)}</td>
+              <tr key={i} className="border-b border-[#F7F8FC]">
+                <td className="py-1.5 px-2 text-[#141B34]">{c.company_name}</td>
+                <td className="py-1.5 px-2 text-[#7A839E]">{formatDate(c.last_purchase)}</td>
+                <td className="py-1.5 px-2 text-right font-medium text-[#141B34]">{formatCurrency(c.total_revenue)}</td>
               </tr>
             ))}
           </tbody>
@@ -64,7 +64,7 @@ function ResultTable({ result }: { result: AiAskResponse }) {
       <div className="overflow-x-auto my-2">
         <table className="w-full text-[12px] border-collapse">
           <thead>
-            <tr className="border-b border-[#20251f] text-[#6d756f]">
+            <tr className="border-b border-[#EEF1F9] text-[#A8AEC4]">
               <th className="text-left py-1.5 px-2">Product</th>
               <th className="text-right py-1.5 px-2">Revenue</th>
               <th className="text-right py-1.5 px-2">Units</th>
@@ -72,10 +72,10 @@ function ResultTable({ result }: { result: AiAskResponse }) {
           </thead>
           <tbody>
             {data.products.map((p: any, i: number) => (
-              <tr key={i} className="border-b border-[#1a1f1c]">
-                <td className="py-1.5 px-2 text-[#F5F7F4]">{p.product_description || p.part_no}</td>
-                <td className="py-1.5 px-2 text-right font-medium text-[#F5F7F4]">{formatCurrency(p.revenue)}</td>
-                <td className="py-1.5 px-2 text-right text-[#A5AEA8]">{p.units}</td>
+              <tr key={i} className="border-b border-[#F7F8FC]">
+                <td className="py-1.5 px-2 text-[#141B34]">{p.product_description || p.part_no}</td>
+                <td className="py-1.5 px-2 text-right font-medium text-[#141B34]">{formatCurrency(p.revenue)}</td>
+                <td className="py-1.5 px-2 text-right text-[#7A839E]">{p.units}</td>
               </tr>
             ))}
           </tbody>
@@ -90,7 +90,7 @@ function ResultTable({ result }: { result: AiAskResponse }) {
       <div className="overflow-x-auto my-2">
         <table className="w-full text-[12px] border-collapse">
           <thead>
-            <tr className="border-b border-[#20251f] text-[#6d756f]">
+            <tr className="border-b border-[#EEF1F9] text-[#A8AEC4]">
               <th className="text-left py-1.5 px-2">Quotation</th>
               <th className="text-left py-1.5 px-2">Company</th>
               <th className="text-right py-1.5 px-2">Value</th>
@@ -99,11 +99,11 @@ function ResultTable({ result }: { result: AiAskResponse }) {
           </thead>
           <tbody>
             {data.quotations.map((q: any, i: number) => (
-              <tr key={i} className="border-b border-[#1a1f1c]">
-                <td className="py-1.5 px-2 text-[#B8F23A] font-mono">{q.number}</td>
-                <td className="py-1.5 px-2 text-[#F5F7F4]">{q.company_name}</td>
-                <td className="py-1.5 px-2 text-right font-medium text-[#F5F7F4]">{formatCurrency(q.total)}</td>
-                <td className="py-1.5 px-2 text-right capitalize text-[#A5AEA8]">{q.status}</td>
+              <tr key={i} className="border-b border-[#F7F8FC]">
+                <td className="py-1.5 px-2 text-[#3B6FD4] font-mono">{q.number}</td>
+                <td className="py-1.5 px-2 text-[#141B34]">{q.company_name}</td>
+                <td className="py-1.5 px-2 text-right font-medium text-[#141B34]">{formatCurrency(q.total)}</td>
+                <td className="py-1.5 px-2 text-right capitalize text-[#7A839E]">{q.status}</td>
               </tr>
             ))}
           </tbody>
@@ -159,7 +159,7 @@ export default function AskTechnicon({ embedded }: { embedded?: boolean }) {
 
   return (
     <section
-      className={`flex flex-col gap-4 bg-[#171918] border border-[#292E2A] rounded-[16px] p-5 select-none ${
+      className={`flex flex-col gap-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-5 select-none ${
         embedded ? 'h-[360px]' : 'min-h-[460px]'
       }`}
     >
@@ -170,7 +170,7 @@ export default function AskTechnicon({ embedded }: { embedded?: boolean }) {
         className="flex-1 flex flex-col gap-3 overflow-y-auto max-h-[52vh] pr-1"
       >
         {history.length === 0 ? (
-          <div className="flex flex-col gap-2 p-3 text-[13px] text-[#A5AEA8]">
+          <div className="flex flex-col gap-2 p-3 text-[13px] text-[#7A839E]">
             <p className="margin-0">
               Ask me questions against your live Technicon data. I read from your records — nothing here is written back.
             </p>
@@ -180,14 +180,14 @@ export default function AskTechnicon({ embedded }: { embedded?: boolean }) {
             <div key={idx} className="flex gap-2.75 items-start animate-in fade-in duration-150">
               <span
                 aria-hidden="true"
-                className={`shrink-0 w-7 h-7 rounded-[8px] bg-[#1D211E] border border-[#2f362e] grid place-items-center text-[10.5px] font-bold ${
-                  m.role === 'model' ? 'text-[#B8F23A]' : 'text-[#F5F7F4]'
+                className={`shrink-0 w-7 h-7 rounded-[8px] bg-[#F7F8FC] border border-[#DCE2F0] grid place-items-center text-[10.5px] font-bold ${
+                  m.role === 'model' ? 'text-[#3B6FD4]' : 'text-[#141B34]'
                 }`}
               >
                 {m.role === 'model' ? 'AI' : 'You'}
               </span>
               <div className="flex flex-col min-w-0 max-w-[76ch]">
-                <p className="margin-0 text-[13px] leading-[1.55] text-[#e4e8e3] text-pretty">
+                <p className="margin-0 text-[13px] leading-[1.55] text-[#2C3454] text-pretty">
                   {m.text}
                 </p>
                 {m.result && <ResultTable result={m.result} />}
@@ -198,22 +198,22 @@ export default function AskTechnicon({ embedded }: { embedded?: boolean }) {
 
         {loading && (
           <div className="flex gap-2.75 items-center">
-            <span className="shrink-0 w-7 h-7 rounded-[8px] bg-[#1D211E] border border-[#2f362e] text-[#B8F23A] grid place-items-center text-[10.5px] font-bold">
+            <span className="shrink-0 w-7 h-7 rounded-[8px] bg-[#F7F8FC] border border-[#DCE2F0] text-[#3B6FD4] grid place-items-center text-[10.5px] font-bold">
               AI
             </span>
-            <span className="text-[12.5px] text-[#A5AEA8] italic">Analyzing live records...</span>
+            <span className="text-[12.5px] text-[#7A839E] italic">Analyzing live records...</span>
           </div>
         )}
       </div>
 
       {/* Suggestion Pills */}
-      <div className="flex gap-2 flex-wrap pt-2 border-t border-[#1f2421]">
+      <div className="flex gap-2 flex-wrap pt-2 border-t border-[#EEF1F9]">
         {EXAMPLE_QUESTIONS.slice(0, embedded ? 2 : 4).map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => sendQuestion(s)}
-            className="h-[30px] px-2.75 rounded-full bg-transparent border border-[#292E2A] text-[#A5AEA8] text-[12px] cursor-pointer hover:border-[#3a4a1f] hover:text-[#B8F23A] transition-colors"
+            className="h-[30px] px-2.75 rounded-full bg-transparent border border-[#E4E8F2] text-[#7A839E] text-[12px] cursor-pointer hover:border-[#D9E2F4] hover:text-[#3B6FD4] transition-colors"
           >
             {s}
           </button>
@@ -233,12 +233,12 @@ export default function AskTechnicon({ embedded }: { embedded?: boolean }) {
           placeholder="Ask about revenue, quotations, customers or products"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          className="flex-1 min-w-0 h-[38px] px-3.25 rounded-[10px] bg-[#1D211E] border border-[#292E2A] text-[#F5F7F4] text-[13px] outline-none focus:border-[#B8F23A] placeholder-[#6d756f]"
+          className="flex-1 min-w-0 h-[38px] px-3.25 rounded-[10px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[13px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4]"
         />
         <button
           type="submit"
           disabled={loading || !question.trim()}
-          className="h-[38px] px-4 rounded-[10px] bg-transparent border border-[#3a4a1f] text-[#B8F23A] font-medium text-[13px] cursor-pointer hover:bg-[#1b2013] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-[38px] px-4 rounded-[10px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[13px] cursor-pointer hover:bg-[#E3EAF7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Ask
         </button>

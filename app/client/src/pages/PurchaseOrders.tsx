@@ -37,11 +37,11 @@ function matchesDate(dateStr: string | null | undefined, range: { start: string;
 }
 
 const PO_STATUS_TONES: Record<string, string> = {
-  active: '#D9A441',
-  'in production': '#D9A441',
-  dispatched: '#7E95FF',
-  delivered: '#B8F23A',
-  completed: '#B8F23A',
+  active: '#E8A33D',
+  'in production': '#E8A33D',
+  dispatched: '#6B78D6',
+  delivered: '#3B6FD4',
+  completed: '#3B6FD4',
 };
 
 export default function PurchaseOrders() {
@@ -99,41 +99,41 @@ export default function PurchaseOrders() {
   }, [rows]);
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#101312] text-[#F5F7F4] min-h-screen">
+    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
       {/* Header & KPI Summary */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Purchase Orders
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#A5AEA8]">
+          <p className="margin-0 text-[13.5px] text-[#7A839E]">
             Orders raised against accepted quotations, by fulfilment state.
           </p>
         </div>
-        <div className="grid grid-cols-2 border border-[#292E2A] rounded-[12px] bg-[#171918] overflow-hidden">
-          <div className="p-[10px_16px] border-r border-[#1f2421] flex flex-col gap-[2px]">
-            <span className="text-[11px] tracking-[.08em] text-[#6d756f]">TOTAL VALUE</span>
-            <span className="text-[20px] font-medium text-[#B8F23A]">
+        <div className="grid grid-cols-2 border border-[#E4E8F2] rounded-[12px] bg-[#FFFFFF] overflow-hidden">
+          <div className="p-[10px_16px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
+            <span className="text-[11px] tracking-[.08em] text-[#A8AEC4]">TOTAL VALUE</span>
+            <span className="text-[20px] font-medium text-[#3B6FD4]">
               ₹{kpis.openVal > 0 ? (kpis.openVal / 100000).toFixed(2) + 'L' : '0.00'}
             </span>
           </div>
           <div className="p-[10px_16px] flex flex-col gap-[2px]">
-            <span className="text-[11px] tracking-[.08em] text-[#6d756f]">TOTAL ORDERS</span>
-            <span className="text-[20px] font-medium text-[#F5F7F4]">{kpis.count}</span>
+            <span className="text-[11px] tracking-[.08em] text-[#A8AEC4]">TOTAL ORDERS</span>
+            <span className="text-[20px] font-medium text-[#141B34]">{kpis.count}</span>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 rounded-[10px] border border-[#4a2a2a] bg-[#1b1414] text-[#E25757] text-[12.5px]">
+        <div className="p-3 rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] text-[#E5484D] text-[12.5px]">
           {error}
         </div>
       )}
 
       {/* Main Table Container Card */}
-      <section className="bg-[#171918] border border-[#292E2A] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+      <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
         {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#20251f] pb-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
           <div className="flex items-center gap-2.5 flex-wrap">
             <ExpandableSearch
               value={search}
@@ -145,7 +145,7 @@ export default function PurchaseOrders() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-[30px] px-2 rounded-[8px] bg-[#1D211E] border border-[#292E2A] text-[#F5F7F4] text-[12px] outline-none cursor-pointer"
+              className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
             >
               <option value="">All Statuses</option>
               {statuses.map((s) => (
@@ -157,7 +157,7 @@ export default function PurchaseOrders() {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as DateFilter)}
-              className="h-[30px] px-2 rounded-[8px] bg-[#1D211E] border border-[#292E2A] text-[#F5F7F4] text-[12px] outline-none cursor-pointer"
+              className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
             >
               <option value="all">All Dates</option>
               <option value="today">Today</option>
@@ -169,13 +169,13 @@ export default function PurchaseOrders() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="h-[30px] px-2.5 rounded-[8px] bg-[#1D211E] border border-[#292E2A] text-[#A5AEA8] text-[12px] hover:text-[#F5F7F4] cursor-pointer"
+                className="h-[30px] px-2.5 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] text-[12px] hover:text-[#141B34] cursor-pointer"
               >
                 Clear
               </button>
             )}
           </div>
-          <span className="text-[11.5px] text-[#6d756f]">
+          <span className="text-[11.5px] text-[#A8AEC4]">
             Showing {filtered.length} of {rows.length}
           </span>
         </div>
@@ -184,44 +184,44 @@ export default function PurchaseOrders() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-[12.5px]">
             <thead>
-              <tr className="border-b border-[#20251f]">
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+              <tr className="border-b border-[#EEF1F9]">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   ORDER
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   CUSTOMER
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   LINKED QUOTE
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   CLIENT REF
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   RAISED
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   STATUS
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   PDF
                 </th>
               </tr>
             </thead>
             <tbody>
               {paged.map((po) => {
-                const tone = PO_STATUS_TONES[po.status.toLowerCase()] || '#B8F23A';
+                const tone = PO_STATUS_TONES[po.status.toLowerCase()] || '#3B6FD4';
                 return (
-                  <tr key={po.id} className="border-b border-[#1a1f1c] hover:bg-[#1a1e1c] transition-colors">
-                    <td className="p-[11px_10px] font-medium text-[#F5F7F4]">{po.number}</td>
-                    <td className="p-[11px_10px] text-[#F5F7F4]">{po.company_name || '—'}</td>
-                    <td className="p-[11px_10px] text-[#A5AEA8]">
-                      <Link to={`/quotations/${po.quotation_id}`} className="text-[#B8F23A] hover:underline">
+                  <tr key={po.id} className="border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors">
+                    <td className="p-[11px_10px] font-medium text-[#141B34]">{po.number}</td>
+                    <td className="p-[11px_10px] text-[#141B34]">{po.company_name || '—'}</td>
+                    <td className="p-[11px_10px] text-[#7A839E]">
+                      <Link to={`/quotations/${po.quotation_id}`} className="text-[#3B6FD4] hover:underline">
                         {po.quotation_number}
                       </Link>
                     </td>
-                    <td className="p-[11px_10px] text-[#A5AEA8]">{po.client_po_ref || '—'}</td>
-                    <td className="p-[11px_10px] text-[#A5AEA8]">{po.date}</td>
+                    <td className="p-[11px_10px] text-[#7A839E]">{po.client_po_ref || '—'}</td>
+                    <td className="p-[11px_10px] text-[#7A839E]">{po.date}</td>
                     <td className="p-[11px_10px] text-right">
                       <span className="inline-flex items-center gap-1.5 capitalize" style={{ color: tone }}>
                         <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tone }} />
@@ -233,7 +233,7 @@ export default function PurchaseOrders() {
                         href={api.purchaseOrders.pdfUrl(po.id)}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[12px] text-[#A5AEA8] hover:text-[#B8F23A] hover:underline"
+                        className="text-[12px] text-[#7A839E] hover:text-[#3B6FD4] hover:underline"
                       >
                         PDF →
                       </a>
@@ -243,7 +243,7 @@ export default function PurchaseOrders() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-[#A5AEA8] text-[13px]">
+                  <td colSpan={7} className="text-center py-8 text-[#7A839E] text-[13px]">
                     No purchase orders found.
                   </td>
                 </tr>

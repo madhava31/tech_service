@@ -27,13 +27,13 @@ function formatDate(d: string | null) {
 }
 
 const PIPELINE_STAGES: { key: DerivedPipelineStage; label: string; color: string }[] = [
-  { key: 'QUOTATION_DRAFT', label: 'Quotation Draft', color: '#A5AEA8' },
-  { key: 'AWAITING_CUSTOMER', label: 'Awaiting Customer', color: '#D9A441' },
-  { key: 'PO_CREATED', label: 'PO Created', color: '#7E95FF' },
-  { key: 'PI_CREATED', label: 'PI Created', color: '#9B51E0' },
-  { key: 'READY_TO_DISPATCH', label: 'Ready to Dispatch', color: '#2F80ED' },
-  { key: 'PARTIALLY_DISPATCHED', label: 'Partially Dispatched', color: '#F2994A' },
-  { key: 'COMPLETED', label: 'Completed', color: '#B8F23A' },
+  { key: 'QUOTATION_DRAFT', label: 'Quotation Draft', color: '#7A839E' },
+  { key: 'AWAITING_CUSTOMER', label: 'Awaiting Customer', color: '#E8A33D' },
+  { key: 'PO_CREATED', label: 'PO Created', color: '#6B78D6' },
+  { key: 'PI_CREATED', label: 'PI Created', color: '#9333EA' },
+  { key: 'READY_TO_DISPATCH', label: 'Ready to Dispatch', color: '#2563EB' },
+  { key: 'PARTIALLY_DISPATCHED', label: 'Partially Dispatched', color: '#E07B39' },
+  { key: 'COMPLETED', label: 'Completed', color: '#3B6FD4' },
 ];
 
 export default function SalesPipeline() {
@@ -232,15 +232,15 @@ export default function SalesPipeline() {
   return (
     <div className="sales-pipeline-container p-4 space-y-4 max-w-[1700px] mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#171918] border border-[#292E2A] p-4 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E4E8F2] p-4 rounded-xl">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-[#F5F7F4] tracking-tight">Sales Pipeline</h1>
-            <span className="bg-[#1D211E] text-[#B8F23A] text-xs font-semibold px-2.5 py-0.5 rounded-full border border-[#333C31]">
+            <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">Sales Pipeline</h1>
+            <span className="bg-[#F7F8FC] text-[#3B6FD4] text-xs font-semibold px-2.5 py-0.5 rounded-full border border-[#D4DAEA]">
               Live Control
             </span>
           </div>
-          <p className="text-xs text-[#A5AEA8] mt-1">
+          <p className="text-xs text-[#7A839E] mt-1">
             Real-time opportunity & follow-up control center anchored on backend-authoritative stage tracking.
           </p>
         </div>
@@ -248,18 +248,18 @@ export default function SalesPipeline() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={loadData}
-            className="btn small secondary bg-[#1D211E] text-[#F5F7F4] border-[#292E2A] hover:bg-[#292E2A] transition-colors"
+            className="btn small secondary bg-[#F7F8FC] text-[#141B34] border-[#E4E8F2] hover:bg-[#E4E8F2] transition-colors"
             title="Refresh Data"
           >
             🔄 Refresh
           </button>
 
-          <div className="inline-flex p-0.5 bg-[#101312] border border-[#292E2A] rounded-lg">
+          <div className="inline-flex p-0.5 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg">
             <button
               className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                 viewMode === 'kanban'
-                  ? 'bg-[#1D211E] text-[#B8F23A] font-semibold border border-[#333C31]'
-                  : 'text-[#A5AEA8] hover:text-[#F5F7F4]'
+                  ? 'bg-[#F7F8FC] text-[#3B6FD4] font-semibold border border-[#D4DAEA]'
+                  : 'text-[#7A839E] hover:text-[#141B34]'
               }`}
               onClick={() => setViewMode('kanban')}
             >
@@ -268,8 +268,8 @@ export default function SalesPipeline() {
             <button
               className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                 viewMode === 'table'
-                  ? 'bg-[#1D211E] text-[#B8F23A] font-semibold border border-[#333C31]'
-                  : 'text-[#A5AEA8] hover:text-[#F5F7F4]'
+                  ? 'bg-[#F7F8FC] text-[#3B6FD4] font-semibold border border-[#D4DAEA]'
+                  : 'text-[#7A839E] hover:text-[#141B34]'
               }`}
               onClick={() => setViewMode('table')}
             >
@@ -278,7 +278,7 @@ export default function SalesPipeline() {
           </div>
 
           <button
-            className="btn small bg-[#B8F23A] hover:bg-[#a3d933] text-[#101312] font-semibold transition-colors px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs"
+            className="btn small bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold transition-colors px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs"
             onClick={handleExportExcel}
           >
             📥 Export Excel
@@ -291,116 +291,116 @@ export default function SalesPipeline() {
       {/* KPI Summary Block */}
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          <div className="bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">Open Pipeline</div>
-            <div className="text-lg font-bold text-[#B8F23A] mt-1">{formatCurrency(summary.open_pipeline_value)}</div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">{summary.open_quotations_count} Active Quotes</div>
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Open Pipeline</div>
+            <div className="text-lg font-bold text-[#3B6FD4] mt-1">{formatCurrency(summary.open_pipeline_value)}</div>
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">{summary.open_quotations_count} Active Quotes</div>
           </div>
 
-          <div className="bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">Awaiting Customer</div>
-            <div className="text-lg font-bold text-[#D9A441] mt-1">
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Awaiting Customer</div>
+            <div className="text-lg font-bold text-[#E8A33D] mt-1">
               {summary.stage_counts.AWAITING_CUSTOMER || 0}
             </div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">
               {formatCurrency(summary.stage_values.AWAITING_CUSTOMER || 0)}
             </div>
           </div>
 
-          <div className="bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">PO Created</div>
-            <div className="text-lg font-bold text-[#7E95FF] mt-1">{summary.stage_counts.PO_CREATED || 0}</div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">{formatCurrency(summary.stage_values.PO_CREATED || 0)}</div>
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">PO Created</div>
+            <div className="text-lg font-bold text-[#6B78D6] mt-1">{summary.stage_counts.PO_CREATED || 0}</div>
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">{formatCurrency(summary.stage_values.PO_CREATED || 0)}</div>
           </div>
 
-          <div className="bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">PI Created</div>
-            <div className="text-lg font-bold text-[#9B51E0] mt-1">{summary.stage_counts.PI_CREATED || 0}</div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">{formatCurrency(summary.stage_values.PI_CREATED || 0)}</div>
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">PI Created</div>
+            <div className="text-lg font-bold text-[#9333EA] mt-1">{summary.stage_counts.PI_CREATED || 0}</div>
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">{formatCurrency(summary.stage_values.PI_CREATED || 0)}</div>
           </div>
 
-          <div className="bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">Ready Dispatch</div>
-            <div className="text-lg font-bold text-[#2F80ED] mt-1">
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Ready Dispatch</div>
+            <div className="text-lg font-bold text-[#2563EB] mt-1">
               {summary.stage_counts.READY_TO_DISPATCH || 0}
             </div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">
               {formatCurrency(summary.stage_values.READY_TO_DISPATCH || 0)}
             </div>
           </div>
 
-          <div className="bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">Follow-Ups Due</div>
-            <div className="text-lg font-bold text-[#7E95FF] mt-1">{summary.due_today_followups_count}</div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">Due Today</div>
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Follow-Ups Due</div>
+            <div className="text-lg font-bold text-[#6B78D6] mt-1">{summary.due_today_followups_count}</div>
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">Due Today</div>
           </div>
 
           <div
-            className={`bg-[#171918] border p-3 rounded-xl transition-colors ${
+            className={`bg-[#FFFFFF] border p-3 rounded-xl transition-colors ${
               summary.overdue_followups_count > 0
-                ? 'border-[#E25757]/40 bg-[#E25757]/5'
-                : 'border-[#292E2A]'
+                ? 'border-[#E5484D]/40 bg-[#E5484D]/5'
+                : 'border-[#E4E8F2]'
             }`}
           >
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">Overdue</div>
-            <div className="text-lg font-bold text-[#E25757] mt-1">{summary.overdue_followups_count}</div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">Requires Action</div>
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Overdue</div>
+            <div className="text-lg font-bold text-[#E5484D] mt-1">{summary.overdue_followups_count}</div>
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">Requires Action</div>
           </div>
 
-          <div className="bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#A5AEA8]">Stale / Stock Risk</div>
-            <div className="text-lg font-bold text-[#D9A441] mt-1">
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
+            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Stale / Stock Risk</div>
+            <div className="text-lg font-bold text-[#E8A33D] mt-1">
               {summary.stale_quotations_count} / {summary.stock_risk_count}
             </div>
-            <div className="text-[11px] text-[#6D756F] mt-0.5">High Value: {summary.high_value_count}</div>
+            <div className="text-[11px] text-[#A8AEC4] mt-0.5">High Value: {summary.high_value_count}</div>
           </div>
         </div>
       )}
 
       {/* Collapsible Management Attention Panel */}
       {alerts.length > 0 && (
-        <div className="bg-[#171918] border border-[#D9A441]/40 rounded-xl overflow-hidden">
+        <div className="bg-[#FFFFFF] border border-[#E8A33D]/40 rounded-xl overflow-hidden">
           <button
             type="button"
             onClick={() => setAlertsOpen((prev) => !prev)}
-            className="w-full px-4 py-2.5 bg-[#1D211E]/80 flex items-center justify-between text-xs font-semibold text-[#D9A441] hover:bg-[#1D211E] transition-colors cursor-pointer select-none"
+            className="w-full px-4 py-2.5 bg-[#F7F8FC]/80 flex items-center justify-between text-xs font-semibold text-[#E8A33D] hover:bg-[#F7F8FC] transition-colors cursor-pointer select-none"
           >
             <div className="flex items-center gap-2">
               <span>⚠️ Management Attention Controls</span>
-              <span className="bg-[#D9A441]/20 text-[#D9A441] px-2 py-0.5 rounded-full text-[11px] border border-[#D9A441]/30">
+              <span className="bg-[#E8A33D]/20 text-[#E8A33D] px-2 py-0.5 rounded-full text-[11px] border border-[#E8A33D]/30">
                 {alerts.length} Actionable Alerts
               </span>
             </div>
-            <span className="text-xs font-bold text-[#A5AEA8]">{alertsOpen ? '▲ Collapse' : '▼ Expand'}</span>
+            <span className="text-xs font-bold text-[#7A839E]">{alertsOpen ? '▲ Collapse' : '▼ Expand'}</span>
           </button>
 
           {alertsOpen && (
-            <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 border-t border-[#292E2A]">
+            <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 border-t border-[#E4E8F2]">
               {alerts.map((a) => (
                 <div
                   key={a.id}
-                  className="bg-[#101312] border border-[#292E2A] p-2.5 rounded-lg text-xs flex flex-col justify-between hover:border-[#333C31] transition-colors"
+                  className="bg-[#F4F6FC] border border-[#E4E8F2] p-2.5 rounded-lg text-xs flex flex-col justify-between hover:border-[#D4DAEA] transition-colors"
                 >
                   <div>
-                    <div className="flex items-center justify-between font-semibold text-[#F5F7F4] mb-1">
+                    <div className="flex items-center justify-between font-semibold text-[#141B34] mb-1">
                       <span>{a.title}</span>
                       <span
                         className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                           a.severity === 'HIGH' || a.severity === 'URGENT'
-                            ? 'bg-[#E25757]/20 text-[#E25757] border border-[#E25757]/30'
-                            : 'bg-[#D9A441]/20 text-[#D9A441] border border-[#D9A441]/30'
+                            ? 'bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30'
+                            : 'bg-[#E8A33D]/20 text-[#E8A33D] border border-[#E8A33D]/30'
                         }`}
                       >
                         {a.severity}
                       </span>
                     </div>
-                    <p className="text-[#A5AEA8] text-[11px] leading-relaxed">{a.message}</p>
+                    <p className="text-[#7A839E] text-[11px] leading-relaxed">{a.message}</p>
                   </div>
                   {a.quotation_id && (
-                    <div className="mt-2 pt-1.5 border-t border-[#292E2A]/60 flex justify-end">
+                    <div className="mt-2 pt-1.5 border-t border-[#E4E8F2]/60 flex justify-end">
                       <Link
                         to={`/quotations/${a.quotation_id}`}
-                        className="text-[#B8F23A] text-[11px] font-semibold hover:underline flex items-center gap-1"
+                        className="text-[#3B6FD4] text-[11px] font-semibold hover:underline flex items-center gap-1"
                       >
                         Inspect Quotation →
                       </Link>
@@ -414,13 +414,13 @@ export default function SalesPipeline() {
       )}
 
       {/* Responsive Filter Bar */}
-      <div className="bg-[#171918] border border-[#292E2A] p-3.5 rounded-xl space-y-3">
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3.5 rounded-xl space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Search Keywords</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Search Keywords</label>
             <input
               type="text"
-              className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] px-3 py-1.5 rounded-lg focus:border-[#B8F23A] outline-none text-xs"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
               placeholder="Search quotation, customer, engineer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -428,9 +428,9 @@ export default function SalesPipeline() {
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Pipeline Stage</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Pipeline Stage</label>
             <select
-              className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] px-3 py-1.5 rounded-lg focus:border-[#B8F23A] outline-none text-xs"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
               value={selectedStage}
               onChange={(e) => setSelectedStage(e.target.value)}
             >
@@ -444,9 +444,9 @@ export default function SalesPipeline() {
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Stock Risk Status</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Stock Risk Status</label>
             <select
-              className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] px-3 py-1.5 rounded-lg focus:border-[#B8F23A] outline-none text-xs"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
               value={selectedStockStatus}
               onChange={(e) => setSelectedStockStatus(e.target.value)}
             >
@@ -459,9 +459,9 @@ export default function SalesPipeline() {
           </div>
 
           <div>
-            <label className="block text-[#A5AEA8] font-medium mb-1">Date Range</label>
+            <label className="block text-[#7A839E] font-medium mb-1">Date Range</label>
             <select
-              className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] px-3 py-1.5 rounded-lg focus:border-[#B8F23A] outline-none text-xs"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
               value={selectedDateRange}
               onChange={(e) => setSelectedDateRange(e.target.value)}
             >
@@ -475,20 +475,20 @@ export default function SalesPipeline() {
           </div>
 
           <div className="flex items-center gap-4 sm:col-span-2 lg:col-span-2 pt-2 sm:pt-4">
-            <label className="flex items-center gap-1.5 cursor-pointer text-[#F5F7F4] select-none text-xs font-medium">
+            <label className="flex items-center gap-1.5 cursor-pointer text-[#141B34] select-none text-xs font-medium">
               <input
                 type="checkbox"
-                className="accent-[#B8F23A] rounded w-3.5 h-3.5"
+                className="accent-[#3B6FD4] rounded w-3.5 h-3.5"
                 checked={onlyHighValue}
                 onChange={(e) => setOnlyHighValue(e.target.checked)}
               />
               High Value Only (≥ ₹5L)
             </label>
 
-            <label className="flex items-center gap-1.5 cursor-pointer text-[#F5F7F4] select-none text-xs font-medium">
+            <label className="flex items-center gap-1.5 cursor-pointer text-[#141B34] select-none text-xs font-medium">
               <input
                 type="checkbox"
-                className="accent-[#B8F23A] rounded w-3.5 h-3.5"
+                className="accent-[#3B6FD4] rounded w-3.5 h-3.5"
                 checked={onlyStale}
                 onChange={(e) => setOnlyStale(e.target.checked)}
               />
@@ -499,47 +499,47 @@ export default function SalesPipeline() {
 
         {/* Active Filter Chips */}
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 pt-2 border-t border-[#292E2A] flex-wrap text-xs">
-            <span className="text-[#A5AEA8] font-semibold text-[11px] uppercase tracking-wider">Active Filters:</span>
+          <div className="flex items-center gap-2 pt-2 border-t border-[#E4E8F2] flex-wrap text-xs">
+            <span className="text-[#7A839E] font-semibold text-[11px] uppercase tracking-wider">Active Filters:</span>
             {search && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#1D211E] text-[#F5F7F4] border border-[#333C31]">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#141B34] border border-[#D4DAEA]">
                 Search: "{search}"
-                <button onClick={() => setSearch('')} className="hover:text-[#E25757] ml-1 font-bold">×</button>
+                <button onClick={() => setSearch('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
               </span>
             )}
             {selectedStage && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#1D211E] text-[#B8F23A] border border-[#333C31]">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#3B6FD4] border border-[#D4DAEA]">
                 Stage: {PIPELINE_STAGES.find((s) => s.key === selectedStage)?.label || selectedStage}
-                <button onClick={() => setSelectedStage('')} className="hover:text-[#E25757] ml-1 font-bold">×</button>
+                <button onClick={() => setSelectedStage('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
               </span>
             )}
             {selectedStockStatus && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#1D211E] text-[#D9A441] border border-[#333C31]">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#E8A33D] border border-[#D4DAEA]">
                 Stock: {selectedStockStatus.replace('_', ' ')}
-                <button onClick={() => setSelectedStockStatus('')} className="hover:text-[#E25757] ml-1 font-bold">×</button>
+                <button onClick={() => setSelectedStockStatus('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
               </span>
             )}
             {selectedDateRange && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#1D211E] text-[#7E95FF] border border-[#333C31]">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#6B78D6] border border-[#D4DAEA]">
                 Date: {selectedDateRange}
-                <button onClick={() => setSelectedDateRange('')} className="hover:text-[#E25757] ml-1 font-bold">×</button>
+                <button onClick={() => setSelectedDateRange('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
               </span>
             )}
             {onlyHighValue && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#B8F23A]/10 text-[#B8F23A] border border-[#B8F23A]/30 font-semibold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30 font-semibold">
                 High Value Only
-                <button onClick={() => setOnlyHighValue(false)} className="hover:text-[#E25757] ml-1 font-bold">×</button>
+                <button onClick={() => setOnlyHighValue(false)} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
               </span>
             )}
             {onlyStale && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E25757]/10 text-[#E25757] border border-[#E25757]/30 font-semibold">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E5484D]/10 text-[#E5484D] border border-[#E5484D]/30 font-semibold">
                 Stale Only
-                <button onClick={() => setOnlyStale(false)} className="hover:text-[#E25757] ml-1 font-bold">×</button>
+                <button onClick={() => setOnlyStale(false)} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
               </span>
             )}
             <button
               onClick={resetFilters}
-              className="text-xs text-[#E25757] hover:underline font-semibold ml-auto"
+              className="text-xs text-[#E5484D] hover:underline font-semibold ml-auto"
             >
               Clear All Filters
             </button>
@@ -564,52 +564,52 @@ export default function SalesPipeline() {
               return (
                 <div
                   key={stage.key}
-                  className="w-[320px] min-w-[320px] shrink-0 bg-[#101312] border border-[#292E2A] rounded-xl p-3 flex flex-col max-h-[calc(100vh-220px)]"
+                  className="w-[320px] min-w-[320px] shrink-0 bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3 flex flex-col max-h-[calc(100vh-220px)]"
                 >
                   {/* Sticky Stage Header */}
-                  <div className="sticky top-0 bg-[#101312] z-10 pb-2.5 mb-2.5 border-b border-[#292E2A] flex justify-between items-center">
+                  <div className="sticky top-0 bg-[#F4F6FC] z-10 pb-2.5 mb-2.5 border-b border-[#E4E8F2] flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color }}></div>
-                      <span className="font-bold text-xs text-[#F5F7F4]">{stage.label}</span>
-                      <span className="text-[11px] bg-[#1D211E] text-[#A5AEA8] px-2 py-0.5 rounded-full font-semibold border border-[#333C31]">
+                      <span className="font-bold text-xs text-[#141B34]">{stage.label}</span>
+                      <span className="text-[11px] bg-[#F7F8FC] text-[#7A839E] px-2 py-0.5 rounded-full font-semibold border border-[#D4DAEA]">
                         {cols.length}
                       </span>
                     </div>
-                    <div className="text-xs font-bold text-[#B8F23A] font-mono">{formatCurrency(colValue)}</div>
+                    <div className="text-xs font-bold text-[#3B6FD4] font-mono">{formatCurrency(colValue)}</div>
                   </div>
 
                   {/* Stage Opportunities Cards List */}
                   <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
                     {cols.length === 0 ? (
-                      <div className="text-xs text-[#6D756F] text-center py-10 italic bg-[#171918]/30 rounded-lg border border-dashed border-[#292E2A]">
+                      <div className="text-xs text-[#A8AEC4] text-center py-10 italic bg-[#FFFFFF]/30 rounded-lg border border-dashed border-[#E4E8F2]">
                         No opportunities
                       </div>
                     ) : (
                       cols.map((rec) => (
                         <div
                           key={rec.quotation_id}
-                          className="card bg-[#171918] border border-[#292E2A] p-3 rounded-xl hover:border-[#333C31] hover:bg-[#1C201D] transition-all shadow-sm group"
+                          className="card bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] hover:bg-[#F7F8FC] transition-all shadow-sm group"
                         >
                           {/* Header: QTN Number & Net Subtotal */}
                           <div className="flex justify-between items-start gap-2 mb-1.5">
                             <Link
                               to={`/quotations/${rec.quotation_id}`}
-                              className="font-mono text-xs font-bold text-[#B8F23A] hover:underline"
+                              className="font-mono text-xs font-bold text-[#3B6FD4] hover:underline"
                             >
                               {rec.quotation_number}
                             </Link>
-                            <span className="font-bold text-xs text-[#F5F7F4] font-mono">
+                            <span className="font-bold text-xs text-[#141B34] font-mono">
                               {formatCurrency(rec.net_subtotal)}
                             </span>
                           </div>
 
                           {/* Customer Name */}
-                          <div className="text-xs font-bold text-[#F5F7F4] truncate mb-1.5" title={rec.customer_name}>
+                          <div className="text-xs font-bold text-[#141B34] truncate mb-1.5" title={rec.customer_name}>
                             {rec.customer_name}
                           </div>
 
                           {/* Engineer & Branch */}
-                          <div className="text-[11px] text-[#A5AEA8] flex justify-between mb-2 pb-1.5 border-b border-[#292E2A]/60">
+                          <div className="text-[11px] text-[#7A839E] flex justify-between mb-2 pb-1.5 border-b border-[#E4E8F2]/60">
                             <span>👤 {rec.engineer_name}</span>
                             <span>🏢 {rec.branch_name}</span>
                           </div>
@@ -619,8 +619,8 @@ export default function SalesPipeline() {
                             <span
                               className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
                                 rec.is_stale
-                                  ? 'bg-[#E25757]/20 text-[#E25757] border border-[#E25757]/30'
-                                  : 'bg-[#1D211E] text-[#A5AEA8] border border-[#292E2A]'
+                                  ? 'bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30'
+                                  : 'bg-[#F7F8FC] text-[#7A839E] border border-[#E4E8F2]'
                               }`}
                             >
                               Age: {rec.age_days}d
@@ -629,44 +629,44 @@ export default function SalesPipeline() {
                             <span
                               className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
                                 rec.stock_status === 'FULLY_AVAILABLE'
-                                  ? 'bg-[#B8F23A]/10 text-[#B8F23A] border border-[#B8F23A]/30'
+                                  ? 'bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30'
                                   : rec.stock_status === 'PARTIAL_STOCK'
-                                  ? 'bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/30'
-                                  : 'bg-[#E25757]/10 text-[#E25757] border border-[#E25757]/30'
+                                  ? 'bg-[#E8A33D]/10 text-[#E8A33D] border border-[#E8A33D]/30'
+                                  : 'bg-[#E5484D]/10 text-[#E5484D] border border-[#E5484D]/30'
                               }`}
                             >
                               Stock: {rec.stock_status.replace('_', ' ')}
                             </span>
 
                             {rec.is_high_value && (
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#B8F23A]/20 text-[#B8F23A] font-bold border border-[#B8F23A]/40">
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#3B6FD4]/20 text-[#3B6FD4] font-bold border border-[#3B6FD4]/40">
                                 ★ High Value
                               </span>
                             )}
                           </div>
 
                           {/* Next Action Box */}
-                          <div className="text-[11px] bg-[#101312] p-2 rounded-lg border border-[#292E2A] mb-2.5 text-[#A5AEA8] space-y-1">
+                          <div className="text-[11px] bg-[#F4F6FC] p-2 rounded-lg border border-[#E4E8F2] mb-2.5 text-[#7A839E] space-y-1">
                             <div className="truncate">
-                              <strong className="text-[#F5F7F4]">Next:</strong> {rec.next_action}
+                              <strong className="text-[#141B34]">Next:</strong> {rec.next_action}
                             </div>
                             {rec.next_follow_up_date && (
-                              <div className="text-[10px] text-[#7E95FF] font-medium flex items-center gap-1 pt-1 border-t border-[#292E2A]/40">
+                              <div className="text-[10px] text-[#6B78D6] font-medium flex items-center gap-1 pt-1 border-t border-[#E4E8F2]/40">
                                 📅 Follow-up: {formatDate(rec.next_follow_up_date)} {rec.next_follow_up_time || ''}
                               </div>
                             )}
                           </div>
 
                           {/* Card Action Links */}
-                          <div className="flex justify-between items-center pt-1.5 border-t border-[#292E2A]/60">
+                          <div className="flex justify-between items-center pt-1.5 border-t border-[#E4E8F2]/60">
                             <Link
                               to={`/quotations/${rec.quotation_id}`}
-                              className="text-[11px] font-semibold text-[#A5AEA8] hover:text-[#F5F7F4] transition-colors"
+                              className="text-[11px] font-semibold text-[#7A839E] hover:text-[#141B34] transition-colors"
                             >
                               View Detail →
                             </Link>
                             <button
-                              className="btn tiny bg-[#1D211E] text-[#B8F23A] border border-[#333C31] hover:bg-[#292E2A] text-[11px] font-semibold px-2.5 py-1 rounded-md"
+                              className="btn tiny bg-[#F7F8FC] text-[#3B6FD4] border border-[#D4DAEA] hover:bg-[#E4E8F2] text-[11px] font-semibold px-2.5 py-1 rounded-md"
                               onClick={() => openCreateFollowUp(rec)}
                             >
                               + Follow-up
@@ -683,7 +683,7 @@ export default function SalesPipeline() {
         )
       ) : (
         /* Table View */
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-sm">
           {records.length === 0 ? (
             <EmptyState
               title="No pipeline records found"
@@ -694,7 +694,7 @@ export default function SalesPipeline() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#292E2A] bg-[#1D211E]/80 text-[#A5AEA8] uppercase text-[10px] tracking-wider font-semibold">
+                  <tr className="border-b border-[#E4E8F2] bg-[#F7F8FC]/80 text-[#7A839E] uppercase text-[10px] tracking-wider font-semibold">
                     <th className="p-3">Quotation No</th>
                     <th className="p-3">Customer</th>
                     <th className="p-3">Engineer</th>
@@ -708,50 +708,50 @@ export default function SalesPipeline() {
                     <th className="p-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#292E2A]/50">
+                <tbody className="divide-y divide-[#E4E8F2]/50">
                   {records.map((r) => (
-                    <tr key={r.quotation_id} className="hover:bg-[#1D211E]/60 transition-colors">
+                    <tr key={r.quotation_id} className="hover:bg-[#F7F8FC]/60 transition-colors">
                       <td className="p-3 font-bold font-mono">
-                        <Link to={`/quotations/${r.quotation_id}`} className="text-[#B8F23A] hover:underline">
+                        <Link to={`/quotations/${r.quotation_id}`} className="text-[#3B6FD4] hover:underline">
                           {r.quotation_number}
                         </Link>
                       </td>
-                      <td className="p-3 text-[#F5F7F4] font-medium max-w-[200px] truncate" title={r.customer_name}>
+                      <td className="p-3 text-[#141B34] font-medium max-w-[200px] truncate" title={r.customer_name}>
                         {r.customer_name}
                       </td>
-                      <td className="p-3 text-[#A5AEA8]">{r.engineer_name}</td>
-                      <td className="p-3 text-[#A5AEA8]">{r.branch_name}</td>
-                      <td className="p-3 text-right font-bold text-[#F5F7F4] font-mono">
+                      <td className="p-3 text-[#7A839E]">{r.engineer_name}</td>
+                      <td className="p-3 text-[#7A839E]">{r.branch_name}</td>
+                      <td className="p-3 text-right font-bold text-[#141B34] font-mono">
                         {formatCurrency(r.net_subtotal)}
                       </td>
                       <td className="p-3">
-                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#1D211E] text-[#7E95FF] border border-[#333C31]">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F7F8FC] text-[#6B78D6] border border-[#D4DAEA]">
                           {r.pipeline_stage_label}
                         </span>
                       </td>
-                      <td className="p-3 text-right text-[#A5AEA8] font-mono">{r.age_days}d</td>
-                      <td className="p-3 text-[#7E95FF]">
+                      <td className="p-3 text-right text-[#7A839E] font-mono">{r.age_days}d</td>
+                      <td className="p-3 text-[#6B78D6]">
                         {r.next_follow_up_date ? formatDate(r.next_follow_up_date) : 'None'}
                       </td>
                       <td className="p-3">
                         <span
                           className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
                             r.stock_status === 'FULLY_AVAILABLE'
-                              ? 'bg-[#B8F23A]/10 text-[#B8F23A] border border-[#B8F23A]/30'
+                              ? 'bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30'
                               : r.stock_status === 'PARTIAL_STOCK'
-                              ? 'bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/30'
-                              : 'bg-[#E25757]/10 text-[#E25757] border border-[#E25757]/30'
+                              ? 'bg-[#E8A33D]/10 text-[#E8A33D] border border-[#E8A33D]/30'
+                              : 'bg-[#E5484D]/10 text-[#E5484D] border border-[#E5484D]/30'
                           }`}
                         >
                           {r.stock_status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="p-3 text-[#F5F7F4] max-w-[180px] truncate" title={r.next_action}>
+                      <td className="p-3 text-[#141B34] max-w-[180px] truncate" title={r.next_action}>
                         {r.next_action}
                       </td>
                       <td className="p-3 text-center">
                         <button
-                          className="btn tiny bg-[#1D211E] text-[#B8F23A] border border-[#333C31] hover:bg-[#292E2A] text-[11px] font-semibold px-2.5 py-1 rounded-md"
+                          className="btn tiny bg-[#F7F8FC] text-[#3B6FD4] border border-[#D4DAEA] hover:bg-[#E4E8F2] text-[11px] font-semibold px-2.5 py-1 rounded-md"
                           onClick={() => openCreateFollowUp(r)}
                         >
                           Follow-up
@@ -768,20 +768,20 @@ export default function SalesPipeline() {
 
       {/* Follow-up Action Modal */}
       {followUpModal.open && (
-        <div className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
-          <div className="bg-[#171918] border border-[#292E2A] p-5 rounded-xl max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex justify-between items-start border-b border-[#292E2A] pb-3">
+        <div className="fixed inset-0 bg-[#141B34]/40 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
+          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-5 rounded-xl max-w-md w-full shadow-lift space-y-4">
+            <div className="flex justify-between items-start border-b border-[#E4E8F2] pb-3">
               <div>
-                <h3 className="text-base font-bold text-[#F5F7F4]">
+                <h3 className="text-base font-bold text-[#141B34]">
                   Schedule Follow-up for {followUpModal.quotationNumber}
                 </h3>
-                <p className="text-xs text-[#A5AEA8] mt-0.5">
+                <p className="text-xs text-[#7A839E] mt-0.5">
                   Record follow-up schedule and notes for this sales opportunity.
                 </p>
               </div>
               <button
                 onClick={() => setFollowUpModal({ open: false, mode: 'create' })}
-                className="text-[#A5AEA8] hover:text-[#F5F7F4] font-bold text-lg"
+                className="text-[#7A839E] hover:text-[#141B34] font-bold text-lg"
               >
                 ×
               </button>
@@ -790,19 +790,19 @@ export default function SalesPipeline() {
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#A5AEA8] font-medium mb-1">Follow-up Date</label>
+                  <label className="block text-[#7A839E] font-medium mb-1">Follow-up Date</label>
                   <input
                     type="date"
-                    className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] p-2 rounded-lg outline-none focus:border-[#B8F23A]"
+                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
                     value={modalDate}
                     onChange={(e) => setModalDate(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="block text-[#A5AEA8] font-medium mb-1">Time</label>
+                  <label className="block text-[#7A839E] font-medium mb-1">Time</label>
                   <input
                     type="time"
-                    className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] p-2 rounded-lg outline-none focus:border-[#B8F23A]"
+                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
                     value={modalTime}
                     onChange={(e) => setModalTime(e.target.value)}
                   />
@@ -811,9 +811,9 @@ export default function SalesPipeline() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#A5AEA8] font-medium mb-1">Priority</label>
+                  <label className="block text-[#7A839E] font-medium mb-1">Priority</label>
                   <select
-                    className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] p-2 rounded-lg outline-none focus:border-[#B8F23A]"
+                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
                     value={modalPriority}
                     onChange={(e) => setModalPriority(e.target.value as FollowUpPriority)}
                   >
@@ -824,9 +824,9 @@ export default function SalesPipeline() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#A5AEA8] font-medium mb-1">Follow-up Status</label>
+                  <label className="block text-[#7A839E] font-medium mb-1">Follow-up Status</label>
                   <select
-                    className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] p-2 rounded-lg outline-none focus:border-[#B8F23A]"
+                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
                     value={modalStatus}
                     onChange={(e) => setModalStatus(e.target.value as FollowUpStatus)}
                   >
@@ -839,10 +839,10 @@ export default function SalesPipeline() {
               </div>
 
               <div>
-                <label className="block text-[#A5AEA8] font-medium mb-1">Notes & Action Required</label>
+                <label className="block text-[#7A839E] font-medium mb-1">Notes & Action Required</label>
                 <textarea
                   rows={3}
-                  className="w-full bg-[#101312] border border-[#292E2A] text-[#F5F7F4] p-2.5 rounded-lg outline-none focus:border-[#B8F23A]"
+                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2.5 rounded-lg outline-none focus:border-[#3B6FD4]"
                   placeholder="Record customer response details, technical questions, or next required action..."
                   value={modalNotes}
                   onChange={(e) => setModalNotes(e.target.value)}
@@ -850,16 +850,16 @@ export default function SalesPipeline() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#292E2A]">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E4E8F2]">
               <button
-                className="btn small bg-[#1D211E] text-[#F5F7F4] border border-[#292E2A] hover:bg-[#292E2A] px-4 py-2 text-xs font-semibold rounded-lg"
+                className="btn small bg-[#F7F8FC] text-[#141B34] border border-[#E4E8F2] hover:bg-[#E4E8F2] px-4 py-2 text-xs font-semibold rounded-lg"
                 onClick={() => setFollowUpModal({ open: false, mode: 'create' })}
                 disabled={submittingModal}
               >
                 Cancel
               </button>
               <button
-                className="btn small bg-[#B8F23A] hover:bg-[#a3d933] text-[#101312] font-semibold px-4 py-2 text-xs rounded-lg"
+                className="btn small bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold px-4 py-2 text-xs rounded-lg"
                 onClick={submitFollowUpModal}
                 disabled={submittingModal}
               >

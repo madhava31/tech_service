@@ -83,11 +83,11 @@ export default function ProductImport({ onImported, onClose }: ProductImportProp
             <div>
               <h4>New Products</h4>
               <div className="table-scroll">
-                <table>
-                  <thead><tr><th>Product Name</th><th>Part No</th><th>Price</th></tr></thead>
+                <table className="data-table">
+                  <thead><tr><th>Product Name</th><th>Part No</th><th className="text-right">Price</th></tr></thead>
                   <tbody>
                     {preview.newRows.map((r) => (
-                      <tr key={r.rowNumber}><td>{r.productName}</td><td>{r.partNo}</td><td>{formatCurrency(r.price)}</td></tr>
+                      <tr key={r.rowNumber}><td>{r.productName}</td><td>{r.partNo}</td><td className="text-right">{formatCurrency(r.price)}</td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -99,13 +99,13 @@ export default function ProductImport({ onImported, onClose }: ProductImportProp
             <div>
               <h4>Products to Update</h4>
               <div className="table-scroll">
-                <table>
-                  <thead><tr><th>Product Name</th><th>Part No</th><th>Current Price</th><th>New Price</th></tr></thead>
+                <table className="data-table">
+                  <thead><tr><th>Product Name</th><th>Part No</th><th className="text-right">Current Price</th><th className="text-right">New Price</th></tr></thead>
                   <tbody>
                     {preview.updateRows.map((r) => (
                       <tr key={r.rowNumber}>
                         <td>{r.productName}</td><td>{r.partNo}</td>
-                        <td>{formatCurrency(r.currentPrice)}</td><td>{formatCurrency(r.newPrice)}</td>
+                        <td className="text-right">{formatCurrency(r.currentPrice)}</td><td className="text-right">{formatCurrency(r.newPrice)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -118,7 +118,7 @@ export default function ProductImport({ onImported, onClose }: ProductImportProp
             <div>
               <h4>Errors</h4>
               <div className="table-scroll">
-                <table>
+                <table className="data-table">
                   <thead><tr><th>Row</th><th>Problem</th></tr></thead>
                   <tbody>
                     {preview.errorRows.map((r) => (

@@ -60,7 +60,7 @@ export default function ProcurementRequirementDetail() {
             </span>
           </div>
           <p className="muted text-sm mt-1">
-            Product: <strong className="text-white">{requirement.part_no}</strong> — {requirement.product_description}
+            Product: <strong className="text-[#141B34]">{requirement.part_no}</strong> — {requirement.product_description}
           </p>
         </div>
         <div className="flex-gap">

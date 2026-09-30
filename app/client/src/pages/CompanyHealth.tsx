@@ -23,12 +23,12 @@ function relativeDays(days: number | null) {
 }
 
 const STATUS_COLORS: Record<CustomerHealthStatus, string> = {
-  new: '#B8F23A',
-  strong: '#B8F23A',
-  active: '#B8F23A',
-  at_risk: '#D9A441',
-  inactive: '#E25757',
-  no_history: '#6d756f',
+  new: '#3B6FD4',
+  strong: '#3B6FD4',
+  active: '#3B6FD4',
+  at_risk: '#E8A33D',
+  inactive: '#E5484D',
+  no_history: '#A8AEC4',
 };
 
 const DESCRIPTION: Record<CustomerHealthStatus, string> = {
@@ -65,17 +65,17 @@ export default function CompanyHealth() {
     fetchData();
   }, [id]);
 
-  const color = data ? STATUS_COLORS[data.health.status] || '#A5AEA8' : '#A5AEA8';
+  const color = data ? STATUS_COLORS[data.health.status] || '#7A839E' : '#7A839E';
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#101312] text-[#F5F7F4] min-h-screen">
+    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center gap-4 text-[12.5px]">
-        <Link to="/customer-health" className="text-[#B8F23A] hover:underline font-medium">
+        <Link to="/customer-health" className="text-[#3B6FD4] hover:underline font-medium">
           ← Back to Customer Health
         </Link>
-        <span className="text-[#6d756f]">·</span>
-        <Link to="/companies" className="text-[#A5AEA8] hover:text-[#F5F7F4] transition-colors">
+        <span className="text-[#A8AEC4]">·</span>
+        <Link to="/companies" className="text-[#7A839E] hover:text-[#141B34] transition-colors">
           View All Companies
         </Link>
       </div>
@@ -85,38 +85,38 @@ export default function CompanyHealth() {
         <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
           {data ? data.company.name : 'Company Health'}
         </h1>
-        <p className="margin-0 text-[13.5px] text-[#A5AEA8]">
+        <p className="margin-0 text-[13.5px] text-[#7A839E]">
           Detailed health profile, order history, and account metrics.
         </p>
       </div>
 
       {error ? (
-        <div className="p-4 rounded-[12px] bg-[#1b1414] border border-[#4a2a2a] text-[#E25757] text-[13px] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">
           <span>{error === 'Company not found' ? `Company #${id} was not found in the database.` : error}</span>
           {error !== 'Company not found' && (
             <button
               type="button"
               onClick={fetchData}
-              className="px-3 py-1.5 rounded-[8px] bg-[#2a1a1a] hover:bg-[#3d2222] text-[#F5F7F4] text-xs font-semibold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-[8px] bg-[#F7DFE0] hover:bg-[#F5DADB] text-[#141B34] text-xs font-semibold cursor-pointer transition-colors"
             >
               Retry
             </button>
           )}
         </div>
       ) : loading && !data ? (
-        <div className="p-8 text-center text-[#A5AEA8] text-[13px] rounded-[16px] bg-[#171918] border border-[#292E2A]">
+        <div className="p-8 text-center text-[#7A839E] text-[13px] rounded-[16px] bg-[#FFFFFF] border border-[#E4E8F2]">
           Loading company health details...
         </div>
       ) : data ? (
-        <div className="bg-[#171918] border border-[#292E2A] rounded-[16px] p-6 flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#20251f] pb-4">
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF1F9] pb-4">
             <div>
-              <h2 className="text-xl font-bold text-[#F5F7F4]">{data.company.name}</h2>
-              <p className="text-xs text-[#A5AEA8] mt-0.5">Account ID: #{data.company.id}</p>
+              <h2 className="text-xl font-bold text-[#141B34]">{data.company.name}</h2>
+              <p className="text-xs text-[#7A839E] mt-0.5">Account ID: #{data.company.id}</p>
             </div>
             <div>
               <span
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-[8px] border border-[#292E2A] text-xs font-semibold"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-[8px] border border-[#E4E8F2] text-xs font-semibold"
                 style={{ color }}
               >
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
@@ -125,42 +125,42 @@ export default function CompanyHealth() {
             </div>
           </div>
 
-          <p className="text-sm text-[#A5AEA8] leading-relaxed">
+          <p className="text-sm text-[#7A839E] leading-relaxed">
             {DESCRIPTION[data.health.status]}
           </p>
 
           {data.health.status !== 'no_history' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-[12px] bg-[#1D211E] border border-[#292E2A]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-[12px] bg-[#F7F8FC] border border-[#E4E8F2]">
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#A5AEA8]">Total Business</span>
-                <span className="text-xl font-extrabold text-[#F5F7F4] mt-1">{formatCurrency(data.health.totalRevenue)}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Total Business</span>
+                <span className="text-xl font-extrabold text-[#141B34] mt-1">{formatCurrency(data.health.totalRevenue)}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#A5AEA8]">Total Orders</span>
-                <span className="text-xl font-extrabold text-[#F5F7F4] mt-1">{data.health.orderCount}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Total Orders</span>
+                <span className="text-xl font-extrabold text-[#141B34] mt-1">{data.health.orderCount}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#A5AEA8]">Last Order</span>
-                <span className="text-xl font-extrabold text-[#F5F7F4] mt-1">{relativeDays(data.health.daysSinceLastOrder)}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Last Order</span>
+                <span className="text-xl font-extrabold text-[#141B34] mt-1">{relativeDays(data.health.daysSinceLastOrder)}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#A5AEA8]">Avg Order Value</span>
-                <span className="text-xl font-extrabold text-[#B8F23A] mt-1">{formatCurrency(data.health.avgOrderValue)}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Avg Order Value</span>
+                <span className="text-xl font-extrabold text-[#3B6FD4] mt-1">{formatCurrency(data.health.avgOrderValue)}</span>
               </div>
             </div>
           ) : (
-            <div className="p-6 text-center text-[#A5AEA8] text-xs rounded-[12px] bg-[#1D211E] border border-[#292E2A]">
+            <div className="p-6 text-center text-[#7A839E] text-xs rounded-[12px] bg-[#F7F8FC] border border-[#E4E8F2]">
               No sales records or order history recorded for this company.
             </div>
           )}
 
           {data.health.status !== 'no_history' && (
-            <div className="text-xs text-[#6d756f] flex flex-wrap gap-x-4 gap-y-1">
-              <span>First order: <strong className="text-[#A5AEA8]">{formatDate(data.health.firstOrderDate)}</strong></span>
+            <div className="text-xs text-[#A8AEC4] flex flex-wrap gap-x-4 gap-y-1">
+              <span>First order: <strong className="text-[#7A839E]">{formatDate(data.health.firstOrderDate)}</strong></span>
               <span>·</span>
-              <span>Last order: <strong className="text-[#A5AEA8]">{formatDate(data.health.lastOrderDate)}</strong></span>
+              <span>Last order: <strong className="text-[#7A839E]">{formatDate(data.health.lastOrderDate)}</strong></span>
               <span>·</span>
-              <span>Inactivity threshold: <strong className="text-[#A5AEA8]">{data.health.lapseMonths} months</strong></span>
+              <span>Inactivity threshold: <strong className="text-[#7A839E]">{data.health.lapseMonths} months</strong></span>
             </div>
           )}
         </div>
@@ -181,66 +181,66 @@ function Customer360Section({ companyId, companyName }: { companyId: number; com
     });
   }, [companyId]);
 
-  if (!c360) return <div className="text-xs text-[#6D756F] p-4">Loading Customer 360 Pipeline...</div>;
+  if (!c360) return <div className="text-xs text-[#A8AEC4] p-4">Loading Customer 360 Pipeline...</div>;
 
   return (
-    <div className="bg-[#171918] border border-[#292E2A] rounded-[16px] p-6 flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#292E2A] pb-4">
+    <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E4E8F2] pb-4">
         <div>
-          <h2 className="text-lg font-bold text-[#F5F7F4]">Customer 360 Pipeline Control</h2>
-          <p className="text-xs text-[#A5AEA8]">
-            Assigned Engineer: <strong className="text-[#F5F7F4]">{c360.customer.assigned_engineer || 'Unassigned'}</strong> | Branch: <strong className="text-[#F5F7F4]">{c360.customer.branch || 'Main'}</strong>
+          <h2 className="text-lg font-bold text-[#141B34]">Customer 360 Pipeline Control</h2>
+          <p className="text-xs text-[#7A839E]">
+            Assigned Engineer: <strong className="text-[#141B34]">{c360.customer.assigned_engineer || 'Unassigned'}</strong> | Branch: <strong className="text-[#141B34]">{c360.customer.branch || 'Main'}</strong>
           </p>
         </div>
       </div>
 
       {/* KPI Overview */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-[#101312] p-3 rounded-lg border border-[#292E2A]">
-          <span className="text-[10px] uppercase text-[#A5AEA8] block">Confirmed Sales</span>
-          <span className="text-lg font-bold text-[#B8F23A]">{formatCurrency(c360.sales_summary.confirmed_sales_value)}</span>
+        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
+          <span className="text-[10px] uppercase text-[#7A839E] block">Confirmed Sales</span>
+          <span className="text-lg font-bold text-[#3B6FD4]">{formatCurrency(c360.sales_summary.confirmed_sales_value)}</span>
         </div>
-        <div className="bg-[#101312] p-3 rounded-lg border border-[#292E2A]">
-          <span className="text-[10px] uppercase text-[#A5AEA8] block">Open Pipeline Value</span>
-          <span className="text-lg font-bold text-[#7E95FF]">{formatCurrency(c360.sales_summary.open_pipeline_value)}</span>
+        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
+          <span className="text-[10px] uppercase text-[#7A839E] block">Open Pipeline Value</span>
+          <span className="text-lg font-bold text-[#6B78D6]">{formatCurrency(c360.sales_summary.open_pipeline_value)}</span>
         </div>
-        <div className="bg-[#101312] p-3 rounded-lg border border-[#292E2A]">
-          <span className="text-[10px] uppercase text-[#A5AEA8] block">Open Quotations</span>
-          <span className="text-lg font-bold text-[#F5F7F4]">{c360.sales_summary.open_quotations_count}</span>
+        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
+          <span className="text-[10px] uppercase text-[#7A839E] block">Open Quotations</span>
+          <span className="text-lg font-bold text-[#141B34]">{c360.sales_summary.open_quotations_count}</span>
         </div>
-        <div className="bg-[#101312] p-3 rounded-lg border border-[#292E2A]">
-          <span className="text-[10px] uppercase text-[#A5AEA8] block">Open Orders</span>
-          <span className="text-lg font-bold text-[#D9A441]">{c360.sales_summary.open_orders_count}</span>
+        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
+          <span className="text-[10px] uppercase text-[#7A839E] block">Open Orders</span>
+          <span className="text-lg font-bold text-[#E8A33D]">{c360.sales_summary.open_orders_count}</span>
         </div>
       </div>
 
       {/* Activity Timestamps */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-[#101312] p-3 rounded-lg border border-[#292E2A]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
         <div>
-          <span className="text-[#A5AEA8] block">Last Quotation:</span>
-          <strong className="text-[#F5F7F4]">{formatDate(c360.activity.last_quotation_date)}</strong>
+          <span className="text-[#7A839E] block">Last Quotation:</span>
+          <strong className="text-[#141B34]">{formatDate(c360.activity.last_quotation_date)}</strong>
         </div>
         <div>
-          <span className="text-[#A5AEA8] block">Last Follow-up:</span>
-          <strong className="text-[#F5F7F4]">{formatDate(c360.activity.last_follow_up_date)}</strong>
+          <span className="text-[#7A839E] block">Last Follow-up:</span>
+          <strong className="text-[#141B34]">{formatDate(c360.activity.last_follow_up_date)}</strong>
         </div>
         <div>
-          <span className="text-[#A5AEA8] block">Last PO / Order:</span>
-          <strong className="text-[#F5F7F4]">{formatDate(c360.activity.last_order_date)}</strong>
+          <span className="text-[#7A839E] block">Last PO / Order:</span>
+          <strong className="text-[#141B34]">{formatDate(c360.activity.last_order_date)}</strong>
         </div>
         <div>
-          <span className="text-[#A5AEA8] block">Last Confirmed Sale:</span>
-          <strong className="text-[#B8F23A]">{formatDate(c360.activity.last_confirmed_sale_date)}</strong>
+          <span className="text-[#7A839E] block">Last Confirmed Sale:</span>
+          <strong className="text-[#3B6FD4]">{formatDate(c360.activity.last_confirmed_sale_date)}</strong>
         </div>
       </div>
 
       {/* Current Active Opportunities */}
       <div>
-        <h3 className="text-xs font-semibold text-[#A5AEA8] uppercase mb-2">Active Commercial Opportunities</h3>
+        <h3 className="text-xs font-semibold text-[#7A839E] uppercase mb-2">Active Commercial Opportunities</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-[#292E2A] text-[#A5AEA8]">
+              <tr className="border-b border-[#E4E8F2] text-[#7A839E]">
                 <th className="p-2">Quotation No</th>
                 <th className="p-2 text-right">Value (₹)</th>
                 <th className="p-2">Stage</th>
@@ -251,16 +251,16 @@ function Customer360Section({ companyId, companyName }: { companyId: number; com
             </thead>
             <tbody>
               {c360.current_opportunities?.map((op: any) => (
-                <tr key={op.quotation_id} className="border-b border-[#292E2A]/50">
-                  <td className="p-2 font-bold text-[#B8F23A]">
+                <tr key={op.quotation_id} className="border-b border-[#E4E8F2]/50">
+                  <td className="p-2 font-bold text-[#3B6FD4]">
                     <Link to={`/quotations/${op.quotation_id}`}>{op.quotation_number}</Link>
                   </td>
-                  <td className="p-2 text-right font-semibold text-[#F5F7F4]">{formatCurrency(op.net_subtotal)}</td>
+                  <td className="p-2 text-right font-semibold text-[#141B34]">{formatCurrency(op.net_subtotal)}</td>
                   <td className="p-2"><span className="badge info">{op.pipeline_stage_label}</span></td>
-                  <td className="p-2 text-right text-[#A5AEA8]">{op.age_days}d</td>
-                  <td className="p-2 text-[#7E95FF]">{op.next_follow_up_date ? formatDate(op.next_follow_up_date) : 'None'}</td>
+                  <td className="p-2 text-right text-[#7A839E]">{op.age_days}d</td>
+                  <td className="p-2 text-[#6B78D6]">{op.next_follow_up_date ? formatDate(op.next_follow_up_date) : 'None'}</td>
                   <td className="p-2">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${op.stock_status === 'FULLY_AVAILABLE' ? 'bg-[#B8F23A]/10 text-[#B8F23A]' : 'bg-[#D9A441]/10 text-[#D9A441]'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${op.stock_status === 'FULLY_AVAILABLE' ? 'bg-[#3B6FD4]/10 text-[#3B6FD4]' : 'bg-[#E8A33D]/10 text-[#E8A33D]'}`}>
                       {op.stock_status}
                     </span>
                   </td>
@@ -268,7 +268,7 @@ function Customer360Section({ companyId, companyName }: { companyId: number; com
               ))}
               {(!c360.current_opportunities || c360.current_opportunities.length === 0) && (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-[#6D756F]">
+                  <td colSpan={6} className="p-4 text-center text-[#A8AEC4]">
                     No active open opportunities for this customer.
                   </td>
                 </tr>

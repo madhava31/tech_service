@@ -81,14 +81,14 @@ export function ExpandableSearch({
           type="button"
           onClick={toggleExpand}
           aria-label="Open search"
-          className="w-[34px] h-[34px] rounded-[9px] bg-[#171918] border border-[#292E2A] text-[#A5AEA8] hover:text-[#F5F7F4] hover:border-[#3a4237] hover:scale-[1.03] cursor-pointer flex items-center justify-center transition-all duration-200 shrink-0"
+          className="w-[34px] h-[34px] rounded-[9px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#7A839E] hover:text-[#141B34] hover:border-[#D4DAEA] hover:scale-[1.03] cursor-pointer flex items-center justify-center transition-all duration-200 shrink-0"
         >
-          <Search className="w-4 h-4 text-[#A5AEA8] hover:text-[#B8F23A] transition-colors" />
+          <Search className="w-4 h-4 text-[#7A839E] hover:text-[#3B6FD4] transition-colors" />
         </button>
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="flex items-center w-full h-[34px] px-2.5 rounded-[9px] bg-[#171918] border border-[#292E2A] focus-within:border-[#B8F23A] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm overflow-hidden"
+          className="flex items-center w-full h-[34px] px-2.5 rounded-[9px] bg-[#FFFFFF] border border-[#E4E8F2] focus-within:border-[#3B6FD4] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm overflow-hidden"
           style={{ width: maxWidth }}
         >
           <button
@@ -98,9 +98,9 @@ export function ExpandableSearch({
             }}
             tabIndex={-1}
             aria-label={ariaLabel}
-            className="text-[#6d756f] hover:text-[#B8F23A] transition-colors p-0.5 mr-1.5 shrink-0"
+            className="text-[#A8AEC4] hover:text-[#3B6FD4] transition-colors p-0.5 mr-1.5 shrink-0"
           >
-            <Search className="w-3.5 h-3.5 text-[#B8F23A]" />
+            <Search className="w-3.5 h-3.5 text-[#3B6FD4]" />
           </button>
 
           <input
@@ -111,7 +111,7 @@ export function ExpandableSearch({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[#F5F7F4] text-[12.5px] font-sans placeholder-[#6d756f]"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[#141B34] text-[12.5px] font-sans placeholder-[#A8AEC4]"
           />
 
           {value ? (
@@ -122,13 +122,13 @@ export function ExpandableSearch({
                 inputRef.current?.focus();
               }}
               aria-label="Clear query"
-              className="text-[#6d756f] hover:text-[#E25757] ml-1 p-0.5 shrink-0 transition-colors"
+              className="text-[#A8AEC4] hover:text-[#E5484D] ml-1 p-0.5 shrink-0 transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           ) : shortcutKey ? (
-            <span className="hidden sm:flex items-center gap-0.5 text-[#6d756f] text-[10px] ml-1 shrink-0">
-              <kbd className="px-1 py-0.5 border border-[#292E2A] rounded-[4px] bg-[#1D211E] font-mono text-[9px]">
+            <span className="hidden sm:flex items-center gap-0.5 text-[#A8AEC4] text-[10px] ml-1 shrink-0">
+              <kbd className="px-1 py-0.5 border border-[#E4E8F2] rounded-[4px] bg-[#F7F8FC] font-mono text-[9px]">
                 {shortcutKey}
               </kbd>
             </span>
@@ -137,7 +137,7 @@ export function ExpandableSearch({
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Close search"
-              className="text-[#6d756f] hover:text-[#F5F7F4] ml-1 p-0.5 shrink-0 transition-colors"
+              className="text-[#A8AEC4] hover:text-[#141B34] ml-1 p-0.5 shrink-0 transition-colors"
             >
               <X className="w-3 h-3" />
             </button>

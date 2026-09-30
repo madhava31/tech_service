@@ -53,13 +53,13 @@ export default function DraftQuotations() {
 
       <div className="card">
         <div className="table-scroll">
-          <table>
+          <table className="data-table">
             <thead>
               <tr>
                 <th>Quotation Number</th>
                 <th>Customer</th>
                 <th>Date</th>
-                <th>Amount</th>
+                <th className="text-right">Amount</th>
                 <th></th>
               </tr>
             </thead>
@@ -69,7 +69,7 @@ export default function DraftQuotations() {
                   <td>{it.number}</td>
                   <td>{it.company_name}</td>
                   <td>{formatDate(it.date)}</td>
-                  <td>{formatCurrency(it.total)}</td>
+                  <td className="text-right">{formatCurrency(it.total)}</td>
                   <td>
                     <Link className="btn small secondary" to={`/quotations/${it.id}`}>
                       Continue →

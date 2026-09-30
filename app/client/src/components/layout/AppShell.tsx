@@ -10,20 +10,21 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   if (!user) return null;
 
+  // Background is intentionally transparent here: the aurora wash lives on <body>
+  // (see styles.css) so it stays fixed behind the whole app while content scrolls.
   return (
-    <div className="min-h-screen bg-[#101312] text-[#F5F7F4] flex font-sans font-normal antialiased selection:bg-[#B8F23A]/25">
-      {/* Sidebar */}
+    <div className="min-h-screen text-[#141B34] flex font-sans font-normal antialiased selection:bg-[#3B6FD4]/20">
       <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
-      {/* Main Content Shell */}
-      <div className="flex-1 min-w-0 flex flex-col min-h-screen bg-[#101312]">
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
         <AppHeader
           onMobileToggle={() => setMobileOpen(!mobileOpen)}
           onRefresh={() => {
             // Trigger optional page re-fetch if needed
           }}
         />
-        <main className="flex-1 min-w-0 flex flex-col">
+        {/* Capped and centred so the grid doesn't stretch thin on wide monitors. */}
+        <main className="flex-1 min-w-0 flex flex-col pb-8 w-full max-w-[1560px] mx-auto">
           {children}
         </main>
         <FloatingChat />

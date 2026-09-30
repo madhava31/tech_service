@@ -2,47 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   AURORA — light theme
+   Soft blue-lavender canvas, white rounded cards, deep-navy
+   primary. Every class that existed under the old dark theme is
+   still defined here, so no page markup had to change.
+   ============================================================ */
+
 @layer base {
   :root {
-    --background: #101312;
-    --foreground: #F5F7F4;
+    --canvas: #F4F6FC;
+    --canvas-wash: linear-gradient(180deg, #DFE6F8 0%, #EDF1FA 32%, #F4F6FC 68%);
 
-    --card: #171918;
-    --card-foreground: #F5F7F4;
+    --background: #F4F6FC;
+    --foreground: #141B34;
 
-    --popover: #1D211E;
-    --popover-foreground: #F5F7F4;
+    --card: #FFFFFF;
+    --card-foreground: #141B34;
 
-    --primary: #B8F23A;
-    --primary-foreground: #101312;
+    --popover: #FFFFFF;
+    --popover-foreground: #141B34;
 
-    --secondary: #1D211E;
-    --secondary-foreground: #F5F7F4;
+    --primary: #3B6FD4;
+    --primary-foreground: #F4F6FC;
 
-    --muted: #1D211E;
-    --muted-foreground: #A5AEA8;
+    --secondary: #F7F8FC;
+    --secondary-foreground: #141B34;
 
-    --accent: #B8F23A;
-    --accent-foreground: #101312;
+    --muted: #F7F8FC;
+    --muted-foreground: #7A839E;
 
-    --destructive: #E25757;
-    --destructive-foreground: #F5F7F4;
+    --accent: #3B6FD4;
+    --accent-foreground: #F4F6FC;
 
-    --border: #292E2A;
-    --input: #292E2A;
-    --ring: #B8F23A;
+    --destructive: #E5484D;
+    --destructive-foreground: #FFFFFF;
 
-    --radius: 10px;
+    --success: #2FBF71;
+    --warning: #E8A33D;
+    --indigo: #6B78D6;
 
-    /* Sidebar Variables */
-    --sidebar-background: #0B0D0D;
-    --sidebar-foreground: #F5F7F4;
-    --sidebar-primary: #B8F23A;
-    --sidebar-primary-foreground: #101312;
-    --sidebar-accent: #1D211E;
-    --sidebar-accent-foreground: #F5F7F4;
-    --sidebar-border: #292E2A;
-    --sidebar-ring: #B8F23A;
+    --border: #E4E8F2;
+    --input: #E4E8F2;
+    --ring: #3B6FD4;
+
+    --hairline: rgba(20, 27, 52, 0.07);
+    --shadow-card: 0 2px 12px rgba(20, 27, 52, 0.06);
+    --shadow-lift: 0 8px 24px rgba(20, 27, 52, 0.10);
+
+    --radius: 12px;
+    --radius-card: 20px;
+
+    /* Sidebar */
+    --sidebar-background: #FFFFFF;
+    --sidebar-foreground: #141B34;
+    --sidebar-primary: #3B6FD4;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #EEF1F9;
+    --sidebar-accent-foreground: #3B6FD4;
+    --sidebar-border: #E4E8F2;
+    --sidebar-ring: #3B6FD4;
   }
 }
 
@@ -51,38 +70,37 @@
     @apply border-border;
   }
   body {
-    background: #101312;
-    color: #F5F7F4;
+    background-color: #F4F6FC;
+    background-image: var(--canvas-wash);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 420px;
+    color: #141B34;
     font-family: 'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Custom Sleek Dark Scrollbar & Scrollbar Hiding */
+/* ---------- Scrollbars ---------- */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #242E27 transparent;
+  scrollbar-color: #D4DAEA transparent;
 }
-
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #242E27;
+  background: #D4DAEA;
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #333C31;
+  background: #BAC3DC;
 }
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -91,7 +109,7 @@
   scrollbar-width: none;
 }
 
-/* Revenue Chart Line Draw Keyframes */
+/* ---------- Chart animation ---------- */
 .revenue-line-path {
   stroke-dasharray: 1000;
   stroke-dashoffset: 1000;
@@ -108,46 +126,54 @@
   to { opacity: 1; }
 }
 
-/* Floating AI Chat Widget */
+/* ---------- Floating AI chat ---------- */
 .chat-widget {
   position: fixed;
   right: 20px;
   bottom: 20px;
   z-index: 60;
 }
-.chat-bubble-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.chat-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
 .chat-teaser {
-  background: #171918;
-  border: 1px solid #292E2A;
-  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
   padding: 8px 14px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #F5F7F4;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  color: #141B34;
+  box-shadow: var(--shadow-card);
 }
 .chat-bubble {
   width: 52px;
   height: 52px;
   border-radius: 50%;
   border: none;
-  background: #B8F23A;
-  color: #101312;
+  background: linear-gradient(135deg, #3B6FD4 0%, #2F5CB8 100%);
+  color: #FFFFFF;
   font-weight: 800;
   font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(184, 242, 58, 0.25);
-  transition: transform 150ms ease;
+  box-shadow: 0 6px 18px rgba(59, 111, 212, 0.28);
+  transition: transform 150ms ease, box-shadow 150ms ease;
 }
-.chat-bubble:hover { transform: scale(1.05); }
+.chat-bubble:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 24px rgba(59, 111, 212, 0.34);
+}
 
-/* Auth Screen & Cards */
+/* ---------- Auth screens ---------- */
 .auth-screen {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #F4F7F4;
+  background: linear-gradient(180deg, #DFE6F8 0%, #EDF1FA 40%, #F4F6FC 100%);
   padding: 1.5rem;
 }
 
@@ -155,10 +181,10 @@
   width: 100%;
   max-width: 420px;
   background: #ffffff;
-  border: 1px solid #E3E8E4;
-  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
   padding: 2rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  box-shadow: var(--shadow-lift);
 }
 
 .auth-brand {
@@ -171,20 +197,21 @@
 .brand-mark {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  background-color: #003B2B;
-  color: #9CF45D;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3B6FD4 0%, #2F5CB8 100%);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   font-size: 0.875rem;
+  box-shadow: 0 4px 12px rgba(59, 111, 212, 0.24);
 }
 
 .brand-text-dark {
   font-weight: 800;
   font-size: 1rem;
-  color: #003B2B;
+  color: #141B34;
   display: flex;
   flex-direction: column;
   line-height: 1.1;
@@ -192,11 +219,12 @@
 
 .brand-text-dark span {
   font-size: 0.65rem;
-  color: #0E513C;
-  letter-spacing: 0.05em;
+  color: #7A839E;
+  letter-spacing: 0.06em;
   font-weight: 700;
 }
 
+/* ---------- Form fields ---------- */
 .field {
   display: flex;
   flex-direction: column;
@@ -206,30 +234,84 @@
 
 .field label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #A5AEA8;
+  letter-spacing: 0.06em;
+  color: #7A839E;
 }
 
-.field input, .field select, .field textarea, input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], textarea, select {
+/* Base look for unstyled controls. Deliberately does NOT set width or a large
+   fixed padding: many controls are sized by Tailwind (e.g. h-[30px] filter
+   selects), and forcing 100% width + 10px vertical padding stretched them and
+   clipped their text. Roomier padding is applied only inside .field / .input-field
+   below, where the control genuinely owns its box. */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+textarea,
+select {
+  /* 5px + 16.9px line + 5px + 2px border = ~29px, so a Tailwind h-[30px]
+     control still fits its text instead of clipping it. */
+  padding: 0.3125rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  border-radius: var(--radius);
+  border: 1px solid #E4E8F2;
+  background-color: #F7F8FC;
+  color: #141B34;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Native selects size themselves differently per browser, so a <select> beside a
+   <button> with identical padding still renders a few pixels taller and sits off the
+   shared baseline. `appearance: none` makes height purely padding-driven, so toolbar
+   controls line up. The `select[class]` duplicate raises specificity to (0,1,0) so the
+   arrow's padding-right isn't cancelled by a Tailwind px-* utility. */
+select,
+select[class] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237A839E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 0.9rem;
+  padding-right: 1.9rem;
+}
+
+.field input,
+.field select,
+.field textarea {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  border-radius: 8px;
-  border: 1px solid #292E2A;
-  background-color: #101312;
   font-size: 0.875rem;
-  color: #F5F7F4;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.field input:focus, .field select:focus, .field textarea:focus, input:focus, textarea:focus, select:focus {
-  border-color: #B8F23A;
-  box-shadow: 0 0 0 2px rgba(184, 242, 58, 0.15);
+.field select {
+  padding-right: 1.75rem;
 }
 
-/* Searchable Select Dark Styling */
+.field input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: #A8AEC4;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #3B6FD4;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 111, 212, 0.12);
+}
+
+/* ---------- Searchable select ---------- */
 .searchable-select {
   position: relative;
   width: 100%;
@@ -241,94 +323,114 @@
   right: 0;
   max-height: 220px;
   overflow-y: auto;
-  background-color: #171918;
-  border: 1px solid #292E2A;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #E4E8F2;
+  border-radius: var(--radius);
   z-index: 50;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lift);
 }
 .searchable-select-option {
   padding: 8px 12px;
   font-size: 0.875rem;
-  color: #F5F7F4;
+  color: #141B34;
   cursor: pointer;
   transition: background-color 0.1s ease;
 }
-.searchable-select-option.highlighted, .searchable-select-option:hover {
-  background-color: #1D211E;
-  color: #B8F23A;
+.searchable-select-option.highlighted,
+.searchable-select-option:hover {
+  background-color: #EEF1F9;
+  color: #3B6FD4;
 }
 .searchable-select-option.selected {
-  font-weight: 600;
-  color: #B8F23A;
+  font-weight: 700;
+  color: #3B6FD4;
 }
 .searchable-select-empty {
   padding: 12px;
   font-size: 0.875rem;
-  color: #6D756F;
+  color: #A8AEC4;
   text-align: center;
 }
 
+/* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 0.875rem;
-  font-weight: 600;
-  background-color: #B8F23A;
-  color: #101312;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3B6FD4 0%, #2F5CB8 100%);
+  color: #ffffff;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  box-shadow: 0 4px 12px rgba(59, 111, 212, 0.22);
+  transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .btn:hover {
-  background-color: #a3d933;
+  filter: brightness(1.08);
+  box-shadow: 0 6px 16px rgba(59, 111, 212, 0.28);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: none;
 }
 
 .btn.secondary {
-  background-color: #1D211E;
-  color: #F5F7F4;
-  border: 1px solid #292E2A;
+  background: #ffffff;
+  color: #141B34;
+  border: 1px solid #E4E8F2;
+  box-shadow: var(--shadow-card);
 }
 
 .btn.secondary:hover {
-  background-color: #292E2A;
+  background: #F7F8FC;
+  filter: none;
 }
 
 .btn.danger {
-  background-color: rgba(226, 87, 87, 0.15);
-  color: #E25757;
-  border: 1px solid rgba(226, 87, 87, 0.3);
+  background: rgba(229, 72, 77, 0.10);
+  color: #C8323A;
+  border: 1px solid rgba(229, 72, 77, 0.24);
+  box-shadow: none;
 }
 
 .btn.danger:hover {
-  background-color: rgba(226, 87, 87, 0.25);
+  background: rgba(229, 72, 77, 0.18);
+  filter: none;
 }
 
 .btn.small {
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem 0.85rem;
   font-size: 0.75rem;
-  border-radius: 6px;
 }
 
+/* ---------- Feedback ---------- */
 .error {
-  background-color: rgba(226, 87, 87, 0.1);
-  border: 1px solid rgba(226, 87, 87, 0.3);
-  color: #E25757;
+  background-color: rgba(229, 72, 77, 0.08);
+  border: 1px solid rgba(229, 72, 77, 0.24);
+  color: #C8323A;
   padding: 0.625rem 0.875rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }
 
 .muted {
-  color: #A5AEA8;
+  color: #7A839E;
 }
 
-/* Accessibility: prefers-reduced-motion */
+/* ---------- Accessibility ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
@@ -340,4 +442,348 @@
   .revenue-area-fill { opacity: 1 !important; }
 }
 
+/* ============================================================
+   Semantic component classes used across the inventory,
+   procurement and sales pages. These were referenced in JSX but
+   never had rules, so those screens rendered unstyled.
+   ============================================================ */
 
+.page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.25rem 1rem 0;
+  width: 100%;
+  min-width: 0;
+}
+@media (min-width: 860px) {
+  .page-container { padding: 0.25rem 1.5rem 0; }
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #141B34;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.8125rem;
+  color: #7A839E;
+  margin: 0.125rem 0 0;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #E4E8F2;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+}
+
+.card-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #141B34;
+  margin: 0 0 0.75rem;
+}
+
+/* ---- Stats ---- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+}
+
+.stat,
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #E4E8F2;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: box-shadow 0.15s ease;
+}
+.stat:hover,
+.stat-card:hover { box-shadow: var(--shadow-lift); }
+
+.stat-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7A839E;
+}
+
+.stat-value {
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #141B34;
+  line-height: 1.15;
+}
+
+/* ---- Tables ---- */
+.table-scroll { overflow-x: auto; }
+
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
+}
+.data-table thead th {
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #7A839E;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid #E4E8F2;
+  white-space: nowrap;
+}
+.data-table tbody td {
+  padding: 0.6875rem 0.75rem;
+  border-bottom: 1px solid #EEF1F9;
+  color: #2C3454;
+  vertical-align: middle;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: #F7F8FC; }
+
+/* `.data-table thead th` sets text-align at specificity (0,1,2), which would otherwise
+   beat a Tailwind `text-right` utility (0,1,0). These raise the utilities to (0,2,1) so
+   per-column alignment — right for currency and counts — actually applies. */
+.data-table th.text-right,
+.data-table td.text-right { text-align: right; }
+.data-table th.text-center,
+.data-table td.text-center { text-align: center; }
+.data-table th.text-left,
+.data-table td.text-left { text-align: left; }
+
+/* Numbers line up on the decimal and read as a column, not prose. */
+.data-table td.text-right,
+.data-table th.text-right { font-variant-numeric: tabular-nums; }
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.01em;
+  background: #EEF1F9;
+  color: #3B6FD4;
+  border: 1px solid #DCE2F0;
+  white-space: nowrap;
+}
+.badge.primary,
+.badge.info,
+.badge.sent,
+.badge.scheduled { background: #E1E8F6; color: #3B6FD4; border-color: #CBD3E6; }
+.badge.success,
+.badge.accepted,
+.badge.completed,
+.badge.active { background: #E0F5EA; color: #1B7F4F; border-color: #BCE8D2; }
+.badge.warning,
+.badge.draft,
+.badge.pending { background: #FBEEDA; color: #9A6614; border-color: #F2DCB8; }
+.badge.danger,
+.badge.rejected,
+.badge.cancelled,
+.badge.overdue { background: #FCEBEC; color: #C8323A; border-color: #F5D2D4; }
+
+/* ---- Feedback ---- */
+.error-banner {
+  background: rgba(229, 72, 77, 0.08);
+  border: 1px solid rgba(229, 72, 77, 0.24);
+  color: #C8323A;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.loading-text {
+  color: #7A839E;
+  font-size: 0.875rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #7A839E;
+  font-size: 0.875rem;
+}
+
+/* ---- Inputs ---- */
+.input-field {
+  width: 100%;
+  padding: 0.5625rem 0.8125rem;
+  border-radius: var(--radius);
+  border: 1px solid #E4E8F2;
+  background: #F7F8FC;
+  font-size: 0.875rem;
+  color: #141B34;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.input-field:focus {
+  border-color: #3B6FD4;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 111, 212, 0.12);
+}
+
+/* ---- Small text helpers ---- */
+.label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #7A839E;
+}
+.value { font-size: 0.875rem; font-weight: 600; color: #141B34; }
+.tiny { font-size: 0.6875rem; color: #7A839E; }
+.margin-0 { margin: 0; }
+.highlight { color: #3B6FD4; font-weight: 700; }
+.muted-link { color: #7A839E; text-decoration: none; transition: color 0.15s ease; }
+.muted-link:hover { color: #3B6FD4; }
+
+/* ---- Layout helpers ---- */
+.flex-gap { display: flex; gap: 0.625rem; flex-wrap: wrap; align-items: center; }
+.row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.row > * { flex: 1 1 200px; min-width: 0; }
+.bg-secondary-dark { background: #EEF1F9; border: 1px solid #E4E8F2; color: #2C3454; }
+
+.quick-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #E4E8F2;
+  box-shadow: var(--shadow-card);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #5C6584;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.quick-nav-item:hover { color: #3B6FD4; border-color: #CBD3E6; box-shadow: var(--shadow-lift); }
+
+/* ---- Modals ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(20, 27, 52, 0.40);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-content {
+  background: #ffffff;
+  border: 1px solid #E4E8F2;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lift);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+/* ---- Pagination ---- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 0 0;
+}
+.pagination-indicator { font-size: 0.8125rem; color: #7A839E; }
+
+/* ---- Inactive-customer summary ---- */
+.inactive-summary {
+  background: #ffffff;
+  border: 1px solid #E4E8F2;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1rem 1.125rem;
+}
+.inactive-summary-count {
+  font-size: 1.625rem;
+  font-weight: 800;
+  color: #141B34;
+  letter-spacing: -0.02em;
+}
+.inactive-summary-hint { font-size: 0.75rem; color: #7A839E; }
+
+/* ---- Ranked lists & timelines ---- */
+.ranked-list, .timeline-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.ranked-item, .timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius);
+  background: #F7F8FC;
+  border: 1px solid #EEF1F9;
+  font-size: 0.8125rem;
+}
+.ranked-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #EEF1F9;
+  color: #3B6FD4;
+  display: grid;
+  place-items: center;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.scrollbar-thin { scrollbar-width: thin; }
+
+/* ---- Floating chat panel ---- */
+.chat-panel {
+  width: min(380px, calc(100vw - 40px));
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #E4E8F2;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lift);
+  overflow: hidden;
+}
+.chat-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #E4E8F2;
+  background: #F7F8FC;
+}
+.chat-panel-brand { display: flex; flex-direction: column; min-width: 0; }
+.chat-panel-title { font-size: 0.8125rem; font-weight: 800; color: #141B34; }
+.chat-panel-subtitle { font-size: 0.6875rem; color: #7A839E; }
+.chat-panel-actions { display: flex; gap: 0.375rem; flex-shrink: 0; }
+.chat-panel-body { padding: 1rem; overflow-y: auto; flex: 1; }

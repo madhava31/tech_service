@@ -58,14 +58,14 @@ export default function PurchaseOrdersNotInvoiced() {
 
       <div className="card">
         <div className="table-scroll">
-          <table>
+          <table className="data-table">
             <thead>
               <tr>
                 <th>PO Number</th>
                 <th>Quotation</th>
                 <th>Company</th>
                 <th>Date</th>
-                <th>Amount</th>
+                <th className="text-right">Amount</th>
                 <th></th>
               </tr>
             </thead>
@@ -78,7 +78,7 @@ export default function PurchaseOrdersNotInvoiced() {
                   </td>
                   <td>{po.company_name}</td>
                   <td>{formatDate(po.date)}</td>
-                  <td>{formatCurrency(po.total)}</td>
+                  <td className="text-right">{formatCurrency(po.total)}</td>
                   <td>
                     <a className="btn small secondary" href={api.purchaseOrders.pdfUrl(po.id)} target="_blank" rel="noreferrer">
                       PDF

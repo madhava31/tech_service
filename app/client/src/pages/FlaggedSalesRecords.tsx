@@ -67,7 +67,7 @@ export default function FlaggedSalesRecords() {
 
       <div className="card">
         <div className="table-scroll">
-          <table>
+          <table className="data-table">
             <thead>
               <tr>
                 <th>Date</th>
@@ -75,7 +75,7 @@ export default function FlaggedSalesRecords() {
                 <th>Company</th>
                 <th>Part No</th>
                 <th>Product</th>
-                <th>Amount</th>
+                <th className="text-right">Amount</th>
                 <th>Reason</th>
               </tr>
             </thead>
@@ -87,7 +87,7 @@ export default function FlaggedSalesRecords() {
                   <td>{r.company_name || '-'}</td>
                   <td>{r.part_no || '-'}</td>
                   <td>{r.product_description || '-'}</td>
-                  <td>{formatCurrency(r.total_amount)}</td>
+                  <td className="text-right">{formatCurrency(r.total_amount)}</td>
                   <td className="muted">{r.review_reason || '-'}</td>
                 </tr>
               ))}

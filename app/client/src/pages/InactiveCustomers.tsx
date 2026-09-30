@@ -63,13 +63,13 @@ export default function InactiveCustomers() {
 
       <div className="card">
         <div className="table-scroll">
-          <table>
+          <table className="data-table">
             <thead>
               <tr>
                 <th>Company</th>
                 <th>Last Purchase</th>
-                <th>Months Inactive</th>
-                <th>Historical Revenue</th>
+                <th className="text-right">Months Inactive</th>
+                <th className="text-right">Historical Revenue</th>
               </tr>
             </thead>
             <tbody>
@@ -77,8 +77,8 @@ export default function InactiveCustomers() {
                 <tr key={c.company_name}>
                   <td>{c.company_name}</td>
                   <td>{formatDate(c.last_purchase)}</td>
-                  <td>{c.months_inactive} months</td>
-                  <td>{formatCurrency(c.total_revenue)}</td>
+                  <td className="text-right">{c.months_inactive} months</td>
+                  <td className="text-right">{formatCurrency(c.total_revenue)}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (

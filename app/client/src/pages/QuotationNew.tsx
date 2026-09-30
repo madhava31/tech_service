@@ -238,7 +238,7 @@ export default function QuotationNew() {
 
   if (loading) {
     return (
-      <div className="p-6 text-[#A5AEA8] text-sm">
+      <div className="p-6 text-[#7A839E] text-sm">
         Loading quotation details...
       </div>
     );
@@ -247,31 +247,31 @@ export default function QuotationNew() {
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#292E2A]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E4E8F2]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Link to={isEdit ? `/quotations/${quotationId}` : '/quotations'} className="text-xs text-[#A5AEA8] hover:text-[#B8F23A]">
+            <Link to={isEdit ? `/quotations/${quotationId}` : '/quotations'} className="text-xs text-[#7A839E] hover:text-[#3B6FD4]">
               ← {isEdit ? 'Back to Quotation' : 'Quotations'}
             </Link>
           </div>
-          <h1 className="text-2xl font-bold text-[#F5F7F4] tracking-tight">
+          <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">
             {isEdit ? `Edit Quotation ${quotationNumber ? `(${quotationNumber})` : ''}` : 'Create New Quotation'}
           </h1>
-          <p className="text-sm text-[#A5AEA8] mt-1">
+          <p className="text-sm text-[#7A839E] mt-1">
             {isEdit ? 'Modify proposal terms, product discounts, overall discount, or line items.' : 'Generate a formal pricing proposal with advanced line & overall discounts.'}
           </p>
         </div>
         <button
           onClick={submit}
           disabled={saving}
-          className="inline-flex items-center justify-center px-5 py-2.5 bg-[#B8F23A] hover:bg-[#a3d933] text-[#101312] font-semibold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center justify-center px-5 py-2.5 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 self-start sm:self-auto cursor-pointer"
         >
           {saving ? (isEdit ? 'Saving Quotation...' : 'Saving Proposal...') : (isEdit ? 'Save Quotation' : 'Save & Generate Quotation')}
         </button>
       </div>
 
       {error && (
-        <div className="p-4 bg-[#E25757]/10 border border-[#E25757]/30 rounded-xl text-[#E25757] text-sm flex items-center space-x-2">
+        <div className="p-4 bg-[#E5484D]/10 border border-[#E5484D]/30 rounded-xl text-[#E5484D] text-sm flex items-center space-x-2">
           <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
@@ -279,11 +279,11 @@ export default function QuotationNew() {
         </div>
       )}
 
-      <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-6 space-y-6">
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 space-y-6">
         {/* Primary Quotation Details Header Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-6">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">Customer / Company</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Customer / Company</label>
             <SearchableSelect
               options={companies.map((c) => ({ value: String(c.id), label: c.name }))}
               value={companyId === '' ? '' : String(companyId)}
@@ -293,29 +293,29 @@ export default function QuotationNew() {
           </div>
 
           <div className="md:col-span-3">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">Quotation Date</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Quotation Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-3.5 py-2 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] transition-colors"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
             />
           </div>
 
           <div className="md:col-span-3">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">GST Tax Rate (%)</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">GST Tax Rate (%)</label>
             <input
               type="number"
               value={!taxPercent || taxPercent === 0 ? '' : taxPercent}
               onFocus={(e) => e.target.select()}
               onChange={(e) => setTaxPercent(e.target.value === '' ? 0 : Number(e.target.value))}
               placeholder="18"
-              className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-3.5 py-2 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] transition-colors"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
             />
           </div>
 
           <div className="md:col-span-4">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">Assigned Sales Engineer</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Assigned Sales Engineer</label>
             <SearchableSelect
               options={engineers.map((e) => ({ value: String(e.id), label: `${e.name} (${e.code})` }))}
               value={salesEngineerId === '' ? '' : String(salesEngineerId)}
@@ -325,11 +325,11 @@ export default function QuotationNew() {
           </div>
 
           <div className="md:col-span-4">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">Issuing Legal Firm</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Issuing Legal Firm</label>
             <select
               value={firmId}
               onChange={(e) => handleFirmChange(e.target.value ? Number(e.target.value) : '')}
-              className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-3.5 py-2 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] transition-colors"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
             >
               <option value="">Select Firm...</option>
               {firms.map((f) => (
@@ -339,11 +339,11 @@ export default function QuotationNew() {
           </div>
 
           <div className="md:col-span-4">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">Issuing Branch</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Issuing Branch</label>
             <select
               value={branchId}
               onChange={(e) => setBranchId(e.target.value ? Number(e.target.value) : '')}
-              className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-3.5 py-2 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] transition-colors"
+              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
             >
               <option value="">Select Branch...</option>
               {branches.map((b) => (
@@ -358,28 +358,28 @@ export default function QuotationNew() {
 
         {/* Line Items Section */}
         <div>
-          <h2 className="text-base font-semibold text-[#F5F7F4] mb-3 pb-2 border-b border-[#292E2A]">
+          <h2 className="text-base font-semibold text-[#141B34] mb-3 pb-2 border-b border-[#E4E8F2]">
             Quotation Line Items & Product Discounts
           </h2>
 
           {/* Line Item Rows */}
           <div className="space-y-4">
             {computedItems.map((it, idx) => (
-              <div key={idx} className="bg-[#101312] border border-[#292E2A] rounded-xl p-3.5 space-y-3">
+              <div key={idx} className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3.5 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                   <div className="sm:col-span-4">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Product Description</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Product Description</label>
                     <input
                       type="text"
                       placeholder="Product description or service details..."
                       value={it.description}
                       onChange={(e) => updateItem(idx, { description: e.target.value })}
-                      className="w-full bg-[#171918] border border-[#292E2A] rounded-lg px-3 py-1.5 text-xs text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-3 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
                     />
                   </div>
 
                   <div className="sm:col-span-3">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Part No (Catalogue)</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Part No (Catalogue)</label>
                     <SearchableSelect
                       options={products.map((p) => ({ value: p.part_no, label: `${p.part_no} — ${p.description}` }))}
                       value={it.part_no || ''}
@@ -389,24 +389,24 @@ export default function QuotationNew() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">HSN/SAC</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">HSN/SAC</label>
                     <input
                       type="text"
                       placeholder="HSN"
                       value={it.hsn_sac || ''}
                       onChange={(e) => updateItem(idx, { hsn_sac: e.target.value })}
-                      className="w-full bg-[#171918] border border-[#292E2A] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] font-mono"
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Make</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Make</label>
                     <input
                       type="text"
                       placeholder="Brand"
                       value={it.make || ''}
                       onChange={(e) => updateItem(idx, { make: e.target.value })}
-                      className="w-full bg-[#171918] border border-[#292E2A] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
                     />
                   </div>
 
@@ -415,7 +415,7 @@ export default function QuotationNew() {
                       type="button"
                       onClick={() => removeItem(idx)}
                       disabled={items.length === 1}
-                      className="p-1.5 text-[#E25757] hover:bg-[#E25757]/10 rounded-lg disabled:opacity-30 transition-colors cursor-pointer"
+                      className="p-1.5 text-[#E5484D] hover:bg-[#E5484D]/10 rounded-lg disabled:opacity-30 transition-colors cursor-pointer"
                       title="Remove line item"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -426,9 +426,9 @@ export default function QuotationNew() {
                 </div>
 
                 {/* Line Pricing & Product Discount Controls Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-[#1D211E] items-center bg-[#141715] p-2.5 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-[#F7F8FC] items-center bg-[#F7F8FC] p-2.5 rounded-lg">
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Qty</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Qty</label>
                     <input
                       type="number"
                       min="1"
@@ -436,12 +436,12 @@ export default function QuotationNew() {
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => updateItem(idx, { qty: e.target.value === '' ? 0 : Number(e.target.value) })}
                       placeholder="1"
-                      className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] tabular-nums"
+                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] tabular-nums"
                     />
                   </div>
 
                   <div className="sm:col-span-3">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Actual Price / Unit (₹)</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Actual Price / Unit (₹)</label>
                     <input
                       type="number"
                       min="0"
@@ -450,16 +450,16 @@ export default function QuotationNew() {
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => updateItem(idx, { actual_unit_price: e.target.value === '' ? 0 : Number(e.target.value), price: e.target.value === '' ? 0 : Number(e.target.value) })}
                       placeholder="0"
-                      className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] text-right tabular-nums font-mono"
+                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] text-right tabular-nums font-mono"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Product Disc Type</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Product Disc Type</label>
                     <select
                       value={it.discount_type || 'none'}
                       onChange={(e) => updateItem(idx, { discount_type: e.target.value as any })}
-                      className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-2 py-1.5 text-xs text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
                     >
                       <option value="none">No Disc</option>
                       <option value="percentage">Percentage (%)</option>
@@ -468,7 +468,7 @@ export default function QuotationNew() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Product Disc Val</label>
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Product Disc Val</label>
                     <input
                       type="number"
                       min="0"
@@ -478,17 +478,17 @@ export default function QuotationNew() {
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => updateItem(idx, { discount_value: e.target.value === '' ? 0 : Number(e.target.value) })}
                       placeholder="0"
-                      className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-2 py-1.5 text-xs text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] text-right tabular-nums disabled:opacity-40"
+                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] text-right tabular-nums disabled:opacity-40"
                     />
                   </div>
 
                   <div className="sm:col-span-3 text-right">
-                    <div className="text-[10px] font-bold uppercase text-[#A5AEA8] mb-1">Post-Disc Line Total</div>
-                    <div className="text-xs font-mono font-bold text-[#B8F23A]">
+                    <div className="text-[10px] font-bold uppercase text-[#7A839E] mb-1">Post-Disc Line Total</div>
+                    <div className="text-xs font-mono font-bold text-[#3B6FD4]">
                       ₹{it.after_product_discount_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
                     {it.product_discount_amount > 0 && (
-                      <div className="text-[10px] text-[#E25757] font-mono">
+                      <div className="text-[10px] text-[#E5484D] font-mono">
                         Saved -₹{it.product_discount_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </div>
                     )}
@@ -502,7 +502,7 @@ export default function QuotationNew() {
             <button
               type="button"
               onClick={addItem}
-              className="px-3.5 py-2 bg-[#1D211E] hover:bg-[#292E2A] text-[#B8F23A] border border-[#292E2A] font-semibold text-xs rounded-lg transition-colors inline-flex items-center space-x-1.5 cursor-pointer"
+              className="px-3.5 py-2 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#3B6FD4] border border-[#E4E8F2] font-semibold text-xs rounded-lg transition-colors inline-flex items-center space-x-1.5 cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -513,18 +513,18 @@ export default function QuotationNew() {
         </div>
 
         {/* Overall Quotation Discount Section */}
-        <div className="bg-[#101312] border border-[#292E2A] rounded-xl p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">Overall Quotation Discount</h3>
-          <p className="text-xs text-[#6d756f] mb-3">
+        <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Overall Quotation Discount</h3>
+          <p className="text-xs text-[#A8AEC4] mb-3">
             Applied on subtotal after product-level discounts. Allocated proportionally across line items.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-[#A5AEA8] mb-1.5 font-medium">Overall Discount Type</label>
+              <label className="block text-xs text-[#7A839E] mb-1.5 font-medium">Overall Discount Type</label>
               <select
                 value={discountType}
                 onChange={(e) => setDiscountType(e.target.value as 'none' | 'percentage' | 'amount')}
-                className="w-full bg-[#171918] border border-[#292E2A] rounded-lg px-3.5 py-2 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] transition-colors"
+                className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
               >
                 <option value="none">No Overall Discount</option>
                 <option value="percentage">Percentage (%)</option>
@@ -532,7 +532,7 @@ export default function QuotationNew() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#A5AEA8] mb-1.5 font-medium">
+              <label className="block text-xs text-[#7A839E] mb-1.5 font-medium">
                 Overall Discount Value {discountType === 'percentage' ? '(%)' : '(₹)'}
               </label>
               <input
@@ -544,7 +544,7 @@ export default function QuotationNew() {
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => setDiscountValue(e.target.value === '' ? '' : e.target.value)}
                 placeholder="0"
-                className="w-full bg-[#171918] border border-[#292E2A] rounded-lg px-3.5 py-2 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] transition-colors disabled:opacity-40"
+                className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors disabled:opacity-40"
               />
             </div>
           </div>
@@ -552,63 +552,63 @@ export default function QuotationNew() {
 
         {/* Notes */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#A5AEA8] mb-1.5">Special Terms & Notes</label>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Special Terms & Notes</label>
           <textarea
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Add payment terms, validity notes, or delivery terms..."
-            className="w-full bg-[#101312] border border-[#292E2A] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+            className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2.5 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
           />
         </div>
 
         {/* Financial Totals Breakdown Box */}
-        <div className="bg-[#101312] border border-[#292E2A] rounded-xl p-4 flex flex-col items-end space-y-1.5 text-sm">
-          <div className="flex justify-between w-full max-w-sm text-[#A5AEA8]">
+        <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-4 flex flex-col items-end space-y-1.5 text-sm">
+          <div className="flex justify-between w-full max-w-sm text-[#7A839E]">
             <span>Gross Subtotal:</span>
-            <span className="tabular-nums font-mono text-[#F5F7F4]">₹{grossSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <span className="tabular-nums font-mono text-[#141B34]">₹{grossSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           </div>
 
           {productDiscountTotal > 0 && (
             <>
-              <div className="flex justify-between w-full max-w-sm text-[#A5AEA8]">
+              <div className="flex justify-between w-full max-w-sm text-[#7A839E]">
                 <span>Product Discounts:</span>
-                <span className="tabular-nums font-mono text-[#E25757]">-₹{productDiscountTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="tabular-nums font-mono text-[#E5484D]">-₹{productDiscountTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
-              <div className="flex justify-between w-full max-w-sm text-[#A5AEA8]">
+              <div className="flex justify-between w-full max-w-sm text-[#7A839E]">
                 <span>Subtotal (Post-Product Disc):</span>
-                <span className="tabular-nums font-mono text-[#F5F7F4]">₹{subtotalAfterProductDiscounts.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="tabular-nums font-mono text-[#141B34]">₹{subtotalAfterProductDiscounts.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             </>
           )}
 
           {overallDiscountAmount > 0 && (
-            <div className="flex justify-between w-full max-w-sm text-[#A5AEA8]">
+            <div className="flex justify-between w-full max-w-sm text-[#7A839E]">
               <span>Overall Quotation Discount:</span>
-              <span className="tabular-nums font-mono text-[#E25757]">-₹{overallDiscountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span className="tabular-nums font-mono text-[#E5484D]">-₹{overallDiscountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
           )}
 
-          <div className="flex justify-between w-full max-w-sm text-[#A5AEA8] font-medium pt-1 border-t border-[#292E2A]">
+          <div className="flex justify-between w-full max-w-sm text-[#7A839E] font-medium pt-1 border-t border-[#E4E8F2]">
             <span>Net Taxable Subtotal:</span>
-            <span className="tabular-nums font-mono text-[#F5F7F4]">₹{netSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <span className="tabular-nums font-mono text-[#141B34]">₹{netSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           </div>
 
-          <div className="flex justify-between w-full max-w-sm text-[#A5AEA8]">
+          <div className="flex justify-between w-full max-w-sm text-[#7A839E]">
             <span>GST Tax ({taxPercent}%):</span>
-            <span className="tabular-nums font-mono text-[#F5F7F4]">₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <span className="tabular-nums font-mono text-[#141B34]">₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           </div>
 
           {Math.abs(roundOff) > 0.001 && (
-            <div className="flex justify-between w-full max-w-sm text-[#A5AEA8]">
+            <div className="flex justify-between w-full max-w-sm text-[#7A839E]">
               <span>Round Off:</span>
-              <span className="tabular-nums font-mono text-[#F5F7F4]">₹{roundOff.toFixed(2)}</span>
+              <span className="tabular-nums font-mono text-[#141B34]">₹{roundOff.toFixed(2)}</span>
             </div>
           )}
 
-          <div className="flex justify-between w-full max-w-sm pt-2 border-t border-[#292E2A] text-base font-bold text-[#F5F7F4]">
+          <div className="flex justify-between w-full max-w-sm pt-2 border-t border-[#E4E8F2] text-base font-bold text-[#141B34]">
             <span>Grand Total:</span>
-            <span className="tabular-nums font-mono text-[#B8F23A]">₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <span className="tabular-nums font-mono text-[#3B6FD4]">₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>
 
@@ -616,7 +616,7 @@ export default function QuotationNew() {
           <button
             onClick={submit}
             disabled={saving}
-            className="px-6 py-3 bg-[#B8F23A] hover:bg-[#a3d933] text-[#101312] font-semibold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+            className="px-6 py-3 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
           >
             {saving ? (isEdit ? 'Saving...' : 'Saving...') : (isEdit ? 'Save Quotation' : 'Save & Generate Quotation')}
           </button>

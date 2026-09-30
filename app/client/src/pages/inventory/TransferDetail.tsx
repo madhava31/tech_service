@@ -36,8 +36,8 @@ export default function TransferDetail() {
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-[#A5AEA8] bg-[#171918] rounded-xl border border-[#292E2A]">
-        <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#B8F23A] mb-2" />
+      <div className="p-12 text-center text-[#7A839E] bg-[#FFFFFF] rounded-xl border border-[#E4E8F2]">
+        <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#3B6FD4] mb-2" />
         Loading transfer details...
       </div>
     );
@@ -45,11 +45,11 @@ export default function TransferDetail() {
 
   if (error || !transfer) {
     return (
-      <div className="p-6 bg-[#2D1616] border border-[#572727] text-[#F87171] rounded-xl space-y-4">
+      <div className="p-6 bg-[#F7E0E0] border border-[#F4D4D5] text-[#E5484D] rounded-xl space-y-4">
         <div>{error || 'Transfer not found'}</div>
         <button
           onClick={() => navigate('/inventory/operations/transfers')}
-          className="px-4 py-2 bg-[#171918] text-[#F5F7F4] rounded-lg text-xs font-semibold"
+          className="px-4 py-2 bg-[#FFFFFF] text-[#141B34] rounded-lg text-xs font-semibold"
         >
           Back to Transfers List
         </button>
@@ -60,87 +60,87 @@ export default function TransferDetail() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex items-center justify-between border-b border-[#292E2A] pb-4">
+      <div className="flex items-center justify-between border-b border-[#E4E8F2] pb-4">
         <div className="flex items-center gap-3">
           <Link
             to="/inventory/operations/transfers"
-            className="p-2 bg-[#171918] border border-[#292E2A] rounded-lg text-[#A5AEA8] hover:text-[#F5F7F4]"
+            className="p-2 bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg text-[#7A839E] hover:text-[#141B34]"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-[#F5F7F4]">{transfer.transferNumber}</h1>
-              <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-[#1B2E1E] text-[#4ADE80] border border-[#2B5230]">
+              <h1 className="text-xl font-bold text-[#141B34]">{transfer.transferNumber}</h1>
+              <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4]">
                 {transfer.status}
               </span>
             </div>
-            <p className="text-xs text-[#A5AEA8] mt-0.5">Warehouse Transfer Record</p>
+            <p className="text-xs text-[#7A839E] mt-0.5">Warehouse Transfer Record</p>
           </div>
         </div>
 
-        <div className="text-right text-xs text-[#A5AEA8]">
-          <div>Created: <span className="text-[#F5F7F4] font-medium">{formatDate(transfer.createdAt)}</span></div>
-          <div>By: <span className="text-[#F5F7F4] font-medium">{transfer.createdBy}</span></div>
+        <div className="text-right text-xs text-[#7A839E]">
+          <div>Created: <span className="text-[#141B34] font-medium">{formatDate(transfer.createdAt)}</span></div>
+          <div>By: <span className="text-[#141B34] font-medium">{transfer.createdBy}</span></div>
         </div>
       </div>
 
       {/* Warehouses & Product Card Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-4 space-y-2">
-          <div className="text-xs font-semibold text-[#F87171] uppercase tracking-wider flex items-center gap-1.5">
-            <Building className="w-4 h-4 text-[#F87171]" />
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 space-y-2">
+          <div className="text-xs font-semibold text-[#E5484D] uppercase tracking-wider flex items-center gap-1.5">
+            <Building className="w-4 h-4 text-[#E5484D]" />
             Source Warehouse
           </div>
-          <div className="text-base font-bold text-[#F5F7F4]">{transfer.sourceWarehouseName}</div>
-          <div className="text-xs text-[#A5AEA8]">Code: {transfer.sourceWarehouseCode}</div>
-          <div className="pt-2 border-t border-[#292E2A] text-xs space-y-1">
-            <div className="flex justify-between text-[#A5AEA8]">
+          <div className="text-base font-bold text-[#141B34]">{transfer.sourceWarehouseName}</div>
+          <div className="text-xs text-[#7A839E]">Code: {transfer.sourceWarehouseCode}</div>
+          <div className="pt-2 border-t border-[#E4E8F2] text-xs space-y-1">
+            <div className="flex justify-between text-[#7A839E]">
               <span>Before On-Hand:</span>
-              <span className="text-[#F5F7F4] font-medium">{transfer.sourceBeforeOnHand}</span>
+              <span className="text-[#141B34] font-medium">{transfer.sourceBeforeOnHand}</span>
             </div>
-            <div className="flex justify-between text-[#A5AEA8]">
+            <div className="flex justify-between text-[#7A839E]">
               <span>After On-Hand:</span>
-              <span className="text-[#F87171] font-bold">{transfer.sourceAfterOnHand}</span>
+              <span className="text-[#E5484D] font-bold">{transfer.sourceAfterOnHand}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-4 space-y-2">
-          <div className="text-xs font-semibold text-[#4ADE80] uppercase tracking-wider flex items-center gap-1.5">
-            <Building className="w-4 h-4 text-[#4ADE80]" />
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 space-y-2">
+          <div className="text-xs font-semibold text-[#2FBF71] uppercase tracking-wider flex items-center gap-1.5">
+            <Building className="w-4 h-4 text-[#2FBF71]" />
             Destination Warehouse
           </div>
-          <div className="text-base font-bold text-[#F5F7F4]">{transfer.destinationWarehouseName}</div>
-          <div className="text-xs text-[#A5AEA8]">Code: {transfer.destinationWarehouseCode}</div>
-          <div className="pt-2 border-t border-[#292E2A] text-xs space-y-1">
-            <div className="flex justify-between text-[#A5AEA8]">
+          <div className="text-base font-bold text-[#141B34]">{transfer.destinationWarehouseName}</div>
+          <div className="text-xs text-[#7A839E]">Code: {transfer.destinationWarehouseCode}</div>
+          <div className="pt-2 border-t border-[#E4E8F2] text-xs space-y-1">
+            <div className="flex justify-between text-[#7A839E]">
               <span>Before On-Hand:</span>
-              <span className="text-[#F5F7F4] font-medium">{transfer.destBeforeOnHand}</span>
+              <span className="text-[#141B34] font-medium">{transfer.destBeforeOnHand}</span>
             </div>
-            <div className="flex justify-between text-[#A5AEA8]">
+            <div className="flex justify-between text-[#7A839E]">
               <span>After On-Hand:</span>
-              <span className="text-[#4ADE80] font-bold">{transfer.destAfterOnHand}</span>
+              <span className="text-[#2FBF71] font-bold">{transfer.destAfterOnHand}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-4 space-y-2">
-          <div className="text-xs font-semibold text-[#B8F23A] uppercase tracking-wider flex items-center gap-1.5">
-            <Package className="w-4 h-4 text-[#B8F23A]" />
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 space-y-2">
+          <div className="text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider flex items-center gap-1.5">
+            <Package className="w-4 h-4 text-[#3B6FD4]" />
             Transferred Item
           </div>
-          <div className="text-base font-bold text-[#B8F23A]">{transfer.partNumber}</div>
-          <div className="text-xs text-[#A5AEA8] line-clamp-1">{transfer.productDescription}</div>
-          <div className="pt-2 border-t border-[#292E2A] text-xs space-y-1">
-            <div className="flex justify-between text-[#A5AEA8]">
+          <div className="text-base font-bold text-[#3B6FD4]">{transfer.partNumber}</div>
+          <div className="text-xs text-[#7A839E] line-clamp-1">{transfer.productDescription}</div>
+          <div className="pt-2 border-t border-[#E4E8F2] text-xs space-y-1">
+            <div className="flex justify-between text-[#7A839E]">
               <span>Transferred Quantity:</span>
-              <span className="text-[#B8F23A] font-bold text-sm">{transfer.quantity} {transfer.productUnit}</span>
+              <span className="text-[#3B6FD4] font-bold text-sm">{transfer.quantity} {transfer.productUnit}</span>
             </div>
             {transfer.reference && (
-              <div className="flex justify-between text-[#A5AEA8]">
+              <div className="flex justify-between text-[#7A839E]">
                 <span>Reference:</span>
-                <span className="text-[#F5F7F4] font-medium">{transfer.reference}</span>
+                <span className="text-[#141B34] font-medium">{transfer.reference}</span>
               </div>
             )}
           </div>
@@ -149,21 +149,21 @@ export default function TransferDetail() {
 
       {/* Notes */}
       {transfer.notes && (
-        <div className="bg-[#171918] border border-[#292E2A] rounded-xl p-4 space-y-1">
-          <div className="text-xs font-semibold text-[#A5AEA8]">Transfer Notes</div>
-          <p className="text-xs text-[#F5F7F4]">{transfer.notes}</p>
+        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 space-y-1">
+          <div className="text-xs font-semibold text-[#7A839E]">Transfer Notes</div>
+          <p className="text-xs text-[#141B34]">{transfer.notes}</p>
         </div>
       )}
 
       {/* Linked Movement Audit Trail */}
-      <div className="bg-[#171918] border border-[#292E2A] rounded-xl overflow-hidden space-y-3 p-4">
-        <h3 className="text-sm font-bold text-[#F5F7F4] flex items-center gap-2">
-          <ArrowRightLeft className="w-4 h-4 text-[#60A5FA]" />
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden space-y-3 p-4">
+        <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
+          <ArrowRightLeft className="w-4 h-4 text-[#3B6FD4]" />
           Linked Inventory Audit Movements
         </h3>
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[#1D211E] border-b border-[#292E2A] text-[11px] font-semibold text-[#A5AEA8] uppercase tracking-wider">
+            <tr className="bg-[#F7F8FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
               <th className="py-2.5 px-3">Movement Type</th>
               <th className="py-2.5 px-3">Warehouse</th>
               <th className="py-2.5 px-3 text-right">Quantity</th>
@@ -173,26 +173,26 @@ export default function TransferDetail() {
               <th className="py-2.5 px-3">Timestamp</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#292E2A] text-xs">
+          <tbody className="divide-y divide-[#E4E8F2] text-xs">
             {transfer.movements.map((m) => (
-              <tr key={m.id} className="hover:bg-[#1D211E]/50">
+              <tr key={m.id} className="hover:bg-[#F7F8FC]/50">
                 <td className="py-2.5 px-3">
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       m.movement_type === 'TRANSFER_IN'
-                        ? 'bg-[#1B2E1E] text-[#4ADE80] border border-[#2B5230]'
-                        : 'bg-[#2D1616] text-[#F87171] border border-[#572727]'
+                        ? 'bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4]'
+                        : 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
                     }`}
                   >
                     {m.movement_type}
                   </span>
                 </td>
-                <td className="py-2.5 px-3 text-[#F5F7F4] font-medium">{m.warehouse_name}</td>
-                <td className="py-2.5 px-3 text-right font-bold text-[#F5F7F4]">{m.quantity}</td>
-                <td className="py-2.5 px-3 text-right text-[#A5AEA8]">{m.before_on_hand}</td>
-                <td className="py-2.5 px-3 text-right font-semibold text-[#4ADE80]">{m.after_on_hand}</td>
-                <td className="py-2.5 px-3 text-[#A5AEA8]">{m.reason}</td>
-                <td className="py-2.5 px-3 text-[#A5AEA8]">{formatDate(m.created_at)}</td>
+                <td className="py-2.5 px-3 text-[#141B34] font-medium">{m.warehouse_name}</td>
+                <td className="py-2.5 px-3 text-right font-bold text-[#141B34]">{m.quantity}</td>
+                <td className="py-2.5 px-3 text-right text-[#7A839E]">{m.before_on_hand}</td>
+                <td className="py-2.5 px-3 text-right font-semibold text-[#2FBF71]">{m.after_on_hand}</td>
+                <td className="py-2.5 px-3 text-[#7A839E]">{m.reason}</td>
+                <td className="py-2.5 px-3 text-[#7A839E]">{formatDate(m.created_at)}</td>
               </tr>
             ))}
           </tbody>

@@ -38,23 +38,23 @@ function formatDate(d: string | null | undefined) {
 function StatusBadge({ status }: { status: string }) {
   if (status === 'CONFIRMED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#1B2E1E] text-[#4ADE80] border border-[#2B5230] rounded-md text-[11.5px] font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80]" />
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4] rounded-md text-[11.5px] font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#2FBF71]" />
         Confirmed
       </span>
     );
   }
   if (status === 'DRAFT') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#2B2414] text-[#FBBF24] border border-[#524320] rounded-md text-[11.5px] font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#FBBF24]" />
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6] rounded-md text-[11.5px] font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#E8A33D]" />
         Draft (Staged)
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#2D1616] text-[#F87171] border border-[#572727] rounded-md text-[11.5px] font-medium">
-      <span className="w-1.5 h-1.5 rounded-full bg-[#F87171]" />
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5] rounded-md text-[11.5px] font-medium">
+      <span className="w-1.5 h-1.5 rounded-full bg-[#E5484D]" />
       Cancelled
     </span>
   );
@@ -194,12 +194,12 @@ export default function SaleReportList() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F4]">Sale Reports</h1>
-            <span className="px-2.5 py-0.5 bg-[#171B18] text-[#A5AEA8] border border-[#2B322D] rounded-full text-xs font-mono">
+            <h1 className="text-2xl font-bold tracking-tight text-[#141B34]">Sale Reports</h1>
+            <span className="px-2.5 py-0.5 bg-[#FFFFFF] text-[#7A839E] border border-[#E4E8F2] rounded-full text-xs font-mono">
               Stock OUT
             </span>
           </div>
-          <p className="text-sm text-[#A5AEA8] mt-1">
+          <p className="text-sm text-[#7A839E] mt-1">
             Controlled physical stock deduction and sales dispatch ledger
           </p>
         </div>
@@ -207,7 +207,7 @@ export default function SaleReportList() {
         <div className="flex items-center gap-3">
           <Link
             to="/sale-reports/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#B8F23A] text-[#101312] font-semibold text-sm rounded-lg hover:bg-[#a6df2f] transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] font-semibold text-sm rounded-lg hover:bg-[#2F5CB8] transition-colors shadow-sm"
           >
             <Plus className="w-4 h-4" />
             <span>New Sale Report</span>
@@ -217,64 +217,64 @@ export default function SaleReportList() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        <div className="bg-[#141816] border border-[#232925] rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-[#8A958E] font-medium">Total Reports</span>
-          <span className="text-2xl font-bold text-[#F5F7F4] mt-2 font-mono">
+        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 flex flex-col justify-between">
+          <span className="text-xs text-[#8992AB] font-medium">Total Reports</span>
+          <span className="text-2xl font-bold text-[#141B34] mt-2 font-mono">
             {kpi.totalReports}
           </span>
         </div>
 
-        <div className="bg-[#141816] border border-[#232925] rounded-xl p-4 flex flex-col justify-between">
+        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#FBBF24] font-medium">Draft (Staged)</span>
-            <span className="w-2 h-2 rounded-full bg-[#FBBF24]" />
+            <span className="text-xs text-[#E8A33D] font-medium">Draft (Staged)</span>
+            <span className="w-2 h-2 rounded-full bg-[#E8A33D]" />
           </div>
-          <span className="text-2xl font-bold text-[#FBBF24] mt-2 font-mono">
+          <span className="text-2xl font-bold text-[#E8A33D] mt-2 font-mono">
             {kpi.draftCount}
           </span>
         </div>
 
-        <div className="bg-[#141816] border border-[#232925] rounded-xl p-4 flex flex-col justify-between">
+        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#4ADE80] font-medium">Confirmed Sales</span>
-            <span className="w-2 h-2 rounded-full bg-[#4ADE80]" />
+            <span className="text-xs text-[#2FBF71] font-medium">Confirmed Sales</span>
+            <span className="w-2 h-2 rounded-full bg-[#2FBF71]" />
           </div>
-          <span className="text-2xl font-bold text-[#4ADE80] mt-2 font-mono">
+          <span className="text-2xl font-bold text-[#2FBF71] mt-2 font-mono">
             {kpi.confirmedCount}
           </span>
         </div>
 
-        <div className="bg-[#141816] border border-[#232925] rounded-xl p-4 flex flex-col justify-between">
+        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#F87171] font-medium">Cancelled</span>
-            <span className="w-2 h-2 rounded-full bg-[#F87171]" />
+            <span className="text-xs text-[#E5484D] font-medium">Cancelled</span>
+            <span className="w-2 h-2 rounded-full bg-[#E5484D]" />
           </div>
-          <span className="text-2xl font-bold text-[#F87171] mt-2 font-mono">
+          <span className="text-2xl font-bold text-[#E5484D] mt-2 font-mono">
             {kpi.cancelledCount}
           </span>
         </div>
 
-        <div className="bg-[#141816] border border-[#232925] rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-[#A5AEA8] font-medium">Today's Sales</span>
-          <span className="text-2xl font-bold text-[#F5F7F4] mt-2 font-mono">
+        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 flex flex-col justify-between">
+          <span className="text-xs text-[#7A839E] font-medium">Today's Sales</span>
+          <span className="text-2xl font-bold text-[#141B34] mt-2 font-mono">
             {kpi.todaySalesCount}
           </span>
         </div>
 
-        <div className="bg-[#141816] border border-[#232925] rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-[#B8F23A] font-medium">Confirmed Value</span>
-          <span className="text-lg sm:text-xl font-bold text-[#B8F23A] mt-2 font-mono truncate" title={formatINR(kpi.confirmedTotalValue)}>
+        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 flex flex-col justify-between">
+          <span className="text-xs text-[#3B6FD4] font-medium">Confirmed Value</span>
+          <span className="text-lg sm:text-xl font-bold text-[#3B6FD4] mt-2 font-mono truncate" title={formatINR(kpi.confirmedTotalValue)}>
             {formatINR(kpi.confirmedTotalValue)}
           </span>
         </div>
       </div>
 
       {/* Expandable Search & Filter Bar */}
-      <div className="bg-[#141816] border border-[#232925] rounded-xl p-3.5 space-y-3">
+      <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-3.5 space-y-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Expanding Search Input */}
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6D756F]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8AEC4]" />
             <input
               type="text"
               placeholder="Search by Report #, Invoice #, Company, or Part Number..."
@@ -283,7 +283,7 @@ export default function SaleReportList() {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-3 py-2 bg-[#0E1110] border border-[#232925] rounded-lg text-sm text-[#F5F7F4] placeholder-[#5A635D] focus:outline-none focus:border-[#B8F23A] transition-colors"
+              className="w-full pl-9 pr-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-sm text-[#141B34] placeholder-[#A8AEC4] focus:outline-none focus:border-[#3B6FD4] transition-colors"
             />
           </div>
 
@@ -293,14 +293,14 @@ export default function SaleReportList() {
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
                 isFilterOpen || hasActiveFilters
-                  ? 'bg-[#1D221E] border-[#B8F23A] text-[#F5F7F4]'
-                  : 'bg-[#0E1110] border-[#232925] text-[#A5AEA8] hover:text-[#F5F7F4]'
+                  ? 'bg-[#F7F8FC] border-[#3B6FD4] text-[#141B34]'
+                  : 'bg-[#EDF0F8] border-[#EEF1F9] text-[#7A839E] hover:text-[#141B34]'
               }`}
             >
-              <Filter className="w-4 h-4 text-[#B8F23A]" />
+              <Filter className="w-4 h-4 text-[#3B6FD4]" />
               <span>Filters</span>
               {hasActiveFilters && (
-                <span className="w-2 h-2 rounded-full bg-[#B8F23A]" />
+                <span className="w-2 h-2 rounded-full bg-[#3B6FD4]" />
               )}
             </button>
 
@@ -308,7 +308,7 @@ export default function SaleReportList() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#0E1110] border border-[#232925] rounded-lg text-sm text-[#A5AEA8] hover:text-[#F5F7F4] hover:border-[#38423B] transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-sm text-[#7A839E] hover:text-[#141B34] hover:border-[#D4DAEA] transition-colors"
                 title="Reset all filters"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -320,16 +320,16 @@ export default function SaleReportList() {
 
         {/* Filter Drawer */}
         {isFilterOpen && (
-          <div className="pt-3 border-t border-[#232925] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="pt-3 border-t border-[#EEF1F9] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#8A958E] mb-1.5">Status</label>
+              <label className="block text-xs font-medium text-[#8992AB] mb-1.5">Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-[#0E1110] border border-[#232925] rounded-lg text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+                className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
               >
                 <option value="">All Statuses</option>
                 <option value="DRAFT">Draft (Staged)</option>
@@ -339,14 +339,14 @@ export default function SaleReportList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#8A958E] mb-1.5">Warehouse</label>
+              <label className="block text-xs font-medium text-[#8992AB] mb-1.5">Warehouse</label>
               <select
                 value={warehouseFilter}
                 onChange={(e) => {
                   setWarehouseFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-[#0E1110] border border-[#232925] rounded-lg text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+                className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
               >
                 <option value="">All Warehouses</option>
                 {warehouses.map((w) => (
@@ -358,14 +358,14 @@ export default function SaleReportList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#8A958E] mb-1.5">Source Type</label>
+              <label className="block text-xs font-medium text-[#8992AB] mb-1.5">Source Type</label>
               <select
                 value={sourceFilter}
                 onChange={(e) => {
                   setSourceFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-[#0E1110] border border-[#232925] rounded-lg text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+                className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
               >
                 <option value="">All Sources</option>
                 <option value="INTERNAL_DOCUMENT">Internal (Quote/PO/PI)</option>
@@ -374,14 +374,14 @@ export default function SaleReportList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#8A958E] mb-1.5">Date Range</label>
+              <label className="block text-xs font-medium text-[#8992AB] mb-1.5">Date Range</label>
               <select
                 value={datePreset}
                 onChange={(e) => {
                   setDatePreset(e.target.value as any);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-[#0E1110] border border-[#232925] rounded-lg text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A]"
+                className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
               >
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -395,17 +395,17 @@ export default function SaleReportList() {
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 bg-[#2D1616] border border-[#572727] rounded-xl flex items-center gap-3 text-sm text-[#F87171]">
+        <div className="p-4 bg-[#F7E0E0] border border-[#F4D4D5] rounded-xl flex items-center gap-3 text-sm text-[#E5484D]">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Reports Table */}
-      <div className="bg-[#141816] border border-[#232925] rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-[#A5AEA8]">
-            <thead className="bg-[#0E1110] border-b border-[#232925] text-xs text-[#8A958E] uppercase tracking-wider font-semibold">
+          <table className="w-full text-left text-sm text-[#7A839E]">
+            <thead className="bg-[#EDF0F8] border-b border-[#EEF1F9] text-xs text-[#8992AB] uppercase tracking-wider font-semibold">
               <tr>
                 <th className="px-4 py-3.5">Report #</th>
                 <th className="px-4 py-3.5">Date</th>
@@ -419,10 +419,10 @@ export default function SaleReportList() {
                 <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1D221F]">
+            <tbody className="divide-y divide-[#F7F8FC]">
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-[#6D756F]">
+                  <td colSpan={10} className="px-4 py-12 text-center text-[#A8AEC4]">
                     Loading Sale Reports...
                   </td>
                 </tr>
@@ -430,9 +430,9 @@ export default function SaleReportList() {
                 <tr>
                   <td colSpan={10} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center max-w-sm mx-auto text-center">
-                      <Boxes className="w-10 h-10 text-[#434D46] mb-3" />
-                      <p className="text-base font-semibold text-[#F5F7F4]">No Sale Reports Found</p>
-                      <p className="text-xs text-[#8A958E] mt-1 mb-4">
+                      <Boxes className="w-10 h-10 text-[#CBD3E6] mb-3" />
+                      <p className="text-base font-semibold text-[#141B34]">No Sale Reports Found</p>
+                      <p className="text-xs text-[#8992AB] mt-1 mb-4">
                         {hasActiveFilters
                           ? 'Try adjusting your search or filters to see more results.'
                           : 'Create your first Sale Report to perform controlled physical stock deduction.'}
@@ -441,14 +441,14 @@ export default function SaleReportList() {
                         <button
                           type="button"
                           onClick={handleResetFilters}
-                          className="px-3.5 py-1.5 bg-[#1D221E] border border-[#2E3630] rounded-lg text-xs text-[#F5F7F4] hover:bg-[#252C26]"
+                          className="px-3.5 py-1.5 bg-[#F7F8FC] border border-[#DCE2F0] rounded-lg text-xs text-[#141B34] hover:bg-[#EEF1F9]"
                         >
                           Clear Filters
                         </button>
                       ) : (
                         <Link
                           to="/sale-reports/new"
-                          className="px-4 py-2 bg-[#B8F23A] text-[#101312] font-semibold text-xs rounded-lg hover:bg-[#a6df2f]"
+                          className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] font-semibold text-xs rounded-lg hover:bg-[#2F5CB8]"
                         >
                           Create Sale Report
                         </Link>
@@ -460,13 +460,13 @@ export default function SaleReportList() {
                 reports.map((report) => (
                   <tr
                     key={report.id}
-                    className="hover:bg-[#181D1A] transition-colors cursor-pointer"
+                    className="hover:bg-[#F7F8FC] transition-colors cursor-pointer"
                     onClick={() => navigate(`/sale-reports/${report.id}`)}
                   >
-                    <td className="px-4 py-3.5 font-mono font-semibold text-[#F5F7F4] whitespace-nowrap">
+                    <td className="px-4 py-3.5 font-mono font-semibold text-[#141B34] whitespace-nowrap">
                       <Link
                         to={`/sale-reports/${report.id}`}
-                        className="hover:text-[#B8F23A] transition-colors"
+                        className="hover:text-[#3B6FD4] transition-colors"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {report.report_number}
@@ -475,12 +475,12 @@ export default function SaleReportList() {
                     <td className="px-4 py-3.5 whitespace-nowrap text-xs">
                       {formatDate(report.sale_date)}
                     </td>
-                    <td className="px-4 py-3.5 font-medium text-[#F5F7F4]">
+                    <td className="px-4 py-3.5 font-medium text-[#141B34]">
                       {report.company_id ? (
                         <Link
                           to={`/companies/${report.company_id}/health`}
                           onClick={(e) => e.stopPropagation()}
-                          className="hover:text-[#B8F23A] hover:underline transition-colors"
+                          className="hover:text-[#3B6FD4] hover:underline transition-colors"
                         >
                           {report.company_name_snapshot}
                         </Link>
@@ -488,23 +488,23 @@ export default function SaleReportList() {
                         <span>{report.company_name_snapshot}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 font-mono text-xs whitespace-nowrap text-[#CCD4CE]">
+                    <td className="px-4 py-3.5 font-mono text-xs whitespace-nowrap text-[#2C3454]">
                       {report.invoice_number || '—'}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <span className="text-[11px] px-2 py-0.5 rounded bg-[#171B18] border border-[#29302B] text-[#CCD4CE]">
+                      <span className="text-[11px] px-2 py-0.5 rounded bg-[#FFFFFF] border border-[#E4E8F2] text-[#2C3454]">
                         {report.source_type === 'INTERNAL_DOCUMENT' ? 'Internal Document' : 'Direct External'}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap text-xs">
-                      <span className="text-[#F5F7F4]">{report.warehouse_name}</span>
-                      <span className="text-[11px] text-[#6D756F] ml-1.5 font-mono">({report.warehouse_code})</span>
+                      <span className="text-[#141B34]">{report.warehouse_name}</span>
+                      <span className="text-[11px] text-[#A8AEC4] ml-1.5 font-mono">({report.warehouse_code})</span>
                     </td>
                     <td className="px-4 py-3.5 text-right font-mono text-xs whitespace-nowrap">
-                      <span className="text-[#F5F7F4] font-semibold">{report.total_quantity || 0}</span>
-                      <span className="text-[#6D756F] ml-1">({report.total_items || 0} items)</span>
+                      <span className="text-[#141B34] font-semibold">{report.total_quantity || 0}</span>
+                      <span className="text-[#A8AEC4] ml-1">({report.total_items || 0} items)</span>
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono font-semibold text-[#F5F7F4] whitespace-nowrap">
+                    <td className="px-4 py-3.5 text-right font-mono font-semibold text-[#141B34] whitespace-nowrap">
                       {formatINR(report.total_amount)}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
@@ -516,7 +516,7 @@ export default function SaleReportList() {
                           <button
                             type="button"
                             onClick={() => setConfirmingId(report.id)}
-                            className="px-2.5 py-1 bg-[#1E2E20] hover:bg-[#283F2B] text-[#71D88A] border border-[#2B4B32] rounded text-xs font-medium transition-colors"
+                            className="px-2.5 py-1 bg-[#DFF5EA] hover:bg-[#DAF3E7] text-[#2FBF71] border border-[#D7F2E5] rounded text-xs font-medium transition-colors"
                             title="Confirm Sale Report & Deduct Physical Stock"
                           >
                             Confirm
@@ -524,7 +524,7 @@ export default function SaleReportList() {
                         )}
                         <Link
                           to={`/sale-reports/${report.id}`}
-                          className="px-2.5 py-1 bg-[#1A1F1C] hover:bg-[#242C27] text-[#CCD4CE] border border-[#2E3631] rounded text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#2C3454] border border-[#DCE2F0] rounded text-xs font-medium transition-colors"
                         >
                           View
                         </Link>
@@ -539,8 +539,8 @@ export default function SaleReportList() {
 
         {/* Pagination */}
         {total > PAGE_SIZE && (
-          <div className="p-4 border-t border-[#232925] flex justify-between items-center bg-[#0E1110]">
-            <span className="text-xs text-[#8A958E]">
+          <div className="p-4 border-t border-[#EEF1F9] flex justify-between items-center bg-[#EDF0F8]">
+            <span className="text-xs text-[#8992AB]">
               Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, total)} of {total} reports
             </span>
             <Pagination
@@ -554,25 +554,25 @@ export default function SaleReportList() {
 
       {/* Quick Confirm Modal */}
       {confirmingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-[#141816] border border-[#2B332E] rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-[#4ADE80]">
-              <div className="p-2 bg-[#1B2E1E] border border-[#2B5230] rounded-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141B34]/40 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-[#F7F8FC] border border-[#E4E8F2] rounded-xl max-w-md w-full p-6 shadow-lift space-y-4">
+            <div className="flex items-center gap-3 text-[#2FBF71]">
+              <div className="p-2 bg-[#E0F5EA] border border-[#D6F2E4] rounded-lg">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#F5F7F4]">Confirm Sale Report</h3>
-                <p className="text-xs text-[#8A958E]">Execute physical stock deduction</p>
+                <h3 className="text-base font-bold text-[#141B34]">Confirm Sale Report</h3>
+                <p className="text-xs text-[#8992AB]">Execute physical stock deduction</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#CCD4CE]">
+            <p className="text-sm text-[#2C3454]">
               Confirming this Sale Report will perform an <strong>atomic STOCK OUT</strong> in the selected warehouse.
               Physical on-hand inventory will be deducted, and movements will be added to the audit ledger.
             </p>
 
             {confirmError && (
-              <div className="p-3 bg-[#2D1616] border border-[#572727] rounded-lg text-xs text-[#F87171]">
+              <div className="p-3 bg-[#F7E0E0] border border-[#F4D4D5] rounded-lg text-xs text-[#E5484D]">
                 {confirmError}
               </div>
             )}
@@ -585,7 +585,7 @@ export default function SaleReportList() {
                   setConfirmError('');
                 }}
                 disabled={confirmSubmitting}
-                className="px-4 py-2 bg-[#1D221F] border border-[#2E3631] text-[#CCD4CE] hover:text-[#F5F7F4] rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-[#F7F8FC] border border-[#DCE2F0] text-[#2C3454] hover:text-[#141B34] rounded-lg text-sm font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -593,7 +593,7 @@ export default function SaleReportList() {
                 type="button"
                 onClick={handleQuickConfirm}
                 disabled={confirmSubmitting}
-                className="px-4 py-2 bg-[#B8F23A] text-[#101312] hover:bg-[#a6df2f] rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] hover:bg-[#2F5CB8] rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
               >
                 {confirmSubmitting ? 'Confirming...' : 'Yes, Confirm & Deduct Stock'}
               </button>

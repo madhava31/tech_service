@@ -36,12 +36,12 @@ const STATUS_LABELS: Record<CustomerHealthStatus, string> = {
 };
 
 const STATUS_COLORS: Record<CustomerHealthStatus, string> = {
-  new: '#B8F23A',
-  strong: '#B8F23A',
-  active: '#B8F23A',
-  at_risk: '#D9A441',
-  inactive: '#E25757',
-  no_history: '#6d756f',
+  new: '#3B6FD4',
+  strong: '#3B6FD4',
+  active: '#3B6FD4',
+  at_risk: '#E8A33D',
+  inactive: '#E5484D',
+  no_history: '#A8AEC4',
 };
 
 export default function CustomerHealthOverview() {
@@ -86,14 +86,14 @@ export default function CustomerHealthOverview() {
   );
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#101312] text-[#F5F7F4] min-h-screen">
+    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Customer Health
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#A5AEA8]">
+          <p className="margin-0 text-[13.5px] text-[#7A839E]">
             Account scores from order recency, frequency and value movement.
           </p>
         </div>
@@ -101,31 +101,31 @@ export default function CustomerHealthOverview() {
         {/* Stacked Distribution Summary Bar */}
         {data && (
           <div className="flex flex-col gap-2 min-w-[300px]">
-            <div className="flex h-2 rounded-[5px] overflow-hidden bg-[#1D211E]">
+            <div className="flex h-2 rounded-[5px] overflow-hidden bg-[#F7F8FC]">
               <div
                 style={{ width: `${((data.summary.strong + data.summary.active + data.summary.new) / Math.max(1, data.summary.total)) * 100}%` }}
-                className="bg-[#B8F23A] h-full"
+                className="bg-[#3B6FD4] h-full"
               />
               <div
                 style={{ width: `${(data.summary.atRisk / Math.max(1, data.summary.total)) * 100}%` }}
-                className="bg-[#D9A441] h-full"
+                className="bg-[#E8A33D] h-full"
               />
               <div
                 style={{ width: `${(data.summary.inactive / Math.max(1, data.summary.total)) * 100}%` }}
-                className="bg-[#E25757] h-full"
+                className="bg-[#E5484D] h-full"
               />
             </div>
-            <div className="flex gap-4 text-[11.5px] text-[#A5AEA8]">
+            <div className="flex gap-4 text-[11.5px] text-[#7A839E]">
               <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2 h-2 rounded-[2px] bg-[#B8F23A]" />
+                <span className="w-2 h-2 rounded-[2px] bg-[#3B6FD4]" />
                 Healthy {data.summary.strong + data.summary.active + data.summary.new}
               </span>
               <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2 h-2 rounded-[2px] bg-[#D9A441]" />
+                <span className="w-2 h-2 rounded-[2px] bg-[#E8A33D]" />
                 Watch {data.summary.atRisk}
               </span>
               <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2 h-2 rounded-[2px] bg-[#E25757]" />
+                <span className="w-2 h-2 rounded-[2px] bg-[#E5484D]" />
                 At risk {data.summary.inactive}
               </span>
             </div>
@@ -134,12 +134,12 @@ export default function CustomerHealthOverview() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-[12px] bg-[#1b1414] border border-[#4a2a2a] text-[#E25757] text-[13px] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">
           <span>{error}</span>
           <button
             type="button"
             onClick={fetchData}
-            className="px-3 py-1.5 rounded-[8px] bg-[#2a1a1a] hover:bg-[#3d2222] text-[#F5F7F4] text-xs font-semibold cursor-pointer transition-colors"
+            className="px-3 py-1.5 rounded-[8px] bg-[#F7DFE0] hover:bg-[#F5DADB] text-[#141B34] text-xs font-semibold cursor-pointer transition-colors"
           >
             Retry
           </button>
@@ -147,15 +147,15 @@ export default function CustomerHealthOverview() {
       )}
 
       {loading && !data && (
-        <div className="p-8 text-center text-[#A5AEA8] text-[13px] rounded-[16px] bg-[#171918] border border-[#292E2A]">
+        <div className="p-8 text-center text-[#7A839E] text-[13px] rounded-[16px] bg-[#FFFFFF] border border-[#E4E8F2]">
           Loading customer health summary...
         </div>
       )}
 
       {data && (
-        <section className="bg-[#171918] border border-[#292E2A] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+        <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
           {/* Filter Controls */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#20251f] pb-3.5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
             <div className="flex items-center gap-2.5 flex-wrap">
               <ExpandableSearch
                 value={search}
@@ -167,7 +167,7 @@ export default function CustomerHealthOverview() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-[#1D211E] border border-[#292E2A] text-[#F5F7F4] text-[12px] outline-none cursor-pointer"
+                className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
               >
                 <option value="">All Health Statuses</option>
                 <option value="strong">Healthy (Strong)</option>
@@ -178,7 +178,7 @@ export default function CustomerHealthOverview() {
                 <option value="no_history">Dormant (No History)</option>
               </select>
             </div>
-            <span className="text-[11.5px] text-[#6d756f]">
+            <span className="text-[11.5px] text-[#A8AEC4]">
               Showing {filtered.length} of {data.customers.length} accounts
             </span>
           </div>
@@ -187,52 +187,52 @@ export default function CustomerHealthOverview() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
               <thead>
-                <tr className="border-b border-[#20251f]">
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                <tr className="border-b border-[#EEF1F9]">
+                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                     CUSTOMER
                   </th>
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                     HEALTH BAND
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                     TOTAL REVENUE
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                     ORDERS
                   </th>
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                     LAST ORDER
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                     RECENCY
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#6d756f] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                     ACTION
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {paged.map((c) => {
-                  const color = STATUS_COLORS[c.status] || '#A5AEA8';
+                  const color = STATUS_COLORS[c.status] || '#7A839E';
                   return (
-                    <tr key={c.company_id} className="border-b border-[#1a1f1c] hover:bg-[#1a1e1c] transition-colors">
-                      <td className="p-[11px_10px] font-medium text-[#F5F7F4]">{c.company_name}</td>
+                    <tr key={c.company_id} className="border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors">
+                      <td className="p-[11px_10px] font-medium text-[#141B34]">{c.company_name}</td>
                       <td className="p-[11px_10px]">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] border border-[#292E2A] text-[11px] font-medium" style={{ color }}>
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] border border-[#E4E8F2] text-[11px] font-medium" style={{ color }}>
                           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
                           {STATUS_LABELS[c.status]}
                         </span>
                       </td>
-                      <td className="p-[11px_10px] text-right font-medium text-[#F5F7F4]">
+                      <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
                         {formatCurrency(c.totalRevenue)}
                       </td>
-                      <td className="p-[11px_10px] text-right text-[#A5AEA8]">{c.orderCount}</td>
-                      <td className="p-[11px_10px] text-[#A5AEA8]">{formatDate(c.lastOrderDate)}</td>
-                      <td className="p-[11px_10px] text-right text-[#A5AEA8]">{relativeDays(c.daysSinceLastOrder)}</td>
+                      <td className="p-[11px_10px] text-right text-[#7A839E]">{c.orderCount}</td>
+                      <td className="p-[11px_10px] text-[#7A839E]">{formatDate(c.lastOrderDate)}</td>
+                      <td className="p-[11px_10px] text-right text-[#7A839E]">{relativeDays(c.daysSinceLastOrder)}</td>
                       <td className="p-[11px_10px] text-right">
                         <Link
                           to={`/companies/${c.company_id}/health`}
-                          className="text-[12px] text-[#B8F23A] hover:underline font-medium"
+                          className="text-[12px] text-[#3B6FD4] hover:underline font-medium"
                         >
                           View →
                         </Link>
@@ -242,7 +242,7 @@ export default function CustomerHealthOverview() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-[#A5AEA8] text-[13px]">
+                    <td colSpan={7} className="text-center py-8 text-[#7A839E] text-[13px]">
                       No matching accounts found.
                     </td>
                   </tr>

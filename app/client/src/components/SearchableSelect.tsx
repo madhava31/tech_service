@@ -66,7 +66,7 @@ export default function SearchableSelect({
           onChange={(e) => { setQuery(e.target.value); setHighlight(0); }}
           onKeyDown={onKeyDown}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          className="w-full bg-[#101312] border border-[#292E2A] rounded-lg pl-3.5 pr-9 py-2 text-sm text-[#F5F7F4] focus:outline-none focus:border-[#B8F23A] transition-colors truncate"
+          className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg pl-3.5 pr-9 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors truncate"
         />
         <button
           type="button"
@@ -75,10 +75,10 @@ export default function SearchableSelect({
             e.preventDefault();
             setOpen((prev) => !prev);
           }}
-          className="absolute right-2.5 p-1 text-[#A5AEA8] hover:text-[#B8F23A] transition-transform duration-200 cursor-pointer flex items-center justify-center"
+          className="absolute right-2.5 p-1 text-[#7A839E] hover:text-[#3B6FD4] transition-transform duration-200 cursor-pointer flex items-center justify-center"
           aria-label="Toggle dropdown options"
         >
-          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${open ? 'rotate-180 text-[#B8F23A]' : ''}`} />
+          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${open ? 'rotate-180 text-[#3B6FD4]' : ''}`} />
         </button>
       </div>
       {open && (
