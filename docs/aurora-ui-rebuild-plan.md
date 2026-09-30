@@ -1,8 +1,10 @@
+
 # TECHNICON CRM — "Aurora" UI Rebuild
 
 ## Context
 
-**Why this is happening.** The user supplied a reference dashboard (`image.png` — the "payno" fintech
+**Why this is happening.** The user supplied a reference dashboard (`image.pn
+g` — the "payno" fintech
 dashboard: soft blue-lavender gradient canvas, very rounded white cards, deep-navy primary, a narrow
 icon rail on the far left) and asked for the CRM to adopt that look while every existing feature keeps
 working.
