@@ -17,6 +17,7 @@ import settingsRouter from '../client/api/_lib/routes/settings.js';
 import importsRouter from '../client/api/_lib/routes/imports.js';
 import aiRouter from '../client/api/_lib/routes/ai.js';
 import opportunitiesRouter from '../client/api/_lib/routes/opportunities.js';
+import engineersRouter from '../client/api/_lib/routes/engineers.js';
 
 const app = express();
 
@@ -69,6 +70,7 @@ app.use('/api/settings', requireAuth, settingsRouter);
 app.use('/api/imports', requireAuth, importsRouter);
 app.use('/api/ai', requireAuth, aiRouter);
 app.use('/api/opportunities', requireAuth, opportunitiesRouter);
+app.use('/api/engineers', requireAuth, engineersRouter);
 app.use('/api/admin', adminRouter);
 
 // Final safety net: every route already wraps its own logic in try/catch and returns a clean
