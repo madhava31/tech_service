@@ -177,3 +177,40 @@ CREATE TABLE IF NOT EXISTS quotation_follow_up (
 );
 CREATE INDEX IF NOT EXISTS idx_follow_up_quotation ON quotation_follow_up(quotation_id);
 CREATE INDEX IF NOT EXISTS idx_follow_up_date_status ON quotation_follow_up(follow_up_date, status);
+
+-- Sales Engineers (Step: Sales Engineers Postgres port). branch_id is a plain nullable column,
+-- not a foreign key — the `branch` table doesn't exist in this database yet (separate,
+-- deferred migration), so a REFERENCES clause here would make every insert fail.
+CREATE TABLE IF NOT EXISTS sales_engineer (
+  id SERIAL PRIMARY KEY,
+  employee_code TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  email TEXT,
+  phone TEXT,
+  designation TEXT DEFAULT 'Sales Engineer',
+  department TEXT DEFAULT 'Sales',
+  branch_id INTEGER,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  joining_date DATE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS engineer_sales_targets (
+  id SERIAL PRIMARY KEY,
+  engineer_id INTEGER NOT NULL REFERENCES sales_engineer(id) ON DELETE CASCADE,
+  branch_id INTEGER,
+  financial_year TEXT NOT NULL,
+  target_amount DOUBLE PRECISION NOT NULL CHECK (target_amount >= 0),
+  created_by INTEGER REFERENCES app_user(id),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE(engineer_id, financial_year, branch_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sales_target_eng ON engineer_sales_targets(engineer_id, financial_year);
+
+-- Lets a quotation record which sales engineer it belongs to — the frontend quotation form
+-- (QuotationNew.tsx) already sends this field on every create/update; it was simply never
+-- persisted because this column didn't exist.
+ALTER TABLE quotation ADD COLUMN IF NOT EXISTS sales_engineer_id INTEGER REFERENCES sales_engineer(id);
