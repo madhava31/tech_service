@@ -312,6 +312,7 @@ export interface EngineerPerformanceSummary {
     total_accepted: number;
     total_confirmed: number;
     overall_achievement_pct: number;
+    confirmed_sales_available: boolean;
   };
   engineers: EngineerPerformance[];
 }
