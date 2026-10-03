@@ -10,7 +10,7 @@ function normalizeFy(yearStr) {
 export async function getEngineers({ branchId = null, activeOnly = false, q = null, limit = 100, offset = 0 } = {}) {
   let sql = `
     SELECT id, employee_code AS code, employee_code, name, email, phone, designation, department,
-           branch_id, is_active AS active, is_active, created_at, updated_at
+           branch_id, is_active AS active, is_active, created_at, updated_at, joining_date
     FROM sales_engineer
     WHERE 1=1
   `;
@@ -36,7 +36,7 @@ export async function getEngineerById(id, { financialYear = 'FY 2026-27' } = {})
 
   const engineer = await db.prepare(`
     SELECT id, employee_code AS code, employee_code, name, email, phone, designation, department,
-           branch_id, is_active AS active, is_active, created_at, updated_at
+           branch_id, is_active AS active, is_active, created_at, updated_at, joining_date
     FROM sales_engineer WHERE id = ?
   `).get(engId);
   if (!engineer) return null;
