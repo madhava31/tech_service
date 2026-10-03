@@ -170,9 +170,15 @@ export default function EngineerList() {
           </div>
           <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
             <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Overall Achievement</span>
-            <span className="text-2xl font-bold text-[#3B6FD4] mt-1 block">
-              {performance.summary.overall_achievement_pct.toFixed(1)}%
-            </span>
+            {performance.summary.confirmed_sales_available ? (
+              <span className="text-2xl font-bold text-[#3B6FD4] mt-1 block">
+                {performance.summary.overall_achievement_pct.toFixed(1)}%
+              </span>
+            ) : (
+              <span className="text-sm font-semibold text-[#A8AEC4] mt-1 block" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+                —
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -213,11 +219,14 @@ export default function EngineerList() {
                   const confirmedVal = perf?.confirmed_sales_amount || 0;
                   const quotedVal = perf?.quoted_amount || 0;
                   const pct = perf?.achievement_pct || 0;
+                  const confirmedAvailable = performance?.summary.confirmed_sales_available ?? false;
 
                   let statusBadge = 'bg-[#7A839E]/10 text-[#7A839E] border-[#7A839E]/30';
                   let statusLabel = 'NO TARGET';
 
-                  if (perf?.status === 'EXCEEDED') {
+                  if (!confirmedAvailable) {
+                    statusLabel = 'NOT TRACKED';
+                  } else if (perf?.status === 'EXCEEDED') {
                     statusBadge = 'bg-[#2FBF71]/10 text-[#2FBF71] border-[#2FBF71]/30';
                     statusLabel = 'EXCEEDED';
                   } else if (perf?.status === 'ON_TRACK') {
@@ -250,18 +259,24 @@ export default function EngineerList() {
                         {performance?.summary.confirmed_sales_available ? `₹${confirmedVal.toLocaleString('en-IN')}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">
-                        <div className="flex items-center justify-end space-x-2">
-                          <div className="w-16 bg-[#F4F6FC] border border-[#E4E8F2] rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-[#3B6FD4] h-full transition-all"
-                              style={{ width: `${Math.min(100, pct)}%` }}
-                            />
+                        {confirmedAvailable ? (
+                          <div className="flex items-center justify-end space-x-2">
+                            <div className="w-16 bg-[#F4F6FC] border border-[#E4E8F2] rounded-full h-2 overflow-hidden">
+                              <div
+                                className="bg-[#3B6FD4] h-full transition-all"
+                                style={{ width: `${Math.min(100, pct)}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-bold text-[#141B34]">{pct.toFixed(1)}%</span>
                           </div>
-                          <span className="text-xs font-bold text-[#141B34]">{pct.toFixed(1)}%</span>
-                        </div>
+                        ) : (
+                          <span className="text-xs font-semibold text-[#A8AEC4]" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+                            —
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}`} title={!confirmedAvailable ? "Confirmed sales come from the Sale Reports feature, which isn't available yet." : undefined}>
                           {statusLabel}
                         </span>
                       </td>
