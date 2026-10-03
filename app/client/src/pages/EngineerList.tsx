@@ -89,7 +89,7 @@ export default function EngineerList() {
   performance?.engineers.forEach((p) => perfMap.set(p.engineer_id, p));
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="w-full max-w-7xl space-y-6 px-4 tablet-lg:px-6 pt-2">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#E4E8F2]">
         <div>
@@ -102,7 +102,7 @@ export default function EngineerList() {
           <select
             value={fiscalYear}
             onChange={(e) => setFiscalYear(e.target.value)}
-            className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+            className="h-9 bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-3 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
           >
             <option value="2026-27">FY 2026-27</option>
             <option value="2025-26">FY 2025-26</option>
@@ -111,7 +111,7 @@ export default function EngineerList() {
           <a
             href={api.export.engineersPerformanceUrl(fiscalYear)}
             download
-            className="px-4 py-2 bg-[#FFFFFF] hover:bg-[#E4E8F2] text-[#2FBF71] border border-[#E4E8F2] rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+            className="h-9 px-4 bg-[#FFFFFF] hover:bg-[#E4E8F2] text-[#2FBF71] border border-[#E4E8F2] rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -121,7 +121,7 @@ export default function EngineerList() {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-xs transition-colors shadow-sm inline-flex items-center space-x-1.5 cursor-pointer"
+            className="h-9 px-4 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-xs transition-colors shadow-sm inline-flex items-center space-x-1.5 cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -158,15 +158,27 @@ export default function EngineerList() {
           </div>
           <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
             <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Confirmed Sales</span>
-            <span className="text-2xl font-bold text-[#2FBF71] mt-1 block font-mono">
-              ₹{performance.summary.total_confirmed.toLocaleString('en-IN')}
-            </span>
+            {performance.summary.confirmed_sales_available ? (
+              <span className="text-2xl font-bold text-[#2FBF71] mt-1 block font-mono">
+                ₹{performance.summary.total_confirmed.toLocaleString('en-IN')}
+              </span>
+            ) : (
+              <span className="text-sm font-semibold text-[#A8AEC4] mt-1 block" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+                Not tracked yet
+              </span>
+            )}
           </div>
           <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
             <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Overall Achievement</span>
-            <span className="text-2xl font-bold text-[#3B6FD4] mt-1 block">
-              {performance.summary.overall_achievement_pct.toFixed(1)}%
-            </span>
+            {performance.summary.confirmed_sales_available ? (
+              <span className="text-2xl font-bold text-[#3B6FD4] mt-1 block">
+                {performance.summary.overall_achievement_pct.toFixed(1)}%
+              </span>
+            ) : (
+              <span className="text-sm font-semibold text-[#A8AEC4] mt-1 block" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+                —
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -207,11 +219,14 @@ export default function EngineerList() {
                   const confirmedVal = perf?.confirmed_sales_amount || 0;
                   const quotedVal = perf?.quoted_amount || 0;
                   const pct = perf?.achievement_pct || 0;
+                  const confirmedAvailable = performance?.summary.confirmed_sales_available ?? false;
 
                   let statusBadge = 'bg-[#7A839E]/10 text-[#7A839E] border-[#7A839E]/30';
                   let statusLabel = 'NO TARGET';
 
-                  if (perf?.status === 'EXCEEDED') {
+                  if (!confirmedAvailable) {
+                    statusLabel = 'NOT TRACKED';
+                  } else if (perf?.status === 'EXCEEDED') {
                     statusBadge = 'bg-[#2FBF71]/10 text-[#2FBF71] border-[#2FBF71]/30';
                     statusLabel = 'EXCEEDED';
                   } else if (perf?.status === 'ON_TRACK') {
@@ -240,22 +255,28 @@ export default function EngineerList() {
                       <td className="px-4 py-3 text-right font-mono text-[#3B6FD4]">
                         ₹{quotedVal.toLocaleString('en-IN')}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono text-[#2FBF71] font-bold">
-                        ₹{confirmedVal.toLocaleString('en-IN')}
+                      <td className="px-4 py-3 text-right font-mono text-[#141B34]">
+                        {performance?.summary.confirmed_sales_available ? `₹${confirmedVal.toLocaleString('en-IN')}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">
-                        <div className="flex items-center justify-end space-x-2">
-                          <div className="w-16 bg-[#F4F6FC] border border-[#E4E8F2] rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-[#3B6FD4] h-full transition-all"
-                              style={{ width: `${Math.min(100, pct)}%` }}
-                            />
+                        {confirmedAvailable ? (
+                          <div className="flex items-center justify-end space-x-2">
+                            <div className="w-16 bg-[#F4F6FC] border border-[#E4E8F2] rounded-full h-2 overflow-hidden">
+                              <div
+                                className="bg-[#3B6FD4] h-full transition-all"
+                                style={{ width: `${Math.min(100, pct)}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-bold text-[#141B34]">{pct.toFixed(1)}%</span>
                           </div>
-                          <span className="text-xs font-bold text-[#141B34]">{pct.toFixed(1)}%</span>
-                        </div>
+                        ) : (
+                          <span className="text-xs font-semibold text-[#A8AEC4]" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+                            —
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}`} title={!confirmedAvailable ? "Confirmed sales come from the Sale Reports feature, which isn't available yet." : undefined}>
                           {statusLabel}
                         </span>
                       </td>

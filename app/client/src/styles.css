@@ -3,65 +3,64 @@
 @tailwind utilities;
 
 /* ============================================================
-   AURORA — light theme
-   Soft blue-lavender canvas, white rounded cards, deep-navy
-   primary. Every class that existed under the old dark theme is
-   still defined here, so no page markup had to change.
-   ============================================================ */
+  OPERATIONS ANALYTICS — light theme
+  A calm paper canvas, high-contrast data surfaces, and a dark
+  navigation rail keep dense business workflows easy to scan.
+  ============================================================ */
 
 @layer base {
   :root {
-    --canvas: #F4F6FC;
-    --canvas-wash: linear-gradient(180deg, #DFE6F8 0%, #EDF1FA 32%, #F4F6FC 68%);
+    --canvas: #F4F7FC;
+    --canvas-wash: linear-gradient(180deg, #E7EFFB 0%, #F4F7FC 38%, #F4F7FC 72%);
 
-    --background: #F4F6FC;
-    --foreground: #141B34;
+    --background: #F4F7FC;
+    --foreground: #14213D;
 
     --card: #FFFFFF;
-    --card-foreground: #141B34;
+    --card-foreground: #14213D;
 
     --popover: #FFFFFF;
     --popover-foreground: #141B34;
 
-    --primary: #3B6FD4;
-    --primary-foreground: #F4F6FC;
+    --primary: #2F6FED;
+    --primary-foreground: #F4F7FC;
 
     --secondary: #F7F8FC;
-    --secondary-foreground: #141B34;
+    --secondary-foreground: #14213D;
 
     --muted: #F7F8FC;
-    --muted-foreground: #7A839E;
+    --muted-foreground: #71809B;
 
-    --accent: #3B6FD4;
-    --accent-foreground: #F4F6FC;
+    --accent: #2F6FED;
+    --accent-foreground: #F4F7FC;
 
     --destructive: #E5484D;
     --destructive-foreground: #FFFFFF;
 
-    --success: #2FBF71;
-    --warning: #E8A33D;
-    --indigo: #6B78D6;
+    --success: #26966F;
+    --warning: #D28A26;
+    --indigo: #6577C8;
 
-    --border: #E4E8F2;
-    --input: #E4E8F2;
-    --ring: #3B6FD4;
+    --border: #DFE6F2;
+    --input: #DFE6F2;
+    --ring: #2F6FED;
 
-    --hairline: rgba(20, 27, 52, 0.07);
-    --shadow-card: 0 2px 12px rgba(20, 27, 52, 0.06);
-    --shadow-lift: 0 8px 24px rgba(20, 27, 52, 0.10);
+    --hairline: rgba(20, 33, 61, 0.08);
+    --shadow-card: 0 2px 10px rgba(20, 33, 61, 0.05);
+    --shadow-lift: 0 12px 28px rgba(20, 33, 61, 0.10);
 
     --radius: 12px;
-    --radius-card: 20px;
+    --radius-card: 14px;
 
     /* Sidebar */
-    --sidebar-background: #FFFFFF;
-    --sidebar-foreground: #141B34;
-    --sidebar-primary: #3B6FD4;
+    --sidebar-background: #14213D;
+    --sidebar-foreground: #F4F7FC;
+    --sidebar-primary: #6FA2FF;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #EEF1F9;
-    --sidebar-accent-foreground: #3B6FD4;
-    --sidebar-border: #E4E8F2;
-    --sidebar-ring: #3B6FD4;
+    --sidebar-accent: #21375F;
+    --sidebar-accent-foreground: #C9DBFF;
+    --sidebar-border: #2C4774;
+    --sidebar-ring: #6FA2FF;
   }
 }
 
@@ -70,12 +69,12 @@
     @apply border-border;
   }
   body {
-    background-color: #F4F6FC;
+    background-color: #F4F7FC;
     background-image: var(--canvas-wash);
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: 100% 420px;
-    color: #141B34;
+    color: #14213D;
     font-family: 'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;

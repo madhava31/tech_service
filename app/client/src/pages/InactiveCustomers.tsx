@@ -40,7 +40,7 @@ export default function InactiveCustomers() {
   const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
-    <div>
+    <div className="w-full px-4 tablet-lg:px-6 pt-2">
       <h2>Inactive Customers</h2>
       <p className="page-subtitle">Customers with no purchases in the last {data.months} months.</p>
 

@@ -6,13 +6,24 @@ const router = Router();
 
 router.get('/companies', async (req, res) => {
   try {
-    const rows = await db
-      .prepare(
-        `SELECT company_name, COUNT(*) AS order_count, SUM(total_amount) AS total, SUM(qty) AS total_qty
-         FROM sales_record WHERE needs_review = 0
-         GROUP BY company_name ORDER BY total DESC`
-      )
-      .all();
+    const { startDate, endDate, partNo } = req.query;
+    let sql = `SELECT company_name, COUNT(*) AS order_count, SUM(total_amount) AS total, SUM(qty) AS total_qty
+               FROM sales_record WHERE needs_review = 0`;
+    const params = [];
+    if (startDate) {
+      sql += ` AND sale_date >= ?`;
+      params.push(String(startDate));
+    }
+    if (endDate) {
+      sql += ` AND sale_date <= ?`;
+      params.push(String(endDate));
+    }
+    if (partNo) {
+      sql += ` AND part_no = ?`;
+      params.push(String(partNo));
+    }
+    sql += ` GROUP BY company_name ORDER BY total DESC`;
+    const rows = await db.prepare(sql).all(...params);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
@@ -36,13 +47,24 @@ router.get('/companies/:name/history', async (req, res) => {
 
 router.get('/products', async (req, res) => {
   try {
-    const rows = await db
-      .prepare(
-        `SELECT part_no, MAX(product_description) AS product_description, COUNT(*) AS order_count, SUM(qty) AS total_qty, SUM(total_amount) AS total
-         FROM sales_record WHERE needs_review = 0
-         GROUP BY part_no ORDER BY total DESC`
-      )
-      .all();
+    const { startDate, endDate, companyName } = req.query;
+    let sql = `SELECT part_no, MAX(product_description) AS product_description, COUNT(*) AS order_count, SUM(qty) AS total_qty, SUM(total_amount) AS total
+               FROM sales_record WHERE needs_review = 0`;
+    const params = [];
+    if (startDate) {
+      sql += ` AND sale_date >= ?`;
+      params.push(String(startDate));
+    }
+    if (endDate) {
+      sql += ` AND sale_date <= ?`;
+      params.push(String(endDate));
+    }
+    if (companyName) {
+      sql += ` AND company_name = ?`;
+      params.push(String(companyName));
+    }
+    sql += ` GROUP BY part_no ORDER BY total DESC`;
+    const rows = await db.prepare(sql).all(...params);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });

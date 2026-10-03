@@ -103,7 +103,7 @@ export default function MultiFirmSettings() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="w-full max-w-6xl space-y-6 px-4 tablet-lg:px-6 pt-2">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E4E8F2]">
         <div>

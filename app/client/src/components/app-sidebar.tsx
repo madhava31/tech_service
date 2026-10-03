@@ -98,6 +98,8 @@ const REPORTS_NAV: NavItemDef[] = [
       { label: 'Engineer Sales', path: '/reports/engineer-sales' },
       { label: 'Growth Opportunities', path: '/opportunities' },
       { label: 'Product Intelligence', path: '/product-intelligence' },
+      { label: 'Company Trends', path: '/reports/company-trends' },
+      { label: 'Import Sales Data', path: '/reports', exact: true },
       { label: 'Chat with AI', path: '/chat-with-ai' },
     ],
   },
@@ -110,9 +112,9 @@ const SYSTEM_NAV: NavItemDef[] = [
 ];
 
 const ITEM_BASE =
-  'w-full flex items-center gap-2.5 px-2.5 h-9 rounded-[10px] text-[13px] font-semibold no-underline transition-colors duration-150';
-const ITEM_ACTIVE = 'bg-[#3B6FD4] text-white shadow-[0_2px_8px_rgba(59,111,212,0.30)]';
-const ITEM_IDLE = 'text-[#525C7A] hover:bg-[#EDF1F9] hover:text-[#141B34]';
+  'w-full flex items-center gap-2.5 px-2.5 h-9 rounded-[8px] text-[13px] font-semibold no-underline transition-colors duration-150';
+const ITEM_ACTIVE = 'bg-[#21375F] text-[#EAF1FF] shadow-[inset_3px_0_0_#6FA2FF]';
+const ITEM_IDLE = 'text-[#B6C3D8] hover:bg-[#21375F] hover:text-white';
 
 function CollapsibleNavItem({
   item,
@@ -203,13 +205,13 @@ function CollapsibleNavItem({
                 aria-current={active ? 'page' : undefined}
                 className={`flex items-center gap-2 pl-2.5 pr-2 h-[30px] rounded-lg text-[12.5px] no-underline transition-colors duration-150 ${
                   active
-                    ? 'bg-[#E8EEFA] text-[#3B6FD4] font-bold'
-                    : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F3F6FC]'
+                    ? 'bg-[#21375F] text-[#C9DBFF] font-bold'
+                    : 'text-[#9BAECD] hover:text-white hover:bg-[#21375F]'
                 }`}
               >
                 <span
                   aria-hidden="true"
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-[#3B6FD4]' : 'bg-[#C7CFE2]'}`}
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-[#6FA2FF]' : 'bg-[#5A729F]'}`}
                 />
                 <span className="truncate">{child.label}</span>
               </Link>
@@ -280,28 +282,28 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
     <aside
       data-nav="1"
       data-scroll="1"
-      className="w-[236px] shrink-0 bg-white border-r border-[#DFE5F2] shadow-[1px_0_0_rgba(20,27,52,0.02),4px_0_24px_rgba(20,27,52,0.04)] flex flex-col h-screen sticky top-0 overflow-y-auto z-50 select-none no-scrollbar"
+      className="w-[236px] shrink-0 bg-[#14213D] border-r border-[#2C4774] shadow-[8px_0_28px_rgba(20,33,61,0.10)] flex flex-col h-screen sticky top-0 overflow-hidden z-50 select-none"
     >
       {/* Brand */}
       <Link
         to="/"
-        className="flex items-center gap-2.5 px-4 h-[60px] shrink-0 no-underline border-b border-[#EDF1F9]"
+        className="flex items-center gap-2.5 px-4 h-[68px] shrink-0 no-underline border-b border-[#2C4774]"
       >
-        <div className="w-[34px] h-[34px] rounded-[10px] bg-[#3B6FD4] text-white grid place-items-center text-[11.5px] font-extrabold shrink-0 shadow-[0_2px_8px_rgba(59,111,212,0.28)]">
+        <div className="w-[34px] h-[34px] rounded-[9px] bg-[#6FA2FF] text-[#14213D] grid place-items-center text-[11.5px] font-extrabold shrink-0 shadow-[0_4px_14px_rgba(111,162,255,0.24)]">
           TS
         </div>
         <div className="flex flex-col leading-[1.15]">
-          <span className="text-[13px] font-extrabold tracking-[.03em] text-[#141B34]">TECHNICON</span>
-          <span className="text-[9.5px] tracking-[.2em] text-[#8992AB] font-bold">SERVICES</span>
+          <span className="text-[13px] font-extrabold tracking-[.03em] text-white">TECHNICON</span>
+          <span className="text-[9.5px] tracking-[.2em] text-[#9BAECD] font-bold">SERVICES</span>
         </div>
       </Link>
 
-      <div className="flex flex-col gap-2 px-2.5 py-3">
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2 px-2.5 py-4">
         {/* Primary action */}
         <Link
           to="/quotations/new"
           onClick={() => onMobileClose && onMobileClose()}
-          className="flex items-center justify-center gap-1.5 h-9 rounded-[10px] bg-[#3B6FD4] text-white text-[12.5px] font-bold no-underline shadow-[0_2px_8px_rgba(59,111,212,0.30)] hover:bg-[#2F5CB8] transition-colors"
+          className="flex items-center justify-center gap-1.5 h-9 rounded-[8px] bg-[#6FA2FF] text-[#14213D] text-[12.5px] font-bold no-underline shadow-[0_4px_14px_rgba(111,162,255,0.22)] hover:bg-[#8AB5FF] transition-colors"
         >
           <PlusIcon className="size-4" />
           <span>New Quotation</span>
@@ -314,13 +316,13 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
       </div>
 
       {/* User */}
-      <div className="mt-auto shrink-0 border-t border-[#EDF1F9] px-3 py-3 flex items-center gap-2.5 bg-[#FBFCFE]">
-        <div className="w-8 h-8 rounded-full bg-[#E8EEFA] grid place-items-center text-[11.5px] font-extrabold text-[#3B6FD4] shrink-0">
+      <div className="mt-auto shrink-0 border-t border-[#2C4774] px-3 py-3 flex items-center gap-2.5 bg-[#192B4D]">
+        <div className="w-8 h-8 rounded-full bg-[#21375F] grid place-items-center text-[11.5px] font-extrabold text-[#C9DBFF] shrink-0">
           {getInitials(user.username)}
         </div>
         <div className="flex flex-col leading-[1.25] min-w-0">
-          <span className="text-[12.5px] font-bold text-[#141B34] truncate">{user.username}</span>
-          <span className="text-[10.5px] text-[#A3ABC2] capitalize font-semibold">{user.role}</span>
+          <span className="text-[12.5px] font-bold text-white truncate">{user.username}</span>
+          <span className="text-[10.5px] text-[#9BAECD] capitalize font-semibold">{user.role}</span>
         </div>
       </div>
     </aside>

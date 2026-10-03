@@ -89,11 +89,11 @@ export function AppHeader({
   };
 
   const iconBtn =
-    'w-[38px] h-[38px] rounded-full bg-white border border-[#E4E8F2] text-[#7A839E] hover:text-[#3B6FD4] hover:border-[#CBD3E6] cursor-pointer grid place-items-center transition-colors shadow-card';
+    'w-[38px] h-[38px] rounded-[10px] bg-white border border-[#DFE6F2] text-[#71809B] hover:text-[#2F6FED] hover:border-[#B9CCEE] cursor-pointer grid place-items-center transition-colors shadow-card';
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex items-center gap-3 px-4 tablet-lg:px-6 py-3 bg-[rgba(244,246,252,0.72)] backdrop-blur-xl select-none">
+      <header className="sticky top-0 z-40 flex items-center gap-3 px-4 tablet-lg:px-6 py-3 bg-[rgba(244,247,252,0.86)] backdrop-blur-xl select-none">
         {/* Mobile nav toggle */}
         <button
           type="button"
@@ -110,15 +110,15 @@ export function AppHeader({
           <button
             type="button"
             onClick={() => setSearchModalOpen(true)}
-            className="w-full flex items-center justify-between h-[38px] px-4 rounded-full bg-white border border-[#E4E8F2] hover:border-[#CBD3E6] text-[#7A839E] cursor-pointer transition-all duration-150 group shadow-card"
+            className="w-full flex items-center justify-between h-[38px] px-4 rounded-[10px] bg-white border border-[#DFE6F2] hover:border-[#B9CCEE] text-[#71809B] cursor-pointer transition-all duration-150 group shadow-card"
           >
             <span className="flex items-center gap-2.5 truncate">
-              <SearchIcon className="size-4 text-[#3B6FD4] shrink-0" />
-              <span className="text-xs font-medium text-[#7A839E] group-hover:text-[#141B34] truncate">
+              <SearchIcon className="size-4 text-[#2F6FED] shrink-0" />
+              <span className="text-xs font-medium text-[#71809B] group-hover:text-[#14213D] truncate">
                 Search products, stock, QTN, PO, PI, customers…
               </span>
             </span>
-            <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-[#7A839E] bg-[#F4F6FC] px-2 py-0.5 rounded-md border border-[#E4E8F2] shrink-0">
+            <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-[#71809B] bg-[#F4F7FC] px-2 py-0.5 rounded-md border border-[#DFE6F2] shrink-0">
               <span>⌘</span> <span>K</span>
             </kbd>
           </button>
@@ -137,16 +137,16 @@ export function AppHeader({
             <button
               type="button"
               onClick={() => setDateRangeOpen(!dateRangeOpen)}
-              className="flex items-center gap-2 h-[38px] px-4 rounded-full bg-white border border-[#E4E8F2] hover:border-[#CBD3E6] text-[12.5px] text-[#7A839E] cursor-pointer transition-colors shadow-card"
+              className="flex items-center gap-2 h-[38px] px-4 rounded-[10px] bg-white border border-[#DFE6F2] hover:border-[#B9CCEE] text-[12.5px] text-[#71809B] cursor-pointer transition-colors shadow-card"
               title="Click to change date range"
             >
-              <CalendarDaysIcon className="size-4 text-[#3B6FD4]" />
-              <span className="font-bold text-[#141B34]">{selectedRange.label}</span>
+              <CalendarDaysIcon className="size-4 text-[#2F6FED]" />
+              <span className="font-bold text-[#14213D]">{selectedRange.label}</span>
               <ChevronDownIcon className={`size-3.5 transition-transform ${dateRangeOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {dateRangeOpen && (
-              <div className="absolute right-0 top-12 z-50 min-w-[190px] p-1.5 rounded-card bg-white border border-[#E4E8F2] shadow-lift animate-in fade-in duration-150">
+              <div className="absolute right-0 top-12 z-50 min-w-[190px] p-1.5 rounded-card bg-white border border-[#DFE6F2] shadow-lift animate-in fade-in duration-150">
                 <div className="px-2 py-1 border-b border-[#E4E8F2] mb-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#A8AEC4]">Filter by Period</span>
                 </div>
@@ -160,12 +160,12 @@ export function AppHeader({
                         onClick={() => handleSelectPreset(p)}
                         className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12px] font-semibold transition-colors flex items-center justify-between ${
                           isActive
-                            ? 'bg-[#EEF1F9] text-[#3B6FD4] font-bold'
-                            : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F7F8FC]'
+                            ? 'bg-[#EAF1FF] text-[#2F6FED] font-bold'
+                            : 'text-[#71809B] hover:text-[#14213D] hover:bg-[#F4F7FC]'
                         }`}
                       >
                         <span>{p.label}</span>
-                        {isActive && <CheckIcon className="size-3.5 text-[#3B6FD4]" />}
+                        {isActive && <CheckIcon className="size-3.5 text-[#2F6FED]" />}
                       </button>
                     );
                   })}
@@ -186,9 +186,9 @@ export function AppHeader({
               <button
                 type="button"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 h-[38px] pl-1 pr-3 rounded-full bg-white border border-[#E4E8F2] hover:border-[#CBD3E6] text-[#141B34] text-[12.5px] cursor-pointer transition-colors shadow-card"
+                className="flex items-center gap-2 h-[38px] pl-1 pr-3 rounded-[10px] bg-white border border-[#DFE6F2] hover:border-[#B9CCEE] text-[#14213D] text-[12.5px] cursor-pointer transition-colors shadow-card"
               >
-                <span className="w-[30px] h-[30px] rounded-full bg-[#3B6FD4] text-white grid place-items-center text-[11px] font-extrabold">
+                <span className="w-[30px] h-[30px] rounded-[8px] bg-[#2F6FED] text-white grid place-items-center text-[11px] font-extrabold">
                   {getInitials(user.username)}
                 </span>
                 <span className="hidden sm:inline font-bold truncate max-w-[100px]">{user.username}</span>
@@ -196,7 +196,7 @@ export function AppHeader({
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 top-12 z-50 min-w-[180px] p-1.5 rounded-card bg-white border border-[#E4E8F2] shadow-lift animate-in fade-in duration-150">
+                <div className="absolute right-0 top-12 z-50 min-w-[180px] p-1.5 rounded-card bg-white border border-[#DCE5E1] shadow-lift animate-in fade-in duration-150">
                   <div className="px-2.5 py-2 border-b border-[#E4E8F2] mb-1">
                     <p className="text-[12.5px] font-bold text-[#141B34]">{user.username}</p>
                     <p className="text-[10px] text-[#A8AEC4] uppercase tracking-wider font-bold">{user.role}</p>

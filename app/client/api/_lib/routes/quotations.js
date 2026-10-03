@@ -63,7 +63,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { company_id, date, items, tax_percent, notes, discount_type, discount_value } = req.body;
+    const { company_id, date, items, tax_percent, notes, discount_type, discount_value, sales_engineer_id } = req.body;
     if (!company_id) return res.status(400).json({ error: 'company_id is required' });
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'At least one line item is required' });
 
@@ -79,10 +79,10 @@ router.post('/', async (req, res) => {
       const number = await nextNumber(prefix, 'quotation');
       const info = await db
         .prepare(
-          `INSERT INTO quotation (number, date, company_id, status, subtotal, discount_type, discount_value, discount_percent, discount_amount, taxable_amount, tax_percent, tax_amount, round_off, total, notes, created_by_user_id)
-           VALUES (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
+          `INSERT INTO quotation (number, date, company_id, sales_engineer_id, status, subtotal, discount_type, discount_value, discount_percent, discount_amount, taxable_amount, tax_percent, tax_amount, round_off, total, notes, created_by_user_id)
+           VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
         )
-        .run(number, date || new Date().toISOString().slice(0, 10), company_id, subtotal, discountType, discountValue, discountPercent, discountAmount, taxableAmount, taxPercent, taxAmount, roundOff, total, notes || '', req.user.id);
+        .run(number, date || new Date().toISOString().slice(0, 10), company_id, sales_engineer_id || null, subtotal, discountType, discountValue, discountPercent, discountAmount, taxableAmount, taxPercent, taxAmount, roundOff, total, notes || '', req.user.id);
 
       const qId = info.lastInsertRowid;
       const insertItem = db.prepare(
@@ -118,7 +118,7 @@ router.put('/:id', async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
     if (existing.status !== 'draft') return res.status(400).json({ error: 'Only draft quotations can be edited' });
 
-    const { company_id, date, items, tax_percent, notes, discount_type, discount_value } = req.body;
+    const { company_id, date, items, tax_percent, notes, discount_type, discount_value, sales_engineer_id } = req.body;
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'At least one line item is required' });
 
     const taxPercent = tax_percent ?? existing.tax_percent;
@@ -130,9 +130,9 @@ router.put('/:id', async (req, res) => {
     await db.transaction(async () => {
       await db
         .prepare(
-          `UPDATE quotation SET company_id = ?, date = ?, subtotal = ?, discount_type = ?, discount_value = ?, discount_percent = ?, discount_amount = ?, taxable_amount = ?, tax_percent = ?, tax_amount = ?, round_off = ?, total = ?, notes = ? WHERE id = ?`
+          `UPDATE quotation SET company_id = ?, sales_engineer_id = ?, date = ?, subtotal = ?, discount_type = ?, discount_value = ?, discount_percent = ?, discount_amount = ?, taxable_amount = ?, tax_percent = ?, tax_amount = ?, round_off = ?, total = ?, notes = ? WHERE id = ?`
         )
-        .run(company_id || existing.company_id, date || existing.date, subtotal, discountType, discountValue, discountPercent, discountAmount, taxableAmount, taxPercent, taxAmount, roundOff, total, notes ?? existing.notes, req.params.id);
+        .run(company_id || existing.company_id, sales_engineer_id !== undefined ? (sales_engineer_id || null) : existing.sales_engineer_id, date || existing.date, subtotal, discountType, discountValue, discountPercent, discountAmount, taxableAmount, taxPercent, taxAmount, roundOff, total, notes ?? existing.notes, req.params.id);
 
       await db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(req.params.id);
       const insertItem = db.prepare(

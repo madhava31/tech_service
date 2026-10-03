@@ -312,6 +312,7 @@ export interface EngineerPerformanceSummary {
     total_accepted: number;
     total_confirmed: number;
     overall_achievement_pct: number;
+    confirmed_sales_available: boolean;
   };
   engineers: EngineerPerformance[];
 }
@@ -830,9 +831,23 @@ export const api = {
     businessHealth: () => request<BusinessHealthData>('/dashboard/business-health'),
   },
   reports: {
-    companies: () => request<any[]>('/reports/companies'),
+    companies: (filters?: { startDate?: string; endDate?: string; partNo?: string }) => {
+      const params = new URLSearchParams();
+      if (filters?.startDate) params.set('startDate', filters.startDate);
+      if (filters?.endDate) params.set('endDate', filters.endDate);
+      if (filters?.partNo) params.set('partNo', filters.partNo);
+      const qs = params.toString();
+      return request<any[]>(`/reports/companies${qs ? `?${qs}` : ''}`);
+    },
     companyHistory: (name: string) => request<any[]>(`/reports/companies/${encodeURIComponent(name)}/history`),
-    products: () => request<any[]>('/reports/products'),
+    products: (filters?: { startDate?: string; endDate?: string; companyName?: string }) => {
+      const params = new URLSearchParams();
+      if (filters?.startDate) params.set('startDate', filters.startDate);
+      if (filters?.endDate) params.set('endDate', filters.endDate);
+      if (filters?.companyName) params.set('companyName', filters.companyName);
+      const qs = params.toString();
+      return request<any[]>(`/reports/products${qs ? `?${qs}` : ''}`);
+    },
     reviewQueue: () => request<any[]>('/reports/review-queue'),
     lapsed: (months: number) => request<any[]>(`/reports/lapsed?months=${months}`),
     companyYearly: (company: string) => request<any>(`/reports/company-yearly?company=${encodeURIComponent(company)}`),
@@ -850,7 +865,20 @@ export const api = {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('year_label', yearLabel);
-      const res = await fetch(`${BASE}/imports`, { method: 'POST', body: formData, credentials: 'include' });
+      // Safety net only — the import itself is now batched and should finish in seconds, not
+      // minutes. This just guarantees the UI can't spin forever if the connection genuinely
+      // stalls (vs. the request just being slow, which it no longer should be).
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000);
+      let res: Response;
+      try {
+        res = await fetch(`${BASE}/imports`, { method: 'POST', body: formData, credentials: 'include', signal: controller.signal });
+      } catch (e: any) {
+        if (e.name === 'AbortError') throw new Error('Import timed out after 5 minutes. Please try again.');
+        throw e;
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const body = await res.json().catch(() => ({ error: res.statusText }));
       if (!res.ok) throw new Error(body.error || `Upload failed: ${res.status}`);
       return body;

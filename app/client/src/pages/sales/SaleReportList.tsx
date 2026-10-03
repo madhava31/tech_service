@@ -18,7 +18,13 @@ import {
   TrendingUp,
   Boxes,
   ArrowRight,
+  ChevronDown,
 } from 'lucide-react';
+import {
+  DATE_RANGE_EVENT,
+  getStoredDateRange,
+  type DateRangePreset,
+} from '../../lib/date-presets';
 
 const PAGE_SIZE = 20;
 
@@ -84,6 +90,7 @@ export default function SaleReportList() {
   const [warehouseFilter, setWarehouseFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
   const [datePreset, setDatePreset] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [globalDateRange, setGlobalDateRange] = useState<DateRangePreset>(getStoredDateRange);
   const [page, setPage] = useState(1);
 
   // Quick confirm modal state
@@ -93,7 +100,9 @@ export default function SaleReportList() {
 
   // Calculate start & end date based on datePreset
   const dateRange = useMemo(() => {
-    if (datePreset === 'all') return { startDate: '', endDate: '' };
+    if (datePreset === 'all') {
+      return { startDate: globalDateRange.start || '', endDate: globalDateRange.end || '' };
+    }
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
     const toStr = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
@@ -119,7 +128,19 @@ export default function SaleReportList() {
       startDate: toStr(y, m, 1),
       endDate: toStr(y, m, lastDay),
     };
-  }, [datePreset]);
+  }, [datePreset, globalDateRange]);
+
+  useEffect(() => {
+    const handleGlobalDateRange = (event: Event) => {
+      const customEvent = event as CustomEvent<DateRangePreset>;
+      if (customEvent.detail) {
+        setGlobalDateRange(customEvent.detail);
+        setPage(1);
+      }
+    };
+    window.addEventListener(DATE_RANGE_EVENT, handleGlobalDateRange);
+    return () => window.removeEventListener(DATE_RANGE_EVENT, handleGlobalDateRange);
+  }, []);
 
   // Load warehouses once
   useEffect(() => {
@@ -291,14 +312,17 @@ export default function SaleReportList() {
             <button
               type="button"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
+              aria-expanded={isFilterOpen}
+              aria-controls="sale-report-filters"
               className={`inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
                 isFilterOpen || hasActiveFilters
-                  ? 'bg-[#F7F8FC] border-[#3B6FD4] text-[#141B34]'
-                  : 'bg-[#EDF0F8] border-[#EEF1F9] text-[#7A839E] hover:text-[#141B34]'
+                  ? 'bg-[#EAF1FF] border-[#2F6FED] text-[#14213D] shadow-[0_2px_8px_rgba(47,111,237,0.12)]'
+                  : 'bg-white border-[#DFE6F2] text-[#71809B] hover:text-[#14213D] hover:border-[#B9CCEE]'
               }`}
             >
               <Filter className="w-4 h-4 text-[#3B6FD4]" />
               <span>Filters</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
               {hasActiveFilters && (
                 <span className="w-2 h-2 rounded-full bg-[#3B6FD4]" />
               )}
@@ -320,7 +344,7 @@ export default function SaleReportList() {
 
         {/* Filter Drawer */}
         {isFilterOpen && (
-          <div className="pt-3 border-t border-[#EEF1F9] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div id="sale-report-filters" className="pt-4 border-t border-[#DFE6F2] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-1 duration-150">
             <div>
               <label className="block text-xs font-medium text-[#8992AB] mb-1.5">Status</label>
               <select
