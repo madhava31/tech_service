@@ -33,19 +33,19 @@ export function HorizontalBarChart({
         const percent = Math.min(100, Math.max(4, (d.value / max) * 100));
         const rankStr = String(i + 1).padStart(2, '0');
         return (
-          <div className="ranked-item flex items-center justify-between p-2.5 rounded-xl hover:bg-[#0E1428] transition-colors border border-transparent hover:border-[#1E2540]" key={i} title={`${d.label}: ${formatValue(d.value)}`}>
+          <div className="ranked-item flex items-center justify-between p-2.5 rounded-lg hover:bg-[#EEF4FF] transition-colors border border-transparent hover:border-[#D7E4FF]" key={i} title={`${d.label}: ${formatValue(d.value)}`}>
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <span className="ranked-num font-mono text-xs font-bold text-[#A8AEC4] w-5 shrink-0">{rankStr}</span>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between text-xs font-bold text-[#141B34] truncate mb-1">
+                <div className="flex items-center justify-between text-xs font-bold text-[#14213D] truncate mb-1">
                   <span className="truncate">{d.label}</span>
                   <span className="font-extrabold text-[#3B6FD4] ml-2 shrink-0">{formatValue(d.value)}</span>
                 </div>
                 {/* Visual Bar Track */}
-                <div className="w-full bg-[#1E2540] h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-[#DFE6F2] h-1.5 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percent}%`, backgroundColor: color }} />
                 </div>
-                {d.sublabel && <div className="text-[11px] font-medium text-[#A8AEC4] mt-1">{d.sublabel}</div>}
+                {d.sublabel && <div className="text-[11px] font-medium text-[#71809B] mt-1">{d.sublabel}</div>}
               </div>
             </div>
           </div>

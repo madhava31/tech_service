@@ -140,6 +140,7 @@ export default function App() {
         <Route path="/inventory/reservations/:id" element={<ReservationDetail />} />
         <Route path="/inventory/intelligence" element={<StockIntelligence />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/reports/company-trends" element={<Reports />} />
         <Route path="/reports/engineer-sales" element={<EngineerSalesReport />} />
         <Route path="/inactive-customers" element={<InactiveCustomers />} />
         <Route path="/awaiting-customer-response" element={<AwaitingCustomerResponse />} />

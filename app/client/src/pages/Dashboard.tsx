@@ -197,6 +197,36 @@ export default function Dashboard() {
 
   // Analytics data transformations
   const monthlyChartData = data ? data.monthlyTrend.map((m) => ({ label: formatMonth(m.month), value: m.total })) : [];
+  const fallbackPeriodTabs = data
+    ? (() => {
+        const months = data.monthlyTrend
+          .filter((item) => item.month)
+          .map((item) => ({ month: item.month, total: Number(item.total || 0) }))
+          .sort((a, b) => a.month.localeCompare(b.month));
+        const latest = months[months.length - 1];
+        if (!latest) return {};
+
+        const [latestYear, latestMonth] = latest.month.split('-').map(Number);
+        const latestQuarter = Math.floor((latestMonth - 1) / 3);
+        const quarterMonths = months.filter((item) => {
+          const [year, month] = item.month.split('-').map(Number);
+          return year === latestYear && Math.floor((month - 1) / 3) === latestQuarter;
+        });
+        const yearMonths = months.filter((item) => item.month.startsWith(`${latestYear}-`));
+        const sum = (items: typeof months) => items.reduce((total, item) => total + item.total, 0);
+        const toTrend = (items: typeof months) => items.map((item) => ({ label: formatMonth(item.month), value: item.total }));
+
+        return {
+          thisMonth: { total: latest.total, trend: toTrend([latest]), label: formatMonth(latest.month) },
+          thisQuarter: {
+            total: sum(quarterMonths),
+            trend: toTrend(quarterMonths),
+            label: `Q${latestQuarter + 1} ${latestYear}`,
+          },
+          thisYear: { total: sum(yearMonths), trend: toTrend(yearMonths), label: String(latestYear) },
+        };
+      })()
+    : {};
   const topCompaniesChartData = data
     ? data.topCompanies.slice(0, 5).map((c) => ({ label: c.company_name, sublabel: `${c.orders} orders`, value: c.total }))
     : [];
@@ -210,7 +240,7 @@ export default function Dashboard() {
   const pipelineAcceptedRate = pipeline?.summary.acceptedRate ?? 0;
 
   // Active Period Tab Data for Revenue Analytics
-  const periodData = data?.periodTabs?.[activePeriodTab];
+  const periodData = data?.periodTabs?.[activePeriodTab] || fallbackPeriodTabs[activePeriodTab];
   const displayedRevenue = periodData ? periodData.total : (data?.historicalRevenue || 0);
   const displayedSubtitle = periodData
     ? `Revenue closed for ${periodData.label}`

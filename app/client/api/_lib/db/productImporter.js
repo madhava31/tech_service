@@ -28,19 +28,38 @@ export class TooManyRowsError extends Error {
   }
 }
 
+// A styled/pasted header ("Product **Name**", a hyperlink, etc.) comes back from ExcelJS as a
+// rich-text/hyperlink object rather than a plain string — String(obj) would stringify to
+// "[object Object]" and silently fail every alias match, so its text is extracted explicitly.
+function cellTextValue(raw) {
+  if (raw == null) return '';
+  if (typeof raw === 'object') {
+    if (Array.isArray(raw.richText)) return raw.richText.map((t) => t.text || '').join('');
+    if (typeof raw.text === 'string') return raw.text; // hyperlink cell: { text, hyperlink }
+    if (raw.result != null) return String(raw.result); // formula cell
+    return '';
+  }
+  return String(raw);
+}
+
 function findColumnIndexes(headerRow) {
   // headerRow.values is 1-indexed, values[0] is empty (ExcelJS convention).
   const indexes = {};
   for (let i = 1; i < headerRow.length; i++) {
     const raw = headerRow[i];
     if (raw == null) continue;
-    const text = String(raw).trim().toLowerCase();
+    const text = cellTextValue(raw).trim().toLowerCase();
     for (const [key, aliases] of Object.entries(HEADER_ALIASES)) {
       if (indexes[key] == null && aliases.includes(text)) indexes[key] = i;
     }
   }
   return indexes;
 }
+
+const REQUIRED_KEYS = Object.keys(REQUIRED_COLUMN_LABELS);
+// How many leading rows to check for the header — tolerates a title/logo row (e.g. "Product
+// Catalogue Export") sitting above the real header row, which real-world exports commonly have.
+const MAX_HEADER_SCAN_ROWS = 10;
 
 // A formula/rich-text/hyperlink cell comes back from ExcelJS as an object, not a primitive —
 // treated as unusable rather than evaluated, so no spreadsheet formula is ever executed.
@@ -56,15 +75,33 @@ export function parseProductWorkbook(buffer) {
     const sheet = workbook.worksheets[0];
     if (!sheet) throw new Error('The workbook has no sheets.');
 
-    const headerRow = sheet.getRow(1).values;
-    const columnIndexes = findColumnIndexes(headerRow);
-    for (const key of Object.keys(REQUIRED_COLUMN_LABELS)) {
-      if (columnIndexes[key] == null) throw new MissingColumnError(REQUIRED_COLUMN_LABELS[key]);
+    // The header row isn't assumed to be row 1 — a title row above the real headers is common
+    // in real-world exports, so the first few rows are scanned for one that has every required
+    // column (in any order; see HEADER_ALIASES/findColumnIndexes above).
+    let headerRowNumber = null;
+    let columnIndexes = null;
+    const lastRowToScan = Math.min(MAX_HEADER_SCAN_ROWS, sheet.rowCount || MAX_HEADER_SCAN_ROWS);
+    for (let r = 1; r <= lastRowToScan; r++) {
+      const candidate = findColumnIndexes(sheet.getRow(r).values);
+      if (REQUIRED_KEYS.every((key) => candidate[key] != null)) {
+        headerRowNumber = r;
+        columnIndexes = candidate;
+        break;
+      }
+    }
+    if (!columnIndexes) {
+      // No row had every required column — report against row 1 so the error names the specific
+      // column that's missing there, same as before.
+      columnIndexes = findColumnIndexes(sheet.getRow(1).values);
+      for (const key of REQUIRED_KEYS) {
+        if (columnIndexes[key] == null) throw new MissingColumnError(REQUIRED_COLUMN_LABELS[key]);
+      }
+      headerRowNumber = 1;
     }
 
     const rows = [];
     sheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
+      if (rowNumber <= headerRowNumber) return;
       const values = row.values;
       const productName = cellToPrimitive(values[columnIndexes.productName]);
       const partNo = cellToPrimitive(values[columnIndexes.partNo]);
