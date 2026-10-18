@@ -14,6 +14,12 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  // A Vercel function can have many warm instances. Keep each instance to one connection so the
+  // application-side pools cannot exhaust Supabase's transaction pooler under concurrency.
+  max: 1,
+  idleTimeoutMillis: 10_000,
+  connectionTimeoutMillis: 10_000,
+  allowExitOnIdle: true,
   // Supabase (and most hosted Postgres) require TLS; self-signed/managed certs mean we can't
   // strictly verify the chain here without extra setup, so we accept the connection either way.
   ssl: process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1')

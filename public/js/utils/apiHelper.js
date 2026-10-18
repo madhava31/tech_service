@@ -1,7 +1,8 @@
 import { showToast } from '../components/Toast.js';
 
-// Configurable Vercel Backend Production Base URL
-export const API_BASE_URL = "https://YOUR_VERCEL_APP_URL.vercel.app/api";
+// The frontend and API are deployed together. A relative base keeps requests on the current
+// Vercel/custom domain and avoids cross-origin cookie and CORS failures.
+export const API_BASE_URL = '/api';
 
 /**
  * Universal apiFetch helper for production backend integration
@@ -21,7 +22,7 @@ export async function apiFetch(endpoint, method = 'GET', payload = null) {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    credentials: 'include' // Preserves session cookies for cross-origin CORS Vercel requests
+    credentials: 'include' // Sends the HTTP-only session cookie on same-origin requests.
   };
 
   if (payload && (options.method === 'POST' || options.method === 'PUT' || options.method === 'PATCH')) {

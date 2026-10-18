@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
 import { requireAuth } from '../client/api/_lib/auth/middleware.js';
+import db from '../client/api/_lib/db/index.js';
 
 import authRouter from '../client/api/_lib/routes/auth.js';
 import adminRouter from '../client/api/_lib/routes/admin.js';
@@ -18,6 +19,12 @@ import importsRouter from '../client/api/_lib/routes/imports.js';
 import aiRouter from '../client/api/_lib/routes/ai.js';
 import opportunitiesRouter from '../client/api/_lib/routes/opportunities.js';
 import engineersRouter from '../client/api/_lib/routes/engineers.js';
+import inventoryRouter from '../client/api/_lib/routes/inventory.js';
+import procurementRouter from '../client/api/_lib/routes/procurement.js';
+import salesRouter from '../client/api/_lib/routes/sales.js';
+import saleReportsRouter from '../client/api/_lib/routes/saleReports.js';
+import firmsRouter from '../client/api/_lib/routes/firms.js';
+import branchesRouter from '../client/api/_lib/routes/branches.js';
 
 const app = express();
 
@@ -42,6 +49,22 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// The newly ported inventory/procurement tables still retain their original
+// foreign keys to the legacy `user` table. Authentication now uses `app_user`.
+// Resolve a matching legacy id when one exists; otherwise write null to the
+// nullable audit fields instead of rejecting an otherwise valid transaction.
+async function resolveLegacyAuditUser(req, res, next) {
+  try {
+    const legacyUser = req.user?.id
+      ? await db.prepare('SELECT id FROM "user" WHERE id = ?').get(req.user.id)
+      : null;
+    req.legacyAuditUserId = legacyUser?.id || null;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
 
 // Small, dependency-free security headers — safe for every response, no effect on legitimate
 // same-origin API/SPA traffic. Deliberately not a full helmet-style framework (Step 5.6 scope).
@@ -71,6 +94,12 @@ app.use('/api/imports', requireAuth, importsRouter);
 app.use('/api/ai', requireAuth, aiRouter);
 app.use('/api/opportunities', requireAuth, opportunitiesRouter);
 app.use('/api/engineers', requireAuth, engineersRouter);
+app.use('/api/inventory', requireAuth, resolveLegacyAuditUser, inventoryRouter);
+app.use('/api/procurement', requireAuth, resolveLegacyAuditUser, procurementRouter);
+app.use('/api/sales', requireAuth, salesRouter);
+app.use('/api/sale-reports', requireAuth, resolveLegacyAuditUser, saleReportsRouter);
+app.use('/api/firms', requireAuth, firmsRouter);
+app.use('/api/branches', requireAuth, branchesRouter);
 app.use('/api/admin', adminRouter);
 
 // Final safety net: every route already wraps its own logic in try/catch and returns a clean

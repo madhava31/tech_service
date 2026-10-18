@@ -1,7 +1,9 @@
-// In local dev this stays '/api' and goes through Vite's proxy (vite.config.ts) to localhost:4000.
-// In production, frontend and API are served from the same Vercel deployment/domain, so '/api'
-// resolves correctly there too. VITE_API_URL is only needed if the API is split to another domain.
-const BASE = import.meta.env.VITE_API_URL || '/api';
+// Keep browser requests same-origin in every environment. In local development Vite proxies
+// `/api` to localhost:4000; in production Vercel rewrites `/api/*` to the Express function.
+// Do not make this configurable through a VITE_* variable: Vite exposes those values in the
+// browser bundle, and a stale/template hostname turns a working same-origin request into a CORS
+// failure (and prevents the session cookie from being sent to the real application domain).
+const BASE = '/api';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -2684,7 +2686,6 @@ export interface GlobalSearchResponse {
 export async function searchGlobalApi(q: string, limit: number = 30): Promise<GlobalSearchResponse> {
   return request<GlobalSearchResponse>(`/search?q=${encodeURIComponent(q)}&limit=${limit}`);
 }
-
 
 
 
