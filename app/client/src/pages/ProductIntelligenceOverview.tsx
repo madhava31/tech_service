@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, type ProductIntelligenceSummaryData, type ProductTrendDirection } from '../api';
+import { queryClient } from '../lib/queryClient';
 import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
 
@@ -27,18 +28,28 @@ const TREND_COLORS: Record<ProductTrendDirection, string> = {
 const TREND_FILTERS: ProductTrendDirection[] = ['growing', 'declining', 'stable', 'no_data'];
 
 export default function ProductIntelligenceOverview() {
-  const [data, setData] = useState<ProductIntelligenceSummaryData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedData = queryClient.getQueryData<ProductIntelligenceSummaryData>(['products', 'intelligenceSummary']);
+  const [data, setData] = useState<ProductIntelligenceSummaryData | null>(cachedData || null);
+  const [loading, setLoading] = useState(!cachedData);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [trendFilter, setTrendFilter] = useState('');
   const [page, setPage] = useState(1);
 
-  const loadSummary = () => {
-    setLoading(true);
+  const loadSummary = (force: boolean | unknown = false) => {
+    const shouldForce = force === true;
+    if (!data || shouldForce) {
+      setLoading(true);
+    }
     setError('');
-    api.products
-      .intelligenceSummary()
+    queryClient
+      .fetchQuery({
+        queryKey: ['products', 'intelligenceSummary'],
+        queryFn: () => api.products.intelligenceSummary(),
+        staleTime: 60000,
+        tags: ['products', 'intelligence'],
+        force: shouldForce,
+      })
       .then((res) => {
         setData(res);
       })

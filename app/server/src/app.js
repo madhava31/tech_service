@@ -47,10 +47,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+import { handleSseConnection } from './db/events.js';
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
+
+// Real-time Server-Sent Events stream for cache invalidation
+app.get('/api/events', requireAuth, handleSseConnection);
 
 // API routes
 app.use('/api/auth', authRouter);
@@ -74,6 +79,11 @@ app.use('/api/branches', requireAuth, branchesRouter);
 app.use('/api/export', requireAuth, exportRouter);
 app.use('/api/search', requireAuth, searchRouter);
 app.use('/api/admin', adminRouter);
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  res.status(500).json({ error: err?.message || 'Something went wrong. Please try again.' });
+});
 
 // Export Express app for Vercel
 export default app;
