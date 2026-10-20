@@ -39,40 +39,57 @@ Technicon Services ERP implements a dual-tier, reactive smart data-refresh archi
 
 ---
 
-## 3. Invalidation Rules by Mutation
+## 3. Route-to-Invalidation-Tag Matrix
 
-| Mutation Event | Affected Invalidation Tags | Views Updated Automatically |
+| Route Pattern / Mutation Entity | Affected Invalidation Tags | Views Automatically Updated |
 |---|---|---|
-| **Create / Update / Delete Quotation** | `['dashboard', 'quotations', 'opportunities', 'products']` | Quotations list, Dashboard metrics, Pipeline donut, Attention counter, AppHeader badge |
-| **Record Confirmed Sale / Upload Sales Batch** | `['dashboard', 'sales', 'opportunities', 'engineers']` | Dashboard revenue chart, top companies, Sales overview, Engineer performance targets |
-| **Create / Update / Delete Company** | `['dashboard', 'companies', 'opportunities']` | Companies list, Company health overview, Quotation company dropdowns |
-| **Create / Update / Import Products** | `['dashboard', 'products', 'inventory']` | Products list, Product intelligence, Quotation item selector |
-| **Stock Inward / Inventory Transfer / Receipt** | `['inventory']` | Inventory overview, Stock list, Restock queue, Warehouse detail |
-| **Set Sales Target / Update Engineer** | `['engineers', 'dashboard']` | Engineer list, Engineer sales report, Dashboard attribution |
-| **Create / Update Purchase Order / Performa Invoice** | `['dashboard', 'quotations']` | Purchase orders list, Performa invoices list, Uninvoiced orders attention count |
+| **`/api/quotations*`** (Create, update, delete, status change) | `['quotations', 'dashboard', 'opportunities']` | Quotation list, Dashboard metric cards, Pipeline donut, Attention queue, AppHeader badges |
+| **`/api/sale-reports*` / `/api/sales*`** (New report, batch sync, record change) | `['sales', 'dashboard', 'opportunities', 'engineers', 'reports']` | Dashboard revenue trend, Top accounts, Sales overview, Engineer quotas & reports |
+| **`/api/companies*`** (Create, edit, delete, bulk delete) | `['companies', 'dashboard', 'opportunities']` | Company directory, Customer health matrix, Quotation customer selects |
+| **`/api/products*`** (Create, edit, import commit) | `['products', 'dashboard', 'inventory']` | Product master, Product intelligence, Quotation part search |
+| **`/api/inventory*` / `/api/stocks*` / `/api/warehouses*`** (Stock inward, transfer, reservation) | `['inventory', 'products', 'dashboard']` | Inventory overview, Stock lists, Restock alerts, Warehouse details |
+| **`/api/engineers*`** (Target adjustments, assignments) | `['engineers', 'dashboard', 'sales']` | Sales engineer directory, Attributed performance, Quota achievement |
+| **`/api/purchase-orders*`** (Create, update, link) | `['purchase_orders', 'dashboard', 'quotations']` | Purchase orders list, Uninvoiced orders attention count |
+| **`/api/performa-invoices*`** (Create, update, convert) | `['performa_invoices', 'dashboard', 'quotations']` | Performa invoices table, Quotation financial tracking |
+| **`/api/firms*`** (Multi-firm configuration) | `['firms', 'dashboard', 'settings']` | Firm dropdowns, Multi-firm settings page |
+| **`/api/branches*`** (Branch details & doc sequence settings) | `['branches', 'firms', 'dashboard', 'settings']` | Branch selector, Document numbering presets |
+| **`/api/settings*`** (Company info, tax rules) | `['settings', 'dashboard', 'quotations']` | Settings view, Tax calculations in new quotes |
+| **`/api/admin*`** (User permissions, role changes) | `['admin', 'engineers', 'dashboard']` | Admin user table, Engineer attribution controls |
+| **`/api/reports*`** (Bulk sales deletion, queue cleanup) | `['reports', 'sales', 'companies', 'products', 'dashboard']` | Review queue, Company sales history, Product sales totals |
+| **`/api/opportunities*`** (Pipeline stage progressions) | `['opportunities', 'dashboard']` | Opportunity board, Stage conversion analytics |
 
 ---
 
 ## 4. Real-Time Event & Polling Strategy
 
-### A. Real-Time Events (Server-Sent Events)
-- **Transport**: Authenticated HTTP SSE (`GET /api/events`) with `withCredentials: true`.
-- **Payload Schema**:
-  ```json
-  {
-    "entity": "/api/quotations",
-    "action": "POST",
-    "tags": ["dashboard", "quotations", "opportunities"],
-    "timestamp": 1729420000000
-  }
-  ```
-- **Security Policy**: Zero database rows, user identifiers, or customer financial values are transmitted across the stream. The event is strictly a cache invalidation signal.
-- **Heartbeat**: 25-second ping interval (`: ping\n\n`) to prevent proxy timeout drops.
+### A. Runtime Environment Architecture: Hybrid Serverless & Persistent Node.js
+Technicon ERP supports two deployment environments:
+1. **Serverless (Vercel)**:
+   - Serverless functions freeze between invocations and cannot sustain long-lived sockets.
+   - `initPgNotificationListener` detects `process.env.VERCEL` and gracefully disables persistent LISTEN sockets, preventing database connection exhaustion.
+   - `/api/events` returns `501 Not Implemented (mode: polling)`.
+   - The frontend automatically falls back to window-focus revalidation, tab-visibility detection, and smart TTL cache invalidation.
+2. **Persistent Node.js Service (Option B / VPS / Docker / `app/server/src/index.js`)**:
+   - Opens a dedicated `pg.Client` listening to `technicon_events` outside the 20-connection pool.
+   - Powers continuous HTTP SSE streams (`/api/events`) with 25s heartbeat pings (`: ping\n\n`) and `X-Accel-Buffering: no`.
 
-### B. Controlled Polling Rationale
-For environments where SSE streams are terminated by restrictive corporate proxies or intermittent cellular drops:
-- **Fallback Recovery**: Every query checks `staleAt`. If an SSE event is missed while disconnected, window focus or tab navigation detects `staleAt: 0` and transparently revalidates against the server.
-- **Tab Inactivity Safeguard**: Refetch intervals are automatically suspended when `document.hidden` is true, eliminating runaway background database load.
+### B. Mutation Commit Boundary
+Invalidations are never emitted prematurely. Middleware in `app/api/index.js` attaches a listener to `res.on('finish')`:
+- Invalidation signals broadcast **only if** `res.statusCode >= 200 && res.statusCode < 300` and `!res.locals.mutationFailed`.
+- Failed authentications (401/403), validation rejections (400), and rolled-back database errors (500) emit **zero** invalidation events.
+
+### C. In-Process Duplicate Event Suppression
+When a local mutation broadcasts an event:
+1. It assigns a unique ID (`eventId: ${pid}-${timestamp}-${rand}`) and records it in `recentLocalEventIds`.
+2. It pushes the event directly to local SSE subscribers.
+3. It executes `SELECT pg_notify('technicon_events', ...)`.
+4. When PostgreSQL echoes the notification back to this process, the listener checks `recentLocalEventIds.has(payload.id)` and drops the duplicate.
+5. Other worker processes (e.g. horizontal instances) receive the notification and deliver it to their connected clients, ensuring cross-process delivery without local duplicates.
+
+### D. Request Cancellation and Subscriber Ref-Counting
+1. `AbortSignal` is accepted and forwarded through `cachedFetch`, `api.companies.list`, `api.products.list`, `api.quotations.list`, `api.dashboard.get`, and `searchGlobalApi` to `fetch()`.
+2. `queryClient.cancelQuery(key, force = false)` uses subscriber reference counting (`getActiveSubscribers()`). In-flight deduplicated requests are NOT aborted if other components are still waiting for the result.
+3. `AbortError` is treated as user cancellation rather than a query failure, preserving existing cache state.
 
 ---
 
@@ -89,80 +106,35 @@ For environments where SSE streams are terminated by restrictive corporate proxi
 
 ---
 
-## 6. Local Setup and Test Commands
+## 6. Test Suites and Commands
 
-### Running the Smart Cache Test Suite
+### 1. Smart Cache Verification Suite
 ```bash
-node app/server/scratch/test_smart_cache_suite.js
+node app/client/scripts/test-smart-cache.js
 ```
-Expected output:
-```
---- STARTING TECHNICON ERP SMART CACHE VERIFICATION SUITE ---
-✓ Test 1: Initial load fetches required data
-✓ Test 2: Returning to a menu reuses fresh cached data (0 network requests)
-✓ Test 3: Concurrent identical requests are deduplicated
-✓ Test 4: Stale cached data refreshes according to policy
-✓ Test 5: Unchanged responses preserve object reference (prevents unnecessary React re-renders)
-✓ Test 6: Changed responses update the cache and notify subscribers
-✓ Test 7: Rapid filter changes generate isolated deterministic keys with no collisions
-✓ Test 8: Successful mutations invalidate the correct queries
-✓ Test 9: Failed operations do not corrupt cached data
-✓ Test 10: Database notifications invalidate the intended resource only
-✓ Test 11: Disconnects and missed events recover safely via revalidation
-✓ Test 12: Background refresh lifecycle is cleaned up and does not leak promises
-✓ Test 13: Logout and user switching cannot leak cached data
-✓ Test 14: Server-side permissions remain authoritative with partitioned scopes
+*Validates 14/14 client caching guarantees: key serialization, deduplication, stale-while-revalidate, structural equality, tag invalidation, and session purge.*
 
-ALL 14/14 TESTS PASSED SUCCESSFULLY!
+### 2. Integration Verification Suite
+```bash
+node app/client/scripts/test-integration-suite.cjs
 ```
+*Validates 8/8 integration requirements: real HTTP SSE stream headers, handshake & heartbeat, mutation finish commit timing, duplicate suppression, AbortSignal forwarding, subscriber ref-counting, and complete route matrix.*
 
-### Building the Client Application
+### 3. Production Frontend Build
 ```bash
 npm --prefix app/client run build
 ```
-
-### Running Local Development Environment
-```bash
-# In terminal 1 (API Server on port 4000):
-cd app && npm run dev
-
-# In terminal 2 (Vite Client on port 5173 with proxy):
-cd app/client && npm run dev
-```
+*Verifies 0 TypeScript errors and builds the production bundle.*
 
 ---
 
-## 7. Environment Variables Required
+## 7. Rollback Instructions
 
-| Variable | Scope | Safe Placeholder Example | Description |
-|---|---|---|---|
-| `DATABASE_URL` | Backend (`app/server/.env`) | `postgresql://<db_user>:<db_pass>@<host>:5432/<db_name>` | PostgreSQL connection string with native LISTEN/NOTIFY support |
-| `CLIENT_ORIGIN` | Backend | `http://localhost:5173` | Allowed CORS origin for local development |
-| `PORT` | Backend | `4000` | Local Express API port |
-| `VITE_API_URL` | Frontend | `/api` | Base API URL for Vite proxy |
-
----
-
-## 8. Rollback Instructions
-
-### Code Rollback
-If any unexpected frontend or backend caching issue arises:
-1. Revert to the prior branch commit:
+1. **Code Rollback**:
    ```bash
-   git checkout main
-   ```
-2. Rebuild the frontend bundle:
-   ```bash
+   git checkout origin/main
    npm --prefix app/client run build
    ```
-3. Restart the Node.js API process.
+2. **Database Rollback**:
+   No schema changes or table alterations were introduced. All real-time signals use PostgreSQL native `pg_notify()` channels.
 
-### Database Migration Rollback
-No destructive schema alterations, column removals, or table drops were introduced. The event mechanism utilizes PostgreSQL's built-in `pg_notify()` function and dedicated client channel listening without schema changes.
-
----
-
-## 9. Remaining Risks & Follow-Up Work
-
-1. **Proxy Buffering**: In environments behind aggressive enterprise reverse proxies (e.g. standard Nginx configurations without `proxy_buffering off`), SSE chunks may be buffered until buffer saturation. The `X-Accel-Buffering: no` header has been included in `handleSseConnection` to prevent this.
-2. **Persistent Storage (IndexedDB)**: Current query caching is entirely in-memory for security and instant tab performance. If offline-first offline draft persistence is desired in the future, an encrypted IndexedDB adapter can be introduced for non-sensitive master data.

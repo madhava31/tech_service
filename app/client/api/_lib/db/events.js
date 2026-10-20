@@ -10,12 +10,55 @@ const { Client } = pg;
 export const eventBus = new EventEmitter();
 eventBus.setMaxListeners(200);
 
+export const ALLOWED_TAGS = new Set([
+  'dashboard',
+  'quotations',
+  'sales',
+  'companies',
+  'products',
+  'inventory',
+  'engineers',
+  'purchase_orders',
+  'performa_invoices',
+  'firms',
+  'branches',
+  'settings',
+  'admin',
+  'reports',
+  'opportunities',
+  '*',
+]);
+
+const isServerless = !!process.env.VERCEL;
+
 let listenerClient = null;
 let isConnecting = false;
 let reconnectTimer = null;
 let reconnectAttempts = 0;
 
+// Track recently published event IDs locally to suppress duplicate in-process delivery
+// when PostgreSQL echoes pg_notify back to this process.
+const recentLocalEventIds = new Map();
+
+function trackLocalEventId(id) {
+  const now = Date.now();
+  recentLocalEventIds.set(id, now);
+  if (recentLocalEventIds.size > 200) {
+    const cutoff = now - 30000;
+    for (const [key, timestamp] of recentLocalEventIds.entries()) {
+      if (timestamp < cutoff) {
+        recentLocalEventIds.delete(key);
+      }
+    }
+  }
+}
+
 export function initPgNotificationListener(connectionString) {
+  if (isServerless) {
+    console.log('[Realtime] Vercel serverless environment detected. Persistent PostgreSQL LISTEN skipped to prevent connection exhaustion and container freeze.');
+    return;
+  }
+
   if (!connectionString) {
     console.warn('[Realtime] No DATABASE_URL provided for PostgreSQL LISTEN. Realtime will use in-memory event bus.');
     return;
@@ -38,7 +81,7 @@ export function initPgNotificationListener(connectionString) {
     ? false
     : { rejectUnauthorized: false };
 
-  // Use a dedicated client outside the connection pool to preserve all 20 pooled query connections
+  // Use a dedicated client outside the connection pool to preserve pooled query connections
   const client = new Client({
     connectionString,
     ssl,
@@ -69,12 +112,22 @@ export function initPgNotificationListener(connectionString) {
       if (msg.channel === 'technicon_events' && msg.payload) {
         try {
           const payload = JSON.parse(msg.payload);
-          // Broadcast minimal signal-only event to all local SSE clients
+          // If this event was published by this process, suppress duplicate delivery!
+          if (payload.id && recentLocalEventIds.has(payload.id)) {
+            return;
+          }
+
+          const rawTags = Array.isArray(payload.tags) ? payload.tags : ['*'];
+          const validTags = rawTags.filter((t) => ALLOWED_TAGS.has(t));
+          if (validTags.length === 0) return;
+
+          // Broadcast minimal signal-only event to local SSE clients
           eventBus.emit('invalidate', {
+            id: payload.id,
             entity: payload.entity || 'general',
             action: payload.action || 'change',
-            tags: Array.isArray(payload.tags) ? payload.tags : ['*'],
-            timestamp: Date.now(),
+            tags: validTags,
+            timestamp: payload.timestamp || Date.now(),
           });
         } catch (e) {
           console.warn('[Realtime] Failed to parse notification payload:', e.message);
@@ -117,15 +170,23 @@ function scheduleReconnect(connectionString) {
 
 // Publishes a transactional signal to PostgreSQL LISTEN channel and in-memory event bus
 export async function broadcastEvent(dbPoolOrExecutor, { entity, action, tags = [] }) {
-  const payload = JSON.stringify({ entity, action, tags });
+  const rawTags = Array.isArray(tags) ? tags : [tags];
+  const validTags = rawTags.filter((t) => ALLOWED_TAGS.has(t));
+  if (validTags.length === 0) return;
+
+  const eventId = `${process.pid}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  trackLocalEventId(eventId);
+
+  const payloadObj = {
+    id: eventId,
+    entity: String(entity || 'general').slice(0, 100),
+    action: String(action || 'change').slice(0, 50),
+    tags: validTags,
+    timestamp: Date.now(),
+  };
 
   // 1. Emit to local in-memory event bus immediately
-  eventBus.emit('invalidate', {
-    entity,
-    action,
-    tags: Array.isArray(tags) ? tags : [tags],
-    timestamp: Date.now(),
-  });
+  eventBus.emit('invalidate', payloadObj);
 
   // 2. Publish to PostgreSQL LISTEN/NOTIFY channel if database pool is available
   if (dbPoolOrExecutor) {
@@ -133,7 +194,8 @@ export async function broadcastEvent(dbPoolOrExecutor, { entity, action, tags = 
       // In PostgreSQL, pg_notify is transaction-safe: if called inside an open transaction,
       // the notification is only delivered if and when the transaction COMMITS!
       if (typeof dbPoolOrExecutor.query === 'function') {
-        await dbPoolOrExecutor.query('SELECT pg_notify($1, $2)', ['technicon_events', payload]);
+        const payloadStr = JSON.stringify(payloadObj);
+        await dbPoolOrExecutor.query('SELECT pg_notify($1, $2)', ['technicon_events', payloadStr]);
       }
     } catch (err) {
       console.warn('[Realtime] pg_notify failed (event delivered via in-memory bus):', err.message);
@@ -143,6 +205,14 @@ export async function broadcastEvent(dbPoolOrExecutor, { entity, action, tags = 
 
 // SSE Request Handler for /api/events
 export function handleSseConnection(req, res) {
+  if (isServerless) {
+    res.status(501).json({
+      error: 'Realtime SSE streams are not supported in serverless lambdas. Client should use focus-revalidation / polling fallback.',
+      mode: 'polling',
+    });
+    return;
+  }
+
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache, no-transform',

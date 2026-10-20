@@ -231,14 +231,29 @@ export class QueryClient {
     return promise;
   }
 
-  public cancelQuery(key: QueryKey): void {
+  public getActiveSubscribers(key: QueryKey): number {
     const scopedKey = this.getScopedKey(key);
+    return this.listeners.get(scopedKey)?.size || 0;
+  }
+
+  public cancelQuery(key: QueryKey, force = false): boolean {
+    const scopedKey = this.getScopedKey(key);
+    const activeSubscribers = this.listeners.get(scopedKey)?.size || 0;
+
+    // Avoid aborting a shared in-flight request while another active subscriber still needs it unless forced
+    if (!force && activeSubscribers > 0) {
+      return false;
+    }
+
     const controller = this.abortControllers.get(scopedKey);
     if (controller) {
       controller.abort();
       this.abortControllers.delete(scopedKey);
+      this.inFlight.delete(scopedKey);
+      return true;
     }
     this.inFlight.delete(scopedKey);
+    return false;
   }
 
   public invalidateKey(key: QueryKey): void {

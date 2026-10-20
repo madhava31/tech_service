@@ -103,7 +103,12 @@ export function useQuery<T>(options: UseQueryOptions<T>): UseQueryResult<T> {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      if (queryClient.getActiveSubscribers(queryKey) === 0) {
+        queryClient.cancelQuery(queryKey);
+      }
+    };
   }, [queryKey, enabled, executeFetch]);
 
   // Initial mount or key change effect

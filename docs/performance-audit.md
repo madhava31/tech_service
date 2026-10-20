@@ -123,3 +123,50 @@ Representative navigation sequence: **Login → Dashboard → Quotations → Com
 
 ### Phase 6: Verification & Testing
 1. Comprehensive tests verifying cache hits, request deduplication, tag invalidation, logout clearance, SSE event processing, and structural comparison.
+
+---
+
+## 5. Post-Audit Findings & Resolutions (Target Commit `92ab3fb`)
+
+Following the initial implementation in commit `92ab3fb`, a rigorous read-only audit revealed 6 critical architectural and operational issues. Below is each finding and its resolution:
+
+### Finding 1: Vercel Serverless vs. Realtime Runtime Conflict
+- **Issue**: `app/vercel.json` routes `/api/(.*)` to `/api/index.js` as serverless lambdas. Long-running PostgreSQL `LISTEN` sockets and continuous SSE streams freeze or abort in serverless environments, risking unmanaged connection leaks and execution timeouts.
+- **Resolution**: Implemented runtime environment detection (`isServerless = !!process.env.VERCEL`). When deployed in serverless mode:
+  1. Unmanaged persistent `LISTEN` socket initialization is cleanly bypassed in `initPgNotificationListener`.
+  2. The `/api/events` endpoint gracefully informs the client (`501 Not Implemented, mode: polling`), and the frontend safely falls back to window-focus and tab-visibility revalidation with exponential backoff.
+  3. When hosted via persistent Node.js instances (Docker / VPS / `app/server/src/index.js`), the full dedicated `pg.Client` `LISTEN` listener and SSE streaming activate automatically.
+
+### Finding 2: Premature Mutation Notification Timing
+- **Issue**: Middleware in `app/api/index.js` broadcasted invalidation events *before* passing execution to route handlers (`next()`). Unauthenticated requests (401/403), invalid payloads (400), or database rollbacks (500) broadcasted false invalidations.
+- **Resolution**: Moved invalidation emission to `res.on('finish')`. Events are emitted **only** when `res.statusCode >= 200 && res.statusCode < 300` and `!res.locals.mutationFailed`, guaranteeing that database writes have successfully committed before any invalidation signal is published.
+
+### Finding 3: Missing Invalidation Coverage
+- **Issue**: Mutations for secondary resources (`firms`, `branches`, `settings`, `admin`, `reports`) lacked tag mapping, resulting in stale data on configuration changes.
+- **Resolution**: Implemented comprehensive `getMutationTags(path, customTags)` with explicit allowlist matching covering all 15 ERP entity groups.
+
+### Finding 4: In-Process Duplicate Event Delivery
+- **Issue**: `broadcastEvent` emitted immediately to the local in-memory event bus *and* executed `pg_notify`. When PostgreSQL echoed the notification back to the same process, the listener re-emitted the event, causing local clients to receive duplicate invalidations.
+- **Resolution**: Added unique event tracking (`eventId: ${pid}-${timestamp}-${rand}`) in `recentLocalEventIds` with automatic TTL pruning. When a notification arrives from PostgreSQL, `events.js` checks if the ID was originated locally; if so, it suppresses the duplicate echo while preserving cross-process delivery.
+
+### Finding 5: Incomplete Request Cancellation & Shared Query Ref-Counting
+- **Issue**: `cancelQuery` indiscriminately aborted queries even if other concurrent components were awaiting the deduplicated promise. `api.ts` methods also lacked `AbortSignal` parameters.
+- **Resolution**: Added subscriber reference counting in `queryClient.ts` (`getActiveSubscribers()`). Shared in-flight queries are preserved if other active subscribers still exist. Threaded optional `AbortSignal` through `cachedFetch`, `api.companies.list`, `api.products.list`, `api.quotations.list`, `api.dashboard.get`, and `searchGlobalApi` into `fetch()`. Handled `AbortError` gracefully as cancellation rather than an application failure.
+
+### Finding 6: Missing Real Non-Production Integration Tests
+- **Issue**: Previous test suite relied on a simulated runner rather than real HTTP/SSE endpoints.
+- **Resolution**: Created `app/client/scripts/test-integration-suite.cjs` executing real HTTP SSE streaming, header validation, heartbeat handling, response-finish timing, and cross-session cache isolation.
+
+---
+
+## 6. Test Results & Verification
+
+- **Smart Cache Verification Suite (`app/client/scripts/test-smart-cache.js`)**:
+  - `14/14` tests passed cleanly (deterministic keys, deduplication, stale-while-revalidate, structural equality, tag invalidation, session boundary purge).
+- **Integration Test Suite (`app/client/scripts/test-integration-suite.cjs`)**:
+  - `8/8` applicable tests passed cleanly (tag allowlisting, full route matrix, mutation commit finish timing, duplicate suppression, real HTTP SSE streaming, AbortSignal propagation, subscriber ref-counting, session isolation).
+  - Test 9 (Real PostgreSQL LISTEN/NOTIFY against dedicated non-production test DB): **NOT RUN** (No designated non-production test database specified in `TEST_DATABASE_URL`; production safety policy strictly enforced).
+- **TypeScript Production Build (`npm --prefix app/client run build`)**:
+  - `tsc -b`: 0 errors.
+  - `vite build`: Completed cleanly in 32.18s (2722 modules transformed).
+

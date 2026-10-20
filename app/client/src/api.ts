@@ -32,11 +32,16 @@ export async function openPdfDocument(path: string): Promise<void> {
 
 import { queryClient } from './lib/queryClient';
 
-export async function cachedFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs = 60000): Promise<T> {
+export async function cachedFetch<T>(
+  key: string,
+  fetcher: (signal?: AbortSignal) => Promise<T>,
+  ttlMs = 60000,
+  signal?: AbortSignal
+): Promise<T> {
   const tag = key.split('_')[0] || key;
   return queryClient.fetchQuery<T>({
     queryKey: key,
-    queryFn: fetcher,
+    queryFn: (s) => fetcher(signal || s),
     staleTime: ttlMs,
     tags: [tag],
   });
@@ -806,8 +811,10 @@ export interface AiChatMessage {
 
 export const api = {
   companies: {
-    list: (q?: string) =>
-      q ? request<Company[]>(`/companies?q=${encodeURIComponent(q)}`) : cachedFetch('companies_all', () => request<Company[]>('/companies')),
+    list: (q?: string, signal?: AbortSignal) =>
+      q
+        ? request<Company[]>(`/companies?q=${encodeURIComponent(q)}`, { signal })
+        : cachedFetch('companies_all', (s) => request<Company[]>('/companies', { signal: signal || s }), 60000, signal),
     get: (id: number) => request<Company>(`/companies/${id}`),
     create: async (data: Partial<Company>) => {
       const res = await request<Company>('/companies', { method: 'POST', body: JSON.stringify(data) });
@@ -836,8 +843,10 @@ export const api = {
     },
   },
   products: {
-    list: (q?: string) =>
-      q ? request<Product[]>(`/products?q=${encodeURIComponent(q)}`) : cachedFetch('products_all', () => request<Product[]>('/products')),
+    list: (q?: string, signal?: AbortSignal) =>
+      q
+        ? request<Product[]>(`/products?q=${encodeURIComponent(q)}`, { signal })
+        : cachedFetch('products_all', (s) => request<Product[]>('/products', { signal: signal || s }), 60000, signal),
     get: (id: number) => request<Product>(`/products/${id}`),
     create: async (data: Partial<Product>) => {
       const res = await request<Product>('/products', { method: 'POST', body: JSON.stringify(data) });
@@ -867,9 +876,9 @@ export const api = {
     },
   },
   quotations: {
-    list: ((params?: QuotationListParams) => {
+    list: ((params?: QuotationListParams, signal?: AbortSignal) => {
       if (!params || (!params.page && !params.pageSize && !params.paginated && !params.searchNumber && !params.searchCompany && !params.status && !params.dateStart && !params.dateEnd && params.minAmount === undefined && params.maxAmount === undefined)) {
-        return request<Quotation[]>('/quotations');
+        return request<Quotation[]>('/quotations', { signal });
       }
       const q = new URLSearchParams();
       if (params.page !== undefined) q.set('page', String(params.page));
@@ -883,10 +892,10 @@ export const api = {
       if (params.maxAmount !== undefined) q.set('maxAmount', String(params.maxAmount));
       if (params.paginated) q.set('paginated', 'true');
       const qs = q.toString();
-      return request<QuotationPageResponse>(`/quotations${qs ? `?${qs}` : ''}`);
+      return request<QuotationPageResponse>(`/quotations${qs ? `?${qs}` : ''}`, { signal });
     }) as {
-      (params: QuotationListParams): Promise<QuotationPageResponse>;
-      (): Promise<Quotation[]>;
+      (params: QuotationListParams, signal?: AbortSignal): Promise<QuotationPageResponse>;
+      (params?: undefined, signal?: AbortSignal): Promise<Quotation[]>;
     },
     get: (id: number) => request<Quotation>(`/quotations/${id}`),
     create: async (data: Partial<Quotation>) => {
@@ -960,13 +969,13 @@ export const api = {
     openPdf: (id: number) => openPdfDocument(`/performa-invoices/${id}/pdf`),
   },
   dashboard: {
-    get: (params?: { start?: string; end?: string; period?: string }) => {
+    get: (params?: { start?: string; end?: string; period?: string }, signal?: AbortSignal) => {
       const q = new URLSearchParams();
       if (params?.start) q.set('start', params.start);
       if (params?.end) q.set('end', params.end);
       if (params?.period) q.set('period', params.period);
       const qs = q.toString();
-      return request<DashboardData>(`/dashboard${qs ? `?${qs}` : ''}`);
+      return request<DashboardData>(`/dashboard${qs ? `?${qs}` : ''}`, { signal });
     },
     attention: () => request<AttentionData>('/dashboard/attention'),
     pipeline: (params?: { start?: string; end?: string }) => {
@@ -3040,8 +3049,8 @@ export interface GlobalSearchResponse {
   groups: Record<string, SearchResultItem[]>;
 }
 
-export async function searchGlobalApi(q: string, limit: number = 30): Promise<GlobalSearchResponse> {
-  return request<GlobalSearchResponse>(`/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+export async function searchGlobalApi(q: string, limit: number = 30, signal?: AbortSignal): Promise<GlobalSearchResponse> {
+  return request<GlobalSearchResponse>(`/search?q=${encodeURIComponent(q)}&limit=${limit}`, { signal });
 }
 
 

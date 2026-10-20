@@ -31,11 +31,97 @@ import {
   initPgNotificationListener,
   broadcastEvent,
   handleSseConnection,
+  ALLOWED_TAGS,
 } from '../client/api/_lib/db/events.js';
+
+export function getMutationTags(path, customTags) {
+  if (Array.isArray(customTags) && customTags.length > 0) {
+    return customTags.filter((t) => ALLOWED_TAGS.has(t));
+  }
+  const tags = new Set();
+  const p = (path || '').toLowerCase();
+
+  if (p.includes('/quotation')) {
+    tags.add('quotations');
+    tags.add('dashboard');
+    tags.add('opportunities');
+  }
+  if (p.includes('/sale')) {
+    tags.add('sales');
+    tags.add('dashboard');
+    tags.add('opportunities');
+    tags.add('engineers');
+    tags.add('reports');
+  }
+  if (p.includes('/compan')) {
+    tags.add('companies');
+    tags.add('dashboard');
+    tags.add('opportunities');
+  }
+  if (p.includes('/product')) {
+    tags.add('products');
+    tags.add('dashboard');
+    tags.add('inventory');
+  }
+  if (p.includes('/inventory') || p.includes('/stock') || p.includes('/warehouse')) {
+    tags.add('inventory');
+    tags.add('products');
+    tags.add('dashboard');
+  }
+  if (p.includes('/engineer')) {
+    tags.add('engineers');
+    tags.add('dashboard');
+    tags.add('sales');
+  }
+  if (p.includes('/purchase-order')) {
+    tags.add('purchase_orders');
+    tags.add('dashboard');
+    tags.add('quotations');
+  }
+  if (p.includes('/performa-invoice')) {
+    tags.add('performa_invoices');
+    tags.add('dashboard');
+    tags.add('quotations');
+  }
+  if (p.includes('/firm')) {
+    tags.add('firms');
+    tags.add('dashboard');
+    tags.add('settings');
+  }
+  if (p.includes('/branch')) {
+    tags.add('branches');
+    tags.add('firms');
+    tags.add('dashboard');
+    tags.add('settings');
+  }
+  if (p.includes('/settings')) {
+    tags.add('settings');
+    tags.add('dashboard');
+    tags.add('quotations');
+  }
+  if (p.includes('/admin')) {
+    tags.add('admin');
+    tags.add('engineers');
+    tags.add('dashboard');
+  }
+  if (p.includes('/report')) {
+    tags.add('reports');
+    tags.add('sales');
+    tags.add('companies');
+    tags.add('products');
+    tags.add('dashboard');
+  }
+  if (p.includes('/opportunit')) {
+    tags.add('opportunities');
+    tags.add('dashboard');
+  }
+
+  return Array.from(tags).filter((t) => ALLOWED_TAGS.has(t));
+}
 
 const app = express();
 
-if (process.env.DATABASE_URL) {
+if (process.env.DATABASE_URL && process.env.NODE_ENV !== 'test') {
   initPgNotificationListener(process.env.DATABASE_URL);
 }
 
@@ -77,25 +163,22 @@ app.use((req, res, next) => {
     res.setHeader('Vary', 'Accept-Encoding, Cookie');
   }
 
-  // Invalidate in-memory cache and broadcast realtime notification on mutations
+  // Defer cache invalidation and notification until AFTER route handler runs and response finishes
+  // Never broadcast when validation, authorization, or database operations failed
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-    const tags = [];
-    if (req.path.includes('/quotation')) tags.push('dashboard', 'quotations', 'opportunities');
-    if (req.path.includes('/sale')) tags.push('dashboard', 'sales', 'opportunities', 'engineers');
-    if (req.path.includes('/compan')) tags.push('dashboard', 'companies', 'opportunities');
-    if (req.path.includes('/product')) tags.push('dashboard', 'products', 'inventory');
-    if (req.path.includes('/inventory') || req.path.includes('/stock')) tags.push('inventory');
-    if (req.path.includes('/engineer')) tags.push('engineers', 'dashboard');
-    if (req.path.includes('/purchase-order') || req.path.includes('/performa-invoice')) tags.push('dashboard', 'quotations');
-
-    if (tags.length > 0) {
-      apiCache.invalidateTags(tags);
-      broadcastEvent(db.pool, {
-        entity: req.path,
-        action: req.method,
-        tags,
-      }).catch(() => {});
-    }
+    res.on('finish', () => {
+      if (res.statusCode >= 200 && res.statusCode < 300 && !res.locals.mutationFailed) {
+        const tags = getMutationTags(req.path, res.locals.mutationTags);
+        if (tags.length > 0) {
+          apiCache.invalidateTags(tags);
+          broadcastEvent(db.pool, {
+            entity: req.path,
+            action: req.method,
+            tags,
+          }).catch(() => {});
+        }
+      }
+    });
   }
   next();
 });

@@ -4,11 +4,34 @@ import { EventEmitter } from 'node:events';
 export const eventBus = new EventEmitter();
 eventBus.setMaxListeners(200);
 
+export const ALLOWED_TAGS = new Set([
+  'dashboard',
+  'quotations',
+  'sales',
+  'companies',
+  'products',
+  'inventory',
+  'engineers',
+  'purchase_orders',
+  'performa_invoices',
+  'firms',
+  'branches',
+  'settings',
+  'admin',
+  'reports',
+  'opportunities',
+  '*',
+]);
+
 export function broadcastEvent(dbPoolOrExecutor, { entity, action, tags = [] }) {
+  const rawTags = Array.isArray(tags) ? tags : [tags];
+  const validTags = rawTags.filter((t) => ALLOWED_TAGS.has(t));
+  if (validTags.length === 0) return;
+
   eventBus.emit('invalidate', {
-    entity,
-    action,
-    tags: Array.isArray(tags) ? tags : [tags],
+    entity: String(entity || 'general').slice(0, 100),
+    action: String(action || 'change').slice(0, 50),
+    tags: validTags,
     timestamp: Date.now(),
   });
 }

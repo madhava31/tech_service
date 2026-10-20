@@ -18,6 +18,8 @@ export function useRealtimeSync(enabled = true) {
 
     let isCancelled = false;
 
+    let retryDelay = 5000;
+
     function connect() {
       if (isCancelled) return;
 
@@ -26,7 +28,7 @@ export function useRealtimeSync(enabled = true) {
         eventSourceRef.current = es;
 
         es.addEventListener('connected', () => {
-          // Connected successfully
+          retryDelay = 5000;
         });
 
         es.addEventListener('invalidate', (event: MessageEvent) => {
@@ -45,14 +47,15 @@ export function useRealtimeSync(enabled = true) {
           es.close();
           eventSourceRef.current = null;
           if (!isCancelled) {
-            // Reconnect with 5s delay
-            reconnectTimeoutRef.current = setTimeout(connect, 5000);
+            reconnectTimeoutRef.current = setTimeout(connect, retryDelay);
+            retryDelay = Math.min(retryDelay * 1.5, 30000);
           }
         };
       } catch (err) {
         console.warn('[Realtime] EventSource connection failed:', err);
         if (!isCancelled) {
-          reconnectTimeoutRef.current = setTimeout(connect, 5000);
+          reconnectTimeoutRef.current = setTimeout(connect, retryDelay);
+          retryDelay = Math.min(retryDelay * 1.5, 30000);
         }
       }
     }
