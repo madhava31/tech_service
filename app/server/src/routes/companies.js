@@ -214,17 +214,24 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   const { name, address, state, gstin, contact_person, phone, email } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ error: 'name is required' });
+  const trimmed = name.trim();
   try {
+    const existing = db.prepare(`SELECT * FROM company WHERE UPPER(name) = UPPER(?)`).get(trimmed);
+    if (existing) {
+      return res.status(200).json(existing);
+    }
     const info = db
       .prepare(
         `INSERT INTO company (name, address, state, gstin, contact_person, phone, email)
          VALUES (?, ?, ?, ?, ?, ?, ?)`
       )
-      .run(name.trim(), address || null, state || null, gstin || null, contact_person || null, phone || null, email || null);
+      .run(trimmed, address || null, state || null, gstin || null, contact_person || null, phone || null, email || null);
     const row = db.prepare(`SELECT * FROM company WHERE id = ?`).get(info.lastInsertRowid);
     res.status(201).json(row);
   } catch (err) {
     if (String(err.message).includes('UNIQUE')) {
+      const existing = db.prepare(`SELECT * FROM company WHERE UPPER(name) = UPPER(?)`).get(trimmed);
+      if (existing) return res.status(200).json(existing);
       return res.status(409).json({ error: 'A company with this name already exists' });
     }
     res.status(500).json({ error: err.message });

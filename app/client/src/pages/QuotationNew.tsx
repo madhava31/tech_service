@@ -44,6 +44,8 @@ export default function QuotationNew() {
   const [items, setItems] = useState<QuotationItem[]>([emptyItem()]);
   const [quotationNumber, setQuotationNumber] = useState('');
   const [error, setError] = useState('');
+  const [successToast, setSuccessToast] = useState('');
+  const [savingItemIdx, setSavingItemIdx] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
 
@@ -120,8 +122,27 @@ export default function QuotationNew() {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   }
 
+  async function handleCreateCompany(customName: string) {
+    const trimmed = customName.trim();
+    if (!trimmed) return;
+    setError('');
+    try {
+      const created = await api.companies.create({ name: trimmed });
+      setCompanies((prev) => {
+        if (prev.some((c) => c.id === created.id)) return prev;
+        return [created, ...prev];
+      });
+      setCompanyId(created.id);
+      setSuccessToast(`Saved new customer "${created.name}" to database! Available for future quotations.`);
+      setTimeout(() => setSuccessToast(''), 5000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create company');
+    }
+  }
+
   function pickProductForItem(idx: number, partNo: string) {
-    const p = products.find((pr) => pr.part_no === partNo);
+    const trimmed = partNo.trim();
+    const p = products.find((pr) => pr.part_no.toUpperCase() === trimmed.toUpperCase());
     if (p) {
       updateItem(idx, {
         product_id: p.id,
@@ -132,7 +153,108 @@ export default function QuotationNew() {
         price: p.default_price,
       });
     } else {
-      updateItem(idx, { product_id: null, part_no: partNo });
+      updateItem(idx, { product_id: null, part_no: trimmed });
+    }
+  }
+
+  function pickProductByDescription(idx: number, descOrPart: string) {
+    const trimmed = descOrPart.trim();
+    const p = products.find(
+      (pr) =>
+        pr.description.toLowerCase() === trimmed.toLowerCase() ||
+        pr.part_no.toUpperCase() === trimmed.toUpperCase()
+    );
+    if (p) {
+      updateItem(idx, {
+        product_id: p.id,
+        part_no: p.part_no,
+        description: p.description,
+        hsn_sac: p.hsn_sac || '',
+        actual_unit_price: p.default_price,
+        price: p.default_price,
+      });
+    } else {
+      updateItem(idx, { product_id: null, description: trimmed });
+    }
+  }
+
+  async function handleCreateDescription(idx: number, customDesc: string) {
+    const trimmed = customDesc.trim();
+    if (!trimmed) return;
+    const existing = products.find((p) => p.description.trim().toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      pickProductForItem(idx, existing.part_no);
+      return;
+    }
+    updateItem(idx, {
+      product_id: null,
+      description: trimmed,
+    });
+  }
+
+  async function handleCreatePartNo(idx: number, customPartNo: string) {
+    const trimmed = customPartNo.trim();
+    if (!trimmed) return;
+    const existing = products.find((p) => p.part_no.toUpperCase() === trimmed.toUpperCase());
+    if (existing) {
+      pickProductForItem(idx, existing.part_no);
+      return;
+    }
+    updateItem(idx, {
+      product_id: null,
+      part_no: trimmed,
+    });
+  }
+
+  async function saveItemToCatalogue(idx: number) {
+    const it = items[idx];
+    if (!it) return;
+    const cleanPart = it.part_no?.trim();
+    const cleanDesc = it.description?.trim();
+    if (!cleanPart && !cleanDesc) {
+      setError('Please enter either a product description or a part number before saving to DB.');
+      return;
+    }
+
+    let finalPart = cleanPart;
+    if (!finalPart) {
+      const prefix = cleanDesc!
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((w) => w.toUpperCase().slice(0, 4))
+        .join('-');
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      finalPart = prefix ? `${prefix}-${randomSuffix}` : `PART-${randomSuffix}`;
+    }
+    const finalDesc = cleanDesc || finalPart;
+    const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : it.price) || 0;
+
+    setSavingItemIdx(idx);
+    setError('');
+    try {
+      const created = await api.products.create({
+        part_no: finalPart,
+        description: finalDesc,
+        default_price: itemPrice,
+        hsn_sac: it.hsn_sac?.trim() || null,
+        unit: 'Nos',
+      });
+      setProducts((prev) => (prev.some((p) => p.id === created.id) ? prev : [created, ...prev]));
+      updateItem(idx, {
+        product_id: created.id,
+        part_no: created.part_no,
+        description: created.description,
+        actual_unit_price: itemPrice,
+        price: itemPrice,
+        hsn_sac: created.hsn_sac || it.hsn_sac,
+      });
+      setSuccessToast(`Saved Part No "${created.part_no}" & Description to DB catalogue! Ready for future quotations.`);
+      setTimeout(() => setSuccessToast(''), 5000);
+    } catch (e: any) {
+      setError(e.message || 'Failed to save product to DB');
+    } finally {
+      setSavingItemIdx(null);
     }
   }
 
@@ -197,8 +319,46 @@ export default function QuotationNew() {
     }
     setSaving(true);
     try {
+      // Auto-save any custom products into catalogue before creating/updating quotation
+      const currentItems = [...items];
+      for (let i = 0; i < currentItems.length; i++) {
+        const it = currentItems[i];
+        if (!it.product_id && (it.part_no || it.description)) {
+          try {
+            const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : it.price) || 0;
+            const desc = it.description?.trim() || it.part_no?.trim() || 'Custom Product';
+            let partNo = it.part_no?.trim();
+            if (!partNo) {
+              const prefix = desc
+                .replace(/[^a-zA-Z0-9\s]/g, '')
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((w) => w.toUpperCase().slice(0, 4))
+                .join('-');
+              const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+              partNo = prefix ? `${prefix}-${randomSuffix}` : `PART-${randomSuffix}`;
+              it.part_no = partNo;
+            }
+            const created = await api.products.create({
+              part_no: partNo,
+              description: desc,
+              default_price: itemPrice,
+              hsn_sac: it.hsn_sac?.trim() || null,
+              unit: 'Nos',
+            });
+            it.product_id = created.id;
+            it.part_no = created.part_no;
+            setProducts((prev) => (prev.some((p) => p.id === created.id) ? prev : [created, ...prev]));
+          } catch (e) {
+            // Handled safely
+          }
+        }
+      }
+
+      const compObj = companies.find((c) => c.id === Number(companyId));
       const payload = {
         company_id: Number(companyId),
+        company_name: compObj?.name || undefined,
         sales_engineer_id: salesEngineerId ? Number(salesEngineerId) : null,
         firm_id: firmId ? Number(firmId) : null,
         branch_id: branchId ? Number(branchId) : null,
@@ -209,17 +369,21 @@ export default function QuotationNew() {
         discount_type: discountType,
         discount_value: numOverallDiscountVal,
         notes,
-        items: items.map((it) => ({
-          product_id: it.product_id || null,
-          part_no: it.part_no || null,
-          description: it.description || '',
-          hsn_sac: it.hsn_sac || null,
-          make: it.make || null,
-          qty: Number(it.qty) || 1,
-          actual_unit_price: Number(it.actual_unit_price !== undefined ? it.actual_unit_price : it.price) || 0,
-          discount_type: it.discount_type || 'none',
-          discount_value: Number(it.discount_value) || 0,
-        })),
+        items: currentItems.map((it) => {
+          const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
+          return {
+            product_id: it.product_id || null,
+            part_no: it.part_no || null,
+            description: it.description || '',
+            hsn_sac: it.hsn_sac || null,
+            make: it.make || null,
+            qty: Number(it.qty) || 1,
+            price: itemPrice,
+            actual_unit_price: itemPrice,
+            discount_type: it.discount_type || 'none',
+            discount_value: Number(it.discount_value) || 0,
+          };
+        }),
       };
 
       if (isEdit) {
@@ -238,14 +402,14 @@ export default function QuotationNew() {
 
   if (loading) {
     return (
-      <div className="p-6 text-[#7A839E] text-sm">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-[#7A839E] text-sm text-center">
         Loading quotation details...
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E4E8F2]">
         <div>
@@ -270,6 +434,24 @@ export default function QuotationNew() {
         </button>
       </div>
 
+      {successToast && (
+        <div className="p-4 bg-[#10B981]/10 border border-[#10B981]/30 rounded-xl text-[#059669] text-sm flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center space-x-2">
+            <svg className="w-5 h-5 shrink-0 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="font-medium">{successToast}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSuccessToast('')}
+            className="text-xs text-[#059669] hover:underline cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="p-4 bg-[#E5484D]/10 border border-[#E5484D]/30 rounded-xl text-[#E5484D] text-sm flex items-center space-x-2">
           <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -279,17 +461,32 @@ export default function QuotationNew() {
         </div>
       )}
 
-      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 space-y-6">
+      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 sm:p-8 space-y-6 shadow-xs">
         {/* Primary Quotation Details Header Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-6">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Customer / Company</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E]">Customer / Company</label>
+              {companyId ? (
+                <span className="text-[11px] font-semibold text-[#10B981] flex items-center gap-1">
+                  ✓ Selected
+                </span>
+              ) : (
+                <span className="text-[11px] text-[#7A839E]">Pick existing or type new</span>
+              )}
+            </div>
             <SearchableSelect
               options={companies.map((c) => ({ value: String(c.id), label: c.name }))}
               value={companyId === '' ? '' : String(companyId)}
               onChange={(v) => setCompanyId(v ? Number(v) : '')}
-              placeholder="Search or select company..."
+              placeholder="Search or enter customer name..."
+              allowCustom={true}
+              onCreateCustom={handleCreateCompany}
+              customLabel={(val) => `Add & save new customer "${val}" to DB`}
             />
+            <p className="text-[11px] text-[#7A839E] mt-1">
+              Select an existing customer or type a new name to save it to the DB catalogue.
+            </p>
           </div>
 
           <div className="md:col-span-3">
@@ -358,59 +555,47 @@ export default function QuotationNew() {
 
         {/* Line Items Section */}
         <div>
-          <h2 className="text-base font-semibold text-[#141B34] mb-3 pb-2 border-b border-[#E4E8F2]">
-            Quotation Line Items & Product Discounts
-          </h2>
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#E4E8F2]">
+            <h2 className="text-base font-semibold text-[#141B34]">
+              Quotation Line Items & Product Discounts
+            </h2>
+            <span className="text-xs text-[#7A839E]">
+              {items.length} {items.length === 1 ? 'item' : 'items'}
+            </span>
+          </div>
 
           {/* Line Item Rows */}
           <div className="space-y-4">
             {computedItems.map((it, idx) => (
-              <div key={idx} className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3.5 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                  <div className="sm:col-span-4">
-                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Product Description</label>
-                    <input
-                      type="text"
-                      placeholder="Product description or service details..."
-                      value={it.description}
-                      onChange={(e) => updateItem(idx, { description: e.target.value })}
-                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-3 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
-                    />
+              <div key={idx} className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-4 space-y-3">
+                {/* Header status bar for item */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#E4E8F2]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[#141B34]">Line Item #{idx + 1}</span>
+                    {it.product_id ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] text-[11px] font-semibold border border-[#A7F3D0]">
+                        ✓ Saved in DB Catalogue
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFFBEB] text-[#B45309] text-[11px] font-medium border border-[#FDE68A]">
+                        New Item
+                      </span>
+                    )}
                   </div>
 
-                  <div className="sm:col-span-3">
-                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Part No (Catalogue)</label>
-                    <SearchableSelect
-                      options={products.map((p) => ({ value: p.part_no, label: `${p.part_no} — ${p.description}` }))}
-                      value={it.part_no || ''}
-                      onChange={(v) => pickProductForItem(idx, v)}
-                      placeholder="Part no..."
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">HSN/SAC</label>
-                    <input
-                      type="text"
-                      placeholder="HSN"
-                      value={it.hsn_sac || ''}
-                      onChange={(e) => updateItem(idx, { hsn_sac: e.target.value })}
-                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Make</label>
-                    <input
-                      type="text"
-                      placeholder="Brand"
-                      value={it.make || ''}
-                      onChange={(e) => updateItem(idx, { make: e.target.value })}
-                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-1 flex justify-end items-center pt-4 sm:pt-0">
+                  <div className="flex items-center gap-2">
+                    {!it.product_id && (
+                      <button
+                        type="button"
+                        onClick={() => saveItemToCatalogue(idx)}
+                        disabled={savingItemIdx === idx || (!it.part_no?.trim() && !it.description?.trim())}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4F46E5] text-xs font-semibold rounded-lg border border-[#C7D2FE] transition-colors cursor-pointer disabled:opacity-40"
+                        title="Save this part number and description into the DB catalogue for future use"
+                      >
+                        <span>💾</span>
+                        <span>{savingItemIdx === idx ? 'Saving to DB...' : 'Save Part & Desc to DB'}</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => removeItem(idx)}
@@ -425,6 +610,47 @@ export default function QuotationNew() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                  <div className="sm:col-span-5">
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Product Description</label>
+                    <SearchableSelect
+                      options={products.map((p) => ({ value: p.description, label: p.description }))}
+                      value={it.description || ''}
+                      onChange={(v) => pickProductByDescription(idx, v)}
+                      placeholder="Enter or select product description..."
+                      allowCustom={true}
+                      onCreateCustom={(val) => handleCreateDescription(idx, val)}
+                      customLabel={(val) => `Add & use description "${val}"`}
+                      size="sm"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-4">
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">Part No (Catalogue)</label>
+                    <SearchableSelect
+                      options={products.map((p) => ({ value: p.part_no, label: `${p.part_no} — ${p.description}` }))}
+                      value={it.part_no || ''}
+                      onChange={(v) => pickProductForItem(idx, v)}
+                      placeholder="Part no..."
+                      allowCustom={true}
+                      onCreateCustom={(val) => handleCreatePartNo(idx, val)}
+                      customLabel={(val) => `Add & use part no "${val}"`}
+                      size="sm"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[10px] font-bold uppercase text-[#7A839E] mb-1">HSN/SAC</label>
+                    <input
+                      type="text"
+                      placeholder="HSN"
+                      value={it.hsn_sac || ''}
+                      onChange={(e) => updateItem(idx, { hsn_sac: e.target.value })}
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono"
+                    />
+                  </div>
+                </div>
+
                 {/* Line Pricing & Product Discount Controls Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-[#F7F8FC] items-center bg-[#F7F8FC] p-2.5 rounded-lg">
                   <div className="sm:col-span-2">
@@ -436,7 +662,7 @@ export default function QuotationNew() {
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => updateItem(idx, { qty: e.target.value === '' ? 0 : Number(e.target.value) })}
                       placeholder="1"
-                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] tabular-nums"
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] tabular-nums"
                     />
                   </div>
 
@@ -450,7 +676,7 @@ export default function QuotationNew() {
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => updateItem(idx, { actual_unit_price: e.target.value === '' ? 0 : Number(e.target.value), price: e.target.value === '' ? 0 : Number(e.target.value) })}
                       placeholder="0"
-                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] text-right tabular-nums font-mono"
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] text-right tabular-nums font-mono"
                     />
                   </div>
 
@@ -459,7 +685,7 @@ export default function QuotationNew() {
                     <select
                       value={it.discount_type || 'none'}
                       onChange={(e) => updateItem(idx, { discount_type: e.target.value as any })}
-                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
                     >
                       <option value="none">No Disc</option>
                       <option value="percentage">Percentage (%)</option>
@@ -478,7 +704,7 @@ export default function QuotationNew() {
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => updateItem(idx, { discount_value: e.target.value === '' ? 0 : Number(e.target.value) })}
                       placeholder="0"
-                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-2 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] text-right tabular-nums disabled:opacity-40"
+                      className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] text-right tabular-nums disabled:opacity-40"
                     />
                   </div>
 
