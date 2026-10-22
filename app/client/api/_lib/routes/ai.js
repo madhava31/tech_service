@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { askGemini } from '../ai/gemini.js';
+import { askClaude } from '../ai/claude.js';
 import { SYSTEM_INSTRUCTION } from '../ai/prompt.js';
 import { TOOL_DECLARATIONS, executeTool } from '../ai/tools.js';
 
@@ -17,9 +18,9 @@ function sanitizeHistory(raw) {
   if (!Array.isArray(raw)) return [];
   const cleaned = [];
   for (const item of raw) {
-    if (!item || (item.role !== 'user' && item.role !== 'model')) continue;
+    if (!item || (item.role !== 'user' && item.role !== 'model' && item.role !== 'assistant')) continue;
     if (typeof item.text !== 'string' || !item.text.trim()) continue;
-    cleaned.push({ role: item.role, text: item.text.slice(0, MAX_HISTORY_TEXT_LENGTH) });
+    cleaned.push({ role: item.role === 'assistant' ? 'model' : item.role, text: item.text.slice(0, MAX_HISTORY_TEXT_LENGTH) });
   }
   return cleaned.slice(-MAX_HISTORY_MESSAGES);
 }
@@ -33,7 +34,10 @@ router.post('/ask', async (req, res) => {
   const history = sanitizeHistory(req.body?.history);
 
   try {
-    const result = await askGemini({
+    const useClaude = !!(process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY);
+    const askFn = useClaude ? askClaude : askGemini;
+
+    const result = await askFn({
       question,
       systemInstruction: SYSTEM_INSTRUCTION,
       toolDeclarations: TOOL_DECLARATIONS,
