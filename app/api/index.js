@@ -152,8 +152,14 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Normalize URL path so Express routes match whether Vercel preserves or strips the /api prefix
+// Normalize URL from Vercel edge rewrite headers (x-matched-path, x-invoke-path)
 app.use((req, res, next) => {
+  const matchedPath = req.headers['x-matched-path'] || req.headers['x-invoke-path'];
+  if (matchedPath && !matchedPath.endsWith('/index.js') && !matchedPath.endsWith('/index')) {
+    const qIdx = req.url.indexOf('?');
+    const query = qIdx !== -1 ? req.url.slice(qIdx) : '';
+    req.url = matchedPath + query;
+  }
   if (!req.url.startsWith('/api')) {
     req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
   }
