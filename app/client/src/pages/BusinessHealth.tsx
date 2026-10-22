@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, type BusinessHealthComponent, type BusinessHealthData } from '../api';
+import { queryClient } from '../lib/queryClient';
+import { RotateCcw, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 function componentTone(score: number | null): string {
   if (score == null) return '#7A839E';
@@ -9,15 +11,38 @@ function componentTone(score: number | null): string {
 }
 
 export default function BusinessHealth() {
-  const [businessHealth, setBusinessHealth] = useState<BusinessHealthData | null>(null);
+  const cachedHealth = queryClient.getQueryData<BusinessHealthData>(['dashboard', 'businessHealth']);
+  const [businessHealth, setBusinessHealth] = useState<BusinessHealthData | null>(cachedHealth || null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedHealth);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchData = () => {
-    setLoading(true);
+  function showToast(type: 'success' | 'error', message: string) {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast({ type, message });
+    toastTimerRef.current = setTimeout(() => setToast(null), 5000);
+  }
+
+  useEffect(() => () => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+  }, []);
+
+  const fetchData = (force: boolean | unknown = false) => {
+    const shouldForce = force === true;
+    if (!businessHealth || shouldForce) {
+      setLoading(true);
+    }
     setError('');
-    api.dashboard
-      .businessHealth()
+    queryClient
+      .fetchQuery({
+        queryKey: ['dashboard', 'businessHealth'],
+        queryFn: () => api.dashboard.businessHealth(),
+        staleTime: 60000,
+        tags: ['dashboard', 'businessHealth'],
+        force: shouldForce,
+      })
       .then((data) => {
         setBusinessHealth(data);
       })
@@ -33,20 +58,144 @@ export default function BusinessHealth() {
     fetchData();
   }, []);
 
+  const handleReset = async () => {
+    if (actionLoading) return;
+    const confirmMsg =
+      'Are you sure you want to reset the Business Health data?\n\n' +
+      'This will reset only this page\'s score and metrics.\n' +
+      'Your actual company records, products, quotations, and reports will NOT be affected.';
+    if (!window.confirm(confirmMsg)) return;
+
+    setActionLoading(true);
+    try {
+      const res = await api.dashboard.resetBusinessHealth();
+      showToast('success', res.message || 'Business Health page data has been reset.');
+      fetchData();
+    } catch (e: any) {
+      const errorMsg =
+        e.message === 'Internal Server Error'
+          ? 'Unable to connect to server. Please try again.'
+          : (e.message || 'Failed to reset page data.');
+      showToast('error', errorMsg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
+    try {
+      const res = await api.dashboard.restoreBusinessHealth();
+      showToast('success', res.message || 'Business Health re-synced with system data.');
+      fetchData();
+    } catch (e: any) {
+      const errorMsg =
+        e.message === 'Internal Server Error'
+          ? 'Unable to connect to server. Please try again.'
+          : (e.message || 'Failed to sync page data.');
+      showToast('error', errorMsg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const overallScore = businessHealth?.overallScore ?? null;
   const strokeDashoffset = overallScore != null ? 490 - (overallScore / 100) * 490 : 490;
 
   return (
     <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+      {toast && (
+        <div
+          role="status"
+          className={`fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-[12px] shadow-lg border flex items-start gap-3 transition-all ${
+            toast.type === 'success'
+              ? 'bg-[#E3F7EC] border-[#BFEAD3] text-[#1E8A52]'
+              : 'bg-[#F8E4E4] border-[#F4D6D7] text-[#C8323A]'
+          }`}
+        >
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          )}
+          <span className="text-[13px] font-medium leading-snug flex-1">{toast.message}</span>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            className="text-current opacity-60 hover:opacity-100 cursor-pointer text-[16px] leading-none"
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Page Header */}
-      <div className="flex flex-col gap-1.5">
-        <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
-          Business Health
-        </h1>
-        <p className="margin-0 text-[13.5px] text-[#7A839E]">
-          A composite read of momentum, pipeline, collections, retention and mix.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+            Business Health
+          </h1>
+          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+            A composite read of momentum, pipeline, collections, retention and mix.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {businessHealth?.isReset ? (
+            <button
+              type="button"
+              onClick={handleRestore}
+              disabled={actionLoading || loading}
+              className="h-[34px] px-3.5 rounded-[9px] bg-[#FFFFFF] border border-[#D9E2F4] text-[#3B6FD4] hover:bg-[#F4F6FC] text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+              title="Sync with Live System Data"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
+              <span>{actionLoading ? 'Syncing...' : 'Re-sync System Data'}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={actionLoading || loading}
+              className="h-[34px] px-3.5 rounded-[9px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#E5484D] hover:bg-[#FDF2F2] hover:border-[#F4D6D7] text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+              title="Reset Business Health page data only"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
+              <span>{actionLoading ? 'Resetting...' : 'Reset Page Data'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={fetchData}
+            disabled={loading || actionLoading}
+            className="h-[34px] w-[34px] rounded-[9px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC] flex items-center justify-center cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+            title="Refresh Score"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
+
+      {/* Reset State Notice Banner */}
+      {businessHealth?.isReset && (
+        <div className="p-3.5 rounded-[12px] bg-[#FFF8EB] border border-[#F6ECDC] text-[#D97706] text-[12.5px] flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold shrink-0">Notice:</span>
+            <span>Business Health page data has been reset. All other system records (companies, products, quotations, reports) remain completely untouched.</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleRestore}
+            disabled={actionLoading}
+            className="px-3 py-1 rounded-[7px] bg-[#FFFFFF] border border-[#E8D7BE] text-[#B45309] font-medium text-[11.5px] hover:bg-[#FEF3C7] cursor-pointer shrink-0 transition-colors"
+          >
+            Restore Live Data
+          </button>
+        </div>
+      )}
 
       {error ? (
         <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">

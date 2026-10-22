@@ -17,6 +17,44 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+export async function openPdfDocument(path: string): Promise<void> {
+  const res = await fetch(`${BASE}${path}`, {
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(body.error || `Failed to generate PDF (${res.status})`);
+  }
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  window.open(blobUrl, '_blank');
+}
+
+import { queryClient } from './lib/queryClient';
+
+export async function cachedFetch<T>(
+  key: string,
+  fetcher: (signal?: AbortSignal) => Promise<T>,
+  ttlMs = 60000,
+  signal?: AbortSignal
+): Promise<T> {
+  const tag = key.split('_')[0] || key;
+  return queryClient.fetchQuery<T>({
+    queryKey: key,
+    queryFn: (s) => fetcher(signal || s),
+    staleTime: ttlMs,
+    tags: [tag],
+  });
+}
+
+export function clearCache(keyPattern?: string) {
+  if (!keyPattern) {
+    queryClient.clear();
+    return;
+  }
+  queryClient.invalidateTags([keyPattern]);
+}
+
 export interface Company {
   id: number;
   name: string;
@@ -96,6 +134,10 @@ export interface ProductIntelligenceData {
     quotedQty: number;
     quotationCount: number;
   };
+  purchaseActivity?: {
+    timesPurchased: number;
+    purchasedQty: number;
+  };
 }
 
 export interface ProductIntelligenceSummaryRow {
@@ -140,6 +182,8 @@ export interface ProductImportErrorRow {
   productName: string | null;
   partNo: string | null;
   price: number | null;
+  hsnSac?: string;
+  unit?: string;
   errors: string[];
 }
 
@@ -148,6 +192,8 @@ export interface ProductImportValidRow {
   productName: string;
   partNo: string;
   price: number;
+  hsnSac?: string;
+  unit?: string;
 }
 
 export interface ProductImportNewRow {
@@ -155,6 +201,8 @@ export interface ProductImportNewRow {
   productName: string;
   partNo: string;
   price: number;
+  hsnSac?: string;
+  unit?: string;
 }
 
 export interface ProductImportUpdateRow {
@@ -163,6 +211,8 @@ export interface ProductImportUpdateRow {
   partNo: string;
   currentPrice: number;
   newPrice: number;
+  hsnSac?: string;
+  unit?: string;
 }
 
 export interface ProductImportPreview {
@@ -207,6 +257,7 @@ export interface Quotation {
   company_name?: string;
   sales_engineer_id?: number | null;
   sales_engineer_name?: string | null;
+  sales_engineer_code?: string | null;
   firm_id?: number | null;
   firm_name?: string | null;
   branch_id?: number | null;
@@ -231,6 +282,35 @@ export interface Quotation {
   total: number;
   notes: string;
   items?: QuotationItem[];
+}
+
+export interface QuotationListParams {
+  page?: number;
+  pageSize?: number;
+  searchNumber?: string;
+  searchCompany?: string;
+  status?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  paginated?: boolean;
+}
+
+export interface QuotationPageResponse {
+  items: Quotation[];
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+  total: number;
+  stageCounts: {
+    All: number;
+    Draft: number;
+    Sent: number;
+    Accepted: number;
+    Rejected: number;
+    [key: string]: number;
+  };
 }
 
 export interface QuotationStockItemAnalysis {
@@ -265,6 +345,7 @@ export interface QuotationStockAnalysisResponse {
 export interface SalesEngineer {
   id: number;
   code: string;
+  employee_code?: string;
   name: string;
   email: string | null;
   phone: string | null;
@@ -463,8 +544,10 @@ export interface PeriodTabData {
 
 export interface DashboardData {
   historicalRevenue: number;
+  periodRevenue?: number;
   acceptedQuotationRevenue: number;
-  monthlyTrend: { month: string; total: number }[];
+  monthlyTrend: { month: string; label?: string; total: number }[];
+  trend?: { label: string; value: number; key?: string }[];
   topCompanies: { company_name: string; total: number; orders: number }[];
   topProducts: { part_no: string; product_description: string; total: number; qty: number }[];
   counts: {
@@ -507,6 +590,7 @@ export interface BusinessHealthData {
     repeatBusiness: BusinessHealthComponent;
   };
   recommendation: BusinessHealthRecommendation | null;
+  isReset?: boolean;
 }
 
 export interface InactiveCustomer {
@@ -727,20 +811,53 @@ export interface AiChatMessage {
 
 export const api = {
   companies: {
-    list: (q?: string) => request<Company[]>(`/companies${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+    list: (q?: string, signal?: AbortSignal) =>
+      q
+        ? request<Company[]>(`/companies?q=${encodeURIComponent(q)}`, { signal })
+        : cachedFetch('companies_all', (s) => request<Company[]>('/companies', { signal: signal || s }), 60000, signal),
     get: (id: number) => request<Company>(`/companies/${id}`),
-    create: (data: Partial<Company>) => request<Company>('/companies', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: Partial<Company>) =>
-      request<Company>(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    create: async (data: Partial<Company>) => {
+      const res = await request<Company>('/companies', { method: 'POST', body: JSON.stringify(data) });
+      clearCache('companies');
+      return res;
+    },
+    update: async (id: number, data: Partial<Company>) => {
+      const res = await request<Company>(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('companies');
+      return res;
+    },
     health: (id: number) => request<CompanyHealthData>(`/companies/${id}/health`),
     healthSummary: () => request<CustomerHealthSummaryData>('/companies/health-summary'),
+    delete: async (id: number) => {
+      const res = await request<{ ok: boolean }>(`/companies/${id}`, { method: 'DELETE' });
+      clearCache('companies');
+      return res;
+    },
+    bulkDelete: async (ids: number[]) => {
+      const res = await request<{ success: boolean; deletedCount: number; blockedCount?: number; blockedNames?: string[]; message?: string }>(
+        '/companies/bulk-delete',
+        { method: 'POST', body: JSON.stringify({ ids }) }
+      );
+      clearCache('companies');
+      return res;
+    },
   },
   products: {
-    list: (q?: string) => request<Product[]>(`/products${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+    list: (q?: string, signal?: AbortSignal) =>
+      q
+        ? request<Product[]>(`/products?q=${encodeURIComponent(q)}`, { signal })
+        : cachedFetch('products_all', (s) => request<Product[]>('/products', { signal: signal || s }), 60000, signal),
     get: (id: number) => request<Product>(`/products/${id}`),
-    create: (data: Partial<Product>) => request<Product>('/products', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: Partial<Product>) =>
-      request<Product>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    create: async (data: Partial<Product>) => {
+      const res = await request<Product>('/products', { method: 'POST', body: JSON.stringify(data) });
+      clearCache('products');
+      return res;
+    },
+    update: async (id: number, data: Partial<Product>) => {
+      const res = await request<Product>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('products');
+      return res;
+    },
     intelligence: (id: number) => request<ProductIntelligenceData>(`/products/${id}/intelligence`),
     intelligenceSummary: () => request<ProductIntelligenceSummaryData>('/products/intelligence-summary'),
     templateUrl: () => `${BASE}/products/import/template`,
@@ -752,24 +869,65 @@ export const api = {
       if (!res.ok) throw new Error(body.error || `Preview failed: ${res.status}`);
       return body as ProductImportPreview;
     },
-    importCommit: (rows: ProductImportValidRow[]) =>
-      request<ProductImportResult>('/products/import', { method: 'POST', body: JSON.stringify({ rows }) }),
+    importCommit: async (rows: ProductImportValidRow[]) => {
+      const res = await request<ProductImportResult>('/products/import', { method: 'POST', body: JSON.stringify({ rows }) });
+      clearCache('products');
+      return res;
+    },
   },
   quotations: {
-    list: () => request<Quotation[]>('/quotations'),
+    list: ((params?: QuotationListParams, signal?: AbortSignal) => {
+      if (!params || (!params.page && !params.pageSize && !params.paginated && !params.searchNumber && !params.searchCompany && !params.status && !params.dateStart && !params.dateEnd && params.minAmount === undefined && params.maxAmount === undefined)) {
+        return request<Quotation[]>('/quotations', { signal });
+      }
+      const q = new URLSearchParams();
+      if (params.page !== undefined) q.set('page', String(params.page));
+      if (params.pageSize !== undefined) q.set('pageSize', String(params.pageSize));
+      if (params.searchNumber) q.set('searchNumber', params.searchNumber);
+      if (params.searchCompany) q.set('searchCompany', params.searchCompany);
+      if (params.status) q.set('status', params.status);
+      if (params.dateStart) q.set('dateStart', params.dateStart);
+      if (params.dateEnd) q.set('dateEnd', params.dateEnd);
+      if (params.minAmount !== undefined) q.set('minAmount', String(params.minAmount));
+      if (params.maxAmount !== undefined) q.set('maxAmount', String(params.maxAmount));
+      if (params.paginated) q.set('paginated', 'true');
+      const qs = q.toString();
+      return request<QuotationPageResponse>(`/quotations${qs ? `?${qs}` : ''}`, { signal });
+    }) as {
+      (params: QuotationListParams, signal?: AbortSignal): Promise<QuotationPageResponse>;
+      (params?: undefined, signal?: AbortSignal): Promise<Quotation[]>;
+    },
     get: (id: number) => request<Quotation>(`/quotations/${id}`),
-    create: (data: Partial<Quotation>) => request<Quotation>('/quotations', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: Partial<Quotation>) =>
-      request<Quotation>(`/quotations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    create: async (data: Partial<Quotation>) => {
+      const res = await request<Quotation>('/quotations', { method: 'POST', body: JSON.stringify(data) });
+      clearCache('quotations');
+      clearCache('products');
+      return res;
+    },
+    update: async (id: number, data: Partial<Quotation>) => {
+      const res = await request<Quotation>(`/quotations/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('quotations');
+      clearCache('products');
+      return res;
+    },
+    delete: async (id: number) => {
+      const res = await request<{ success: boolean; message: string }>(`/quotations/${id}`, { method: 'DELETE' });
+      clearCache('quotations');
+      return res;
+    },
     calculatePricing: (data: {
       items: any[];
       overallDiscountType?: string;
       overallDiscountValue?: number;
       taxPercent?: number;
     }) => request<any>('/quotations/calculate-pricing', { method: 'POST', body: JSON.stringify(data) }),
-    setStatus: (id: number, status: string) =>
-      request<Quotation>(`/quotations/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+    setStatus: async (id: number, status: string) => {
+      const res = await request<Quotation>(`/quotations/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) });
+      clearCache('quotations');
+      return res;
+    },
     pdfUrl: (id: number) => `${BASE}/quotations/${id}/pdf`,
+    openPdf: (id: number) => openPdfDocument(`/quotations/${id}/pdf`),
     stockAnalysis: (data: { warehouse_id?: number; items: { product_id?: number; part_no?: string; qty: number }[] }) =>
       request<QuotationStockAnalysisResponse>('/quotations/stock-analysis', { method: 'POST', body: JSON.stringify(data) }),
     followUps: {
@@ -789,27 +947,35 @@ export const api = {
     },
   },
   purchaseOrders: {
-    list: () => request<PurchaseOrder[]>('/purchase-orders'),
+    list: (params?: { quotation_id?: number }) => {
+      const qs = params?.quotation_id ? `?quotation_id=${encodeURIComponent(params.quotation_id)}` : '';
+      return request<PurchaseOrder[]>(`/purchase-orders${qs}`);
+    },
     get: (id: number) => request<PurchaseOrder>(`/purchase-orders/${id}`),
     create: (data: { quotation_id: number; client_po_ref?: string; date?: string }) =>
       request<PurchaseOrder>('/purchase-orders', { method: 'POST', body: JSON.stringify(data) }),
     pdfUrl: (id: number) => `${BASE}/purchase-orders/${id}/pdf`,
+    openPdf: (id: number) => openPdfDocument(`/purchase-orders/${id}/pdf`),
   },
   performaInvoices: {
-    list: () => request<PerformaInvoice[]>('/performa-invoices'),
+    list: (params?: { quotation_id?: number }) => {
+      const qs = params?.quotation_id ? `?quotation_id=${encodeURIComponent(params.quotation_id)}` : '';
+      return request<PerformaInvoice[]>(`/performa-invoices${qs}`);
+    },
     get: (id: number) => request<PerformaInvoice>(`/performa-invoices/${id}`),
     create: (data: { quotation_id: number; purchase_order_id?: number; date?: string }) =>
       request<PerformaInvoice>('/performa-invoices', { method: 'POST', body: JSON.stringify(data) }),
     pdfUrl: (id: number) => `${BASE}/performa-invoices/${id}/pdf`,
+    openPdf: (id: number) => openPdfDocument(`/performa-invoices/${id}/pdf`),
   },
   dashboard: {
-    get: (params?: { start?: string; end?: string; period?: string }) => {
+    get: (params?: { start?: string; end?: string; period?: string }, signal?: AbortSignal) => {
       const q = new URLSearchParams();
       if (params?.start) q.set('start', params.start);
       if (params?.end) q.set('end', params.end);
       if (params?.period) q.set('period', params.period);
       const qs = q.toString();
-      return request<DashboardData>(`/dashboard${qs ? `?${qs}` : ''}`);
+      return request<DashboardData>(`/dashboard${qs ? `?${qs}` : ''}`, { signal });
     },
     attention: () => request<AttentionData>('/dashboard/attention'),
     pipeline: (params?: { start?: string; end?: string }) => {
@@ -829,6 +995,10 @@ export const api = {
     followUpsDueToday: () => request<DueTodayFollowUpsData>('/dashboard/follow-ups-due-today'),
     recentActivity: () => request<RecentActivityData>('/dashboard/recent-activity'),
     businessHealth: () => request<BusinessHealthData>('/dashboard/business-health'),
+    resetBusinessHealth: () =>
+      request<{ success: boolean; message: string }>('/dashboard/business-health/reset', { method: 'POST' }),
+    restoreBusinessHealth: () =>
+      request<{ success: boolean; message: string }>('/dashboard/business-health/restore', { method: 'POST' }),
   },
   reports: {
     companies: (filters?: { startDate?: string; endDate?: string; partNo?: string }) => {
@@ -854,6 +1024,33 @@ export const api = {
     companyYearComparison: (company: string) =>
       request<{ years: string[]; products: any[] }>(`/reports/companies/${encodeURIComponent(company)}/year-comparison`),
     exportUrl: (type: 'companies' | 'products') => `${BASE}/reports/export?type=${type}`,
+    deleteCompanySales: (name: string) =>
+      request<{ success: boolean; deletedCount: number }>(`/reports/companies/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      }),
+    bulkDeleteCompanies: (companyNames: string[]) =>
+      request<{ success: boolean; deletedCount: number; message: string }>('/reports/companies/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ companyNames }),
+      }),
+    deleteProductSales: (partNo: string) =>
+      request<{ success: boolean; deletedCount: number }>(`/reports/products/${encodeURIComponent(partNo)}`, {
+        method: 'DELETE',
+      }),
+    bulkDeleteProducts: (partNos: string[]) =>
+      request<{ success: boolean; deletedCount: number; message: string }>('/reports/products/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ partNos }),
+      }),
+    deleteReviewItem: (id: number) =>
+      request<{ success: boolean; deletedCount: number }>(`/reports/review-queue/${id}`, {
+        method: 'DELETE',
+      }),
+    bulkDeleteReviewItems: (ids: number[]) =>
+      request<{ success: boolean; deletedCount: number; message: string }>('/reports/review-queue/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ ids }),
+      }),
   },
   settings: {
     get: () => request<CompanySettings>('/settings'),
@@ -927,12 +1124,31 @@ export const api = {
   inventory: {
     getOverview: () => request<InventoryOverviewData>('/inventory/overview'),
     listWarehouses: (activeOnly?: boolean) =>
-      request<Warehouse[]>(`/inventory/warehouses${activeOnly ? '?active=true' : ''}`),
+      cachedFetch(`warehouses_${!!activeOnly}`, () => request<Warehouse[]>(`/inventory/warehouses${activeOnly ? '?active=true' : ''}`)),
     getWarehouse: (id: number) => request<WarehouseDetailResponse>(`/inventory/warehouses/${id}`),
-    createWarehouse: (data: { name: string; code: string; address?: string; city?: string; state?: string; isDefault?: boolean }) =>
-      request<Warehouse>('/inventory/warehouses', { method: 'POST', body: JSON.stringify(data) }),
-    updateWarehouse: (id: number, data: Partial<{ name: string; code: string; address: string; city: string; state: string; isActive: boolean; isDefault: boolean }>) =>
-      request<Warehouse>(`/inventory/warehouses/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    createWarehouse: async (data: { name: string; code: string; address?: string; city?: string; state?: string; isDefault?: boolean }) => {
+      const res = await request<Warehouse>('/inventory/warehouses', { method: 'POST', body: JSON.stringify(data) });
+      clearCache('warehouses');
+      return res;
+    },
+    updateWarehouse: async (id: number, data: Partial<{ name: string; code: string; address: string; city: string; state: string; isActive: boolean; isDefault: boolean }>) => {
+      const res = await request<Warehouse>(`/inventory/warehouses/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+      clearCache('warehouses');
+      return res;
+    },
+    deleteWarehouse: async (id: number) => {
+      const res = await request<{ success: boolean; id: number; name: string }>(`/inventory/warehouses/${id}`, { method: 'DELETE' });
+      clearCache('warehouses');
+      return res;
+    },
+    bulkDeleteWarehouses: async (ids: number[]) => {
+      const res = await request<{ success: boolean; deletedCount: number }>('/inventory/warehouses/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ ids }),
+      });
+      clearCache('warehouses');
+      return res;
+    },
     getStockSummary: (params?: { warehouseId?: number; lowStock?: boolean; status?: string; q?: string; limit?: number; offset?: number }) => {
       const q = new URLSearchParams();
       if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
@@ -944,8 +1160,37 @@ export const api = {
       const qs = q.toString();
       return request<InventoryStockSummaryResponse>(`/inventory/stock${qs ? `?${qs}` : ''}`);
     },
+    deleteStockItem: (productId: number) =>
+      request<{ success: boolean; id: number; partNo?: string }>(`/inventory/stock/${productId}`, { method: 'DELETE' }),
+    bulkDeleteStockItems: (productIds: number[]) =>
+      request<{ success: boolean; deletedCount: number }>('/inventory/stock/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ productIds }),
+      }),
+    importStockExcel: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${BASE}/inventory/stock/import-excel`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: 'Import failed' }));
+        throw new Error(body.error || 'Failed to import Excel file');
+      }
+      return res.json() as Promise<{
+        success: boolean;
+        totalRows: number;
+        created: number;
+        updated: number;
+        errors: string[];
+      }>;
+    },
+    getStockTemplateUrl: () => `${BASE}/inventory/stock/template`,
     getProductStock: (productId: number, warehouseId?: number) =>
       request<ProductStockDetailResponse>(`/inventory/stock/${productId}${warehouseId ? `?warehouseId=${warehouseId}` : ''}`),
+
     recordStockIn: (data: { warehouseId: number; productId: number; quantity: number; referenceType?: string; referenceId?: string; reason?: string }) =>
       request<{ stock: any; movement: InventoryMovement }>('/inventory/stock-in', { method: 'POST', body: JSON.stringify(data) }),
     recordStockOut: (data: { warehouseId: number; productId: number; quantity: number; referenceType?: string; referenceId?: string; reason?: string }) =>
@@ -981,7 +1226,29 @@ export const api = {
       return request<{ reservations: StockReservation[]; total: number; limit: number; offset: number }>(`/inventory/reservations${qs ? `?${qs}` : ''}`);
     },
     getReservation: (id: number) => request<StockReservationDetailResponse>(`/inventory/reservations/${id}`),
+    deleteReservation: (id: number) => request<{ success: boolean; id: number }>(`/inventory/reservations/${id}`, { method: 'DELETE' }),
+    bulkDeleteReservations: (ids: number[]) =>
+      request<{ success: boolean; deletedCount: number }>('/inventory/reservations/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ ids }),
+      }),
+    importReservationsExcel: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${BASE}/inventory/reservations/import-excel`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Import failed' }));
+        throw new Error(err.error || 'Failed to import reservations');
+      }
+      return res.json() as Promise<{ success: boolean; createdCount: number; errors: string[] }>;
+    },
+    getReservationsTemplateUrl: () => `${BASE}/inventory/reservations/template`,
     getStockIntelligence: (params?: { warehouseId?: number; productId?: number; period?: number; start?: string; end?: string; limit?: number; offset?: number }) => {
+
       const q = new URLSearchParams();
       if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
       if (params?.productId) q.set('productId', String(params.productId));
@@ -1058,7 +1325,35 @@ export const api = {
       },
       previewRows: (data: { warehouseId: number; rows: { partNo: string; quantity: number | string; notes?: string; rowNumber?: number }[] }) =>
         request<ExcelPreviewResponse>('/inventory/receipts/preview-rows', { method: 'POST', body: JSON.stringify(data) }),
+      delete: (id: number) => request<{ success: boolean; id: number }>(`/inventory/receipts/${id}`, { method: 'DELETE' }),
+      bulkDelete: (ids: number[]) =>
+        request<{ success: boolean; deletedCount: number }>('/inventory/receipts/bulk-delete', {
+          method: 'POST',
+          body: JSON.stringify({ ids }),
+        }),
+      importExcel: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch(`${BASE}/inventory/receipts/import-excel`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Import failed' }));
+          throw new Error(err.error || 'Failed to import stock receipts from Excel');
+        }
+        return res.json() as Promise<{
+          success: boolean;
+          receiptId: number;
+          receiptNumber: string;
+          totalItems: number;
+          totalQuantity: number;
+        }>;
+      },
+      getTemplateUrl: () => `${BASE}/inventory/receipts/template`,
     },
+
     operations: {
       overview: (warehouseId?: number) =>
         request<OperationsOverviewResponse>(`/inventory/operations/overview${warehouseId ? `?warehouseId=${warehouseId}` : ''}`),
@@ -1170,6 +1465,8 @@ export const api = {
       quotationId?: number;
       poId?: number;
       piId?: number;
+      sales_engineer_id?: number | null;
+      salesEngineerId?: number | null;
       notes?: string;
       taxPercent?: number;
       items: { productId?: number; partNo?: string; quantity: number; unitPrice?: number }[];
@@ -1181,6 +1478,13 @@ export const api = {
       request<SaleReportDetailResponse>(`/sale-reports/${id}/confirm`, { method: 'POST' }),
     cancel: (id: number) =>
       request<SaleReportDetailResponse>(`/sale-reports/${id}/cancel`, { method: 'POST' }),
+    delete: (id: number) =>
+      request<{ success: boolean; id: number }>(`/sale-reports/${id}`, { method: 'DELETE' }),
+    bulkDelete: (ids: number[]) =>
+      request<{ success: boolean; deletedCount: number }>('/sale-reports/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ ids }),
+      }),
   },
   sales: {
     overview: () => request<SalesOverviewResponse>('/sales/overview'),
@@ -1289,24 +1593,50 @@ export const api = {
     },
   },
   engineers: {
-    list: (activeOnly?: boolean) => request<SalesEngineer[]>(`/engineers${activeOnly ? '?active=true' : ''}`),
-    get: (id: number) => request<SalesEngineer & { current_year_target?: EngineerSalesTarget; performance?: EngineerPerformance }>(`/engineers/${id}`),
-    create: (data: Partial<SalesEngineer>) => request<SalesEngineer>('/engineers', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: Partial<SalesEngineer>) => request<SalesEngineer>(`/engineers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    list: (activeOnly?: boolean) =>
+      cachedFetch(`engineers_${!!activeOnly}`, () => request<SalesEngineer[]>(`/engineers${activeOnly ? '?active=true' : ''}`)),
+    get: (id: number, year?: string) => request<SalesEngineer & { current_year_target?: EngineerSalesTarget; performance?: EngineerPerformance }>(`/engineers/${id}${year ? `?financial_year=${encodeURIComponent(year)}` : ''}`),
+    create: async (data: Partial<SalesEngineer>) => {
+      const res = await request<SalesEngineer>('/engineers', { method: 'POST', body: JSON.stringify(data) });
+      clearCache('engineers');
+      return res;
+    },
+    update: async (id: number, data: Partial<SalesEngineer>) => {
+      const res = await request<SalesEngineer>(`/engineers/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('engineers');
+      return res;
+    },
     performance: (year?: string) => request<EngineerPerformanceSummary>(`/engineers/performance${year ? `?year=${year}` : ''}`),
     setTarget: (data: { engineer_id: number; fiscal_year: string; target_amount: number; notes?: string }) =>
       request<EngineerSalesTarget>('/engineers/targets', { method: 'POST', body: JSON.stringify(data) }),
     getTargets: (year?: string) => request<EngineerSalesTarget[]>(`/engineers/targets${year ? `?year=${year}` : ''}`),
+    delete: async (id: number) => {
+      const res = await request<{ ok: true }>(`/engineers/${id}`, { method: 'DELETE' });
+      clearCache('engineers');
+      return res;
+    },
+    import: async (rows: any[]) => {
+      const res = await request<{ createdCount: number; updatedCount: number; errorCount: number; errors: string[] }>('/engineers/import', {
+        method: 'POST',
+        body: JSON.stringify({ rows }),
+      });
+      clearCache('engineers');
+      return res;
+    },
   },
   firms: {
     list: () => request<Firm[]>('/firms'),
     get: (id: number) => request<Firm & { branches: Branch[] }>(`/firms/${id}`),
     create: (data: Partial<Firm>) => request<Firm>('/firms', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: Partial<Firm>) => request<Firm>(`/firms/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => request<{ ok: boolean }>(`/firms/${id}`, { method: 'DELETE' }),
+    deleteMany: (ids: number[]) => request<{ ok: boolean; deletedCount: number }>('/firms/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
     branches: (firmId?: number) => request<Branch[]>(`/branches${firmId ? `?firm_id=${firmId}` : ''}`),
     getBranch: (id: number) => request<Branch & { document_settings: BranchDocumentSettings }>(`/branches/${id}`),
     createBranch: (data: Partial<Branch>) => request<Branch>('/branches', { method: 'POST', body: JSON.stringify(data) }),
     updateBranch: (id: number, data: Partial<Branch>) => request<Branch>(`/branches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteBranch: (id: number) => request<{ ok: boolean }>(`/branches/${id}`, { method: 'DELETE' }),
+    deleteManyBranches: (ids: number[]) => request<{ ok: boolean; deletedCount: number }>('/branches/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
     updateBranchDocumentSettings: (branchId: number, data: Partial<BranchDocumentSettings>) =>
       request<BranchDocumentSettings>(`/branches/${branchId}/document-settings`, { method: 'PUT', body: JSON.stringify(data) }),
   },
@@ -1316,8 +1646,40 @@ export const api = {
       return `${BASE}/export/quotations${q ? `?${q}` : ''}`;
     },
     engineersPerformanceUrl: (year?: string) => `${BASE}/export/engineers/performance${year ? `?year=${year}` : ''}`,
-    inventoryStockUrl: (warehouseId?: number) => `${BASE}/export/inventory/stock${warehouseId ? `?warehouse_id=${warehouseId}` : ''}`,
+    inventoryStockUrl: (params?: { warehouseId?: number; status?: string; q?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
+      if (params?.status) q.set('status', params.status);
+      if (params?.q) q.set('q', params.q);
+      const str = q.toString();
+      return `${BASE}/export/inventory/stock${str ? `?${str}` : ''}`;
+    },
     procurementRequirementsUrl: (status?: string) => `${BASE}/export/procurement/requirements${status ? `?status=${status}` : ''}`,
+    stockReceiptsUrl: (params?: { warehouseId?: number; status?: string; sourceType?: string; q?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
+      if (params?.status) q.set('status', params.status);
+      if (params?.sourceType) q.set('sourceType', params.sourceType);
+      if (params?.q) q.set('q', params.q);
+      const str = q.toString();
+      return `${BASE}/export/inventory/receipts${str ? `?${str}` : ''}`;
+    },
+    reservationsUrl: (params?: { warehouseId?: number; status?: string; referenceType?: string; q?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
+      if (params?.status) q.set('status', params.status);
+      if (params?.referenceType) q.set('referenceType', params.referenceType);
+      if (params?.q) q.set('q', params.q);
+      const str = q.toString();
+      return `${BASE}/export/inventory/reservations${str ? `?${str}` : ''}`;
+    },
+    stockIntelligenceUrl: (params?: { warehouseId?: number }) => {
+      const q = new URLSearchParams();
+      if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
+      const str = q.toString();
+      return `${BASE}/export/inventory/intelligence${str ? `?${str}` : ''}`;
+    },
+
     salesReportsUrl: (startDate?: string, endDate?: string) => {
       const q = new URLSearchParams();
       if (startDate) q.set('startDate', startDate);
@@ -1622,6 +1984,9 @@ export interface SaleReport {
   source_quotation_id: number | null;
   source_po_id: number | null;
   source_pi_id: number | null;
+  sales_engineer_id?: number | null;
+  sales_engineer_name?: string | null;
+  sales_engineer_code?: string | null;
   status: 'DRAFT' | 'CONFIRMED' | 'CANCELLED';
   subtotal: number;
   tax_percent: number;
@@ -1674,6 +2039,9 @@ export interface SaleReportSourceDocResponse {
   quotationId: number;
   poId: number | null;
   piId: number | null;
+  salesEngineerId?: number | null;
+  salesEngineerName?: string | null;
+  salesEngineerCode?: string | null;
   documentNumber: string;
   documentDate: string;
   company: { id: number; name: string; phone: string | null };
@@ -2681,8 +3049,8 @@ export interface GlobalSearchResponse {
   groups: Record<string, SearchResultItem[]>;
 }
 
-export async function searchGlobalApi(q: string, limit: number = 30): Promise<GlobalSearchResponse> {
-  return request<GlobalSearchResponse>(`/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+export async function searchGlobalApi(q: string, limit: number = 30, signal?: AbortSignal): Promise<GlobalSearchResponse> {
+  return request<GlobalSearchResponse>(`/search?q=${encodeURIComponent(q)}&limit=${limit}`, { signal });
 }
 
 

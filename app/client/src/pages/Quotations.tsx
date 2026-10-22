@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { api, Quotation } from '../api';
-import { Pagination } from '../components/Pagination';
-import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw } from 'lucide-react';
+import { api, Quotation, QuotationPageResponse } from '../api';
+import { queryClient } from '../lib/queryClient';
+import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, RefreshCw } from 'lucide-react';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 25;
 
 type DateFilter = 'all' | 'today' | 'week' | 'month';
 
@@ -30,12 +30,6 @@ function getDateRange(filter: DateFilter): { start: string; end: string } | null
   return { start: toStr(y, m, 1), end: toStr(y, m, lastDayOfMonth) };
 }
 
-function matchesDate(dateStr: string | null | undefined, range: { start: string; end: string } | null) {
-  if (!range) return true;
-  if (!dateStr) return false;
-  return dateStr >= range.start && dateStr <= range.end;
-}
-
 const STAGE_COLORS: Record<string, string> = {
   draft: '#7A839E',
   sent: '#6B78D6',
@@ -46,9 +40,31 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export default function Quotations() {
+  // Data & Pagination state
   const [rows, setRows] = useState<Quotation[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [stageCounts, setStageCounts] = useState<Record<string, number>>({
+    All: 0,
+    Draft: 0,
+    Sent: 0,
+    Accepted: 0,
+    Rejected: 0,
+  });
+
+  // Loading & Error states
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
-  
+  const [loadMoreError, setLoadMoreError] = useState('');
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // Selection & Bulk Actions State
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
   // Expandable Search & Filter State
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchNumber, setSearchNumber] = useState('');
@@ -57,41 +73,214 @@ export default function Quotations() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
-  
-  const [page, setPage] = useState(1);
 
+  // Debounced input terms
+  const [debouncedNumber, setDebouncedNumber] = useState('');
+  const [debouncedCompany, setDebouncedCompany] = useState('');
+  const [debouncedMinAmount, setDebouncedMinAmount] = useState('');
+  const [debouncedMaxAmount, setDebouncedMaxAmount] = useState('');
+
+  // Debounce effect (300ms)
   useEffect(() => {
-    api.quotations.list().then(setRows).catch((e) => setError(e.message));
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedNumber(searchNumber.trim());
+      setDebouncedCompany(searchCompany.trim());
+      setDebouncedMinAmount(minAmount.trim());
+      setDebouncedMaxAmount(maxAmount.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchNumber, searchCompany, minAmount, maxAmount]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchNumber, searchCompany, statusFilter, dateFilter, minAmount, maxAmount]);
+  // Request ID ref to prevent stale async race conditions
+  const activeReqIdRef = useRef(0);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const filtered = useMemo(() => {
-    const qNum = searchNumber.trim().toLowerCase();
-    const qComp = searchCompany.trim().toLowerCase();
-    const range = getDateRange(dateFilter);
-    const minVal = minAmount !== '' ? Number(minAmount) : null;
-    const maxVal = maxAmount !== '' ? Number(maxAmount) : null;
+  // Core fetch function
+  const fetchPage = useCallback(
+    async (targetPage: number, isReset: boolean) => {
+      const reqId = ++activeReqIdRef.current;
+      const dateRange = getDateRange(dateFilter);
+      const params = {
+        page: targetPage,
+        pageSize: PAGE_SIZE,
+        status: statusFilter || undefined,
+        searchNumber: debouncedNumber || undefined,
+        searchCompany: debouncedCompany || undefined,
+        dateStart: dateRange?.start,
+        dateEnd: dateRange?.end,
+        minAmount: debouncedMinAmount ? Number(debouncedMinAmount) : undefined,
+        maxAmount: debouncedMaxAmount ? Number(debouncedMaxAmount) : undefined,
+        paginated: true,
+      };
 
-    return rows.filter((r) => {
-      if (statusFilter && r.status !== statusFilter) return false;
-      if (!matchesDate(r.date, range)) return false;
-      if (qNum && !(r.number || '').toLowerCase().includes(qNum)) return false;
-      if (qComp && !(r.company_name || '').toLowerCase().includes(qComp)) return false;
-      if (minVal !== null && !isNaN(minVal) && (r.total || 0) < minVal) return false;
-      if (maxVal !== null && !isNaN(maxVal) && (r.total || 0) > maxVal) return false;
-      return true;
-    });
-  }, [rows, searchNumber, searchCompany, statusFilter, dateFilter, minAmount, maxAmount]);
+      const queryKey = ['quotations', 'list', params];
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const paged = useMemo(
-    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [filtered, currentPage]
+      if (isReset) {
+        // Instant client cache reuse on navigation
+        const cached = queryClient.getQueryData<QuotationPageResponse>(queryKey);
+        if (cached && Array.isArray(cached.items)) {
+          setRows(cached.items);
+          setPage(cached.page);
+          setTotal(cached.total);
+          setHasMore(cached.hasMore);
+          if (cached.stageCounts) setStageCounts(cached.stageCounts);
+          setInitialLoading(false);
+        } else {
+          setInitialLoading(true);
+        }
+        setError('');
+      } else {
+        setLoadingMore(true);
+        setLoadMoreError('');
+      }
+
+      try {
+        const response = await queryClient.fetchQuery<QuotationPageResponse>({
+          queryKey,
+          queryFn: () => api.quotations.list(params),
+          staleTime: 30000,
+          tags: ['quotations'],
+          force: !isReset,
+        });
+
+        // Ensure this response matches the latest query
+        if (reqId !== activeReqIdRef.current) return;
+
+        if (response && Array.isArray(response.items)) {
+          if (isReset) {
+            setRows(response.items);
+          } else {
+            setRows((prev) => [...prev, ...response.items]);
+          }
+          setPage(response.page);
+          setTotal(response.total);
+          setHasMore(response.hasMore);
+          if (response.stageCounts) {
+            setStageCounts(response.stageCounts);
+          }
+        }
+      } catch (err: any) {
+        if (reqId !== activeReqIdRef.current) return;
+        if (isReset) {
+          setError(err.message || 'Failed to load quotations');
+        } else {
+          setLoadMoreError(err.message || 'Failed to load more quotations');
+        }
+      } finally {
+        if (reqId === activeReqIdRef.current) {
+          setInitialLoading(false);
+          setLoadingMore(false);
+        }
+      }
+    },
+    [statusFilter, debouncedNumber, debouncedCompany, dateFilter, debouncedMinAmount, debouncedMaxAmount]
   );
+
+  // Trigger reset load on filter or search changes
+  useEffect(() => {
+    fetchPage(1, true);
+  }, [fetchPage]);
+
+  // Listen to tag invalidations so external mutations refresh quotations automatically
+  useEffect(() => {
+    const unsubscribe = queryClient.subscribe(['quotations'], (entry) => {
+      if (entry.staleAt === 0) {
+        fetchPage(1, true);
+      }
+    });
+    return unsubscribe;
+  }, [fetchPage]);
+
+  // Progressive scroll observer (IntersectionObserver)
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasMore && !loadingMore && !initialLoading && !loadMoreError) {
+          fetchPage(page + 1, false);
+        }
+      },
+      { rootMargin: '250px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, initialLoading, loadMoreError, page, fetchPage]);
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchPage(page + 1, false);
+    }
+  };
+
+  const handleDelete = async (id: number, number: string, status?: string) => {
+    const isAccepted = status === 'accepted';
+
+    if (isAccepted) {
+      const step1Message = `Step 1 of 2: Quotation "${number}" is currently ACCEPTED. Are you sure you want to initiate deletion?`;
+      if (!window.confirm(step1Message)) return;
+
+      const step2Message = `FINAL CONFIRMATION (Step 2 of 2): Are you 100% SURE you want to PERMANENTLY DELETE ACCEPTED quotation "${number}"? This will remove all associated line items, follow-ups, and linked documents!`;
+      if (!window.confirm(step2Message)) return;
+    } else {
+      const confirmMessage = `Are you sure you want to delete quotation "${number}"?`;
+      if (!window.confirm(confirmMessage)) return;
+    }
+
+    setDeletingId(id);
+    try {
+      await api.quotations.delete(id);
+      setSelectedIds((prev) => prev.filter((i) => i !== id));
+      // Refresh starting from page 1 to maintain deterministic list state
+      fetchPage(1, true);
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete quotation');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) {
+      alert('Please select at least one quotation to delete.');
+      return;
+    }
+
+    const selectedQuotations = rows.filter((q) => selectedIds.includes(q.id));
+    const hasAccepted = selectedQuotations.some((q) => q.status === 'accepted');
+
+    if (hasAccepted) {
+      const step1Message = `Step 1 of 2: You have selected ${selectedIds.length} quotation(s), which includes ACCEPTED quotation(s). Are you sure you want to initiate deletion?`;
+      if (!window.confirm(step1Message)) return;
+
+      const step2Message = `FINAL CONFIRMATION (Step 2 of 2): Are you 100% SURE you want to PERMANENTLY DELETE these ${selectedIds.length} selected quotation(s)? This will remove all associated line items, follow-ups, and linked documents!`;
+      if (!window.confirm(step2Message)) return;
+    } else {
+      const confirmMessage = `Are you sure you want to delete the ${selectedIds.length} selected quotation(s)?`;
+      if (!window.confirm(confirmMessage)) return;
+    }
+
+    setIsBulkDeleting(true);
+
+    const results = await Promise.allSettled(
+      selectedIds.map((id) => api.quotations.delete(id))
+    );
+
+    const failedCount = results.filter((r) => r.status === 'rejected').length;
+
+    setSelectedIds([]);
+    setIsSelectionMode(false);
+    setIsBulkDeleting(false);
+
+    if (failedCount > 0) {
+      alert(`Deleted ${selectedIds.length - failedCount} quotation(s). Failed to delete ${failedCount} quotation(s).`);
+    }
+
+    fetchPage(1, true);
+  };
 
   const hasSearchFilters =
     searchNumber !== '' ||
@@ -119,16 +308,24 @@ export default function Quotations() {
     setMaxAmount('');
   }
 
-  const stageCounts = useMemo(() => {
-    const counts: Record<string, number> = { All: rows.length, Draft: 0, Sent: 0, Accepted: 0, Rejected: 0 };
-    rows.forEach((r) => {
-      if (r.status === 'draft') counts.Draft++;
-      else if (r.status === 'sent') counts.Sent++;
-      else if (r.status === 'accepted') counts.Accepted++;
-      else if (r.status === 'rejected') counts.Rejected++;
-    });
-    return counts;
-  }, [rows]);
+  const isAllRowsSelected = useMemo(() => {
+    if (rows.length === 0) return false;
+    return rows.every((q) => selectedIds.includes(q.id));
+  }, [rows, selectedIds]);
+
+  const toggleSelectAll = () => {
+    if (isAllRowsSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(rows.map((q) => q.id));
+    }
+  };
+
+  const toggleSelectRow = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
@@ -142,7 +339,13 @@ export default function Quotations() {
             Every quotation with its stage, value and follow-up position.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <Link
+            to="/quotations/new"
+            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#E3EAF7] transition-colors no-underline"
+          >
+            + New quotation
+          </Link>
           <a
             href={api.export.quotationsUrl(statusFilter ? { status: statusFilter } : undefined)}
             download
@@ -150,18 +353,61 @@ export default function Quotations() {
           >
             Export Excel
           </a>
-          <Link
-            to="/quotations/new"
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#E3EAF7] transition-colors no-underline"
-          >
-            + New quotation
-          </Link>
+          {!isSelectionMode ? (
+            <button
+              type="button"
+              onClick={() => setIsSelectionMode(true)}
+              className="h-[34px] px-3.5 rounded-[9px] font-medium text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border bg-transparent border-[#E4E8F2] text-[#E5484D] hover:bg-[#FCEBEC]"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Select to Delete</span>
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={isBulkDeleting}
+                className={`h-[34px] px-3.5 rounded-[9px] font-medium text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
+                  selectedIds.length > 0
+                    ? 'bg-[#E5484D] text-white border-[#E5484D] hover:bg-[#D93D42]'
+                    : 'bg-transparent border-[#E4E8F2] text-[#E5484D] hover:bg-[#FCEBEC]'
+                }`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>
+                  {isBulkDeleting
+                    ? 'Deleting...'
+                    : selectedIds.length > 0
+                    ? `Delete Selected (${selectedIds.length})`
+                    : 'Delete Selected'}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSelectionMode(false);
+                  setSelectedIds([]);
+                }}
+                className="h-[34px] px-3 rounded-[9px] font-medium text-[12.5px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] hover:bg-[#E4E8F2] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       {error && (
-        <div className="p-3 rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] text-[#E5484D] text-[12.5px]">
-          {error}
+        <div className="p-3.5 rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] text-[#E5484D] text-[12.5px] flex items-center justify-between">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => fetchPage(1, true)}
+            className="inline-flex items-center gap-1 font-semibold underline cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Retry
+          </button>
         </div>
       )}
 
@@ -237,7 +483,7 @@ export default function Quotations() {
             )}
 
             <span className="text-[11.5px] text-[#A8AEC4] ml-1">
-              Showing {filtered.length} of {rows.length}
+              Showing {rows.length} of {total}
             </span>
           </div>
         </div>
@@ -342,7 +588,7 @@ export default function Quotations() {
             {/* Panel Footer / Clear Action */}
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#EEF1F9]">
               <span className="text-[11.5px] text-[#7A839E]">
-                {filtered.length} matching quotations
+                {total} matching quotations
               </span>
               {hasSearchFilters && (
                 <button
@@ -363,6 +609,17 @@ export default function Quotations() {
           <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
             <thead>
               <tr className="border-b border-[#EEF1F9]">
+                {isSelectionMode && (
+                  <th className="w-10 text-center p-[8px_10px]">
+                    <input
+                      type="checkbox"
+                      checked={isAllRowsSelected}
+                      onChange={toggleSelectAll}
+                      title="Select all currently loaded quotations"
+                      className="w-4 h-4 accent-[#3B6FD4] rounded cursor-pointer align-middle"
+                    />
+                  </th>
+                )}
                 <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
                   QUOTATION
                 </th>
@@ -384,58 +641,151 @@ export default function Quotations() {
               </tr>
             </thead>
             <tbody>
-              {paged.map((q) => {
-                const color = STAGE_COLORS[q.status] || '#7A839E';
-                return (
-                  <tr
-                    key={q.id}
-                    className="border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors"
-                  >
+              {/* SKELETON LOADING ROWS (Initial Viewport) */}
+              {initialLoading ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <tr key={`skeleton-${idx}`} className="border-b border-[#F7F8FC] animate-pulse">
+                    {isSelectionMode && (
+                      <td className="p-[11px_10px] w-10 text-center">
+                        <div className="w-4 h-4 bg-[#E4E8F2] rounded mx-auto" />
+                      </td>
+                    )}
                     <td className="p-[11px_10px]">
-                      <Link
-                        to={`/quotations/${q.id}`}
-                        className="text-[#3B6FD4] hover:underline font-medium"
-                      >
-                        {q.number}
-                      </Link>
-                    </td>
-                    <td className="p-[11px_10px] text-[#141B34]">{q.company_name || '—'}</td>
-                    <td className="p-[11px_10px] text-[#7A839E]">{q.date}</td>
-                    <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
-                      ₹{Number(q.total || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      <div className="h-4 w-28 bg-[#E4E8F2] rounded" />
                     </td>
                     <td className="p-[11px_10px]">
-                      <span className="inline-flex items-center gap-1.5 capitalize" style={{ color }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-                        {q.status}
-                      </span>
+                      <div className="h-4 w-40 bg-[#EEF1F9] rounded" />
+                    </td>
+                    <td className="p-[11px_10px]">
+                      <div className="h-4 w-20 bg-[#EEF1F9] rounded" />
                     </td>
                     <td className="p-[11px_10px] text-right">
-                      <Link
-                        to={`/quotations/${q.id}`}
-                        className="text-[12px] text-[#7A839E] hover:text-[#3B6FD4] hover:underline"
-                      >
-                        View →
-                      </Link>
+                      <div className="h-4 w-24 bg-[#E4E8F2] rounded ml-auto" />
+                    </td>
+                    <td className="p-[11px_10px]">
+                      <div className="h-4 w-16 bg-[#EEF1F9] rounded" />
+                    </td>
+                    <td className="p-[11px_10px] text-right">
+                      <div className="h-4 w-12 bg-[#EEF1F9] rounded ml-auto" />
                     </td>
                   </tr>
-                );
-              })}
-              {filtered.length === 0 && (
+                ))
+              ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-[#7A839E] text-[13px]">
+                  <td colSpan={isSelectionMode ? 7 : 6} className="text-center py-10 text-[#7A839E] text-[13px]">
                     No quotations found matching your search criteria.
                   </td>
                 </tr>
+              ) : (
+                rows.map((q) => {
+                  const color = STAGE_COLORS[q.status] || '#7A839E';
+                  const isSelected = selectedIds.includes(q.id);
+                  return (
+                    <tr
+                      key={q.id}
+                      className={`border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors ${
+                        isSelectionMode && isSelected ? 'bg-[#F0F4FD]' : ''
+                      }`}
+                    >
+                      {isSelectionMode && (
+                        <td className="p-[11px_10px] w-10 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectRow(q.id)}
+                            title={`Select quotation ${q.number}`}
+                            className="w-4 h-4 accent-[#3B6FD4] rounded cursor-pointer align-middle"
+                          />
+                        </td>
+                      )}
+                      <td className="p-[11px_10px]">
+                        <Link
+                          to={`/quotations/${q.id}`}
+                          className="text-[#3B6FD4] hover:underline font-medium"
+                        >
+                          {q.number}
+                        </Link>
+                      </td>
+                      <td className="p-[11px_10px] text-[#141B34]">{q.company_name || '—'}</td>
+                      <td className="p-[11px_10px] text-[#7A839E]">{q.date}</td>
+                      <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
+                        ₹{Number(q.total || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </td>
+                      <td className="p-[11px_10px]">
+                        <span className="inline-flex items-center gap-1.5 capitalize" style={{ color }}>
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                          {q.status}
+                        </span>
+                      </td>
+                      <td className="p-[11px_10px] text-right">
+                        <div className="flex items-center justify-end gap-2.5">
+                          <Link
+                            to={`/quotations/${q.id}`}
+                            className="text-[12px] font-semibold text-[#3B6FD4] hover:underline"
+                          >
+                            View →
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(q.id, q.number, q.status)}
+                            disabled={deletingId === q.id}
+                            className="p-1.5 rounded-lg text-[#C8323A] hover:bg-[#FCEBEC] transition-colors cursor-pointer"
+                            title={`Delete Quotation ${q.number}`}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-      </section>
 
-      {/* Pagination Footer */}
-      <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+        {/* PROGRESSIVE LOADING SENTINEL & FOOTER */}
+        <div className="flex flex-col items-center justify-center pt-3 pb-1 gap-2.5">
+          {/* Intersection Observer Sentinel */}
+          <div ref={sentinelRef} className="h-1 w-full" aria-hidden="true" />
+
+          {loadingMore && (
+            <div className="inline-flex items-center gap-2 text-xs text-[#3B6FD4] py-2">
+              <Loader2 className="w-4 h-4 animate-spin text-[#3B6FD4]" />
+              <span>Loading additional quotations...</span>
+            </div>
+          )}
+
+          {loadMoreError && (
+            <div className="inline-flex items-center gap-2 text-xs text-[#E5484D] bg-[#FCEBEC] px-3 py-1.5 rounded-lg border border-[#F2C4C6]">
+              <span>{loadMoreError}</span>
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                className="underline font-semibold cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!initialLoading && hasMore && !loadingMore && !loadMoreError && (
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              className="h-[32px] px-4 rounded-[8px] bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#3B6FD4] border border-[#D9E2F4] text-xs font-semibold cursor-pointer transition-colors"
+            >
+              Load More ({rows.length} of {total})
+            </button>
+          )}
+
+          {!initialLoading && !hasMore && rows.length > 0 && (
+            <span className="text-[11.5px] text-[#A8AEC4]">
+              Showing all {total} quotations
+            </span>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
-

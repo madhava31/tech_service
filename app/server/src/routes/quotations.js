@@ -108,17 +108,123 @@ router.post('/stock-analysis', (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  const rows = db
+  const isPaginated = req.query.page !== undefined || req.query.pageSize !== undefined || req.query.paginated === 'true';
+
+  if (!isPaginated) {
+    const rows = db
+      .prepare(
+        `SELECT q.*, c.name AS company_name, e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code, b.branch_name
+         FROM quotation q 
+         JOIN company c ON c.id = q.company_id
+         LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
+         LEFT JOIN branch b ON b.id = q.branch_id
+         ORDER BY q.id DESC`
+      )
+      .all();
+    return res.json(rows);
+  }
+
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize, 10) || 25));
+  const offset = (page - 1) * pageSize;
+
+  const {
+    status,
+    searchNumber,
+    qNum,
+    searchCompany,
+    qComp,
+    dateStart,
+    dateEnd,
+    minAmount,
+    maxAmount,
+  } = req.query;
+
+  const numTerm = (searchNumber || qNum || '').trim();
+  const compTerm = (searchCompany || qComp || '').trim();
+
+  const whereClauses = [];
+  const params = [];
+
+  if (status && status !== 'all' && status !== '') {
+    whereClauses.push(`q.status = ?`);
+    params.push(status);
+  }
+  if (numTerm) {
+    whereClauses.push(`q.number LIKE ?`);
+    params.push(`%${numTerm}%`);
+  }
+  if (compTerm) {
+    whereClauses.push(`c.name LIKE ?`);
+    params.push(`%${compTerm}%`);
+  }
+  if (dateStart) {
+    whereClauses.push(`q.date >= ?`);
+    params.push(dateStart);
+  }
+  if (dateEnd) {
+    whereClauses.push(`q.date <= ?`);
+    params.push(dateEnd);
+  }
+  if (minAmount !== undefined && minAmount !== '') {
+    const minVal = Number(minAmount);
+    if (!isNaN(minVal)) {
+      whereClauses.push(`q.total >= ?`);
+      params.push(minVal);
+    }
+  }
+  if (maxAmount !== undefined && maxAmount !== '') {
+    const maxVal = Number(maxAmount);
+    if (!isNaN(maxVal)) {
+      whereClauses.push(`q.total <= ?`);
+      params.push(maxVal);
+    }
+  }
+
+  const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+  const totalRow = db
+    .prepare(`SELECT COUNT(*) AS count FROM quotation q JOIN company c ON c.id = q.company_id ${whereSql}`)
+    .get(...params);
+  const total = Number(totalRow?.count || 0);
+
+  const itemsParams = [...params, pageSize, offset];
+  const items = db
     .prepare(
       `SELECT q.*, c.name AS company_name, e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code, b.branch_name
        FROM quotation q 
        JOIN company c ON c.id = q.company_id
        LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
        LEFT JOIN branch b ON b.id = q.branch_id
-       ORDER BY q.id DESC`
+       ${whereSql}
+       ORDER BY q.id DESC
+       LIMIT ? OFFSET ?`
     )
-    .all();
-  res.json(rows);
+    .all(...itemsParams);
+
+  const stageCounts = { All: 0, Draft: 0, Sent: 0, Accepted: 0, Rejected: 0 };
+  const globalCountRows = db.prepare(`SELECT status, COUNT(*) AS count FROM quotation GROUP BY status`).all();
+  let totalAll = 0;
+  for (const r of globalCountRows) {
+    const c = Number(r.count || 0);
+    totalAll += c;
+    if (r.status === 'draft') stageCounts.Draft = c;
+    else if (r.status === 'sent') stageCounts.Sent = c;
+    else if (r.status === 'accepted') stageCounts.Accepted = c;
+    else if (r.status === 'rejected') stageCounts.Rejected = c;
+  }
+  stageCounts.All = totalAll;
+
+  const hasMore = offset + items.length < total;
+
+  res.json({
+    items,
+    page,
+    pageSize,
+    hasMore,
+    total,
+    stageCounts,
+  });
 });
 
 router.get('/:id', (req, res) => {
@@ -144,7 +250,20 @@ router.post('/', (req, res) => {
     if (!company_id) return res.status(400).json({ error: 'company_id is required' });
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'At least one line item is required' });
 
-    const company = db.prepare(`SELECT id FROM company WHERE id = ?`).get(company_id);
+    let targetCompanyId = company_id;
+    let company = targetCompanyId ? db.prepare(`SELECT id FROM company WHERE id = ?`).get(targetCompanyId) : null;
+    if (!company && req.body.company_name?.trim()) {
+      const compName = req.body.company_name.trim();
+      const existingComp = db.prepare(`SELECT id FROM company WHERE UPPER(name) = UPPER(?)`).get(compName);
+      if (existingComp) {
+        targetCompanyId = existingComp.id;
+        company = existingComp;
+      } else {
+        const info = db.prepare(`INSERT INTO company (name) VALUES (?)`).run(compName);
+        targetCompanyId = info.lastInsertRowid;
+        company = { id: targetCompanyId };
+      }
+    }
     if (!company) return res.status(404).json({ error: 'Company not found' });
 
     const oType = overall_discount_type || discount_type || 'none';
@@ -186,7 +305,7 @@ router.post('/', (req, res) => {
         .run(
           number,
           date || new Date().toISOString().slice(0, 10),
-          company_id,
+          targetCompanyId,
           calc.gross_subtotal,
           calc.product_discount_total,
           calc.subtotal_after_product_discounts,
@@ -220,11 +339,37 @@ router.post('/', (req, res) => {
          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
       for (const it of calc.items) {
+        let pId = it.product_id ? Number(it.product_id) : null;
+        const cleanPart = it.part_no ? String(it.part_no).trim() : null;
+        const cleanDesc = it.description ? String(it.description).trim() : '';
+        const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
+
+        // Auto-save part number & product description into product master DB if not existing
+        if (!pId && cleanPart) {
+          const existingP = db.prepare(`SELECT id FROM product WHERE UPPER(part_no) = UPPER(?)`).get(cleanPart);
+          if (existingP) {
+            pId = existingP.id;
+          }
+        }
+        if (!pId && (cleanPart || cleanDesc)) {
+          const finalPart = cleanPart || `PART-${Date.now().toString().slice(-6)}`;
+          const finalDesc = cleanDesc || finalPart;
+          try {
+            const prodInfo = db
+              .prepare(`INSERT INTO product (part_no, description, default_price, hsn_sac, unit) VALUES (?, ?, ?, ?, 'Nos')`)
+              .run(finalPart, finalDesc, itemPrice, it.hsn_sac ? String(it.hsn_sac).trim() : null);
+            pId = prodInfo.lastInsertRowid;
+          } catch (e) {
+            const fallbackP = db.prepare(`SELECT id FROM product WHERE UPPER(part_no) = UPPER(?)`).get(finalPart);
+            if (fallbackP) pId = fallbackP.id;
+          }
+        }
+
         insertItem.run(
           quotationId,
-          it.product_id || null,
-          it.part_no || null,
-          it.description,
+          pId,
+          cleanPart || (pId ? db.prepare(`SELECT part_no FROM product WHERE id = ?`).get(pId)?.part_no : null),
+          cleanDesc,
           it.hsn_sac || null,
           it.make || null,
           it.qty,
@@ -239,6 +384,11 @@ router.post('/', (req, res) => {
           it.price,
           it.amount
         );
+
+        // Update product master default price when modified in quotation
+        if (itemPrice > 0 && pId) {
+          db.prepare(`UPDATE product SET default_price = ? WHERE id = ?`).run(itemPrice, pId);
+        }
       }
       return quotationId;
     });
@@ -319,11 +469,36 @@ router.put('/:id', (req, res) => {
          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
       for (const it of calc.items) {
+        let pId = it.product_id ? Number(it.product_id) : null;
+        const cleanPart = it.part_no ? String(it.part_no).trim() : null;
+        const cleanDesc = it.description ? String(it.description).trim() : '';
+        const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
+
+        if (!pId && cleanPart) {
+          const existingP = db.prepare(`SELECT id FROM product WHERE UPPER(part_no) = UPPER(?)`).get(cleanPart);
+          if (existingP) {
+            pId = existingP.id;
+          }
+        }
+        if (!pId && (cleanPart || cleanDesc)) {
+          const finalPart = cleanPart || `PART-${Date.now().toString().slice(-6)}`;
+          const finalDesc = cleanDesc || finalPart;
+          try {
+            const prodInfo = db
+              .prepare(`INSERT INTO product (part_no, description, default_price, hsn_sac, unit) VALUES (?, ?, ?, ?, 'Nos')`)
+              .run(finalPart, finalDesc, itemPrice, it.hsn_sac ? String(it.hsn_sac).trim() : null);
+            pId = prodInfo.lastInsertRowid;
+          } catch (e) {
+            const fallbackP = db.prepare(`SELECT id FROM product WHERE UPPER(part_no) = UPPER(?)`).get(finalPart);
+            if (fallbackP) pId = fallbackP.id;
+          }
+        }
+
         insertItem.run(
           req.params.id,
-          it.product_id || null,
-          it.part_no || null,
-          it.description,
+          pId,
+          cleanPart || (pId ? db.prepare(`SELECT part_no FROM product WHERE id = ?`).get(pId)?.part_no : null),
+          cleanDesc,
           it.hsn_sac || null,
           it.make || null,
           it.qty,
@@ -338,6 +513,11 @@ router.put('/:id', (req, res) => {
           it.price,
           it.amount
         );
+
+        // Update product master default price when modified in quotation
+        if (itemPrice > 0 && pId) {
+          db.prepare(`UPDATE product SET default_price = ? WHERE id = ?`).run(itemPrice, pId);
+        }
       }
     });
     tx();
@@ -349,6 +529,44 @@ router.put('/:id', (req, res) => {
     res.status(400).json({ error: err.message || 'Failed to update quotation' });
   }
 });
+
+router.delete('/:id', (req, res) => {
+  try {
+    const quotationId = req.params.id;
+    const existing = db.prepare(`SELECT id FROM quotation WHERE id = ?`).get(quotationId);
+    if (!existing) return res.status(404).json({ error: 'Quotation not found' });
+
+    const tx = db.transaction(() => {
+      const pis = db.prepare(`SELECT id FROM performa_invoice WHERE quotation_id = ?`).all(quotationId);
+      const piIds = pis.map((p) => p.id);
+
+      const pos = db.prepare(`SELECT id FROM purchase_order WHERE quotation_id = ?`).all(quotationId);
+      const poIds = pos.map((p) => p.id);
+
+      for (const poId of poIds) {
+        try { db.prepare(`UPDATE sale_report SET source_po_id = NULL WHERE source_po_id = ?`).run(poId); } catch {}
+        try { db.prepare(`UPDATE procurement_requirement SET purchase_order_id = NULL WHERE purchase_order_id = ?`).run(poId); } catch {}
+      }
+      for (const piId of piIds) {
+        try { db.prepare(`UPDATE sale_report SET source_pi_id = NULL WHERE source_pi_id = ?`).run(piId); } catch {}
+      }
+      try { db.prepare(`UPDATE sale_report SET source_quotation_id = NULL WHERE source_quotation_id = ?`).run(quotationId); } catch {}
+
+      try { db.prepare(`DELETE FROM performa_invoice WHERE quotation_id = ?`).run(quotationId); } catch {}
+      try { db.prepare(`DELETE FROM purchase_order WHERE quotation_id = ?`).run(quotationId); } catch {}
+      try { db.prepare(`DELETE FROM quotation_follow_up WHERE quotation_id = ?`).run(quotationId); } catch {}
+      try { db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(quotationId); } catch {}
+      db.prepare(`DELETE FROM quotation WHERE id = ?`).run(quotationId);
+    });
+    tx();
+
+    res.json({ success: true, message: 'Quotation deleted successfully' });
+  } catch (err) {
+    console.error('Failed to delete quotation:', err);
+    res.status(400).json({ error: err.message || 'Failed to delete quotation' });
+  }
+});
+
 
 router.post('/:id/status', (req, res) => {
   const { status } = req.body;
@@ -453,8 +671,12 @@ router.post('/:quotationId/follow-ups/:followUpId/cancel', (req, res) => {
 router.get('/:id/pdf', (req, res) => {
   const quotation = db
     .prepare(
-      `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state, c.gstin AS company_gstin
-       FROM quotation q JOIN company c ON c.id = q.company_id WHERE q.id = ?`
+      `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state, c.gstin AS company_gstin,
+              e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code
+       FROM quotation q
+       JOIN company c ON c.id = q.company_id
+       LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
+       WHERE q.id = ?`
     )
     .get(req.params.id);
   if (!quotation) return res.status(404).json({ error: 'Quotation not found' });

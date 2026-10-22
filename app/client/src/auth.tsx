@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { api, AuthUser } from './api';
+import { api, AuthUser, clearCache } from './api';
+import { queryClient } from './lib/queryClient';
 
 interface AuthState {
   user: AuthUser | null;
@@ -21,13 +22,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function refresh() {
     try {
       const res = await api.auth.me();
-      setUser(res.user || null);
+      const currentUser = res.user || null;
+      setUser(currentUser);
+      queryClient.setUserScope(currentUser ? currentUser.id : null);
       setNeedsSetup(!!res.needsSetup);
     } catch {
       // A failed auth check (network blip, backend hiccup) must fail closed to "not authenticated"
       // rather than leaving the app stuck on the loading screen forever — this was an unhandled
       // rejection before, since `refresh()` is fired from useEffect with no .catch attached.
       setUser(null);
+      queryClient.setUserScope(null);
       setNeedsSetup(false);
     } finally {
       setLoading(false);
@@ -41,18 +45,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(username: string, password: string) {
     const res = await api.auth.login(username, password);
     setUser(res.user);
+    queryClient.setUserScope(res.user?.id);
     setNeedsSetup(false);
   }
 
   async function setup(username: string, password: string) {
     const res = await api.auth.setup(username, password);
     setUser(res.user);
+    queryClient.setUserScope(res.user?.id);
     setNeedsSetup(false);
   }
 
   async function logout() {
-    await api.auth.logout();
-    setUser(null);
+    try {
+      await api.auth.logout();
+    } finally {
+      setUser(null);
+      queryClient.clear();
+      queryClient.setUserScope(null);
+      clearCache();
+    }
   }
 
   return (
