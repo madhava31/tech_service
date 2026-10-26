@@ -74,21 +74,21 @@ export function ExpandableSearch({
     <div
       ref={containerRef}
       className={`relative inline-flex items-center align-middle ${className}`}
-      style={{ maxWidth: expanded ? maxWidth : '34px' }}
+      style={{ maxWidth: expanded ? maxWidth : '40px' }}
     >
       {!expanded ? (
         <button
           type="button"
           onClick={toggleExpand}
           aria-label="Open search"
-          className="w-[34px] h-[34px] rounded-[9px] bg-surface2 border border-line2 text-subtle hover:text-fg hover:border-line2 hover:scale-[1.03] cursor-pointer flex items-center justify-center transition-all duration-200 shrink-0"
+          className="w-[40px] h-[40px] rounded-full bg-tile text-subtle hover:text-fg cursor-pointer flex items-center justify-center transition-colors"
         >
           <Search className="w-4 h-4 text-subtle hover:text-fg transition-colors" />
         </button>
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="flex items-center w-full h-[34px] px-2.5 rounded-[9px] bg-surface2 border border-line2 focus-within:border-fg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm overflow-hidden"
+          className="flex items-center w-full h-[40px] px-3.5 rounded-full bg-tile focus-within:shadow-[0_0_0_2px_rgb(var(--fg))] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden"
           style={{ width: maxWidth }}
         >
           <button
@@ -111,7 +111,7 @@ export function ExpandableSearch({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-fg text-[12.5px] font-sans placeholder-faint"
+            className="flex-1 min-w-0 !bg-transparent !border-0 !p-0 !shadow-none outline-none text-fg text-[13.5px] font-sans placeholder-faint"
           />
 
           {value ? (

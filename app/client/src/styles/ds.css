@@ -389,3 +389,8 @@ select.ts-fi { padding-right: 34px; background-position: right 12px center; }
 input.ts-fi:focus, select.ts-fi:focus, textarea.ts-fi:focus { border-color: rgb(var(--fg)); box-shadow: 0 0 0 4px color-mix(in srgb, rgb(var(--fg)) 8%, transparent); background-color: rgb(var(--surface-2)); }
 input.ts-fi.ts-r { text-align: right; }
 .ts-suffix input.ts-fi { padding-right: 34px; }
+.ts-st.ts-in_production,.ts-st.ts-active{background:rgb(var(--warn-bg)); color:rgb(var(--warn))} .ts-st.ts-in_production::before,.ts-st.ts-active::before{background:rgb(var(--warn))}
+.ts-st.ts-delivered,.ts-st.ts-completed{background:rgb(var(--good-bg)); color:rgb(var(--good))} .ts-st.ts-delivered::before,.ts-st.ts-completed::before{background:rgb(var(--good))}
+.ts-st.ts-dispatched::before,.ts-st.ts-issued::before{background:rgb(var(--fg))}
+.ts-tbl .ts-tbar{border-bottom:1px solid rgb(var(--line-rgb) / .07); padding-bottom:14px}
+select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-radius: 999px; background-color: rgb(var(--tile)); border-color: transparent; font-size: 13.5px; }
