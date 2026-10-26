@@ -112,8 +112,8 @@ export default function SearchableSelect({
 
   const inputClasses =
     size === 'sm'
-      ? 'w-full bg-surface2 border border-line2 rounded-lg pl-3 pr-8 py-1.5 text-xs text-fg focus:outline-none focus:border-fg transition-colors truncate'
-      : 'w-full bg-surface border border-line2 rounded-lg pl-3.5 pr-9 py-2 text-sm text-fg focus:outline-none focus:border-fg transition-colors truncate';
+      ? 'ts-fi !pr-9 truncate'
+      : 'ts-fi !pr-10 truncate';
 
   return (
     <div className={`searchable-select ${className}`}>

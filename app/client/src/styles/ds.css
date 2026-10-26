@@ -329,3 +329,63 @@ textarea.ts-fi{resize:vertical; min-height:100px; line-height:1.5}
 .ts-lblwrap .ts-fi{text-transform:none; letter-spacing:normal; font-weight:400}
 .ts-box{padding:14px 16px; border-radius:14px; background:rgb(var(--surface))}
 @media (max-width:640px){.ts-dw-meta{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---- quotation form (from design/technicon-erp.html) ---- */
+.ts-qgrid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; align-items:start}
+.ts-qmain{display:flex; flex-direction:column; gap:16px; min-width:0}
+.ts-qside{position:sticky; top:20px}
+.ts-fgrid{display:grid; gap:14px 16px; margin-top:16px}
+.ts-g4{grid-template-columns:repeat(4,minmax(0,1fr))} .ts-g3{grid-template-columns:repeat(3,minmax(0,1fr))} .ts-g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ts-span2{grid-column:span 2}
+.ts-issuer{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.05fr)}
+.ts-fl{display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+.ts-fl span{font-size:12px; color:rgb(var(--faint))}
+.ts-hint{font-size:12px; color:rgb(var(--faint))}
+.ts-suffix{position:relative} .ts-suffix .ts-fi{padding-right:34px} .ts-suffix span{position:absolute; right:14px; top:50%; transform:translateY(-50%); color:rgb(var(--muted)); pointer-events:none}
+.ts-qline{background:rgb(var(--surface)); border:1px solid rgb(var(--line-rgb) / .07); border-radius:18px; padding:16px; transition:opacity .22s, transform .22s var(--ease)}
+.ts-qline .ts-fi{background-color:rgb(var(--surface-2))}
+.ts-qline.ts-pop{animation:pop .5s var(--spring)}
+.ts-qline.ts-leaving{opacity:0; transform:scale(.96)}
+.ts-ql-h{display:flex; align-items:center; gap:10px; padding-bottom:12px; border-bottom:1px dashed rgb(var(--line-rgb) / .13); flex-wrap:wrap}
+.ts-ql-h b{font-weight:500}
+.ts-lb{font-size:11.5px; padding:3px 9px; border-radius:999px}
+.ts-lb.ts-new{background:rgb(var(--warn-bg)); color:rgb(var(--warn))}
+.ts-lb.ts-cat{background:rgb(var(--tile)); color:rgb(var(--fg))}
+.ts-lb.ts-saved{background:rgb(var(--good-bg)); color:rgb(var(--good))}
+.ts-ql-a{grid-template-columns:minmax(0,1.6fr) minmax(0,1.2fr) minmax(0,.8fr)}
+.ts-ql-b{grid-template-columns:minmax(70px,.6fr) minmax(0,1.1fr) minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.1fr); align-items:start}
+.ts-ltotw{text-align:right; align-items:flex-end}
+.ts-ltot{font-size:19px; font-weight:500; padding-top:8px; font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+.ts-lalloc{font-size:11.5px; color:rgb(var(--muted))}
+.ts-addline{margin-top:14px}
+.ts-small{font-size:13px; margin:4px 0 0}
+.ts-chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+.ts-chips button{display:inline-flex; align-items:center; gap:5px; font-size:12.5px; padding:6px 12px; border-radius:999px; background:rgb(var(--tile)); color:rgb(var(--muted)); transition:color .2s, opacity .2s}
+.ts-chips button .ts-ic{width:13px; height:13px}
+.ts-chips button:hover{color:rgb(var(--fg))} .ts-chips button:disabled{opacity:.4; cursor:default}
+.ts-qsum .ts-qno{font-size:22px; font-weight:500; margin-top:10px; display:flex; align-items:center; gap:10px; letter-spacing:-.01em}
+.ts-sumrows{margin:18px 0 0; display:flex; flex-direction:column; gap:11px}
+.ts-sumrows div{display:flex; justify-content:space-between; gap:10px; font-size:13.5px}
+.ts-sumrows dt{opacity:.65} .ts-sumrows dd{margin:0; font-variant-numeric:tabular-nums}
+.ts-sumrows .ts-sep{border-top:1px dashed rgba(127,127,127,.4); padding-top:11px}
+.ts-grand{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-top:16px; padding-top:16px; border-top:1px solid rgba(127,127,127,.4)}
+.ts-grand span{opacity:.75} .ts-grand b{font-size:28px; font-weight:500; letter-spacing:-.02em}
+.ts-qmeta{display:flex; flex-direction:column; gap:9px; margin:18px 0; padding:14px; border-radius:14px; background:rgba(255,255,255,.06); font-size:13px}
+.ts-qmeta div{display:flex; justify-content:space-between; gap:12px} .ts-qmeta span{opacity:.6; flex:none}
+.ts-qmeta b{font-weight:500; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
+@media (max-width:1100px){ .ts-qgrid{grid-template-columns:minmax(0,1fr)} .ts-qside{position:static} }
+.ts-headtag{font-size:12px; padding:5px 11px; border-radius:999px; border:1px dashed rgb(var(--line-rgb) / .13); color:rgb(var(--muted))}
+@keyframes pop{0%{transform:scale(.9); opacity:.2} 60%{transform:scale(1.03)} 100%{transform:scale(1); opacity:1}}
+.ts-chips button{border:0; cursor:pointer; font-family:inherit}
+.ts-qline .searchable-select input, .ts-qline .searchable-select button{background-color:rgb(var(--surface-2))}
+.ts-okbox{padding:12px 16px; border-radius:16px; background:rgb(var(--good-bg)); color:rgb(var(--good)); font-size:13.5px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+.ts-okbox button{background:none; border:0; color:inherit; cursor:pointer; text-decoration:underline}
+textarea.ts-fi{resize:vertical; line-height:1.5}
+@media (max-width:760px){.ts-g4,.ts-g3,.ts-g2,.ts-ql-a,.ts-issuer{grid-template-columns:minmax(0,1fr)} .ts-span2{grid-column:auto} .ts-ql-b{grid-template-columns:repeat(2,minmax(0,1fr))} .ts-ltotw{grid-column:1/-1}}
+/* Beat the global element rules in styles.css (input[type=text] etc.) so design fields keep their size */
+input.ts-fi, select.ts-fi, textarea.ts-fi { padding: 11px 14px; font-size: 14px; line-height: 1.35; border-radius: 12px; background-color: rgb(var(--surface)); border: 1px solid rgb(var(--line-rgb) / .13); }
+select.ts-fi { padding-right: 34px; background-position: right 12px center; }
+.ts-qline input.ts-fi, .ts-qline select.ts-fi { background-color: rgb(var(--surface-2)); }
+input.ts-fi:focus, select.ts-fi:focus, textarea.ts-fi:focus { border-color: rgb(var(--fg)); box-shadow: 0 0 0 4px color-mix(in srgb, rgb(var(--fg)) 8%, transparent); background-color: rgb(var(--surface-2)); }
+input.ts-fi.ts-r { text-align: right; }
+.ts-suffix input.ts-fi { padding-right: 34px; }

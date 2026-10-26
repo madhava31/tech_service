@@ -314,14 +314,17 @@ select:focus {
   max-height: 220px;
   overflow-y: auto;
   background-color: rgb(var(--surface-2));
-  border: 1px solid rgb(var(--line-rgb) / .13);
-  border-radius: var(--radius);
+  border: 0;
+  border-radius: 14px;
+  padding: 6px;
   z-index: 50;
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow), 0 0 0 1px rgb(var(--line-rgb) / .07), 0 30px 60px -24px rgba(0,0,0,.35);
+  animation: panelIn .3s var(--spring) both;
 }
 .searchable-select-option {
-  padding: 8px 12px;
-  font-size: 0.875rem;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 14px;
   color: rgb(var(--fg));
   cursor: pointer;
   transition: background-color 0.1s ease;
