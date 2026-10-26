@@ -155,7 +155,7 @@ export default function Admin() {
       {/* Page Header & Navigation Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line2">
         <div>
-          <h1 className="text-2xl font-bold text-fg tracking-tight">System Administration</h1>
+          <h1 className="ts-title">System Administration</h1>
           <p className="text-sm text-subtle mt-1">Manage platform accounts, database backups, data imports, and system rules.</p>
         </div>
 

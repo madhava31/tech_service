@@ -81,7 +81,7 @@ export default function WarehouseDetail() {
 
   if (loading) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="h-6 w-36 bg-surface rounded animate-pulse" />
         <div className="h-10 w-80 bg-surface rounded animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -95,7 +95,7 @@ export default function WarehouseDetail() {
 
   if (error || !warehouse) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="p-6 rounded-xl bg-badbg border border-badbg text-bad flex flex-col items-start gap-4">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚠️</span>
@@ -119,7 +119,7 @@ export default function WarehouseDetail() {
   const recentMovements = warehouse.recentMovements || [];
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-subtle">
@@ -143,10 +143,10 @@ export default function WarehouseDetail() {
       </div>
 
       {/* Facility Header Card */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="ts-card ts-white ts-tbl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight text-fg">
+            <h1 className="ts-title">
               {warehouse.name}
             </h1>
             <span className="px-2 py-0.5 bg-tile border border-line2 rounded text-xs font-mono text-fg">
@@ -188,7 +188,7 @@ export default function WarehouseDetail() {
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Products Stored</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {formatNumber(metrics?.productCount)}
@@ -196,7 +196,7 @@ export default function WarehouseDetail() {
           <span className="text-[11px] text-subtle">Tracked SKUs</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Physical On Hand</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {formatNumber(metrics?.totalOnHand)}
@@ -204,7 +204,7 @@ export default function WarehouseDetail() {
           <span className="text-[11px] text-subtle">Units in warehouse</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Reserved Stock</span>
           <div className="mt-2 text-2xl font-bold text-warn">
             {formatNumber(metrics?.totalReserved)}
@@ -212,7 +212,7 @@ export default function WarehouseDetail() {
           <span className="text-[11px] text-subtle">Committed to orders</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 bg-gradient-to-b from-surface2 to-goodbg">
+        <div className="ts-card ts-white ts-tbl bg-gradient-to-b from-surface2 to-goodbg">
           <span className="text-[12px] text-good font-medium">Available to Sell</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {formatNumber(metrics?.totalAvailable)}
@@ -220,7 +220,7 @@ export default function WarehouseDetail() {
           <span className="text-[11px] text-good">On Hand − Reserved</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Incoming Stock</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {formatNumber(metrics?.totalIncoming)}
@@ -278,7 +278,7 @@ export default function WarehouseDetail() {
             </div>
           </div>
 
-          <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
             {filteredStock.length === 0 ? (
               <div className="p-12 text-center text-xs text-subtle">
                 {stockSearch
@@ -286,18 +286,18 @@ export default function WarehouseDetail() {
                   : 'No products currently have inventory records in this warehouse.'}
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="ts-tblwrap">
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                      <th className="py-3 px-4">Part No</th>
-                      <th className="py-3 px-4">Description</th>
-                      <th className="py-3 px-4 text-right">Physical On Hand</th>
-                      <th className="py-3 px-4 text-right">Reserved</th>
-                      <th className="py-3 px-4 text-right">Available</th>
-                      <th className="py-3 px-4 text-right">Incoming</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                      <th className="py-3 px-4 text-right">Action</th>
+                      <th>Part No</th>
+                      <th>Description</th>
+                      <th className="ts-r">Physical On Hand</th>
+                      <th className="ts-r">Reserved</th>
+                      <th className="ts-r">Available</th>
+                      <th className="ts-r">Incoming</th>
+                      <th className="text-center">Status</th>
+                      <th className="ts-r">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line2">
@@ -365,23 +365,23 @@ export default function WarehouseDetail() {
 
       {/* Tab 2: Warehouse Movement Ledger */}
       {activeTab === 'movements' && (
-        <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+        <div className="ts-card ts-white ts-tbl overflow-hidden">
           {recentMovements.length === 0 ? (
             <div className="p-12 text-center text-xs text-subtle">
               No stock movements recorded for this facility yet.
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="ts-tblwrap">
               <table className="w-full text-left text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                    <th className="py-3 px-4">Date & Time</th>
-                    <th className="py-3 px-4">Movement Type</th>
-                    <th className="py-3 px-4">Part No</th>
-                    <th className="py-3 px-4 text-right">Quantity</th>
-                    <th className="py-3 px-4 text-right">Balance After</th>
-                    <th className="py-3 px-4">Reference</th>
-                    <th className="py-3 px-4">Reason</th>
+                    <th>Date & Time</th>
+                    <th>Movement Type</th>
+                    <th>Part No</th>
+                    <th className="ts-r">Quantity</th>
+                    <th className="ts-r">Balance After</th>
+                    <th>Reference</th>
+                    <th>Reason</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line2">

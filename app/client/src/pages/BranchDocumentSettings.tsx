@@ -88,7 +88,7 @@ export default function BranchDocumentSettings() {
             ← Back to Multi-Firm Settings
           </Link>
         </div>
-        <h1 className="text-2xl font-bold text-fg tracking-tight">
+        <h1 className="ts-title">
           Document Print Settings — {branch?.name} ({branch?.code})
         </h1>
         <p className="text-xs text-subtle mt-1">

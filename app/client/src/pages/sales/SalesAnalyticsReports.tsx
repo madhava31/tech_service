@@ -48,7 +48,7 @@ export default function SalesAnalyticsReports() {
     <div className="page-container">
       <div className="flex-between mb-3">
         <div>
-          <h1 className="page-title">Sales Analytics & Reporting</h1>
+          <h1 className="ts-title">Sales Analytics & Reporting</h1>
           <p className="muted text-sm">Real-time revenue breakdowns across companies, products, and fulfillment warehouses.</p>
         </div>
         <div className="flex-gap">

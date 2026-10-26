@@ -453,7 +453,7 @@ export default function SaleReportNew() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-fg">
+            <h1 className="ts-title ts-title-sm">
               {isEditing ? `Edit Draft Sale Report` : 'Create New Sale Report'}
             </h1>
             <p className="text-xs text-subtle mt-0.5">

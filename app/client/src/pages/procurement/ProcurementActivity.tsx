@@ -33,7 +33,7 @@ export default function ProcurementActivity() {
     <div className="page-container">
       <div className="flex-between mb-2">
         <div>
-          <h1 className="page-title">Procurement Activity Audit Stream</h1>
+          <h1 className="ts-title">Procurement Activity Audit Stream</h1>
           <p className="muted text-sm">Chronological log of procurement requirements, PO creations, and stock intake receipts.</p>
         </div>
         <div className="flex-gap">

@@ -256,7 +256,7 @@ export default function EngineerList() {
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-line2">
         <div>
-          <h1 className="text-2xl font-bold text-fg tracking-tight">Sales Engineers & Target Management</h1>
+          <h1 className="ts-title">Sales Engineers & Target Management</h1>
           <p className="text-sm text-subtle mt-1">
             Track sales team attribution, annual target achievements, and revenue performance.
           </p>

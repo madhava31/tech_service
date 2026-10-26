@@ -48,7 +48,7 @@ export default function ProcurementReports() {
     <div className="page-container">
       <div className="flex-between mb-3">
         <div>
-          <h1 className="page-title">Procurement Analytics & Reporting</h1>
+          <h1 className="ts-title">Procurement Analytics & Reporting</h1>
           <p className="muted text-sm">Real-time spend breakdowns by supplier and product catalog.</p>
         </div>
         <div className="flex-gap">

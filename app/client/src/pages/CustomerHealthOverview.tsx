@@ -86,14 +86,14 @@ export default function CustomerHealthOverview() {
   );
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1>
             Customer Health
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Account scores from order recency, frequency and value movement.
           </p>
         </div>
@@ -153,9 +153,9 @@ export default function CustomerHealthOverview() {
       )}
 
       {data && (
-        <section className="bg-surface2 border border-line2 rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+        <section className="ts-card ts-white ts-tbl flex flex-col gap-4">
           {/* Filter Controls */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-line2 pb-3.5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 ts-tbar">
             <div className="flex items-center gap-2.5 flex-wrap">
               <ExpandableSearch
                 value={search}
@@ -167,7 +167,7 @@ export default function CustomerHealthOverview() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
+                className="ts-fi ts-sel"
               >
                 <option value="">All Health Statuses</option>
                 <option value="strong">Healthy (Strong)</option>
@@ -178,36 +178,36 @@ export default function CustomerHealthOverview() {
                 <option value="no_history">Dormant (No History)</option>
               </select>
             </div>
-            <span className="text-[11.5px] text-faint">
+            <span className="ts-showing ts-muted">
               Showing {filtered.length} of {data.customers.length} accounts
             </span>
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
-                <tr className="border-b border-line2">
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                    CUSTOMER
+                <tr>
+                  <th>
+                    Customer
                   </th>
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                    HEALTH BAND
+                  <th>
+                    Health band
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                    TOTAL REVENUE
+                  <th className="ts-r">
+                    Total revenue
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                    ORDERS
+                  <th className="ts-r">
+                    Orders
                   </th>
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                    LAST ORDER
+                  <th>
+                    Last order
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                    RECENCY
+                  <th className="ts-r">
+                    Recency
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                    ACTION
+                  <th className="ts-r">
+                    Action
                   </th>
                 </tr>
               </thead>
@@ -215,7 +215,7 @@ export default function CustomerHealthOverview() {
                 {paged.map((c) => {
                   const color = STATUS_COLORS[c.status] || '#7A839E';
                   return (
-                    <tr key={c.company_id} className="border-b border-line hover:bg-surface transition-colors">
+                    <tr key={c.company_id} >
                       <td className="p-[11px_10px] font-medium text-fg">{c.company_name}</td>
                       <td className="p-[11px_10px]">
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] border border-line2 text-[11px] font-medium" style={{ color }}>
@@ -242,7 +242,7 @@ export default function CustomerHealthOverview() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-subtle text-[13px]">
+                    <td colSpan={7} className="ts-empty">
                       No matching accounts found.
                     </td>
                   </tr>

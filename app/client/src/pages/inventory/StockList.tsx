@@ -88,9 +88,9 @@ export default function StockList() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 text-xs text-subtle">
             <Link to="/inventory" className="hover:text-fg transition-colors">
@@ -99,10 +99,10 @@ export default function StockList() {
             <span>/</span>
             <span className="text-fg">Stock Ledger</span>
           </div>
-          <h1 className="margin-0 text-[32px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1 className="ts-title">
             Inventory Stock Ledger
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Authoritative stock balances, physical on-hand, reservations, and sellable availability.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function StockList() {
       )}
 
       {/* Filter Control Bar */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="ts-card ts-white ts-tbl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
           {/* Search */}
           <div className="relative flex-1 sm:max-w-xs">
@@ -208,7 +208,7 @@ export default function StockList() {
       </div>
 
       {/* Stock Table */}
-      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
         {loading ? (
           <div className="p-8 flex flex-col gap-3">
             {[...Array(6)].map((_, i) => (
@@ -234,19 +234,19 @@ export default function StockList() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                  <th className="py-3 px-4 font-medium">Part No</th>
-                  <th className="py-3 px-4 font-medium">Description</th>
-                  <th className="py-3 px-4 font-medium text-center">Facilities</th>
-                  <th className="py-3 px-4 font-medium text-right">Physical On Hand</th>
-                  <th className="py-3 px-4 font-medium text-right">Reserved</th>
-                  <th className="py-3 px-4 font-medium text-right">Available to Sell</th>
-                  <th className="py-3 px-4 font-medium text-right">Incoming</th>
-                  <th className="py-3 px-4 font-medium text-center">Status</th>
-                  <th className="py-3 px-4 font-medium text-right">Actions</th>
+                  <th>Part No</th>
+                  <th>Description</th>
+                  <th className="text-center">Facilities</th>
+                  <th className="ts-r">Physical On Hand</th>
+                  <th className="ts-r">Reserved</th>
+                  <th className="ts-r">Available to Sell</th>
+                  <th className="ts-r">Incoming</th>
+                  <th className="text-center">Status</th>
+                  <th className="ts-r">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line2">

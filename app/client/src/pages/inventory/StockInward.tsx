@@ -381,9 +381,9 @@ export default function StockInward() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 text-xs text-subtle">
             <Link to="/inventory" className="hover:text-fg transition-colors">
@@ -392,10 +392,10 @@ export default function StockInward() {
             <span>/</span>
             <span className="text-fg">Stock Inward</span>
           </div>
-          <h1 className="margin-0 text-[32px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1 className="ts-title">
             Stock Inward & Restocking
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Receive new physical inventory into warehouse facilities manually or via Excel import.
           </p>
         </div>
@@ -433,7 +433,7 @@ export default function StockInward() {
       )}
 
       {/* Filter Control Bar */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="ts-card ts-white ts-tbl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 flex-wrap">
           {/* Search */}
           <div className="relative min-w-[220px]">
@@ -511,7 +511,7 @@ export default function StockInward() {
       </div>
 
       {/* Receipts Table */}
-      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
         {loading ? (
           <div className="p-8 flex flex-col gap-3">
             {[...Array(5)].map((_, i) => (
@@ -527,19 +527,19 @@ export default function StockInward() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                  <th className="py-3 px-4 font-medium">Receipt #</th>
-                  <th className="py-3 px-4 font-medium">Date</th>
-                  <th className="py-3 px-4 font-medium">Facility</th>
-                  <th className="py-3 px-4 font-medium">Source</th>
-                  <th className="py-3 px-4 font-medium text-center">SKUs</th>
-                  <th className="py-3 px-4 font-medium text-right">Total Units</th>
-                  <th className="py-3 px-4 font-medium text-center">Status</th>
-                  <th className="py-3 px-4 font-medium">Created By</th>
-                  <th className="py-3 px-4 font-medium text-right">Action</th>
+                  <th>Receipt #</th>
+                  <th>Date</th>
+                  <th>Facility</th>
+                  <th>Source</th>
+                  <th className="text-center">SKUs</th>
+                  <th className="ts-r">Total Units</th>
+                  <th className="text-center">Status</th>
+                  <th>Created By</th>
+                  <th className="ts-r">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line2">
@@ -608,7 +608,7 @@ export default function StockInward() {
       {/* --- MODAL 1: MANUAL STOCK RECEIPT --- */}
       {manualModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <div className="bg-surface2 border border-line2 rounded-xl w-full max-w-3xl overflow-hidden shadow-lift my-8">
+          <div className="ts-card ts-white ts-tbl w-full max-w-3xl overflow-hidden my-8">
             <div className="p-4 border-b border-line2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📝</span>
@@ -710,10 +710,10 @@ export default function StockInward() {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-line2 text-subtle uppercase bg-surface">
-                        <th className="py-2.5 px-3">Product / Part No</th>
-                        <th className="py-2.5 px-3 w-28 text-right">Inward Qty</th>
-                        <th className="py-2.5 px-3">Notes</th>
-                        <th className="py-2.5 px-3 w-10 text-center"></th>
+                        <th>Product / Part No</th>
+                        <th className="ts-r">Inward Qty</th>
+                        <th>Notes</th>
+                        <th className="text-center"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line2">
@@ -815,7 +815,7 @@ export default function StockInward() {
       {/* --- MODAL 2: EXCEL RESTOCKING WIZARD --- */}
       {excelModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <div className="bg-surface2 border border-line2 rounded-xl w-full max-w-4xl overflow-hidden shadow-lift my-8">
+          <div className="ts-card ts-white ts-tbl w-full max-w-4xl overflow-hidden my-8">
             <div className="p-4 border-b border-line2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📊</span>
@@ -1123,10 +1123,10 @@ export default function StockInward() {
                         <table className="w-full text-left text-xs border-collapse">
                           <thead>
                             <tr className="text-bad border-b border-badbg bg-[#F6DEDF]">
-                              <th className="py-1.5 px-2">Row #</th>
-                              <th className="py-1.5 px-2">Part No</th>
-                              <th className="py-1.5 px-2 text-right">Quantity</th>
-                              <th className="py-1.5 px-2">Validation Error</th>
+                              <th>Row #</th>
+                              <th>Part No</th>
+                              <th className="ts-r">Quantity</th>
+                              <th>Validation Error</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-badbg">
@@ -1157,13 +1157,13 @@ export default function StockInward() {
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
                           <tr className="border-b border-line2 text-subtle uppercase bg-surface">
-                            <th className="py-2.5 px-3">Status</th>
-                            <th className="py-2.5 px-3">Part No</th>
-                            <th className="py-2.5 px-3">Description</th>
-                            <th className="py-2.5 px-3 text-right">Current On Hand</th>
-                            <th className="py-2.5 px-3 text-right">Inward Qty</th>
-                            <th className="py-2.5 px-3 text-right">Projected On Hand</th>
-                            <th className="py-2.5 px-3 text-right">Projected Available</th>
+                            <th>Status</th>
+                            <th>Part No</th>
+                            <th>Description</th>
+                            <th className="ts-r">Current On Hand</th>
+                            <th className="ts-r">Inward Qty</th>
+                            <th className="ts-r">Projected On Hand</th>
+                            <th className="ts-r">Projected Available</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-line2">

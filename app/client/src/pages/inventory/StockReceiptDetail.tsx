@@ -107,7 +107,7 @@ export default function StockReceiptDetail() {
 
   if (loading) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="h-6 w-48 bg-surface rounded animate-pulse" />
         <div className="h-24 bg-surface2 border border-line2 rounded-xl animate-pulse" />
         <div className="h-48 bg-surface2 border border-line2 rounded-xl animate-pulse" />
@@ -117,7 +117,7 @@ export default function StockReceiptDetail() {
 
   if (error || !receipt) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="p-6 rounded-xl bg-badbg border border-badbg text-bad flex flex-col items-start gap-4">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚠️</span>
@@ -138,7 +138,7 @@ export default function StockReceiptDetail() {
   }
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Breadcrumbs */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-subtle">
@@ -168,7 +168,7 @@ export default function StockReceiptDetail() {
       )}
 
       {/* Header Info Card */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="ts-card ts-white ts-tbl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="px-2.5 py-1 bg-tile border border-line2 rounded text-sm font-mono font-bold text-fg">
@@ -240,7 +240,7 @@ export default function StockReceiptDetail() {
 
       {/* Summary KPI row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Distinct Products</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {receipt.productCount}
@@ -248,7 +248,7 @@ export default function StockReceiptDetail() {
           <span className="text-[11px] text-subtle">SKUs received</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 bg-gradient-to-b from-surface2 to-goodbg">
+        <div className="ts-card ts-white ts-tbl bg-gradient-to-b from-surface2 to-goodbg">
           <span className="text-[12px] text-good font-medium">Total Quantity</span>
           <div className="mt-2 text-2xl font-bold text-good">
             +{formatNumber(receipt.totalQuantity)}
@@ -256,7 +256,7 @@ export default function StockReceiptDetail() {
           <span className="text-[11px] text-good">Total units added to on-hand</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Audit Movements</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {receipt.movements?.length || 0}
@@ -264,7 +264,7 @@ export default function StockReceiptDetail() {
           <span className="text-[11px] text-subtle">Ledger records created</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Receipt Lifecycle</span>
           <div className="mt-2 text-base font-bold text-fg">
             {receipt.status}
@@ -276,7 +276,7 @@ export default function StockReceiptDetail() {
       </div>
 
       {/* Line Items Table */}
-      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
         <div className="p-4 border-b border-line2 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
             <span>📦</span> Receipt Line Items ({receipt.items?.length || 0})
@@ -284,17 +284,17 @@ export default function StockReceiptDetail() {
           <span className="text-xs text-subtle">Detailed product receipt breakdown</span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="ts-tblwrap">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                <th className="py-3 px-4 font-medium">Part No</th>
-                <th className="py-3 px-4 font-medium">Product Description</th>
-                <th className="py-3 px-4 font-medium text-right">Received Qty</th>
-                <th className="py-3 px-4 font-medium text-right">Before On Hand</th>
-                <th className="py-3 px-4 font-medium text-right">After On Hand</th>
-                <th className="py-3 px-4 font-medium">Notes</th>
-                <th className="py-3 px-4 font-medium text-right">Stock Ledger</th>
+                <th>Part No</th>
+                <th>Product Description</th>
+                <th className="ts-r">Received Qty</th>
+                <th className="ts-r">Before On Hand</th>
+                <th className="ts-r">After On Hand</th>
+                <th>Notes</th>
+                <th className="ts-r">Stock Ledger</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line2">
@@ -340,7 +340,7 @@ export default function StockReceiptDetail() {
 
       {/* Linked Movement Audit Ledger */}
       {receipt.movements && receipt.movements.length > 0 && (
-        <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+        <div className="ts-card ts-white ts-tbl overflow-hidden">
           <div className="p-4 border-b border-line2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
               <span>📋</span> Linked Stock Movements Audit Trail ({receipt.movements.length})
@@ -348,18 +348,18 @@ export default function StockReceiptDetail() {
             <span className="text-xs text-subtle">Immutable stock ledger records linked to this receipt</span>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                  <th className="py-3 px-4 font-medium">Timestamp</th>
-                  <th className="py-3 px-4 font-medium">Movement Type</th>
-                  <th className="py-3 px-4 font-medium">Part No</th>
-                  <th className="py-3 px-4 font-medium text-right">Quantity</th>
-                  <th className="py-3 px-4 font-medium text-right">Before</th>
-                  <th className="py-3 px-4 font-medium text-right">After</th>
-                  <th className="py-3 px-4 font-medium">Reason / Note</th>
-                  <th className="py-3 px-4 font-medium">User</th>
+                  <th>Timestamp</th>
+                  <th>Movement Type</th>
+                  <th>Part No</th>
+                  <th className="ts-r">Quantity</th>
+                  <th className="ts-r">Before</th>
+                  <th className="ts-r">After</th>
+                  <th>Reason / Note</th>
+                  <th>User</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line2">

@@ -68,7 +68,7 @@ export default function SalesOrderDetail() {
       <div className="flex-between mb-3">
         <div>
           <div className="flex-gap align-center">
-            <h1 className="page-title">{order.po_number || `Order #${order.id}`}</h1>
+            <h1 className="ts-title">{order.po_number || `Order #${order.id}`}</h1>
             <span className="badge info font-medium">{order.derivedStatus.replace(/_/g, ' ')}</span>
           </div>
           <p className="muted text-sm mt-1">

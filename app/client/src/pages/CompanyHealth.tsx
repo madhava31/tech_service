@@ -68,7 +68,7 @@ export default function CompanyHealth() {
   const color = data ? STATUS_COLORS[data.health.status] || '#7A839E' : '#7A839E';
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center gap-4 text-[12.5px]">
         <Link to="/customer-health" className="text-fg hover:underline font-medium">
@@ -82,10 +82,10 @@ export default function CompanyHealth() {
 
       {/* Page Header */}
       <div className="flex flex-col gap-1.5">
-        <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+        <h1>
           {data ? data.company.name : 'Company Health'}
         </h1>
-        <p className="margin-0 text-[13.5px] text-subtle">
+        <p className="ts-muted m-0 mt-1.5 text-[14px]">
           Detailed health profile, order history, and account metrics.
         </p>
       </div>
@@ -108,7 +108,7 @@ export default function CompanyHealth() {
           Loading company health details...
         </div>
       ) : data ? (
-        <div className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-6">
+        <div className="ts-card ts-white ts-tbl flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line2 pb-4">
             <div>
               <h2 className="text-xl font-bold text-fg">{data.company.name}</h2>
@@ -184,7 +184,7 @@ function Customer360Section({ companyId, companyName }: { companyId: number; com
   if (!c360) return <div className="text-xs text-faint p-4">Loading Customer 360 Pipeline...</div>;
 
   return (
-    <div className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-6">
+    <div className="ts-card ts-white ts-tbl flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line2 pb-4">
         <div>
           <h2 className="text-lg font-bold text-fg">Customer 360 Pipeline Control</h2>
@@ -237,21 +237,21 @@ function Customer360Section({ companyId, companyName }: { companyId: number; com
       {/* Current Active Opportunities */}
       <div>
         <h3 className="text-xs font-semibold text-subtle uppercase mb-2">Active Commercial Opportunities</h3>
-        <div className="overflow-x-auto">
+        <div className="ts-tblwrap">
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-line2 text-subtle">
-                <th className="p-2">Quotation No</th>
-                <th className="p-2 text-right">Value (₹)</th>
-                <th className="p-2">Stage</th>
-                <th className="p-2 text-right">Age</th>
-                <th className="p-2">Next Follow-up</th>
-                <th className="p-2">Stock State</th>
+                <th>Quotation No</th>
+                <th className="ts-r">Value (₹)</th>
+                <th>Stage</th>
+                <th className="ts-r">Age</th>
+                <th>Next Follow-up</th>
+                <th>Stock State</th>
               </tr>
             </thead>
             <tbody>
               {c360.current_opportunities?.map((op: any) => (
-                <tr key={op.quotation_id} className="border-b border-line2">
+                <tr key={op.quotation_id} >
                   <td className="p-2 font-bold text-fg">
                     <Link to={`/quotations/${op.quotation_id}`}>{op.quotation_number}</Link>
                   </td>

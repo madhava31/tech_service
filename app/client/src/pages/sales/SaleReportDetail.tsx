@@ -167,7 +167,7 @@ export default function SaleReportDetail() {
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold font-mono text-fg">
+              <h1 className="ts-title ts-title-sm font-mono">
                 {report.report_number}
               </h1>
               <StatusBadge status={report.status} />

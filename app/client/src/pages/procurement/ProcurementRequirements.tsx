@@ -52,7 +52,7 @@ export default function ProcurementRequirements() {
     <div className="page-container">
       <div className="flex-between mb-2">
         <div>
-          <h1 className="page-title">Procurement Requirements</h1>
+          <h1 className="ts-title">Procurement Requirements</h1>
           <p className="muted text-sm">Consolidated demand recommendations originating from Restock Queue, Stock Intelligence, and Sales Constraints.</p>
         </div>
         <div className="flex-gap">

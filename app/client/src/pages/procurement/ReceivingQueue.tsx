@@ -92,7 +92,7 @@ export default function ReceivingQueue() {
     <div className="page-container">
       <div className="flex-between mb-2">
         <div>
-          <h1 className="page-title">Procurement Receiving Queue</h1>
+          <h1 className="ts-title">Procurement Receiving Queue</h1>
           <p className="muted text-sm">Operational receiving desk. Record stock receipts and trigger atomic stock inward updates.</p>
         </div>
         <div className="flex-gap">

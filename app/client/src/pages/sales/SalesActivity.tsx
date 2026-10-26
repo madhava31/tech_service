@@ -62,7 +62,7 @@ export default function SalesActivity() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface2 border border-line2 p-4 rounded-xl">
         <div>
-          <h1 className="text-2xl font-bold text-fg tracking-tight">Sales Activity Audit Stream</h1>
+          <h1 className="ts-title">Sales Activity Audit Stream</h1>
           <p className="text-xs text-subtle mt-1">
             Chronological record of document creations, status progression, customer actions, and dispatches.
           </p>

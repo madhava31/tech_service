@@ -49,7 +49,7 @@ export default function SalesOverview() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface2 border border-line2 p-4 rounded-xl">
         <div>
-          <h1 className="text-2xl font-bold text-fg tracking-tight">Sales Overview & Controls</h1>
+          <h1 className="ts-title">Sales Overview & Controls</h1>
           <p className="text-xs text-subtle mt-1">
             Unified operational control center for quotations, purchase orders, performa invoices, and sale reports.
           </p>

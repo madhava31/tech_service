@@ -277,7 +277,7 @@ export default function StockIntelligence() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line2 pb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-fg">Stock Intelligence</h1>
+            <h1 className="ts-title">Stock Intelligence</h1>
             <span className="px-2.5 py-0.5 bg-goodbg text-fg border border-goodbg rounded-md text-xs font-semibold flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" />
               Automated Analysis

@@ -80,7 +80,7 @@ export default function ProductStockDetail() {
 
   if (loading) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="h-6 w-40 bg-surface rounded animate-pulse" />
         <div className="h-12 w-80 bg-surface rounded animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -94,7 +94,7 @@ export default function ProductStockDetail() {
 
   if (error || !stockDetail) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="p-6 rounded-xl bg-badbg border border-badbg text-bad flex flex-col items-start gap-4">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚠️</span>
@@ -117,7 +117,7 @@ export default function ProductStockDetail() {
   const { product, totals, warehouses } = stockDetail;
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Breadcrumbs */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-subtle">
@@ -149,7 +149,7 @@ export default function ProductStockDetail() {
       </div>
 
       {/* Product Header Card */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="ts-card ts-white ts-tbl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="px-2.5 py-1 bg-tile border border-line2 rounded text-sm font-mono font-bold text-fg">
@@ -160,7 +160,7 @@ export default function ProductStockDetail() {
               <span className="text-xs text-subtle">HSN: {product.hsn_sac}</span>
             )}
           </div>
-          <h1 className="text-xl font-semibold text-fg">
+          <h1 className="ts-title ts-title-sm">
             {product.description}
           </h1>
         </div>
@@ -177,7 +177,7 @@ export default function ProductStockDetail() {
 
       {/* Aggregated Totals Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Physical On Hand</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {formatNumber(totals.onHandQuantity)} <span className="text-xs font-normal text-subtle">{product.unit}</span>
@@ -185,7 +185,7 @@ export default function ProductStockDetail() {
           <span className="text-[11px] text-subtle">Total across {warehouses.length} facilities</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Reserved Stock</span>
           <div className="mt-2 text-2xl font-bold text-warn">
             {formatNumber(totals.reservedQuantity)} <span className="text-xs font-normal text-subtle">{product.unit}</span>
@@ -193,7 +193,7 @@ export default function ProductStockDetail() {
           <span className="text-[11px] text-subtle">Committed orders</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 bg-gradient-to-b from-surface2 to-goodbg">
+        <div className="ts-card ts-white ts-tbl bg-gradient-to-b from-surface2 to-goodbg">
           <span className="text-[12px] text-good font-medium">Available to Sell</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {formatNumber(totals.availableQuantity)} <span className="text-xs font-normal text-good">{product.unit}</span>
@@ -201,7 +201,7 @@ export default function ProductStockDetail() {
           <span className="text-[11px] text-good">On Hand − Reserved</span>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-4">
+        <div className="ts-card ts-white ts-tbl">
           <span className="text-[12px] text-subtle font-medium">Incoming Stock</span>
           <div className="mt-2 text-2xl font-bold text-fg">
             {formatNumber(totals.incomingQuantity)} <span className="text-xs font-normal text-subtle">{product.unit}</span>
@@ -211,7 +211,7 @@ export default function ProductStockDetail() {
       </div>
 
       {/* Warehouse Breakdown */}
-      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
         <div className="p-4 border-b border-line2 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
             <span>🏢</span> Facility Breakdown ({warehouses.length})
@@ -219,18 +219,18 @@ export default function ProductStockDetail() {
           <span className="text-xs text-subtle">Stock allocation by warehouse location</span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="ts-tblwrap">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                <th className="py-3 px-4 font-medium">Facility</th>
-                <th className="py-3 px-4 font-medium text-right">Physical On Hand</th>
-                <th className="py-3 px-4 font-medium text-right">Reserved</th>
-                <th className="py-3 px-4 font-medium text-right">Available</th>
-                <th className="py-3 px-4 font-medium text-right">Incoming</th>
-                <th className="py-3 px-4 font-medium text-right">Min Threshold</th>
-                <th className="py-3 px-4 font-medium text-center">Status</th>
-                <th className="py-3 px-4 font-medium text-right">Action</th>
+                <th>Facility</th>
+                <th className="ts-r">Physical On Hand</th>
+                <th className="ts-r">Reserved</th>
+                <th className="ts-r">Available</th>
+                <th className="ts-r">Incoming</th>
+                <th className="ts-r">Min Threshold</th>
+                <th className="text-center">Status</th>
+                <th className="ts-r">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line2">
@@ -300,7 +300,7 @@ export default function ProductStockDetail() {
       </div>
 
       {/* Movement History / Audit Trail */}
-      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
         <div className="p-4 border-b border-line2 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
             <span>📋</span> Stock Movement Audit Trail ({movements.length})
@@ -313,18 +313,18 @@ export default function ProductStockDetail() {
             No movement ledger records found for this product.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                  <th className="py-3 px-4 font-medium">Timestamp</th>
-                  <th className="py-3 px-4 font-medium">Facility</th>
-                  <th className="py-3 px-4 font-medium">Movement Type</th>
-                  <th className="py-3 px-4 font-medium text-right">Quantity</th>
-                  <th className="py-3 px-4 font-medium text-right">Before</th>
-                  <th className="py-3 px-4 font-medium text-right">After</th>
-                  <th className="py-3 px-4 font-medium">Reference</th>
-                  <th className="py-3 px-4 font-medium">User / Reason</th>
+                  <th>Timestamp</th>
+                  <th>Facility</th>
+                  <th>Movement Type</th>
+                  <th className="ts-r">Quantity</th>
+                  <th className="ts-r">Before</th>
+                  <th className="ts-r">After</th>
+                  <th>Reference</th>
+                  <th>User / Reason</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line2">

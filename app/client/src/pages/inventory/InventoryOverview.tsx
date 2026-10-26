@@ -64,7 +64,7 @@ export default function InventoryOverview() {
 
   if (loading) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="flex flex-col gap-2">
           <div className="h-8 w-64 bg-surface rounded animate-pulse" />
           <div className="h-4 w-96 bg-surface2 rounded animate-pulse" />
@@ -80,7 +80,7 @@ export default function InventoryOverview() {
 
   if (error) {
     return (
-      <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
         <div className="p-4 rounded-xl bg-badbg border border-badbg text-bad flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-xl">⚠️</span>
@@ -106,14 +106,14 @@ export default function InventoryOverview() {
   const lowStockItems = data?.lowStockItems || [];
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[32px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1 className="ts-title">
             Inventory Overview
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Real-time stock ledger, warehouse levels, and stock movement auditing.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function InventoryOverview() {
       {/* Main KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Total Warehouses */}
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card ts-white ts-tbl flex flex-col justify-between">
           <span className="text-[12px] text-subtle font-medium">Warehouses</span>
           <div className="mt-2">
             <div className="text-2xl font-bold text-fg">{metrics?.totalWarehouses || 0}</div>
@@ -147,7 +147,7 @@ export default function InventoryOverview() {
         </div>
 
         {/* Tracked Products */}
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card ts-white ts-tbl flex flex-col justify-between">
           <span className="text-[12px] text-subtle font-medium">Tracked Products</span>
           <div className="mt-2">
             <div className="text-2xl font-bold text-fg">{formatNumber(metrics?.totalTrackedProducts)}</div>
@@ -156,7 +156,7 @@ export default function InventoryOverview() {
         </div>
 
         {/* Total On Hand */}
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card ts-white ts-tbl flex flex-col justify-between">
           <span className="text-[12px] text-subtle font-medium">Physical On Hand</span>
           <div className="mt-2">
             <div className="text-2xl font-bold text-fg">{formatNumber(metrics?.totalOnHandQuantity)}</div>
@@ -165,7 +165,7 @@ export default function InventoryOverview() {
         </div>
 
         {/* Reserved */}
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card ts-white ts-tbl flex flex-col justify-between">
           <span className="text-[12px] text-subtle font-medium">Reserved Stock</span>
           <div className="mt-2">
             <div className="text-2xl font-bold text-warn">{formatNumber(metrics?.totalReservedQuantity)}</div>
@@ -174,7 +174,7 @@ export default function InventoryOverview() {
         </div>
 
         {/* Available to Sell */}
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col justify-between bg-gradient-to-b from-surface2 to-goodbg">
+        <div className="ts-card ts-white ts-tbl flex flex-col justify-between bg-gradient-to-b from-surface2 to-goodbg">
           <span className="text-[12px] text-good font-medium">Available to Sell</span>
           <div className="mt-2">
             <div className="text-2xl font-bold text-fg">{formatNumber(metrics?.totalAvailableQuantity)}</div>
@@ -183,7 +183,7 @@ export default function InventoryOverview() {
         </div>
 
         {/* Incoming */}
-        <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card ts-white ts-tbl flex flex-col justify-between">
           <span className="text-[12px] text-subtle font-medium">Incoming</span>
           <div className="mt-2">
             <div className="text-2xl font-bold text-fg">{formatNumber(metrics?.totalIncomingQuantity)}</div>
@@ -193,7 +193,7 @@ export default function InventoryOverview() {
       </div>
 
       {/* Stock Health Badges Bar */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="ts-card ts-white ts-tbl flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-subtle uppercase tracking-wider">Inventory Health:</span>
           <span className="text-xs text-fg">Automated threshold alerts across all locations</span>
@@ -226,7 +226,7 @@ export default function InventoryOverview() {
       {/* 2-Column Split: Warehouses & Recent Movements */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Warehouses Card */}
-        <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden flex flex-col">
+        <div className="ts-card ts-white ts-tbl overflow-hidden flex flex-col">
           <div className="p-4 border-b border-line2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
               <span>🏢</span> Warehouse Locations ({warehouses.length})
@@ -280,7 +280,7 @@ export default function InventoryOverview() {
         </div>
 
         {/* Recent Movements Audit Card */}
-        <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden flex flex-col">
+        <div className="ts-card ts-white ts-tbl overflow-hidden flex flex-col">
           <div className="p-4 border-b border-line2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
               <span>📋</span> Recent Stock Movements (Audit Ledger)
@@ -340,7 +340,7 @@ export default function InventoryOverview() {
 
       {/* Low & Critical Stock Watchlist */}
       {lowStockItems.length > 0 && (
-        <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+        <div className="ts-card ts-white ts-tbl overflow-hidden">
           <div className="p-4 border-b border-line2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
               <span className="text-warn">⚠️</span> Stock Attention Watchlist ({lowStockItems.length})
@@ -349,18 +349,18 @@ export default function InventoryOverview() {
               View all stock alerts →
             </Link>
           </div>
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                  <th className="py-3 px-4">Part No</th>
-                  <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4 text-right">Physical On Hand</th>
-                  <th className="py-3 px-4 text-right">Reserved</th>
-                  <th className="py-3 px-4 text-right">Available</th>
-                  <th className="py-3 px-4 text-right">Threshold</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                  <th>Part No</th>
+                  <th>Description</th>
+                  <th className="ts-r">Physical On Hand</th>
+                  <th className="ts-r">Reserved</th>
+                  <th className="ts-r">Available</th>
+                  <th className="ts-r">Threshold</th>
+                  <th className="text-center">Status</th>
+                  <th className="ts-r">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line2">

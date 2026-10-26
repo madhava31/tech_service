@@ -108,7 +108,7 @@ export default function FollowUpsDueToday() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface2 border border-line2 p-4 rounded-xl">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-fg tracking-tight">Follow-Ups Due Today</h1>
+            <h1 className="ts-title">Follow-Ups Due Today</h1>
             <span className="bg-ink/10 text-fg text-xs font-semibold px-2.5 py-0.5 rounded-full border border-fg/30">
               Today's Queue
             </span>

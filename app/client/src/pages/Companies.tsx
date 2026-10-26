@@ -159,14 +159,14 @@ export default function Companies() {
   };
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1>
             Companies
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             {companies.length} customer records and organizational accounts.
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function Companies() {
                 type="button"
                 onClick={handleBulkDelete}
                 disabled={selectedIds.length === 0 || isBulkDeleting}
-                className="h-[34px] px-3.5 rounded-[9px] bg-bad hover:bg-bad disabled:opacity-50 text-onink text-[12.5px] font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                className="ts-btn ts-danger ts-xs"
               >
                 {isBulkDeleting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                 <span>{isBulkDeleting ? 'Deleting...' : `Delete Selected (${selectedIds.length})`}</span>
@@ -190,7 +190,7 @@ export default function Companies() {
                   setSelectedIds([]);
                 }}
                 disabled={isBulkDeleting}
-                className="h-[34px] px-3 rounded-[9px] bg-surface hover:bg-tile text-subtle border border-line2 text-[12.5px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                className="ts-btn ts-ghost ts-xs"
               >
                 <X className="w-3.5 h-3.5" />
                 <span>Cancel</span>
@@ -200,7 +200,7 @@ export default function Companies() {
             <button
               type="button"
               onClick={() => setIsSelectionMode(true)}
-              className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-bad hover:bg-surface hover:border-line2 text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+              className="ts-btn ts-ghost ts-xs text-bad"
               title="Select Companies to Delete"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -214,7 +214,7 @@ export default function Companies() {
               setEditing({ ...empty });
               setIsSelectionMode(false);
             }}
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-line2 text-fg font-semibold text-[12.5px] inline-flex items-center gap-1.5 cursor-pointer hover:bg-tile transition-colors"
+            className="ts-btn ts-ghost ts-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Company</span>
@@ -244,14 +244,14 @@ export default function Companies() {
       )}
 
       {error && (
-        <div className="p-3 rounded-[10px] border border-badbg bg-badbg text-bad text-[12.5px]">
+        <div className="ts-warnbox">
           {error}
         </div>
       )}
 
       {/* Edit / New Modal Card */}
       {editing && (
-        <section className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-4">
+        <section className="ts-card ts-white ts-tbl flex flex-col gap-4">
           <h3 className="margin-0 text-[18px] font-medium">
             {editing.id ? 'Edit Company' : 'New Company'}
           </h3>
@@ -261,7 +261,7 @@ export default function Companies() {
               <input
                 value={editing.name || ''}
                 onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -269,7 +269,7 @@ export default function Companies() {
               <input
                 value={editing.state || ''}
                 onChange={(e) => setEditing({ ...editing, state: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider md:col-span-2">
@@ -277,7 +277,7 @@ export default function Companies() {
               <input
                 value={editing.address || ''}
                 onChange={(e) => setEditing({ ...editing, address: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -285,7 +285,7 @@ export default function Companies() {
               <input
                 value={editing.gstin || ''}
                 onChange={(e) => setEditing({ ...editing, gstin: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -293,7 +293,7 @@ export default function Companies() {
               <input
                 value={editing.contact_person || ''}
                 onChange={(e) => setEditing({ ...editing, contact_person: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -301,7 +301,7 @@ export default function Companies() {
               <input
                 value={editing.phone || ''}
                 onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -309,7 +309,7 @@ export default function Companies() {
               <input
                 value={editing.email || ''}
                 onChange={(e) => setEditing({ ...editing, email: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
           </div>
@@ -318,7 +318,7 @@ export default function Companies() {
               type="button"
               onClick={() => setEditing(null)}
               disabled={saving}
-              className="h-[34px] px-4 rounded-[9px] bg-surface border border-line2 text-subtle text-[12.5px] cursor-pointer"
+              className="ts-btn ts-ghost ts-xs"
             >
               Cancel
             </button>
@@ -326,7 +326,7 @@ export default function Companies() {
               type="button"
               onClick={save}
               disabled={saving}
-              className="h-[34px] px-4 rounded-[9px] bg-ink text-onink font-bold text-[12.5px] cursor-pointer"
+              className="ts-btn ts-dark ts-xs"
             >
               {saving ? 'Saving...' : 'Save Company'}
             </button>
@@ -335,9 +335,9 @@ export default function Companies() {
       )}
 
       {/* Main Table Container Card */}
-      <section className="bg-surface2 border border-line2 rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+      <section className="ts-card ts-white ts-tbl flex flex-col gap-4">
         {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-line2 pb-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 ts-tbar">
           <div className="flex items-center gap-2 flex-wrap">
             <ExpandableSearch
               value={query}
@@ -353,7 +353,7 @@ export default function Companies() {
             <select
               value={stateFilter}
               onChange={(e) => setStateFilter(e.target.value)}
-              className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
+              className="ts-fi ts-sel"
             >
               <option value="">All States</option>
               {allStates.map((s) => (
@@ -366,12 +366,12 @@ export default function Companies() {
               <button
                 type="button"
                 onClick={() => setStateFilter('')}
-                className="h-[30px] px-2.5 rounded-[8px] bg-surface border border-line2 text-subtle text-[12px] cursor-pointer"
+                className="ts-btn ts-ghost ts-xs"
               >
                 Clear
               </button>
             )}
-            <span className="text-[11.5px] text-faint">
+            <span className="ts-showing ts-muted">
               Showing {filteredCompanies.length} of {companies.length}
             </span>
           </div>
@@ -410,10 +410,10 @@ export default function Companies() {
         )}
 
         {/* Companies Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] border-collapse text-[12.5px]">
+        <div className="ts-tblwrap">
+          <table>
             <thead>
-              <tr className="border-b border-line2">
+              <tr>
                 {isSelectionMode && (
                   <th className="w-12 p-[8px_10px] text-center">
                     <input
@@ -425,20 +425,20 @@ export default function Companies() {
                     />
                   </th>
                 )}
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  COMPANY
+                <th>
+                  Company
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  STATE
+                <th>
+                  State
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  GSTIN
+                <th>
+                  Gstin
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  CONTACT
+                <th>
+                  Contact
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  ACTIONS
+                <th className="ts-r">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -511,7 +511,7 @@ export default function Companies() {
               })}
               {filteredCompanies.length === 0 && (
                 <tr>
-                  <td colSpan={isSelectionMode ? 6 : 5} className="text-center py-8 text-subtle text-[13px]">
+                  <td colSpan={isSelectionMode ? 6 : 5} className="ts-empty">
                     No companies found.
                   </td>
                 </tr>

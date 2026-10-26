@@ -62,7 +62,7 @@ export default function Settings() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line2">
         <div>
-          <h1 className="text-2xl font-bold text-fg tracking-tight">System & Organisation Settings</h1>
+          <h1 className="ts-title">System & Organisation Settings</h1>
           <p className="text-sm text-subtle mt-1">
             Configure organisation details, branding, default quotation terms, and invoice numbering.
           </p>

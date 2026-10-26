@@ -68,7 +68,7 @@ export default function SupplierList() {
     <div className="page-container">
       <div className="flex-between mb-2">
         <div>
-          <h1 className="page-title">Supplier & Vendor Directory</h1>
+          <h1 className="ts-title">Supplier & Vendor Directory</h1>
           <p className="muted text-sm">Manage active vendor profiles, contact details, purchase order history, and spend analytics.</p>
         </div>
         <div className="flex-gap">

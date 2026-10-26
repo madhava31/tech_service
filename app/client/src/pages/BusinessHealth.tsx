@@ -104,7 +104,7 @@ export default function BusinessHealth() {
   const strokeDashoffset = overallScore != null ? 490 - (overallScore / 100) * 490 : 490;
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {toast && (
         <div
           role="status"
@@ -132,12 +132,12 @@ export default function BusinessHealth() {
       )}
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1>
             Business Health
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             A composite read of momentum, pipeline, collections, retention and mix.
           </p>
         </div>
@@ -148,7 +148,7 @@ export default function BusinessHealth() {
               type="button"
               onClick={handleRestore}
               disabled={actionLoading || loading}
-              className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-fg hover:bg-surface text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+              className="ts-btn ts-ghost ts-xs"
               title="Sync with Live System Data"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
@@ -159,7 +159,7 @@ export default function BusinessHealth() {
               type="button"
               onClick={handleReset}
               disabled={actionLoading || loading}
-              className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-bad hover:bg-[#FDF2F2] hover:border-badbg text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+              className="ts-btn ts-ghost ts-xs text-bad"
               title="Reset Business Health page data only"
             >
               <RotateCcw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
@@ -171,7 +171,7 @@ export default function BusinessHealth() {
             type="button"
             onClick={fetchData}
             disabled={loading || actionLoading}
-            className="h-[34px] w-[34px] rounded-[9px] bg-surface2 border border-line2 text-subtle hover:text-fg hover:bg-surface flex items-center justify-center cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+            className="ts-btn ts-ghost ts-xs"
             title="Refresh Score"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />

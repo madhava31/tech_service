@@ -79,7 +79,7 @@ export default function EngineerDetail() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-fg tracking-tight">{engineer.name}</h1>
+            <h1 className="ts-title">{engineer.name}</h1>
             <p className="text-xs text-subtle font-mono mt-0.5">Code: {engineer.code} | Email: {engineer.email || '—'} | Phone: {engineer.phone || '—'}</p>
           </div>
           <select

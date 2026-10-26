@@ -48,7 +48,7 @@ export default function SalesPending() {
     <div className="page-container">
       <div className="flex-between mb-3">
         <div>
-          <h1 className="page-title">Pending Sales Work Queue</h1>
+          <h1 className="ts-title">Pending Sales Work Queue</h1>
           <p className="muted text-sm">Actionable pipeline bottlenecks requiring document creation or follow-up.</p>
         </div>
         <div className="flex-gap">

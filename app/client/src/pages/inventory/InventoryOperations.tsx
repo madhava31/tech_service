@@ -237,7 +237,7 @@ export default function InventoryOperations() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line2 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-fg tracking-tight">Inventory Operations</h1>
+            <h1 className="ts-title">Inventory Operations</h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tile text-fg border border-line2">
               Control Center
             </span>

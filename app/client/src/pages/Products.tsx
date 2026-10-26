@@ -86,21 +86,21 @@ export default function Products() {
   const hasFilter = nameFilter || partNoFilter;
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header Bar & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1>
             Products
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             {products.length} product catalogue records with price and unit specification.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <a
             href={api.products.templateUrl()}
-            className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-fg hover:border-line2 text-[12.5px] font-medium inline-flex items-center transition-colors no-underline"
+            className="ts-btn ts-ghost ts-xs"
           >
             Download Excel Template
           </a>
@@ -110,7 +110,7 @@ export default function Products() {
               setShowImport(true);
               setEditing(null);
             }}
-            className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-fg hover:border-line2 text-[12.5px] font-medium cursor-pointer transition-colors"
+            className="ts-btn ts-ghost ts-xs"
           >
             Import Catalogue
           </button>
@@ -120,7 +120,7 @@ export default function Products() {
               setEditing({ ...empty });
               setShowImport(false);
             }}
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-line2 text-fg font-medium text-[12.5px] cursor-pointer hover:bg-tile transition-colors"
+            className="ts-btn ts-ghost ts-xs"
           >
             + Add Product
           </button>
@@ -128,13 +128,13 @@ export default function Products() {
       </div>
 
       {error && (
-        <div className="p-3 rounded-[10px] border border-badbg bg-badbg text-bad text-[12.5px]">
+        <div className="ts-warnbox">
           {error}
         </div>
       )}
 
       {showImport && (
-        <div className="bg-surface2 border border-line2 rounded-[16px] p-6">
+        <div className="ts-card ts-white ts-tbl">
           <ProductImport
             onImported={() => {
               load();
@@ -146,7 +146,7 @@ export default function Products() {
 
       {/* Edit / New Product Form */}
       {editing && (
-        <section className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-4">
+        <section className="ts-card ts-white ts-tbl flex flex-col gap-4">
           <h3 className="margin-0 text-[18px] font-medium">
             {editing.id ? 'Edit Product' : 'New Product'}
           </h3>
@@ -156,7 +156,7 @@ export default function Products() {
               <input
                 value={editing.part_no || ''}
                 onChange={(e) => setEditing({ ...editing, part_no: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -164,7 +164,7 @@ export default function Products() {
               <input
                 value={editing.hsn_sac || ''}
                 onChange={(e) => setEditing({ ...editing, hsn_sac: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider md:col-span-2">
@@ -172,7 +172,7 @@ export default function Products() {
               <input
                 value={editing.description || ''}
                 onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -180,7 +180,7 @@ export default function Products() {
               <input
                 value={editing.unit || 'Nos'}
                 onChange={(e) => setEditing({ ...editing, unit: e.target.value })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
@@ -189,7 +189,7 @@ export default function Products() {
                 type="number"
                 value={editing.default_price ?? 0}
                 onChange={(e) => setEditing({ ...editing, default_price: Number(e.target.value) })}
-                className="h-[36px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[13px] outline-none"
+                className="ts-fi ts-sel"
               />
             </label>
           </div>
@@ -198,7 +198,7 @@ export default function Products() {
               type="button"
               onClick={() => setEditing(null)}
               disabled={saving}
-              className="h-[34px] px-4 rounded-[9px] bg-surface border border-line2 text-subtle text-[12.5px] cursor-pointer"
+              className="ts-btn ts-ghost ts-xs"
             >
               Cancel
             </button>
@@ -206,7 +206,7 @@ export default function Products() {
               type="button"
               onClick={save}
               disabled={saving}
-              className="h-[34px] px-4 rounded-[9px] bg-ink text-onink font-bold text-[12.5px] cursor-pointer"
+              className="ts-btn ts-dark ts-xs"
             >
               {saving ? 'Saving...' : 'Save Product'}
             </button>
@@ -215,9 +215,9 @@ export default function Products() {
       )}
 
       {/* Main Table Container Card */}
-      <section className="bg-surface2 border border-line2 rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+      <section className="ts-card ts-white ts-tbl flex flex-col gap-4">
         {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-line2 pb-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 ts-tbar">
           <div className="flex items-center gap-2.5 flex-wrap">
             <ExpandableSearch
               value={nameFilter}
@@ -240,45 +240,45 @@ export default function Products() {
                   setNameFilter('');
                   setPartNoFilter('');
                 }}
-                className="h-[30px] px-2.5 rounded-[8px] bg-surface border border-line2 text-subtle text-[12px] cursor-pointer"
+                className="ts-btn ts-ghost ts-xs"
               >
                 Clear
               </button>
             )}
           </div>
-          <span className="text-[11.5px] text-faint">
+          <span className="ts-showing ts-muted">
             Showing {filteredProducts.length} of {products.length}
           </span>
         </div>
 
         {/* Products Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
+        <div className="ts-tblwrap">
+          <table>
             <thead>
-              <tr className="border-b border-line2">
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  PART CODE
+              <tr>
+                <th>
+                  Part code
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  DESCRIPTION
+                <th>
+                  Description
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
+                <th>
                   HSN/SAC
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  UNIT
+                <th>
+                  Unit
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  PRICE
+                <th className="ts-r">
+                  Price
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
-                  ACTIONS
+                <th className="ts-r">
+                  Actions
                 </th>
               </tr>
             </thead>
             <tbody>
               {pagedProducts.map((p) => (
-                <tr key={p.id} className="border-b border-line hover:bg-surface transition-colors">
+                <tr key={p.id} >
                   <td className="p-[11px_10px]">
                     <Link
                       to={`/products/${p.id}/intelligence`}
@@ -328,7 +328,7 @@ export default function Products() {
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-subtle text-[13px]">
+                  <td colSpan={6} className="ts-empty">
                     No products found.
                   </td>
                 </tr>

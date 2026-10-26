@@ -57,7 +57,7 @@ export default function SalesOrderList() {
     <div className="page-container">
       <div className="flex-between mb-2">
         <div>
-          <h1 className="page-title">Sales Orders</h1>
+          <h1 className="ts-title">Sales Orders</h1>
           <p className="muted text-sm">Monitor order fulfillment, purchase order linkage, performa invoices, and partial dispatches.</p>
         </div>
         <div className="flex-gap">

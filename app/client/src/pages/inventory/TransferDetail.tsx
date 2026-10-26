@@ -70,7 +70,7 @@ export default function TransferDetail() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-fg">{transfer.transferNumber}</h1>
+              <h1 className="ts-title ts-title-sm">{transfer.transferNumber}</h1>
               <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-goodbg text-good border border-goodbg">
                 {transfer.status}
               </span>

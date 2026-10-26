@@ -128,9 +128,9 @@ export default function WarehouseList() {
   }, [warehouses, search]);
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 text-xs text-subtle">
             <Link to="/inventory" className="hover:text-fg transition-colors">
@@ -139,10 +139,10 @@ export default function WarehouseList() {
             <span>/</span>
             <span className="text-fg">Warehouses</span>
           </div>
-          <h1 className="margin-0 text-[32px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1 className="ts-title">
             Warehouse Facilities
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Manage physical stock locations, distribution centers, and default order fulfillment hubs.
           </p>
         </div>
@@ -187,7 +187,7 @@ export default function WarehouseList() {
       </div>
 
       {/* Warehouses Table / Grid */}
-      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
         {loading ? (
           <div className="p-8 flex flex-col gap-3">
             {[...Array(3)].map((_, i) => (
@@ -213,17 +213,17 @@ export default function WarehouseList() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
-                  <th className="py-3.5 px-4 font-medium">Facility Code</th>
-                  <th className="py-3.5 px-4 font-medium">Name</th>
-                  <th className="py-3.5 px-4 font-medium">Location</th>
-                  <th className="py-3.5 px-4 font-medium text-right">Products Stored</th>
-                  <th className="py-3.5 px-4 font-medium text-right">Total Units</th>
-                  <th className="py-3.5 px-4 font-medium text-center">Status</th>
-                  <th className="py-3.5 px-4 font-medium text-right">Actions</th>
+                  <th>Facility Code</th>
+                  <th>Name</th>
+                  <th>Location</th>
+                  <th className="ts-r">Products Stored</th>
+                  <th className="ts-r">Total Units</th>
+                  <th className="text-center">Status</th>
+                  <th className="ts-r">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line2">
@@ -301,7 +301,7 @@ export default function WarehouseList() {
       {/* Create / Edit Warehouse Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-surface2 border border-line2 rounded-xl w-full max-w-md overflow-hidden shadow-lift">
+          <div className="ts-card ts-white ts-tbl w-full max-w-md overflow-hidden">
             <div className="p-4 border-b border-line2 flex items-center justify-between">
               <h3 className="font-semibold text-base text-fg">
                 {formData.id ? 'Edit Warehouse' : 'New Warehouse'}

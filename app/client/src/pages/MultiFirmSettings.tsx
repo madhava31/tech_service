@@ -107,7 +107,7 @@ export default function MultiFirmSettings() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line2">
         <div>
-          <h1 className="text-2xl font-bold text-fg tracking-tight">Multi-Firm & Branch Setup</h1>
+          <h1 className="ts-title">Multi-Firm & Branch Setup</h1>
           <p className="text-sm text-subtle mt-1">
             Manage legal entities, operational branches, and branch-specific document print settings.
           </p>

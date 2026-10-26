@@ -394,3 +394,8 @@ input.ts-fi.ts-r { text-align: right; }
 .ts-st.ts-dispatched::before,.ts-st.ts-issued::before{background:rgb(var(--fg))}
 .ts-tbl .ts-tbar{border-bottom:1px solid rgb(var(--line-rgb) / .07); padding-bottom:14px}
 select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-radius: 999px; background-color: rgb(var(--tile)); border-color: transparent; font-size: 13.5px; }
+/* Page titles across all pages */
+.ts-title, .page-title { font-size: 36px; line-height: 1.1; font-weight: 500; letter-spacing: -.025em; margin: 0; color: rgb(var(--fg)); animation: titleIn .7s var(--out) both; }
+.ts-title-sm { font-size: 28px; }
+.ts-title.font-mono { font-family: var(--font); }
+@media (max-width: 760px) { .ts-title, .page-title { font-size: 30px; } .ts-title-sm { font-size: 24px; } }

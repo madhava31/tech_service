@@ -54,7 +54,7 @@ export default function ProcurementRequirementDetail() {
       <div className="flex-between mb-3">
         <div>
           <div className="flex-gap align-center">
-            <h1 className="page-title">{requirement.requirement_code}</h1>
+            <h1 className="ts-title">{requirement.requirement_code}</h1>
             <span className={requirement.priority === 'CRITICAL' ? 'badge danger' : 'badge warning'}>
               {requirement.priority} PRIORITY
             </span>

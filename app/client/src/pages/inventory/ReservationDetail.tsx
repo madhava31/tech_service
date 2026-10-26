@@ -168,7 +168,7 @@ export default function ReservationDetail() {
             <span>Back to Reservations</span>
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold font-mono tracking-tight text-fg">
+            <h1 className="ts-title font-mono">
               #RES-{reservation.id}
             </h1>
             <StatusBadge status={reservation.status} />

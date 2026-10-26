@@ -113,7 +113,7 @@ export default function OverdueFollowUps() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface2 border border-line2 p-4 rounded-xl">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-fg tracking-tight">Overdue Follow-Ups</h1>
+            <h1 className="ts-title">Overdue Follow-Ups</h1>
             <span className="bg-bad/10 text-bad text-xs font-semibold px-2.5 py-0.5 rounded-full border border-bad/30">
               Immediate Attention
             </span>

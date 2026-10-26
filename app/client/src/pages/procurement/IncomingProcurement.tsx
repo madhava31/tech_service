@@ -33,7 +33,7 @@ export default function IncomingProcurement() {
     <div className="page-container">
       <div className="flex-between mb-2">
         <div>
-          <h1 className="page-title">Incoming Procurement</h1>
+          <h1 className="ts-title">Incoming Procurement</h1>
           <p className="muted text-sm">Open purchase orders with pending receivable quantities.</p>
         </div>
         <div className="flex-gap">

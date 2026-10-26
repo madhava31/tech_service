@@ -140,20 +140,20 @@ export default function Opportunities() {
   );
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header & Stat Summary */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1>
             Growth Opportunities
           </h1>
-          <p className="margin-0 text-[13.5px] text-subtle">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Evidence-backed recommendations detected from real transactional data. Read-only.
           </p>
         </div>
 
         {summary && (
-          <div className="grid grid-cols-4 border border-line2 rounded-[12px] bg-surface2 overflow-hidden">
+          <div className="grid grid-cols-4  rounded-[18px] shadow-card bg-surface2 overflow-hidden">
             <div className="p-[10px_14px] border-r border-line2 flex flex-col gap-[2px]">
               <span className="text-[10.5px] tracking-[.08em] text-faint">TOTAL</span>
               <span className="text-[18px] font-medium text-fg">{summary.total}</span>
@@ -211,7 +211,7 @@ export default function Opportunities() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
+                className="ts-fi ts-sel"
               >
                 <option value="">All Types</option>
                 {Object.entries(TYPE_LABELS).map(([k, label]) => (
@@ -223,7 +223,7 @@ export default function Opportunities() {
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
+                className="ts-fi ts-sel"
               >
                 <option value="">All Priorities</option>
                 <option value="high">High Priority</option>
@@ -231,7 +231,7 @@ export default function Opportunities() {
                 <option value="low">Low Priority</option>
               </select>
             </div>
-            <span className="text-[11.5px] text-faint">
+            <span className="ts-showing ts-muted">
               Showing {filtered.length} of {data.length} opportunities
             </span>
           </div>
@@ -286,7 +286,7 @@ export default function Opportunities() {
                     {link && (
                       <Link
                         to={link.to}
-                        className="h-[30px] px-3 rounded-[8px] bg-transparent border border-line2 text-fg font-medium text-[12px] inline-flex items-center justify-center hover:bg-tile transition-colors no-underline self-start"
+                        className="ts-btn ts-ghost ts-xs"
                       >
                         {link.label} →
                       </Link>

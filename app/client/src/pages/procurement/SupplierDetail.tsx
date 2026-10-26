@@ -53,7 +53,7 @@ export default function SupplierDetail() {
     <div className="page-container">
       <div className="flex-between mb-3">
         <div>
-          <h1 className="page-title">{supplier.name}</h1>
+          <h1 className="ts-title">{supplier.name}</h1>
           <p className="muted text-sm mt-1">
             Contact: {supplier.contact_person || 'N/A'} | Email: {supplier.email || 'N/A'} | Phone: {supplier.phone || 'N/A'}
           </p>

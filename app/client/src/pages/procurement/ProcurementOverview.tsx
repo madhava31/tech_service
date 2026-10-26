@@ -50,7 +50,7 @@ export default function ProcurementOverview() {
     <div className="page-container">
       <div className="flex-between mb-2">
         <div>
-          <h1 className="page-title">Procurement Management</h1>
+          <h1 className="ts-title">Procurement Management</h1>
           <p className="muted text-sm">Central command for stock demand, procurement requirements, suppliers, purchase orders, and stock receiving.</p>
         </div>
         <div className="flex-gap">
