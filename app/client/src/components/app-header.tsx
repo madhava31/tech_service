@@ -18,7 +18,12 @@ import {
   ShieldAlertIcon,
   CheckCircle2Icon,
   XIcon,
+  PlusIcon,
 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { BrandMark } from './layout/BrandMark';
+import { TopNav } from './layout/TopNav';
+import { Dock } from './layout/Dock';
 import {
   getDateRangePresets,
   DATE_RANGE_EVENT,
@@ -158,7 +163,7 @@ export function AppHeader({
   };
 
   const iconBtn =
-    'w-[38px] h-[38px] rounded-[10px] bg-white border border-[#E2EAE5] text-[#64748B] hover:text-[#059669] hover:border-[#10B981]/50 cursor-pointer grid place-items-center transition-colors shadow-xs';
+    'w-[38px] h-[38px] rounded-[10px] bg-surface2 border border-line2 text-subtle hover:text-good hover:border-good/50 cursor-pointer grid place-items-center transition-colors shadow-xs';
 
   // Compute notification items & count
   const overdueCount = followUpsData?.summary?.overdueCount || 0;
@@ -182,10 +187,10 @@ export function AppHeader({
       title: `${overdueCount} Overdue Follow-up${overdueCount > 1 ? 's' : ''}`,
       description: 'Pending quotation follow-ups requiring immediate action.',
       route: '/overdue-follow-ups',
-      icon: <ClockIcon className="size-4 text-[#E5484D]" />,
-      iconBg: 'bg-[#FCEBEC]',
+      icon: <ClockIcon className="size-4 text-bad" />,
+      iconBg: 'bg-badbg',
       badge: 'Overdue',
-      badgeBg: 'bg-[#FCEBEC] text-[#E5484D]',
+      badgeBg: 'bg-badbg text-bad',
     });
   }
 
@@ -195,33 +200,33 @@ export function AppHeader({
       title: `${dueTodayCount} Follow-up${dueTodayCount > 1 ? 's' : ''} Due Today`,
       description: 'Scheduled follow-up communications set for today.',
       route: '/follow-ups-due-today',
-      icon: <ClockIcon className="size-4 text-[#D97706]" />,
-      iconBg: 'bg-[#FEF3C7]',
+      icon: <ClockIcon className="size-4 text-warn" />,
+      iconBg: 'bg-warnbg',
       badge: 'Today',
-      badgeBg: 'bg-[#FEF3C7] text-[#D97706]',
+      badgeBg: 'bg-warnbg text-warn',
     });
   }
 
   if (attentionData?.items) {
     attentionData.items.forEach((item, index) => {
-      let icon = <AlertTriangleIcon className="size-4 text-[#2F6FED]" />;
-      let iconBg = 'bg-[#EAF1FF]';
-      let badgeBg = 'bg-[#EAF1FF] text-[#2F6FED]';
+      let icon = <AlertTriangleIcon className="size-4 text-fg" />;
+      let iconBg = 'bg-tile';
+      let badgeBg = 'bg-tile text-fg';
 
       if (item.priority === 'high') {
-        icon = <AlertTriangleIcon className="size-4 text-[#E5484D]" />;
-        iconBg = 'bg-[#FCEBEC]';
-        badgeBg = 'bg-[#FCEBEC] text-[#E5484D]';
+        icon = <AlertTriangleIcon className="size-4 text-bad" />;
+        iconBg = 'bg-badbg';
+        badgeBg = 'bg-badbg text-bad';
       } else if (item.type === 'draft_quotations') {
-        icon = <FileTextIcon className="size-4 text-[#2F6FED]" />;
+        icon = <FileTextIcon className="size-4 text-fg" />;
       } else if (item.type === 'purchase_orders_not_invoiced') {
         icon = <ShoppingCartIcon className="size-4 text-[#9333EA]" />;
         iconBg = 'bg-[#F3E8FF]';
         badgeBg = 'bg-[#F3E8FF] text-[#9333EA]';
       } else if (item.type === 'flagged_sales') {
-        icon = <ShieldAlertIcon className="size-4 text-[#E11D48]" />;
-        iconBg = 'bg-[#FFE4E6]';
-        badgeBg = 'bg-[#FFE4E6] text-[#E11D48]';
+        icon = <ShieldAlertIcon className="size-4 text-bad" />;
+        iconBg = 'bg-badbg';
+        badgeBg = 'bg-badbg text-bad';
       }
 
       notifItems.push({
@@ -237,143 +242,98 @@ export function AppHeader({
     });
   }
 
+  // "N" opens a new quotation from anywhere, unless the person is typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key !== 'n' && e.key !== 'N') || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t?.closest('input,textarea,select,[contenteditable="true"],[role="dialog"]')) return;
+      const openOverlay = [...document.querySelectorAll('[role="dialog"],[aria-modal="true"],[role="menu"]')].some((el) => el.getClientRects().length > 0);
+      if (openOverlay) return;
+      e.preventDefault();
+      navigate('/quotations/new');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
+  const followUpCount = overdueCount + dueTodayCount;
+
   return (
     <>
-      <header className="sticky top-0 z-40 flex items-center gap-3 px-4 tablet-lg:px-6 py-3 bg-white/95 border-b border-[#E2EAE5] shadow-[0_1px_2px_rgba(0,0,0,0.03)] backdrop-blur-md select-none">
-        {/* Mobile nav toggle */}
-        <button
-          type="button"
-          data-navtoggle="1"
-          aria-label="Open navigation"
-          onClick={onMobileToggle}
-          className={`tablet-lg:hidden shrink-0 ${iconBtn}`}
-        >
-          <MenuIcon className="size-4" />
-        </button>
+      <header className="ts-top">
+        <Link to="/" className="ts-brand" aria-label="Technicon Services, dashboard">
+          <BrandMark />
+        </Link>
 
-        {/* Global search */}
-        <div className="flex-1 min-w-0 max-w-[520px]">
-          <button
-            type="button"
-            onClick={() => setSearchModalOpen(true)}
-            className="w-full flex items-center justify-between h-[38px] px-4 rounded-[10px] bg-[#F8FAF9] border border-[#E2EAE5] hover:border-[#10B981]/50 text-[#64748B] cursor-pointer transition-all duration-150 group shadow-xs"
-          >
-            <span className="flex items-center gap-2.5 truncate">
-              <SearchIcon className="size-4 text-[#059669] shrink-0" />
-              <span className="text-xs font-medium text-[#64748B] group-hover:text-[#14213D] truncate">
-                Search products, stock, QTN, PO, PI, customers…
-              </span>
-            </span>
-            <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-[#64748B] bg-[#EEF3F0] px-2 py-0.5 rounded-md border border-[#DCE5E0] shrink-0">
-              <span>⌘</span> <span>K</span>
-            </kbd>
-          </button>
-        </div>
+        <TopNav isAdmin={user?.role === 'admin'} badges={{ pipeline: followUpCount }} />
 
-        {/* Actions */}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ts-acts">
+          <Link to="/quotations/new" className="ts-newq" title="New quotation (press N)" aria-label="New quotation">
+            <PlusIcon aria-hidden="true" />
+            <span>New quotation</span>
+            <kbd>N</kbd>
+          </Link>
 
-          {/* Notifications button & popover */}
+          {/* Notifications */}
           <div className="relative" ref={notifMenuRef}>
             <button
               type="button"
-              aria-label="Notifications"
+              className="ts-iconbtn"
+              aria-label={badgeCount > 0 ? `Notifications, ${badgeCount} new` : 'Notifications'}
+              aria-expanded={notificationsOpen}
               onClick={() => {
                 const nextState = !notificationsOpen;
                 setNotificationsOpen(nextState);
-                if (nextState) {
-                  fetchNotifications();
-                }
+                if (nextState) fetchNotifications();
               }}
-              className={`relative ${iconBtn}`}
-              title="Notifications & Urgent Alerts"
             >
-              <BellIcon className="size-4" />
-              {badgeCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E5484D] text-white text-[10px] font-extrabold grid place-items-center ring-2 ring-white shadow-sm">
-                  {badgeCount > 99 ? '99+' : badgeCount}
-                </span>
-              )}
+              <BellIcon aria-hidden="true" />
+              {badgeCount > 0 && <span className="dot" />}
             </button>
 
             {notificationsOpen && (
-              <div className="absolute right-0 top-12 z-50 w-[330px] sm:w-[380px] rounded-2xl bg-white border border-[#E2EAE5] shadow-lift animate-in fade-in duration-150 overflow-hidden">
-                {/* Popover Header */}
-                <div className="flex items-center justify-between px-4 py-3 bg-[#F8FAF9] border-b border-[#E2EAE5]">
-                  <div className="flex items-center gap-2">
-                    <BellIcon className="size-4 text-[#059669]" />
-                    <span className="text-xs sm:text-sm font-bold text-[#14213D]">Notifications & Alerts</span>
-                    {badgeCount > 0 && (
-                      <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-[#ECFDF5] text-[#059669]">
-                        {badgeCount} new
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setNotificationsOpen(false)}
-                    className="text-[#64748B] hover:text-[#14213D] p-1 rounded-md hover:bg-[#EDF3EF] transition-colors cursor-pointer"
-                  >
+              <div className="ts-pop absolute right-0 top-[52px] !w-[360px]">
+                <div className="flex items-center justify-between pr-1">
+                  <h6>Notifications{badgeCount > 0 ? ` · ${badgeCount} new` : ''}</h6>
+                  <button type="button" onClick={() => setNotificationsOpen(false)} className="text-subtle hover:text-fg p-1.5 rounded-full hover:bg-tile transition-colors" aria-label="Close notifications">
                     <XIcon className="size-4" />
                   </button>
                 </div>
-
-                {/* Popover Body */}
-                <div className="max-h-[360px] overflow-y-auto p-2 space-y-1 divide-y divide-[#F0F4F1]">
+                <div className="max-h-[360px] overflow-y-auto">
                   {loadingNotifs ? (
-                    <div className="py-8 text-center text-xs text-[#64748B]">Loading notifications...</div>
+                    <div className="py-8 text-center text-[13px] text-subtle">Loading notifications…</div>
                   ) : notifItems.length === 0 ? (
                     <div className="py-8 text-center space-y-1">
-                      <CheckCircle2Icon className="size-8 text-[#10B981] mx-auto" />
-                      <p className="text-xs font-bold text-[#14213D]">All caught up!</p>
-                      <p className="text-[11px] text-[#64748B]">No urgent pending items requiring action.</p>
+                      <CheckCircle2Icon className="size-7 text-good mx-auto" />
+                      <p className="text-[14px] font-medium text-fg">You are all caught up</p>
+                      <p className="text-[12.5px] text-subtle">No urgent items need action.</p>
                     </div>
                   ) : (
                     notifItems.map((item) => (
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => {
-                          setNotificationsOpen(false);
-                          navigate(item.route);
-                        }}
-                        className="w-full text-left p-2.5 rounded-xl hover:bg-[#F8FAF9] transition-colors flex items-start gap-3 group cursor-pointer"
+                        onClick={() => { setNotificationsOpen(false); navigate(item.route); }}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-tile transition-colors flex items-start gap-3"
                       >
-                        <span className={`p-2 rounded-lg shrink-0 mt-0.5 ${item.iconBg}`}>
-                          {item.icon}
+                        <span className="w-7 h-7 rounded-full bg-tile grid place-items-center shrink-0 mt-0.5">{item.icon}</span>
+                        <span className="flex-1 min-w-0">
+                          <span className="flex items-center justify-between gap-2">
+                            <span className="text-[13.5px] font-medium text-fg truncate">{item.title}</span>
+                            {item.badge && <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md ${item.badgeBg}`}>{item.badge}</span>}
+                          </span>
+                          <span className="block text-[12px] text-subtle line-clamp-2 mt-0.5">{item.description}</span>
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-xs font-bold text-[#14213D] truncate group-hover:text-[#059669] transition-colors">
-                              {item.title}
-                            </span>
-                            {item.badge && (
-                              <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded ${item.badgeBg}`}>
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-[#64748B] line-clamp-2 mt-0.5">{item.description}</p>
-                        </div>
                       </button>
                     ))
                   )}
                 </div>
-
-                {/* Popover Footer */}
-                <div className="p-2.5 bg-[#F8FAF9] border-t border-[#E2EAE5] flex items-center justify-between text-[11px]">
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setNotificationsOpen(false)}
-                    className="font-bold text-[#059669] hover:underline"
-                  >
-                    View Dashboard Summary →
+                <div className="flex items-center justify-between px-2.5 pt-2 mt-1 border-t border-dashed border-line2 text-[12.5px]">
+                  <Link to="/" onClick={() => setNotificationsOpen(false)} className="text-fg underline underline-offset-4 decoration-line2 hover:decoration-current">
+                    Dashboard summary
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => fetchNotifications()}
-                    className="text-[#64748B] hover:text-[#14213D] flex items-center gap-1 font-semibold cursor-pointer"
-                  >
+                  <button type="button" onClick={() => fetchNotifications()} className="text-subtle hover:text-fg flex items-center gap-1 py-1">
                     <RefreshCwIcon className="size-3" /> Refresh
                   </button>
                 </div>
@@ -381,44 +341,27 @@ export function AppHeader({
             )}
           </div>
 
-          {/* User profile dropdown */}
+          {/* Account */}
           {user && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 h-[38px] pl-1 pr-3 rounded-[10px] bg-white border border-[#E2EAE5] hover:border-[#10B981]/50 text-[#14213D] text-[12.5px] cursor-pointer transition-colors shadow-xs"
-              >
-                <span className="w-[30px] h-[30px] rounded-[8px] bg-[#059669] text-white grid place-items-center text-[11px] font-extrabold">
-                  {getInitials(user.username)}
-                </span>
-                <span className="hidden sm:inline font-bold truncate max-w-[100px]">{user.username}</span>
-                <ChevronDownIcon className={`size-3.5 text-[#94A3B8] transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {userMenuOpen && (
-                <div className="absolute right-0 top-12 z-50 min-w-[180px] p-1.5 rounded-card bg-white border border-[#E2EAE5] shadow-lift animate-in fade-in duration-150">
-                  <div className="px-2.5 py-2 border-b border-[#E4E8F2] mb-1">
-                    <p className="text-[12.5px] font-bold text-[#141B34]">{user.username}</p>
-                    <p className="text-[10px] text-[#A8AEC4] uppercase tracking-wider font-bold">{user.role}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      logout();
-                    }}
-                    className="w-full flex items-center gap-2 text-left px-2.5 py-2 text-[12.5px] font-semibold text-[#C8323A] hover:bg-[#FCEBEC] rounded-lg transition-colors cursor-pointer"
-                  >
-                    <LogOutIcon className="size-3.5" />
-                    Sign Out
-                  </button>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger className="ts-iconbtn ts-avatar" aria-label={`Account: ${user.username}`}>
+                {getInitials(user.username)}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={10} className="ts-menu !w-[230px]">
+                <div className="px-3 pt-2 pb-2.5 mb-1 border-b border-dashed border-line2">
+                  <p className="text-[14px] font-medium text-fg truncate">{user.username}</p>
+                  <p className="text-[12px] text-subtle capitalize">{user.role}</p>
                 </div>
-              )}
-            </div>
+                <DropdownMenuItem className="ts-mi !flex !gap-2 text-bad" onSelect={() => logout()}>
+                  <LogOutIcon className="size-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </header>
+
+      <Dock pipelineBadge={followUpCount} />
 
       {/* Global command palette */}
       <GlobalSearchModal isOpen={searchModalOpen} onClose={() => setSearchModalOpen(false)} />

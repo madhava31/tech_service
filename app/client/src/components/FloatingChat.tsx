@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AskTechnicon from './AskTechnicon';
 
 // Global floating chat widget (Updating 6.1) — a presentation shell only. All question/answer
@@ -10,6 +10,12 @@ import AskTechnicon from './AskTechnicon';
 // "conversation session" concept to distinguish between the two.
 export default function FloatingChat() {
   const [open, setOpen] = useState(false);
+  // The dock's sparkle button opens the assistant.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener('open-ask-technicon', onOpen);
+    return () => window.removeEventListener('open-ask-technicon', onOpen);
+  }, []);
 
   return (
     <div className="chat-widget">
