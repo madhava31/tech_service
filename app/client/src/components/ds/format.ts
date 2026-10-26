@@ -12,3 +12,11 @@ export function niceStep(v: number) {
   return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
 }
 export const reducedMotion = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** "2026-10-21" -> "Oct 21, 2026" (short: "Oct 21"). Anything unparseable is returned as is. */
+export function fmtDay(d?: string | null, short = false) {
+  if (!d) return '—';
+  const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return String(d);
+  const dt = new Date(+m[1], +m[2] - 1, +m[3]);
+  return dt.toLocaleDateString('en-US', short ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+}

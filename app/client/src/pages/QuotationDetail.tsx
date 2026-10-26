@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
+import { FileTextIcon, PencilIcon } from 'lucide-react';
+import { fmtDay } from '../components/ds/format';
 
 function formatDate(d: string | null) {
   if (!d) return '-';
@@ -155,7 +157,7 @@ export default function QuotationDetail() {
 
   if (!quotation) {
     return (
-      <div className="p-6 text-subtle min-h-screen text-[13px]">
+      <div className="ts-page-pad ts-muted" style={{ paddingTop: 30, fontSize: 14 }}>
         Loading quotation details...
       </div>
     );
@@ -164,104 +166,79 @@ export default function QuotationDetail() {
   const statusColor = STAGE_COLORS[quotation.status] || '#7A839E';
 
   return (
-    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line2 pb-4">
-        <div className="flex items-center gap-3">
-          <Link to="/quotations" className="text-[13px] text-subtle hover:text-fg">
-            ← Quotations
-          </Link>
-          <span className="text-faint">/</span>
-          <h1 className="margin-0 text-[28px] font-medium tracking-[-.02em]">{quotation.number}</h1>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[7px] border border-line2 text-[11px] capitalize" style={{ color: statusColor }}>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />
-            {quotation.status}
-          </span>
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
+      {/* Header */}
+      <div className="ts-phead">
+        <div style={{ minWidth: 0 }}>
+          <Link to="/quotations" className="ts-back">← Quotations</Link>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1>{quotation.number}</h1>
+            <span className={`ts-st ts-${quotation.status}`}>{String(quotation.status).replace(/_/g, ' ')}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <span className="ts-grow" />
+        <div className="flex items-center gap-2 flex-wrap">
           {quotation.status === 'draft' && (
-            <Link
-              to={`/quotations/${quotationId}/edit`}
-              className="h-[34px] px-3.5 rounded-[9px] bg-surface border border-line2 text-fg hover:border-line2 text-[12.5px] font-medium inline-flex items-center gap-2 transition-colors no-underline"
-            >
-              <span>✎</span> Edit Quotation
-            </Link>
+            <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-ghost"><PencilIcon /> Edit quotation</Link>
           )}
-          <a
-            className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-fg hover:border-line2 text-[12.5px] font-medium inline-flex items-center gap-2 transition-colors no-underline"
-            href={api.quotations.pdfUrl(quotationId)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span>▤</span> View PDF
-          </a>
+          <a className="ts-btn ts-dark" href={api.quotations.pdfUrl(quotationId)} target="_blank" rel="noreferrer"><FileTextIcon /> View PDF</a>
         </div>
       </div>
 
-      {error && (
-        <div className="p-3 rounded-[10px] border border-badbg bg-badbg text-bad text-[12.5px]">
-          {error}
-        </div>
-      )}
+      {error && <div className="ts-warnbox"><span>{error}</span></div>}
 
-      {/* Sales Workflow Stage Indicator */}
-      <div className="bg-surface2 border border-line2 rounded-[16px] p-4">
-        <div className="text-[11px] text-faint uppercase tracking-wider mb-2 font-mono">SALES WORKFLOW STAGE</div>
-        <div className="flex items-center gap-2 overflow-x-auto text-[12px] font-medium">
-          <span className={`px-2.5 py-1 rounded-[6px] border ${quotation.status === 'draft' ? 'border-fg text-fg bg-tile' : 'border-line2 text-subtle'}`}>
-            ✓ Created ({quotation.status})
-          </span>
-          <span className="text-faint">→</span>
-          <span className={`px-2.5 py-1 rounded-[6px] border ${quotation.status === 'sent' ? 'border-fg text-fg bg-tile' : 'border-line2 text-subtle'}`}>
-            {quotation.status === 'sent' || quotation.status === 'accepted' || pos.length > 0 ? '✓ Sent' : 'Sent'}
-          </span>
-          <span className="text-faint">→</span>
-          <span className={`px-2.5 py-1 rounded-[6px] border ${quotation.status === 'accepted' ? 'border-fg text-fg bg-tile' : 'border-line2 text-subtle'}`}>
-            {quotation.status === 'accepted' || pos.length > 0 ? '✓ Accepted' : 'Customer Acceptance'}
-          </span>
-          <span className="text-faint">→</span>
-          <span className={`px-2.5 py-1 rounded-[6px] border ${pos.length > 0 ? 'border-fg text-fg bg-tile' : 'border-line2 text-subtle'}`}>
-            {pos.length > 0 ? `✓ ${pos[0].number}` : 'Purchase Order'}
-          </span>
-          <span className="text-faint">→</span>
-          <span className={`px-2.5 py-1 rounded-[6px] border ${pis.length > 0 ? 'border-fg text-fg bg-tile' : 'border-line2 text-subtle'}`}>
-            {pis.length > 0 ? `✓ ${pis[0].number}` : 'Performa Invoice'}
-          </span>
-        </div>
-      </div>
+      {/* Workflow stepper */}
+      {(() => {
+        const st = quotation.status;
+        const sentOrLater = st !== 'draft';
+        const accepted = st === 'accepted' || st === 'po_created' || st === 'pi_created' || pos.length > 0;
+        let steps: [string, boolean, string?][] = [
+          ['Drafted', true],
+          ['Sent', sentOrLater],
+          ['Accepted', accepted],
+          [pos.length ? `PO ${pos[0].number}` : 'Purchase order', pos.length > 0],
+          [pis.length ? `PI ${pis[0].number}` : 'Performa invoice', pis.length > 0],
+        ];
+        if (st === 'rejected') steps = [['Drafted', true], ['Sent', true], ['Rejected', true, 'ts-lost']];
+        const last = steps.reduce((acc, x, i) => (x[1] ? i : acc), 0), n = steps.length, inset = 50 / n, fillW = (last / (n - 1)) * (100 - 2 * inset);
+        return (
+          <div className="ts-card ts-white" style={{ ['--i' as string]: 0, marginBottom: 16 }}>
+            <div className="ts-ch" style={{ marginBottom: 14 }}>Sales workflow</div>
+            <div className="ts-steps" style={{ gridTemplateColumns: `repeat(${n},1fr)` }}>
+              <span className="ts-rail" style={{ left: `${inset}%`, right: `${inset}%` }} />
+              <span className="ts-fill" style={{ left: `${inset}%`, width: `${fillW}%` }} />
+              {steps.map((x, i) => (
+                <div key={i} className={`ts-step ${x[2] || (x[1] ? 'ts-done' : '')} ${i === last ? 'ts-cur' : ''}`}><b />{x[0]}</div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
-      {/* Main Quotation Summary Card */}
-      <section className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-line2 pb-4 text-[13px]">
-          <div>
-            <span className="text-faint text-[11px] uppercase tracking-wider block">CUSTOMER</span>
-            <span className="font-medium text-fg text-[15px]">{quotation.company_name || '—'}</span>
-          </div>
-          <div>
-            <span className="text-faint text-[11px] uppercase tracking-wider block">DATE</span>
-            <span className="font-medium text-fg">{quotation.date}</span>
-          </div>
-          <div>
-            <span className="text-faint text-[11px] uppercase tracking-wider block">TOTAL AMOUNT</span>
-            <span className="font-bold text-fg text-[18px]">
-              ₹{Number(quotation.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
+      {/* Quotation summary */}
+      <section className="ts-card ts-white flex flex-col gap-5" style={{ ['--i' as string]: 1 }}>
+        <div className="ts-dw-meta">
+          <div><span>Customer</span><b title={quotation.company_name || ''}>{quotation.company_name || '—'}</b></div>
+          <div><span>Date</span><b>{fmtDay(quotation.date)}</b></div>
+          <div><span>Grand total</span><b className="num" style={{ fontSize: 18 }}>₹{Number(quotation.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</b></div>
+          {quotation.sales_engineer_name && <div><span>Sales engineer</span><b>{quotation.sales_engineer_name}{quotation.sales_engineer_code ? ` (${quotation.sales_engineer_code})` : ''}</b></div>}
+          {quotation.firm_name && <div><span>Issued by</span><b>{quotation.firm_name}</b></div>}
+          {quotation.branch_name && <div><span>Branch</span><b>{quotation.branch_name}</b></div>}
         </div>
 
         {/* Items Table */}
-        <div className="overflow-x-auto">
+        <div className="ts-tbl ts-tblwrap">
           <table className="w-full min-w-[750px] border-collapse text-[12.5px]">
             <thead>
               <tr className="border-b border-line2">
-                <th className="text-left p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">PART NO</th>
-                <th className="text-left p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">DESCRIPTION</th>
-                <th className="text-left p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">HSN/SAC</th>
-                <th className="text-right p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">QTY</th>
-                <th className="text-right p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">ACTUAL PRICE</th>
-                <th className="text-center p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">PRODUCT DISC</th>
-                <th className="text-right p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">FINAL PRICE</th>
-                <th className="text-right p-2.5 font-normal text-[11px] tracking-[.08em] text-faint uppercase">LINE TOTAL</th>
+                <th>Part no</th>
+                <th>Description</th>
+                <th>HSN/SAC</th>
+                <th className="ts-r">Qty</th>
+                <th className="ts-r">Actual price</th>
+                <th className="text-center">Product disc</th>
+                <th className="ts-r">Final price</th>
+                <th className="ts-r">Line total</th>
               </tr>
             </thead>
             <tbody>
@@ -367,7 +344,7 @@ export default function QuotationDetail() {
               type="button"
               disabled={busyAction !== null}
               onClick={() => setStatus('sent')}
-              className="h-[34px] px-3.5 rounded-[9px] bg-surface border border-line2 text-fg text-[12.5px] cursor-pointer hover:border-line2"
+              className="ts-btn ts-ghost ts-xs"
             >
               {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
             </button>
@@ -378,7 +355,7 @@ export default function QuotationDetail() {
                 type="button"
                 disabled={busyAction !== null}
                 onClick={() => setStatus('accepted')}
-                className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-line2 text-fg text-[12.5px] cursor-pointer hover:bg-tile"
+                className="ts-btn ts-ghost ts-xs"
               >
                 {busyAction === 'accepted' ? 'Marking as Accepted…' : 'Mark as Accepted'}
               </button>
@@ -386,7 +363,7 @@ export default function QuotationDetail() {
                 type="button"
                 disabled={busyAction !== null}
                 onClick={() => setStatus('rejected')}
-                className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-badbg text-bad text-[12.5px] cursor-pointer hover:bg-badbg"
+                className="ts-btn ts-ghost ts-xs text-bad"
               >
                 {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
               </button>
@@ -396,8 +373,8 @@ export default function QuotationDetail() {
       </section>
 
       {/* PO / PI Conversion Section */}
-      <section className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-4">
-        <h3 className="margin-0 text-[18px] font-medium">Fulfillment & Workflow</h3>
+      <section className="ts-card ts-white flex flex-col ga">
+        <h3 className="m-0 text-[17px] font-medium">Fulfillment & Workflow</h3>
         
         {/* PO List / Convert Action */}
         <div className="flex flex-col gap-3">
@@ -405,7 +382,7 @@ export default function QuotationDetail() {
           {pos.length > 0 ? (
             <div className="flex flex-col gap-2">
               {pos.map((po) => (
-                <div key={po.id} className="p-3 rounded-[10px] bg-surface border border-line2 flex justify-between items-center text-[13px]">
+                <div key={po.id} className="p-3 rounded-[14px] bg-surface flex justify-between items-center text-[13px]">
                   <div>
                     <span className="font-bold text-fg">{po.number}</span>
                     <span className="text-subtle ml-2">Date: {po.date}</span>
@@ -415,7 +392,7 @@ export default function QuotationDetail() {
                     type="button"
                     onClick={() => createPI(po.id)}
                     disabled={busyAction !== null}
-                    className="h-[28px] px-3 rounded-[7px] bg-transparent border border-line2 text-fg text-[11.5px] cursor-pointer hover:bg-tile"
+                    className="ts-btn ts-ghost ts-xs"
                   >
                     Generate PI from PO
                   </button>
@@ -429,13 +406,13 @@ export default function QuotationDetail() {
                 placeholder="Client PO Reference (optional)"
                 value={clientPoRef}
                 onChange={(e) => setClientPoRef(e.target.value)}
-                className="h-[34px] px-3 rounded-[9px] bg-surface border border-line2 text-fg text-[12.5px] outline-none w-64"
+                className="ts-fi w-64"
               />
               <button
                 type="button"
                 onClick={createPO}
                 disabled={busyAction !== null}
-                className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-line2 text-fg text-[12.5px] cursor-pointer hover:bg-tile"
+                className="ts-btn ts-ghost ts-xs"
               >
                 {busyAction === 'po' ? 'Converting to PO...' : 'Convert to Purchase Order'}
               </button>
@@ -451,7 +428,7 @@ export default function QuotationDetail() {
               type="button"
               onClick={() => createPI()}
               disabled={busyAction !== null}
-              className="h-[30px] px-3 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] cursor-pointer hover:border-line2"
+              className="ts-btn ts-ghost ts-xs"
             >
               {busyAction === 'pi' ? 'Generating PI...' : '+ Create Direct PI'}
             </button>
@@ -459,7 +436,7 @@ export default function QuotationDetail() {
           {pis.length > 0 && (
             <div className="flex flex-col gap-2">
               {pis.map((pi) => (
-                <div key={pi.id} className="p-3 rounded-[10px] bg-surface border border-line2 flex justify-between items-center text-[13px]">
+                <div key={pi.id} className="p-3 rounded-[14px] bg-surface flex justify-between items-center text-[13px]">
                   <div>
                     <span className="font-bold text-fg">{pi.number}</span>
                     <span className="text-subtle ml-2">Date: {pi.date}</span>
@@ -473,40 +450,40 @@ export default function QuotationDetail() {
       </section>
 
       {/* Follow-Ups Section */}
-      <section className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-4">
+      <section className="ts-card ts-white flex flex-col ga">
         <div>
-          <h3 className="margin-0 text-[18px] font-medium">Follow-Up Log</h3>
+          <h3 className="m-0 text-[17px] font-medium">Follow-Up Log</h3>
           <p className="margin-0 text-[12.5px] text-subtle mt-0.5">
             Schedule follow-ups and log customer outcomes.
           </p>
         </div>
 
         {followUpsError && (
-          <div className="p-3 rounded-[10px] border border-badbg bg-badbg text-bad text-[12.5px]">
+          <div className="ts-warnbox">
             {followUpsError}
           </div>
         )}
 
         {quotation.status === 'sent' && (
-          <form onSubmit={createFollowUp} className="p-4 rounded-[12px] bg-surface border border-line2 flex flex-col gap-3">
+          <form onSubmit={createFollowUp} className="p-4 rounded-[14px] bg-surface flex flex-col gap-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
+              <label className="ts-lblwrap">
                 FOLLOW-UP DATE
                 <input
                   type="date"
                   value={followUpDate}
                   onChange={(e) => setFollowUpDate(e.target.value)}
-                  className="h-[36px] px-3 rounded-[9px] bg-surface2 border border-line2 text-fg text-[13px] outline-none"
+                  className="ts-fi"
                 />
               </label>
-              <label className="flex flex-col gap-1 text-[11px] text-faint uppercase tracking-wider">
+              <label className="ts-lblwrap">
                 NOTES (OPTIONAL)
                 <input
                   type="text"
                   placeholder="Notes about follow-up call..."
                   value={followUpNotes}
                   onChange={(e) => setFollowUpNotes(e.target.value)}
-                  className="h-[36px] px-3 rounded-[9px] bg-surface2 border border-line2 text-fg text-[13px] outline-none"
+                  className="ts-fi"
                 />
               </label>
             </div>
@@ -514,7 +491,7 @@ export default function QuotationDetail() {
             <button
               type="submit"
               disabled={followUpSubmitting}
-              className="self-start h-[32px] px-3.5 rounded-[8px] bg-transparent border border-line2 text-fg text-[12px] cursor-pointer hover:bg-tile"
+              className="self-start ts-btn ts-ghost ts-xs"
             >
               {followUpSubmitting ? 'Scheduling...' : 'Schedule Follow-Up'}
             </button>
@@ -528,7 +505,7 @@ export default function QuotationDetail() {
         ) : (
           <div className="flex flex-col gap-2.5">
             {followUps.map((f) => (
-              <div key={f.id} className="p-3.5 rounded-[12px] bg-surface border border-line2 flex flex-col gap-2 text-[13px]">
+              <div key={f.id} className="p-3.5 rounded-[14px] bg-surface flex flex-col gap-2 text-[13px]">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-fg">Due: {formatDate(f.follow_up_date)}</span>
                   <span
@@ -572,28 +549,28 @@ export default function QuotationDetail() {
                       placeholder="Outcome (e.g. Price agreed)"
                       value={outcome}
                       onChange={(e) => setOutcome(e.target.value)}
-                      className="h-[32px] px-2.5 rounded-[7px] bg-surface border border-line2 text-fg text-[12px] outline-none"
+                      className="ts-fi"
                     />
                     <input
                       type="text"
                       placeholder="Outcome notes..."
                       value={outcomeNotes}
                       onChange={(e) => setOutcomeNotes(e.target.value)}
-                      className="h-[32px] px-2.5 rounded-[7px] bg-surface border border-line2 text-fg text-[12px] outline-none"
+                      className="ts-fi"
                     />
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => submitComplete(f.id)}
                         disabled={followUpBusy === f.id}
-                        className="h-[28px] px-3 rounded-[6px] bg-ink text-onink font-medium text-[12px]"
+                        className="ts-btn ts-dark ts-xs"
                       >
                         Save
                       </button>
                       <button
                         type="button"
                         onClick={() => setCompletingId(null)}
-                        className="h-[28px] px-3 rounded-[6px] bg-tile text-subtle text-[12px]"
+                        className="ts-btn ts-ghost ts-xs"
                       >
                         Cancel
                       </button>
@@ -636,8 +613,8 @@ function QuotationTimelineSection({ quotationId }: { quotationId: number }) {
   const safeEvents = Array.isArray(events) ? events : [];
 
   return (
-    <section className="bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-4">
-      <h2 className="text-base font-bold text-fg border-b border-line2 pb-2">
+    <section className="ts-card ts-white flex flex-col ga">
+      <h2 className="m-0 text-[17px] font-medium">
         Activity & Commercial Event Timeline
       </h2>
       <p className="text-xs text-subtle">
