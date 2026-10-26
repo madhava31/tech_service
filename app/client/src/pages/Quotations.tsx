@@ -328,28 +328,28 @@ export default function Quotations() {
   };
 
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="p-4 md:p-6 flex flex-col gap-6 text-fg min-h-screen">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Quotations
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+          <p className="margin-0 text-[13.5px] text-subtle">
             Every quotation with its stage, value and follow-up position.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             to="/quotations/new"
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#E3EAF7] transition-colors no-underline"
+            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-line2 text-fg font-medium text-[12.5px] flex items-center justify-center hover:bg-tile transition-colors no-underline"
           >
             + New quotation
           </Link>
           <a
             href={api.export.quotationsUrl(statusFilter ? { status: statusFilter } : undefined)}
             download
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#E4E8F2] text-[#2FBF71] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#F7F8FC] transition-colors no-underline cursor-pointer"
+            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-line2 text-good font-medium text-[12.5px] flex items-center justify-center hover:bg-surface transition-colors no-underline cursor-pointer"
           >
             Export Excel
           </a>
@@ -357,7 +357,7 @@ export default function Quotations() {
             <button
               type="button"
               onClick={() => setIsSelectionMode(true)}
-              className="h-[34px] px-3.5 rounded-[9px] font-medium text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border bg-transparent border-[#E4E8F2] text-[#E5484D] hover:bg-[#FCEBEC]"
+              className="h-[34px] px-3.5 rounded-[9px] font-medium text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border bg-transparent border-line2 text-bad hover:bg-badbg"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Select to Delete</span>
@@ -370,8 +370,8 @@ export default function Quotations() {
                 disabled={isBulkDeleting}
                 className={`h-[34px] px-3.5 rounded-[9px] font-medium text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
                   selectedIds.length > 0
-                    ? 'bg-[#E5484D] text-white border-[#E5484D] hover:bg-[#D93D42]'
-                    : 'bg-transparent border-[#E4E8F2] text-[#E5484D] hover:bg-[#FCEBEC]'
+                    ? 'bg-bad text-onink border-bad hover:bg-[#D93D42]'
+                    : 'bg-transparent border-line2 text-bad hover:bg-badbg'
                 }`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -389,7 +389,7 @@ export default function Quotations() {
                   setIsSelectionMode(false);
                   setSelectedIds([]);
                 }}
-                className="h-[34px] px-3 rounded-[9px] font-medium text-[12.5px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] hover:bg-[#E4E8F2] transition-colors cursor-pointer"
+                className="h-[34px] px-3 rounded-[9px] font-medium text-[12.5px] bg-surface border border-line2 text-subtle hover:bg-tile transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -399,7 +399,7 @@ export default function Quotations() {
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] text-[#E5484D] text-[12.5px] flex items-center justify-between">
+        <div className="p-3.5 rounded-[10px] border border-badbg bg-badbg text-bad text-[12.5px] flex items-center justify-between">
           <span>{error}</span>
           <button
             type="button"
@@ -412,10 +412,10 @@ export default function Quotations() {
       )}
 
       {/* Main Table Container Card */}
-      <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4 shadow-card">
+      <section className="bg-surface2 border border-line2 rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4 shadow-card">
         
         {/* Stage Filter Chips & Expandable Search Toggle */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-line2 pb-3.5">
           {/* Status Stage Chips */}
           <div className="flex gap-2 flex-wrap items-center">
             {[
@@ -434,12 +434,12 @@ export default function Quotations() {
                   onClick={() => setStatusFilter(chip.key)}
                   className={`inline-flex items-center gap-2 h-[32px] px-3 rounded-[8px] text-[12px] cursor-pointer transition-colors border ${
                     active
-                      ? 'bg-[#F7F8FC] border-[#D9E2F4] text-[#3B6FD4] font-semibold'
-                      : 'bg-transparent border-[#E4E8F2] text-[#7A839E] hover:border-[#D4DAEA]'
+                      ? 'bg-surface border-line2 text-fg font-semibold'
+                      : 'bg-transparent border-line2 text-subtle hover:border-line2'
                   }`}
                 >
                   <span>{chip.name}</span>
-                  <span className="text-[#A8AEC4] text-[11px]">{count}</span>
+                  <span className="text-faint text-[11px]">{count}</span>
                 </button>
               );
             })}
@@ -455,19 +455,19 @@ export default function Quotations() {
               aria-label={isSearchOpen ? 'Hide search options' : 'Show search options'}
               className={`inline-flex items-center gap-2 h-[32px] px-3.5 rounded-[8px] text-[12px] font-semibold cursor-pointer transition-all border ${
                 isSearchOpen || hasSearchFilters
-                  ? 'bg-[#F7F8FC] border-[#3B6FD4] text-[#3B6FD4] shadow-xs'
-                  : 'bg-[#F4F6FC] border-[#E4E8F2] text-[#141B34] hover:border-[#D4DAEA]'
+                  ? 'bg-surface border-fg text-fg shadow-xs'
+                  : 'bg-surface border-line2 text-fg hover:border-line2'
               }`}
             >
-              <Search className="w-3.5 h-3.5 text-[#3B6FD4]" />
+              <Search className="w-3.5 h-3.5 text-fg" />
               <span>Search & Filter</span>
               {hasSearchFilters && (
-                <span className="w-2 h-2 rounded-full bg-[#3B6FD4] animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-ink animate-pulse" />
               )}
               {isSearchOpen ? (
-                <ChevronUp className="w-3.5 h-3.5 ml-0.5 text-[#3B6FD4]" />
+                <ChevronUp className="w-3.5 h-3.5 ml-0.5 text-fg" />
               ) : (
-                <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-[#7A839E]" />
+                <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-subtle" />
               )}
             </button>
 
@@ -475,14 +475,14 @@ export default function Quotations() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] text-[12px] hover:text-[#141B34] hover:border-[#D4DAEA] cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] bg-surface border border-line2 text-subtle text-[12px] hover:text-fg hover:border-line2 cursor-pointer transition-colors"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset All</span>
               </button>
             )}
 
-            <span className="text-[11.5px] text-[#A8AEC4] ml-1">
+            <span className="text-[11.5px] text-faint ml-1">
               Showing {rows.length} of {total}
             </span>
           </div>
@@ -492,17 +492,17 @@ export default function Quotations() {
         {isSearchOpen && (
           <div
             id="quotation-search-panel"
-            className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-[12px] p-4 transition-all duration-200 animate-in fade-in slide-in-from-top-2 shadow-lift"
+            className="bg-surface border border-line2 rounded-[12px] p-4 transition-all duration-200 animate-in fade-in slide-in-from-top-2 shadow-lift"
           >
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#EEF1F9]">
-              <div className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#7A839E]">
-                <Filter className="w-3.5 h-3.5 text-[#3B6FD4]" />
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-line2">
+              <div className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-subtle">
+                <Filter className="w-3.5 h-3.5 text-fg" />
                 <span>Advanced Quotation Search</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(false)}
-                className="text-[#A8AEC4] hover:text-[#141B34] p-1 rounded-md transition-colors"
+                className="text-faint hover:text-fg p-1 rounded-md transition-colors"
                 aria-label="Close search panel"
               >
                 <X className="w-4 h-4" />
@@ -513,7 +513,7 @@ export default function Quotations() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               {/* 1. Search Quotation Number */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-faint mb-1.5">
                   Quotation No.
                 </label>
                 <input
@@ -521,13 +521,13 @@ export default function Quotations() {
                   placeholder="e.g. TSQOT2627/1"
                   value={searchNumber}
                   onChange={(e) => setSearchNumber(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-surface2 border border-line2 text-fg text-[12.5px] outline-none focus:border-fg placeholder-faint transition-colors"
                 />
               </div>
 
               {/* 2. Search Customer Company */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-faint mb-1.5">
                   Customer / Company
                 </label>
                 <input
@@ -535,19 +535,19 @@ export default function Quotations() {
                   placeholder="e.g. Basil"
                   value={searchCompany}
                   onChange={(e) => setSearchCompany(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-surface2 border border-line2 text-fg text-[12.5px] outline-none focus:border-fg placeholder-faint transition-colors"
                 />
               </div>
 
               {/* 3. Date Range */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-faint mb-1.5">
                   Time Period
                 </label>
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value as DateFilter)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] cursor-pointer transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-surface2 border border-line2 text-fg text-[12.5px] outline-none focus:border-fg cursor-pointer transition-colors"
                 >
                   <option value="all">All Dates</option>
                   <option value="today">Today</option>
@@ -558,7 +558,7 @@ export default function Quotations() {
 
               {/* 4. Min Amount */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-faint mb-1.5">
                   Min Amount (₹)
                 </label>
                 <input
@@ -566,13 +566,13 @@ export default function Quotations() {
                   placeholder="Min ₹"
                   value={minAmount}
                   onChange={(e) => setMinAmount(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] tabular-nums transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-surface2 border border-line2 text-fg text-[12.5px] outline-none focus:border-fg placeholder-faint tabular-nums transition-colors"
                 />
               </div>
 
               {/* 5. Max Amount */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-faint mb-1.5">
                   Max Amount (₹)
                 </label>
                 <input
@@ -580,21 +580,21 @@ export default function Quotations() {
                   placeholder="Max ₹"
                   value={maxAmount}
                   onChange={(e) => setMaxAmount(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] tabular-nums transition-colors"
+                  className="w-full h-[34px] px-3 rounded-[8px] bg-surface2 border border-line2 text-fg text-[12.5px] outline-none focus:border-fg placeholder-faint tabular-nums transition-colors"
                 />
               </div>
             </div>
 
             {/* Panel Footer / Clear Action */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#EEF1F9]">
-              <span className="text-[11.5px] text-[#7A839E]">
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-line2">
+              <span className="text-[11.5px] text-subtle">
                 {total} matching quotations
               </span>
               {hasSearchFilters && (
                 <button
                   type="button"
                   onClick={clearSearchPanelFilters}
-                  className="px-3 py-1 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#E5484D] border border-[#E5484D]/30 text-xs font-semibold rounded-lg transition-colors inline-flex items-center space-x-1"
+                  className="px-3 py-1 bg-surface hover:bg-tile text-bad border border-bad/30 text-xs font-semibold rounded-lg transition-colors inline-flex items-center space-x-1"
                 >
                   <X className="w-3 h-3" />
                   <span>Clear Search Filters</span>
@@ -608,7 +608,7 @@ export default function Quotations() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
             <thead>
-              <tr className="border-b border-[#EEF1F9]">
+              <tr className="border-b border-line2">
                 {isSelectionMode && (
                   <th className="w-10 text-center p-[8px_10px]">
                     <input
@@ -616,26 +616,26 @@ export default function Quotations() {
                       checked={isAllRowsSelected}
                       onChange={toggleSelectAll}
                       title="Select all currently loaded quotations"
-                      className="w-4 h-4 accent-[#3B6FD4] rounded cursor-pointer align-middle"
+                      className="w-4 h-4 accent-fg rounded cursor-pointer align-middle"
                     />
                   </th>
                 )}
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   QUOTATION
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   CUSTOMER
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   DATE
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   AMOUNT
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   STAGE
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   ACTION
                 </th>
               </tr>
@@ -644,35 +644,35 @@ export default function Quotations() {
               {/* SKELETON LOADING ROWS (Initial Viewport) */}
               {initialLoading ? (
                 Array.from({ length: 6 }).map((_, idx) => (
-                  <tr key={`skeleton-${idx}`} className="border-b border-[#F7F8FC] animate-pulse">
+                  <tr key={`skeleton-${idx}`} className="border-b border-line animate-pulse">
                     {isSelectionMode && (
                       <td className="p-[11px_10px] w-10 text-center">
-                        <div className="w-4 h-4 bg-[#E4E8F2] rounded mx-auto" />
+                        <div className="w-4 h-4 bg-tile rounded mx-auto" />
                       </td>
                     )}
                     <td className="p-[11px_10px]">
-                      <div className="h-4 w-28 bg-[#E4E8F2] rounded" />
+                      <div className="h-4 w-28 bg-tile rounded" />
                     </td>
                     <td className="p-[11px_10px]">
-                      <div className="h-4 w-40 bg-[#EEF1F9] rounded" />
+                      <div className="h-4 w-40 bg-tile rounded" />
                     </td>
                     <td className="p-[11px_10px]">
-                      <div className="h-4 w-20 bg-[#EEF1F9] rounded" />
+                      <div className="h-4 w-20 bg-tile rounded" />
                     </td>
                     <td className="p-[11px_10px] text-right">
-                      <div className="h-4 w-24 bg-[#E4E8F2] rounded ml-auto" />
+                      <div className="h-4 w-24 bg-tile rounded ml-auto" />
                     </td>
                     <td className="p-[11px_10px]">
-                      <div className="h-4 w-16 bg-[#EEF1F9] rounded" />
+                      <div className="h-4 w-16 bg-tile rounded" />
                     </td>
                     <td className="p-[11px_10px] text-right">
-                      <div className="h-4 w-12 bg-[#EEF1F9] rounded ml-auto" />
+                      <div className="h-4 w-12 bg-tile rounded ml-auto" />
                     </td>
                   </tr>
                 ))
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={isSelectionMode ? 7 : 6} className="text-center py-10 text-[#7A839E] text-[13px]">
+                  <td colSpan={isSelectionMode ? 7 : 6} className="text-center py-10 text-subtle text-[13px]">
                     No quotations found matching your search criteria.
                   </td>
                 </tr>
@@ -683,7 +683,7 @@ export default function Quotations() {
                   return (
                     <tr
                       key={q.id}
-                      className={`border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors ${
+                      className={`border-b border-line hover:bg-surface transition-colors ${
                         isSelectionMode && isSelected ? 'bg-[#F0F4FD]' : ''
                       }`}
                     >
@@ -694,21 +694,21 @@ export default function Quotations() {
                             checked={isSelected}
                             onChange={() => toggleSelectRow(q.id)}
                             title={`Select quotation ${q.number}`}
-                            className="w-4 h-4 accent-[#3B6FD4] rounded cursor-pointer align-middle"
+                            className="w-4 h-4 accent-fg rounded cursor-pointer align-middle"
                           />
                         </td>
                       )}
                       <td className="p-[11px_10px]">
                         <Link
                           to={`/quotations/${q.id}`}
-                          className="text-[#3B6FD4] hover:underline font-medium"
+                          className="text-fg hover:underline font-medium"
                         >
                           {q.number}
                         </Link>
                       </td>
-                      <td className="p-[11px_10px] text-[#141B34]">{q.company_name || '—'}</td>
-                      <td className="p-[11px_10px] text-[#7A839E]">{q.date}</td>
-                      <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
+                      <td className="p-[11px_10px] text-fg">{q.company_name || '—'}</td>
+                      <td className="p-[11px_10px] text-subtle">{q.date}</td>
+                      <td className="p-[11px_10px] text-right font-medium text-fg">
                         ₹{Number(q.total || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </td>
                       <td className="p-[11px_10px]">
@@ -721,7 +721,7 @@ export default function Quotations() {
                         <div className="flex items-center justify-end gap-2.5">
                           <Link
                             to={`/quotations/${q.id}`}
-                            className="text-[12px] font-semibold text-[#3B6FD4] hover:underline"
+                            className="text-[12px] font-semibold text-fg hover:underline"
                           >
                             View →
                           </Link>
@@ -729,7 +729,7 @@ export default function Quotations() {
                             type="button"
                             onClick={() => handleDelete(q.id, q.number, q.status)}
                             disabled={deletingId === q.id}
-                            className="p-1.5 rounded-lg text-[#C8323A] hover:bg-[#FCEBEC] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-bad hover:bg-badbg transition-colors cursor-pointer"
                             title={`Delete Quotation ${q.number}`}
                           >
                             <Trash2 className="size-3.5" />
@@ -750,14 +750,14 @@ export default function Quotations() {
           <div ref={sentinelRef} className="h-1 w-full" aria-hidden="true" />
 
           {loadingMore && (
-            <div className="inline-flex items-center gap-2 text-xs text-[#3B6FD4] py-2">
-              <Loader2 className="w-4 h-4 animate-spin text-[#3B6FD4]" />
+            <div className="inline-flex items-center gap-2 text-xs text-fg py-2">
+              <Loader2 className="w-4 h-4 animate-spin text-fg" />
               <span>Loading additional quotations...</span>
             </div>
           )}
 
           {loadMoreError && (
-            <div className="inline-flex items-center gap-2 text-xs text-[#E5484D] bg-[#FCEBEC] px-3 py-1.5 rounded-lg border border-[#F2C4C6]">
+            <div className="inline-flex items-center gap-2 text-xs text-bad bg-badbg px-3 py-1.5 rounded-lg border border-[#F2C4C6]">
               <span>{loadMoreError}</span>
               <button
                 type="button"
@@ -773,14 +773,14 @@ export default function Quotations() {
             <button
               type="button"
               onClick={handleLoadMore}
-              className="h-[32px] px-4 rounded-[8px] bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#3B6FD4] border border-[#D9E2F4] text-xs font-semibold cursor-pointer transition-colors"
+              className="h-[32px] px-4 rounded-[8px] bg-surface hover:bg-tile text-fg border border-line2 text-xs font-semibold cursor-pointer transition-colors"
             >
               Load More ({rows.length} of {total})
             </button>
           )}
 
           {!initialLoading && !hasMore && rows.length > 0 && (
-            <span className="text-[11.5px] text-[#A8AEC4]">
+            <span className="text-[11.5px] text-faint">
               Showing all {total} quotations
             </span>
           )}

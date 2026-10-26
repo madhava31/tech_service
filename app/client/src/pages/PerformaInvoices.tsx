@@ -99,41 +99,41 @@ export default function PerformaInvoices() {
   }, [rows]);
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
       {/* Header & KPI Summary Bar */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Performa Invoices
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+          <p className="margin-0 text-[13.5px] text-subtle">
             Issued invoices and where collection currently stands.
           </p>
         </div>
-        <div className="grid grid-cols-2 border border-[#E4E8F2] rounded-[12px] bg-[#FFFFFF] overflow-hidden">
-          <div className="p-[10px_16px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
-            <span className="text-[11px] tracking-[.08em] text-[#A8AEC4]">TOTAL VALUE</span>
-            <span className="text-[20px] font-medium text-[#6B78D6]">
+        <div className="grid grid-cols-2 border border-line2 rounded-[12px] bg-surface2 overflow-hidden">
+          <div className="p-[10px_16px] border-r border-line2 flex flex-col gap-[2px]">
+            <span className="text-[11px] tracking-[.08em] text-faint">TOTAL VALUE</span>
+            <span className="text-[20px] font-medium text-fg">
               ₹{kpis.totalVal > 0 ? (kpis.totalVal / 100000).toFixed(2) + 'L' : '0.00'}
             </span>
           </div>
           <div className="p-[10px_16px] flex flex-col gap-[2px]">
-            <span className="text-[11px] tracking-[.08em] text-[#A8AEC4]">TOTAL INVOICES</span>
-            <span className="text-[20px] font-medium text-[#141B34]">{kpis.count}</span>
+            <span className="text-[11px] tracking-[.08em] text-faint">TOTAL INVOICES</span>
+            <span className="text-[20px] font-medium text-fg">{kpis.count}</span>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] text-[#E5484D] text-[12.5px]">
+        <div className="p-3 rounded-[10px] border border-badbg bg-badbg text-bad text-[12.5px]">
           {error}
         </div>
       )}
 
       {/* Main Table Container Card */}
-      <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+      <section className="bg-surface2 border border-line2 rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
         {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-line2 pb-3.5">
           <div className="flex items-center gap-2.5 flex-wrap">
             <ExpandableSearch
               value={search}
@@ -145,7 +145,7 @@ export default function PerformaInvoices() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
+              className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
             >
               <option value="">All Statuses</option>
               {statuses.map((s) => (
@@ -157,7 +157,7 @@ export default function PerformaInvoices() {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as DateFilter)}
-              className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
+              className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
             >
               <option value="all">All Dates</option>
               <option value="today">Today</option>
@@ -169,13 +169,13 @@ export default function PerformaInvoices() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="h-[30px] px-2.5 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] text-[12px] hover:text-[#141B34] cursor-pointer"
+                className="h-[30px] px-2.5 rounded-[8px] bg-surface border border-line2 text-subtle text-[12px] hover:text-fg cursor-pointer"
               >
                 Clear
               </button>
             )}
           </div>
-          <span className="text-[11.5px] text-[#A8AEC4]">
+          <span className="text-[11.5px] text-faint">
             Showing {filtered.length} of {rows.length}
           </span>
         </div>
@@ -184,23 +184,23 @@ export default function PerformaInvoices() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-[12.5px]">
             <thead>
-              <tr className="border-b border-[#EEF1F9]">
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+              <tr className="border-b border-line2">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   INVOICE
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   CUSTOMER
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   LINKED QUOTE
                 </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   ISSUED
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   STATUS
                 </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                   PDF
                 </th>
               </tr>
@@ -209,15 +209,15 @@ export default function PerformaInvoices() {
               {paged.map((pi) => {
                 const tone = PI_STATUS_TONES[pi.status.toLowerCase()] || '#6B78D6';
                 return (
-                  <tr key={pi.id} className="border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors">
-                    <td className="p-[11px_10px] font-medium text-[#141B34]">{pi.number}</td>
-                    <td className="p-[11px_10px] text-[#141B34]">{pi.company_name || '—'}</td>
-                    <td className="p-[11px_10px] text-[#7A839E]">
-                      <Link to={`/quotations/${pi.quotation_id}`} className="text-[#3B6FD4] hover:underline">
+                  <tr key={pi.id} className="border-b border-line hover:bg-surface transition-colors">
+                    <td className="p-[11px_10px] font-medium text-fg">{pi.number}</td>
+                    <td className="p-[11px_10px] text-fg">{pi.company_name || '—'}</td>
+                    <td className="p-[11px_10px] text-subtle">
+                      <Link to={`/quotations/${pi.quotation_id}`} className="text-fg hover:underline">
                         {pi.quotation_number}
                       </Link>
                     </td>
-                    <td className="p-[11px_10px] text-[#7A839E]">{pi.date}</td>
+                    <td className="p-[11px_10px] text-subtle">{pi.date}</td>
                     <td className="p-[11px_10px] text-right">
                       <span className="inline-flex items-center gap-1.5 capitalize" style={{ color: tone }}>
                         <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tone }} />
@@ -229,7 +229,7 @@ export default function PerformaInvoices() {
                         href={api.performaInvoices.pdfUrl(pi.id)}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[12px] text-[#7A839E] hover:text-[#3B6FD4] hover:underline"
+                        className="text-[12px] text-subtle hover:text-fg hover:underline"
                       >
                         PDF →
                       </a>
@@ -239,7 +239,7 @@ export default function PerformaInvoices() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-[#7A839E] text-[13px]">
+                  <td colSpan={6} className="text-center py-8 text-subtle text-[13px]">
                     No performa invoices found.
                   </td>
                 </tr>

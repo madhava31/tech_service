@@ -113,8 +113,8 @@ const SYSTEM_NAV: NavItemDef[] = [
 
 const ITEM_BASE =
   'w-full flex items-center gap-2.5 px-2.5 h-9 rounded-[8px] text-[13px] font-semibold no-underline transition-colors duration-150';
-const ITEM_ACTIVE = 'bg-[#21375F] text-[#EAF1FF] shadow-[inset_3px_0_0_#6FA2FF]';
-const ITEM_IDLE = 'text-[#B6C3D8] hover:bg-[#21375F] hover:text-white';
+const ITEM_ACTIVE = 'bg-ink text-onink shadow-[inset_3px_0_0_#6FA2FF]';
+const ITEM_IDLE = 'text-[#B6C3D8] hover:bg-ink hover:text-onink';
 
 function CollapsibleNavItem({
   item,
@@ -182,12 +182,12 @@ function CollapsibleNavItem({
         }`}
       >
         <span className="flex items-center gap-2.5 min-w-0">
-          <Icon className={`size-4 shrink-0 ${isGroupActive ? 'text-white' : 'text-[#94A0BC]'}`} />
+          <Icon className={`size-4 shrink-0 ${isGroupActive ? 'text-onink' : 'text-subtle'}`} />
           <span className="truncate">{item.label}</span>
         </span>
         <ChevronRightIcon
           className={`size-3.5 shrink-0 transition-transform duration-200 ${expanded ? 'rotate-90' : ''} ${
-            isGroupActive ? 'text-white/75' : 'text-[#B3BBD0]'
+            isGroupActive ? 'text-onink/75' : 'text-[#B3BBD0]'
           }`}
         />
       </button>
@@ -205,13 +205,13 @@ function CollapsibleNavItem({
                 aria-current={active ? 'page' : undefined}
                 className={`flex items-center gap-2 pl-2.5 pr-2 h-[30px] rounded-lg text-[12.5px] no-underline transition-colors duration-150 ${
                   active
-                    ? 'bg-[#21375F] text-[#C9DBFF] font-bold'
-                    : 'text-[#9BAECD] hover:text-white hover:bg-[#21375F]'
+                    ? 'bg-ink text-onink font-bold'
+                    : 'text-subtle hover:text-onink hover:bg-ink'
                 }`}
               >
                 <span
                   aria-hidden="true"
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-[#6FA2FF]' : 'bg-[#5A729F]'}`}
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-ink' : 'bg-[#5A729F]'}`}
                 />
                 <span className="truncate">{child.label}</span>
               </Link>
@@ -263,7 +263,7 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
             aria-current={active ? 'page' : undefined}
             className={`${ITEM_BASE} ${active ? ITEM_ACTIVE : ITEM_IDLE}`}
           >
-            <Icon className={`size-4 shrink-0 ${active ? 'text-white' : 'text-[#94A0BC]'}`} />
+            <Icon className={`size-4 shrink-0 ${active ? 'text-onink' : 'text-subtle'}`} />
             <span className="truncate">{item.label}</span>
           </Link>
         );
@@ -282,19 +282,19 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
     <aside
       data-nav="1"
       data-scroll="1"
-      className="w-[236px] shrink-0 bg-[#14213D] border-r border-[#2C4774] shadow-[8px_0_28px_rgba(20,33,61,0.10)] flex flex-col h-screen sticky top-0 overflow-hidden z-50 select-none"
+      className="w-[236px] shrink-0 bg-ink border-r border-line2 shadow-[8px_0_28px_rgba(20,33,61,0.10)] flex flex-col h-screen sticky top-0 overflow-hidden z-50 select-none"
     >
       {/* Brand */}
       <Link
         to="/"
-        className="flex items-center gap-2.5 px-4 h-[68px] shrink-0 no-underline border-b border-[#2C4774]"
+        className="flex items-center gap-2.5 px-4 h-[68px] shrink-0 no-underline border-b border-line2"
       >
-        <div className="w-[34px] h-[34px] rounded-[9px] bg-[#6FA2FF] text-[#14213D] grid place-items-center text-[11.5px] font-extrabold shrink-0 shadow-[0_4px_14px_rgba(111,162,255,0.24)]">
+        <div className="w-[34px] h-[34px] rounded-[9px] bg-ink text-fg grid place-items-center text-[11.5px] font-extrabold shrink-0 shadow-[0_4px_14px_rgba(111,162,255,0.24)]">
           TS
         </div>
         <div className="flex flex-col leading-[1.15]">
-          <span className="text-[13px] font-extrabold tracking-[.03em] text-white">TECHNICON</span>
-          <span className="text-[9.5px] tracking-[.2em] text-[#9BAECD] font-bold">SERVICES</span>
+          <span className="text-[13px] font-extrabold tracking-[.03em] text-onink">TECHNICON</span>
+          <span className="text-[9.5px] tracking-[.2em] text-subtle font-bold">SERVICES</span>
         </div>
       </Link>
 
@@ -303,7 +303,7 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
         <Link
           to="/quotations/new"
           onClick={() => onMobileClose && onMobileClose()}
-          className="flex items-center justify-center gap-1.5 h-9 rounded-[8px] bg-[#6FA2FF] text-[#14213D] text-[12.5px] font-bold no-underline shadow-[0_4px_14px_rgba(111,162,255,0.22)] hover:bg-[#8AB5FF] transition-colors"
+          className="flex items-center justify-center gap-1.5 h-9 rounded-[8px] bg-ink text-fg text-[12.5px] font-bold no-underline shadow-[0_4px_14px_rgba(111,162,255,0.22)] hover:bg-ink transition-colors"
         >
           <PlusIcon className="size-4" />
           <span>New Quotation</span>
@@ -316,13 +316,13 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
       </div>
 
       {/* User */}
-      <div className="mt-auto shrink-0 border-t border-[#2C4774] px-3 py-3 flex items-center gap-2.5 bg-[#192B4D]">
-        <div className="w-8 h-8 rounded-full bg-[#21375F] grid place-items-center text-[11.5px] font-extrabold text-[#C9DBFF] shrink-0">
+      <div className="mt-auto shrink-0 border-t border-line2 px-3 py-3 flex items-center gap-2.5 bg-ink">
+        <div className="w-8 h-8 rounded-full bg-ink grid place-items-center text-[11.5px] font-extrabold text-onink shrink-0">
           {getInitials(user.username)}
         </div>
         <div className="flex flex-col leading-[1.25] min-w-0">
-          <span className="text-[12.5px] font-bold text-white truncate">{user.username}</span>
-          <span className="text-[10.5px] text-[#9BAECD] capitalize font-semibold">{user.role}</span>
+          <span className="text-[12.5px] font-bold text-onink truncate">{user.username}</span>
+          <span className="text-[10.5px] text-subtle capitalize font-semibold">{user.role}</span>
         </div>
       </div>
     </aside>
@@ -337,7 +337,7 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
       {mobileOpen && (
         <div className="tablet-lg:hidden fixed inset-0 z-50 flex">
           <div
-            className="fixed inset-0 bg-[#141B34]/40 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-ink/40 backdrop-blur-sm transition-opacity"
             onClick={onMobileClose}
           />
           <div className="relative z-10 h-full animate-in slide-in-from-left duration-200">

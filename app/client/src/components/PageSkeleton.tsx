@@ -20,7 +20,7 @@ export default function PageSkeleton() {
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="p-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 space-y-3"
+            className="p-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-surface2/50 dark:bg-slate-900/40 space-y-3"
           >
             <div className="flex items-center justify-between">
               <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
@@ -33,7 +33,7 @@ export default function PageSkeleton() {
       </div>
 
       {/* Main Content Card Skeleton */}
-      <div className="p-6 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 space-y-4">
+      <div className="p-6 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-surface2/50 dark:bg-slate-900/40 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div className="h-5 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
           <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg" />

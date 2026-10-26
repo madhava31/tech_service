@@ -86,14 +86,14 @@ export default function CustomerHealthOverview() {
   );
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Customer Health
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+          <p className="margin-0 text-[13.5px] text-subtle">
             Account scores from order recency, frequency and value movement.
           </p>
         </div>
@@ -101,31 +101,31 @@ export default function CustomerHealthOverview() {
         {/* Stacked Distribution Summary Bar */}
         {data && (
           <div className="flex flex-col gap-2 min-w-[300px]">
-            <div className="flex h-2 rounded-[5px] overflow-hidden bg-[#F7F8FC]">
+            <div className="flex h-2 rounded-[5px] overflow-hidden bg-surface">
               <div
                 style={{ width: `${((data.summary.strong + data.summary.active + data.summary.new) / Math.max(1, data.summary.total)) * 100}%` }}
-                className="bg-[#3B6FD4] h-full"
+                className="bg-ink h-full"
               />
               <div
                 style={{ width: `${(data.summary.atRisk / Math.max(1, data.summary.total)) * 100}%` }}
-                className="bg-[#E8A33D] h-full"
+                className="bg-warn h-full"
               />
               <div
                 style={{ width: `${(data.summary.inactive / Math.max(1, data.summary.total)) * 100}%` }}
-                className="bg-[#E5484D] h-full"
+                className="bg-bad h-full"
               />
             </div>
-            <div className="flex gap-4 text-[11.5px] text-[#7A839E]">
+            <div className="flex gap-4 text-[11.5px] text-subtle">
               <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2 h-2 rounded-[2px] bg-[#3B6FD4]" />
+                <span className="w-2 h-2 rounded-[2px] bg-ink" />
                 Healthy {data.summary.strong + data.summary.active + data.summary.new}
               </span>
               <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2 h-2 rounded-[2px] bg-[#E8A33D]" />
+                <span className="w-2 h-2 rounded-[2px] bg-warn" />
                 Watch {data.summary.atRisk}
               </span>
               <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2 h-2 rounded-[2px] bg-[#E5484D]" />
+                <span className="w-2 h-2 rounded-[2px] bg-bad" />
                 At risk {data.summary.inactive}
               </span>
             </div>
@@ -134,12 +134,12 @@ export default function CustomerHealthOverview() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-[12px] bg-badbg border border-badbg text-bad text-[13px] flex items-center justify-between gap-4">
           <span>{error}</span>
           <button
             type="button"
             onClick={fetchData}
-            className="px-3 py-1.5 rounded-[8px] bg-[#F7DFE0] hover:bg-[#F5DADB] text-[#141B34] text-xs font-semibold cursor-pointer transition-colors"
+            className="px-3 py-1.5 rounded-[8px] bg-badbg hover:bg-badbg text-fg text-xs font-semibold cursor-pointer transition-colors"
           >
             Retry
           </button>
@@ -147,15 +147,15 @@ export default function CustomerHealthOverview() {
       )}
 
       {loading && !data && (
-        <div className="p-8 text-center text-[#7A839E] text-[13px] rounded-[16px] bg-[#FFFFFF] border border-[#E4E8F2]">
+        <div className="p-8 text-center text-subtle text-[13px] rounded-[16px] bg-surface2 border border-line2">
           Loading customer health summary...
         </div>
       )}
 
       {data && (
-        <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+        <section className="bg-surface2 border border-line2 rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
           {/* Filter Controls */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-line2 pb-3.5">
             <div className="flex items-center gap-2.5 flex-wrap">
               <ExpandableSearch
                 value={search}
@@ -167,7 +167,7 @@ export default function CustomerHealthOverview() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
+                className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
               >
                 <option value="">All Health Statuses</option>
                 <option value="strong">Healthy (Strong)</option>
@@ -178,7 +178,7 @@ export default function CustomerHealthOverview() {
                 <option value="no_history">Dormant (No History)</option>
               </select>
             </div>
-            <span className="text-[11.5px] text-[#A8AEC4]">
+            <span className="text-[11.5px] text-faint">
               Showing {filtered.length} of {data.customers.length} accounts
             </span>
           </div>
@@ -187,26 +187,26 @@ export default function CustomerHealthOverview() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
               <thead>
-                <tr className="border-b border-[#EEF1F9]">
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                <tr className="border-b border-line2">
+                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                     CUSTOMER
                   </th>
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                     HEALTH BAND
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                     TOTAL REVENUE
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                     ORDERS
                   </th>
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                     LAST ORDER
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                     RECENCY
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
+                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-faint uppercase">
                     ACTION
                   </th>
                 </tr>
@@ -215,24 +215,24 @@ export default function CustomerHealthOverview() {
                 {paged.map((c) => {
                   const color = STATUS_COLORS[c.status] || '#7A839E';
                   return (
-                    <tr key={c.company_id} className="border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors">
-                      <td className="p-[11px_10px] font-medium text-[#141B34]">{c.company_name}</td>
+                    <tr key={c.company_id} className="border-b border-line hover:bg-surface transition-colors">
+                      <td className="p-[11px_10px] font-medium text-fg">{c.company_name}</td>
                       <td className="p-[11px_10px]">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] border border-[#E4E8F2] text-[11px] font-medium" style={{ color }}>
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] border border-line2 text-[11px] font-medium" style={{ color }}>
                           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
                           {STATUS_LABELS[c.status]}
                         </span>
                       </td>
-                      <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
+                      <td className="p-[11px_10px] text-right font-medium text-fg">
                         {formatCurrency(c.totalRevenue)}
                       </td>
-                      <td className="p-[11px_10px] text-right text-[#7A839E]">{c.orderCount}</td>
-                      <td className="p-[11px_10px] text-[#7A839E]">{formatDate(c.lastOrderDate)}</td>
-                      <td className="p-[11px_10px] text-right text-[#7A839E]">{relativeDays(c.daysSinceLastOrder)}</td>
+                      <td className="p-[11px_10px] text-right text-subtle">{c.orderCount}</td>
+                      <td className="p-[11px_10px] text-subtle">{formatDate(c.lastOrderDate)}</td>
+                      <td className="p-[11px_10px] text-right text-subtle">{relativeDays(c.daysSinceLastOrder)}</td>
                       <td className="p-[11px_10px] text-right">
                         <Link
                           to={`/companies/${c.company_id}/health`}
-                          className="text-[12px] text-[#3B6FD4] hover:underline font-medium"
+                          className="text-[12px] text-fg hover:underline font-medium"
                         >
                           View →
                         </Link>
@@ -242,7 +242,7 @@ export default function CustomerHealthOverview() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-[#7A839E] text-[13px]">
+                    <td colSpan={7} className="text-center py-8 text-subtle text-[13px]">
                       No matching accounts found.
                     </td>
                   </tr>

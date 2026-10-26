@@ -27,7 +27,7 @@ export function PipelineDonutChart({
   const totalCount = stages ? stages.reduce((sum, s) => sum + s.count, 0) : 0;
 
   if (!stages || stages.length === 0 || (totalValue === 0 && totalCount === 0)) {
-    return <p className="text-xs text-[#7A839E] py-6 text-center">No pipeline data recorded.</p>;
+    return <p className="text-xs text-subtle py-6 text-center">No pipeline data recorded.</p>;
   }
 
   const radius = 64;
@@ -83,9 +83,9 @@ export function PipelineDonutChart({
 
         {/* Center Conversion Metrics */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-          <span className="text-[10px] font-bold text-[#7A839E] uppercase tracking-wider">Accepted Rate</span>
-          <span className="text-xl font-extrabold text-[#3B6FD4] mt-0.5">{acceptedRate}%</span>
-          <span className="text-[10px] text-[#7A839E] font-semibold">{formatCurrency(totalValue)}</span>
+          <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">Accepted Rate</span>
+          <span className="text-xl font-extrabold text-fg mt-0.5">{acceptedRate}%</span>
+          <span className="text-[10px] text-subtle font-semibold">{formatCurrency(totalValue)}</span>
         </div>
       </div>
 
@@ -99,22 +99,22 @@ export function PipelineDonutChart({
             <div
               key={stage.key}
               className={`p-2 rounded-lg transition-colors border ${
-                hoveredKey === stage.key ? 'bg-[#F7F8FC] border-[#3B6FD4]/40' : 'border-transparent hover:border-[#E4E8F2]'
+                hoveredKey === stage.key ? 'bg-surface border-fg/40' : 'border-transparent hover:border-line2'
               }`}
               onMouseEnter={() => setHoveredKey(stage.key)}
               onMouseLeave={() => setHoveredKey(null)}
             >
-              <div className="flex items-center justify-between text-xs font-bold text-[#141B34] mb-1">
+              <div className="flex items-center justify-between text-xs font-bold text-fg mb-1">
                 <span className="flex items-center gap-2">
                   <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
                   <span>{stage.label}</span>
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold">{formatCurrency(stage.value)}</span>
-                  <span className="bg-[#E4E8F2] text-[#7A839E] px-1.5 py-0.5 rounded text-[10px]">{stage.count}</span>
+                  <span className="bg-tile text-subtle px-1.5 py-0.5 rounded text-[10px]">{stage.count}</span>
                 </div>
               </div>
-              <div className="w-full bg-[#E4E8F2] rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-tile rounded-full h-1.5 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${percent}%`, backgroundColor: color }}

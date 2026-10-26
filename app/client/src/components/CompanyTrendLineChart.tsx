@@ -23,7 +23,7 @@ export default function CompanyTrendLineChart({
   series: CompanyTrendSeries[];
 }) {
   if (data.length === 0 || series.length === 0) {
-    return <p className="text-[13px] text-[#71809B] py-8 text-center">No product trend data for this company.</p>;
+    return <p className="text-[13px] text-subtle py-8 text-center">No product trend data for this company.</p>;
   }
 
   return (

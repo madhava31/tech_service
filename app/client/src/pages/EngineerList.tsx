@@ -254,10 +254,10 @@ export default function EngineerList() {
   return (
     <div className="w-full max-w-7xl space-y-6 px-4 tablet-lg:px-6 pt-2">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#E4E8F2]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-line2">
         <div>
-          <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">Sales Engineers & Target Management</h1>
-          <p className="text-sm text-[#7A839E] mt-1">
+          <h1 className="text-2xl font-bold text-fg tracking-tight">Sales Engineers & Target Management</h1>
+          <p className="text-sm text-subtle mt-1">
             Track sales team attribution, annual target achievements, and revenue performance.
           </p>
         </div>
@@ -265,7 +265,7 @@ export default function EngineerList() {
           <select
             value={fiscalYear}
             onChange={(e) => setFiscalYear(e.target.value)}
-            className="h-9 bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg px-2.5 text-xs font-medium text-[#141B34] focus:outline-none focus:border-[#3B6FD4] cursor-pointer"
+            className="h-9 bg-surface2 border border-line2 rounded-lg px-2.5 text-xs font-medium text-fg focus:outline-none focus:border-fg cursor-pointer"
           >
             <option value="2026-27">FY 2026-27</option>
             <option value="2025-26">FY 2025-26</option>
@@ -280,7 +280,7 @@ export default function EngineerList() {
               setParsingError('');
               setImportResult(null);
             }}
-            className="h-9 px-3 bg-[#FFFFFF] hover:bg-[#F4F6FC] text-[#3B6FD4] border border-[#3B6FD4]/30 rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+            className="h-9 px-3 bg-surface2 hover:bg-surface text-fg border border-fg/30 rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
           >
             <Upload className="w-4 h-4" />
             <span>Import</span>
@@ -290,7 +290,7 @@ export default function EngineerList() {
           <a
             href={api.export.engineersPerformanceUrl(fiscalYear)}
             download
-            className="h-9 px-3 bg-[#FFFFFF] hover:bg-[#E4E8F2] text-[#2FBF71] border border-[#E4E8F2] rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+            className="h-9 px-3 bg-surface2 hover:bg-tile text-good border border-line2 rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>Export Excel</span>
@@ -302,7 +302,7 @@ export default function EngineerList() {
               <button
                 onClick={handleBulkDelete}
                 disabled={selectedIds.length === 0 || isDeleting}
-                className="h-9 px-3 bg-[#E5484D] hover:bg-[#D13438] disabled:opacity-50 text-[#FFFFFF] rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors shadow-sm cursor-pointer"
+                className="h-9 px-3 bg-bad hover:bg-bad disabled:opacity-50 text-onink rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors shadow-sm cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Delete Selected ({selectedIds.length})</span>
@@ -312,7 +312,7 @@ export default function EngineerList() {
                   setIsSelectionMode(false);
                   setSelectedIds([]);
                 }}
-                className="h-9 px-2.5 bg-[#F4F6FC] hover:bg-[#E4E8F2] text-[#7A839E] border border-[#E4E8F2] rounded-lg text-xs font-semibold inline-flex items-center space-x-1 transition-colors cursor-pointer"
+                className="h-9 px-2.5 bg-surface hover:bg-tile text-subtle border border-line2 rounded-lg text-xs font-semibold inline-flex items-center space-x-1 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
                 <span>Cancel</span>
@@ -321,7 +321,7 @@ export default function EngineerList() {
           ) : (
             <button
               onClick={() => setIsSelectionMode(true)}
-              className="h-9 px-3 bg-[#FFFFFF] hover:bg-[#F4F6FC] text-[#E5484D] border border-[#E4E8F2] rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="h-9 px-3 bg-surface2 hover:bg-surface text-bad border border-line2 rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
               title="Select Engineers to Delete"
             >
               <Trash2 className="w-4 h-4" />
@@ -332,7 +332,7 @@ export default function EngineerList() {
           {/* Add Engineer Primary CTA */}
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-9 px-3.5 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-xs transition-colors shadow-sm inline-flex items-center space-x-1.5 cursor-pointer shrink-0"
+            className="h-9 px-3.5 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors shadow-sm inline-flex items-center space-x-1.5 cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Add Sales Engineer</span>
@@ -341,7 +341,7 @@ export default function EngineerList() {
       </div>
 
       {error && (
-        <div className="p-4 bg-[#E5484D]/10 border border-[#E5484D]/30 rounded-xl text-[#E5484D] text-sm">
+        <div className="p-4 bg-bad/10 border border-bad/30 rounded-xl text-bad text-sm">
           {error}
         </div>
       )}
@@ -349,42 +349,42 @@ export default function EngineerList() {
       {/* Overview Cards */}
       {performance && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-            <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Sales Engineers</span>
-            <span className="text-2xl font-bold text-[#141B34] mt-1 block">{performance.summary.total_engineers}</span>
+          <div className="bg-surface2 border border-line2 rounded-xl p-4">
+            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Sales Engineers</span>
+            <span className="text-2xl font-bold text-fg mt-1 block">{performance.summary.total_engineers}</span>
           </div>
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-            <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Total Target ({fiscalYear})</span>
-            <span className="text-2xl font-bold text-[#141B34] mt-1 block font-mono">
+          <div className="bg-surface2 border border-line2 rounded-xl p-4">
+            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Total Target ({fiscalYear})</span>
+            <span className="text-2xl font-bold text-fg mt-1 block font-mono">
               ₹{performance.summary.total_target.toLocaleString('en-IN')}
             </span>
           </div>
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-            <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Total Quoted</span>
-            <span className="text-2xl font-bold text-[#3B6FD4] mt-1 block font-mono">
+          <div className="bg-surface2 border border-line2 rounded-xl p-4">
+            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Total Quoted</span>
+            <span className="text-2xl font-bold text-fg mt-1 block font-mono">
               ₹{performance.summary.total_quoted.toLocaleString('en-IN')}
             </span>
           </div>
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-            <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Confirmed Sales</span>
+          <div className="bg-surface2 border border-line2 rounded-xl p-4">
+            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Confirmed Sales</span>
             {performance.summary.confirmed_sales_available ? (
-              <span className="text-2xl font-bold text-[#2FBF71] mt-1 block font-mono">
+              <span className="text-2xl font-bold text-good mt-1 block font-mono">
                 ₹{performance.summary.total_confirmed.toLocaleString('en-IN')}
               </span>
             ) : (
-              <span className="text-sm font-semibold text-[#A8AEC4] mt-1 block" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+              <span className="text-sm font-semibold text-faint mt-1 block" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
                 Not tracked yet
               </span>
             )}
           </div>
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-            <span className="text-xs text-[#7A839E] uppercase tracking-wider block font-medium">Overall Achievement</span>
+          <div className="bg-surface2 border border-line2 rounded-xl p-4">
+            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Overall Achievement</span>
             {performance.summary.confirmed_sales_available ? (
-              <span className="text-2xl font-bold text-[#3B6FD4] mt-1 block">
+              <span className="text-2xl font-bold text-fg mt-1 block">
                 {performance.summary.overall_achievement_pct.toFixed(1)}%
               </span>
             ) : (
-              <span className="text-sm font-semibold text-[#A8AEC4]" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+              <span className="text-sm font-semibold text-faint" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
                 —
               </span>
             )}
@@ -393,10 +393,10 @@ export default function EngineerList() {
       )}
 
       {/* Engineer Table */}
-      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
+      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#F4F6FC] text-xs font-semibold text-[#7A839E] uppercase tracking-wider border-b border-[#E4E8F2]">
+            <thead className="bg-surface text-xs font-semibold text-subtle uppercase tracking-wider border-b border-line2">
               <tr>
                 {isSelectionMode && (
                   <th className="px-4 py-3 w-10 text-center">
@@ -404,7 +404,7 @@ export default function EngineerList() {
                       type="checkbox"
                       checked={engineers.length > 0 && selectedIds.length === engineers.length}
                       onChange={toggleSelectAll}
-                      className="rounded border-[#E4E8F2] text-[#3B6FD4] focus:ring-[#3B6FD4] cursor-pointer"
+                      className="rounded border-line2 text-fg focus:ring-fg cursor-pointer"
                     />
                   </th>
                 )}
@@ -418,16 +418,16 @@ export default function EngineerList() {
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E4E8F2] text-[#141B34]">
+            <tbody className="divide-y divide-line2 text-fg">
               {loading ? (
                 <tr>
-                  <td colSpan={isSelectionMode ? 9 : 8} className="px-4 py-8 text-center text-[#7A839E] text-xs">
+                  <td colSpan={isSelectionMode ? 9 : 8} className="px-4 py-8 text-center text-subtle text-xs">
                     Loading sales engineers...
                   </td>
                 </tr>
               ) : engineers.length === 0 ? (
                 <tr>
-                  <td colSpan={isSelectionMode ? 9 : 8} className="px-4 py-8 text-center text-[#7A839E] text-xs">
+                  <td colSpan={isSelectionMode ? 9 : 8} className="px-4 py-8 text-center text-subtle text-xs">
                     No sales engineers found. Click "Add Sales Engineer" to create one.
                   </td>
                 </tr>
@@ -440,19 +440,19 @@ export default function EngineerList() {
                   const pct = perf?.achievement_pct || 0;
                   const confirmedAvailable = performance?.summary.confirmed_sales_available ?? false;
 
-                  let statusBadge = 'bg-[#7A839E]/10 text-[#7A839E] border-[#7A839E]/30';
+                  let statusBadge = 'bg-subtle/10 text-subtle border-line2';
                   let statusLabel = 'NO TARGET';
 
                   if (!confirmedAvailable) {
                     statusLabel = 'NOT TRACKED';
                   } else if (perf?.status === 'EXCEEDED') {
-                    statusBadge = 'bg-[#2FBF71]/10 text-[#2FBF71] border-[#2FBF71]/30';
+                    statusBadge = 'bg-good/10 text-good border-good/30';
                     statusLabel = 'EXCEEDED';
                   } else if (perf?.status === 'ON_TRACK') {
-                    statusBadge = 'bg-[#3B6FD4]/10 text-[#3B6FD4] border-[#3B6FD4]/30';
+                    statusBadge = 'bg-ink/10 text-fg border-fg/30';
                     statusLabel = 'ON TRACK';
                   } else if (perf?.status === 'BEHIND') {
-                    statusBadge = 'bg-[#E5484D]/10 text-[#E5484D] border-[#E5484D]/30';
+                    statusBadge = 'bg-bad/10 text-bad border-bad/30';
                     statusLabel = 'BEHIND';
                   }
 
@@ -461,7 +461,7 @@ export default function EngineerList() {
                   return (
                     <tr
                       key={eng.id}
-                      className={`hover:bg-[#F4F6FC]/50 transition-colors ${isSelected ? 'bg-[#3B6FD4]/5' : ''}`}
+                      className={`hover:bg-surface/50 transition-colors ${isSelected ? 'bg-ink/5' : ''}`}
                     >
                       {isSelectionMode && (
                         <td className="px-4 py-3 text-center">
@@ -469,42 +469,42 @@ export default function EngineerList() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleSelectRow(eng.id)}
-                            className="rounded border-[#E4E8F2] text-[#3B6FD4] focus:ring-[#3B6FD4] cursor-pointer"
+                            className="rounded border-line2 text-fg focus:ring-fg cursor-pointer"
                           />
                         </td>
                       )}
                       <td className="px-4 py-3">
-                        <Link to={`/sales/engineers/${eng.id}`} className="font-semibold text-[#141B34] hover:text-[#3B6FD4] block">
+                        <Link to={`/sales/engineers/${eng.id}`} className="font-semibold text-fg hover:text-fg block">
                           {eng.name}
                         </Link>
-                        <span className="text-xs text-[#7A839E] font-mono">{eng.code}</span>
+                        <span className="text-xs text-subtle font-mono">{eng.code}</span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-[#7A839E]">
+                      <td className="px-4 py-3 text-xs text-subtle">
                         <div>{eng.email || '—'}</div>
                         <div>{eng.phone || '—'}</div>
                       </td>
-                      <td className="px-4 py-3 text-right font-mono font-medium text-[#141B34]">
+                      <td className="px-4 py-3 text-right font-mono font-medium text-fg">
                         ₹{targetVal.toLocaleString('en-IN')}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono text-[#3B6FD4]">
+                      <td className="px-4 py-3 text-right font-mono text-fg">
                         ₹{quotedVal.toLocaleString('en-IN')}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono text-[#141B34]">
+                      <td className="px-4 py-3 text-right font-mono text-fg">
                         {performance?.summary.confirmed_sales_available ? `₹${confirmedVal.toLocaleString('en-IN')}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">
                         {confirmedAvailable ? (
                           <div className="flex items-center justify-end space-x-2">
-                            <div className="w-16 bg-[#F4F6FC] border border-[#E4E8F2] rounded-full h-2 overflow-hidden">
+                            <div className="w-16 bg-surface border border-line2 rounded-full h-2 overflow-hidden">
                               <div
-                                className="bg-[#3B6FD4] h-full transition-all"
+                                className="bg-ink h-full transition-all"
                                 style={{ width: `${Math.min(100, pct)}%` }}
                               />
                             </div>
-                            <span className="text-xs font-bold text-[#141B34]">{pct.toFixed(1)}%</span>
+                            <span className="text-xs font-bold text-fg">{pct.toFixed(1)}%</span>
                           </div>
                         ) : (
-                          <span className="text-xs font-semibold text-[#A8AEC4]" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
+                          <span className="text-xs font-semibold text-faint" title="Confirmed sales come from the Sale Reports feature, which isn't available yet.">
                             —
                           </span>
                         )}
@@ -521,7 +521,7 @@ export default function EngineerList() {
                               setTargetModalEngineer(eng);
                               setTargetAmountInput(targetVal > 0 ? targetVal : '');
                             }}
-                            className="px-2.5 py-1 bg-[#F4F6FC] hover:bg-[#E4E8F2] text-[#3B6FD4] border border-[#E4E8F2] rounded text-xs transition-colors cursor-pointer"
+                            className="px-2.5 py-1 bg-surface hover:bg-tile text-fg border border-line2 rounded text-xs transition-colors cursor-pointer"
                           >
                             Set Target
                           </button>
@@ -529,7 +529,7 @@ export default function EngineerList() {
                           <button
                             onClick={() => handleDeleteEngineer(eng.id, eng.name, eng.code)}
                             disabled={isDeleting}
-                            className="p-1 text-[#7A839E] hover:text-[#E5484D] hover:bg-[#E5484D]/10 rounded transition-colors cursor-pointer"
+                            className="p-1 text-subtle hover:text-bad hover:bg-bad/10 rounded transition-colors cursor-pointer"
                             title="Delete Sales Engineer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -547,67 +547,67 @@ export default function EngineerList() {
 
       {/* Add Engineer Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-[#141B34]/40 flex items-center justify-center p-4">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
-            <div className="flex justify-between items-center border-b border-[#E4E8F2] pb-3">
-              <h3 className="text-lg font-bold text-[#141B34]">Add Sales Engineer</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-[#7A839E] hover:text-[#141B34]">✕</button>
+        <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
+          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
+            <div className="flex justify-between items-center border-b border-line2 pb-3">
+              <h3 className="text-lg font-bold text-fg">Add Sales Engineer</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-subtle hover:text-fg">✕</button>
             </div>
             <form onSubmit={handleCreateEngineer} className="space-y-4">
               <div>
-                <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Engineer Code *</label>
+                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Engineer Code *</label>
                 <input
                   type="text"
                   required
                   placeholder="ENG-005"
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value)}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Full Name *</label>
+                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Full Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="Vijay Kumar"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Email</label>
+                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Email</label>
                 <input
                   type="email"
                   placeholder="vijay@technicon.in"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Phone</label>
+                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Phone</label>
                 <input
                   type="text"
                   placeholder="+91 98765 43210"
                   value={newPhone}
                   onChange={(e) => setNewPhone(e.target.value)}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-[#F4F6FC] text-[#7A839E] border border-[#E4E8F2] rounded-lg text-xs"
+                  className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEngineer}
-                  className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] font-semibold rounded-lg text-xs"
+                  className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg text-xs"
                 >
                   {savingEngineer ? 'Saving...' : 'Create Engineer'}
                 </button>
@@ -619,24 +619,24 @@ export default function EngineerList() {
 
       {/* Target Set Modal */}
       {targetModalEngineer && (
-        <div className="fixed inset-0 z-50 bg-[#141B34]/40 flex items-center justify-center p-4">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
-            <div className="flex justify-between items-center border-b border-[#E4E8F2] pb-3">
-              <h3 className="text-lg font-bold text-[#141B34]">Set Annual Target for {targetModalEngineer.name}</h3>
-              <button onClick={() => setTargetModalEngineer(null)} className="text-[#7A839E] hover:text-[#141B34]">✕</button>
+        <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
+          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
+            <div className="flex justify-between items-center border-b border-line2 pb-3">
+              <h3 className="text-lg font-bold text-fg">Set Annual Target for {targetModalEngineer.name}</h3>
+              <button onClick={() => setTargetModalEngineer(null)} className="text-subtle hover:text-fg">✕</button>
             </div>
             <form onSubmit={handleSetTarget} className="space-y-4">
               <div>
-                <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Fiscal Year</label>
+                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Fiscal Year</label>
                 <input
                   type="text"
                   disabled
                   value={fiscalYear}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-sm text-[#7A839E]"
+                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-subtle"
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Annual Sales Target (₹) *</label>
+                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Annual Sales Target (₹) *</label>
                 <input
                   type="number"
                   required
@@ -645,21 +645,21 @@ export default function EngineerList() {
                   placeholder="5000000"
                   value={targetAmountInput}
                   onChange={(e) => setTargetAmountInput(e.target.value)}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono"
+                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg font-mono"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setTargetModalEngineer(null)}
-                  className="px-4 py-2 bg-[#F4F6FC] text-[#7A839E] border border-[#E4E8F2] rounded-lg text-xs"
+                  className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingTarget}
-                  className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] font-semibold rounded-lg text-xs"
+                  className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg text-xs"
                 >
                   {savingTarget ? 'Saving Target...' : 'Save Target'}
                 </button>
@@ -671,24 +671,24 @@ export default function EngineerList() {
 
       {/* Import Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 z-50 bg-[#141B34]/40 flex items-center justify-center p-4">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 w-full max-w-xl space-y-4 shadow-card max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center border-b border-[#E4E8F2] pb-3">
+        <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
+          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-xl space-y-4 shadow-card max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-line2 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-[#141B34]">Import Sales Engineers</h3>
-                <p className="text-xs text-[#7A839E]">Upload an Excel (.xlsx / .xls) or CSV file with sales engineers</p>
+                <h3 className="text-lg font-bold text-fg">Import Sales Engineers</h3>
+                <p className="text-xs text-subtle">Upload an Excel (.xlsx / .xls) or CSV file with sales engineers</p>
               </div>
-              <button onClick={() => setShowImportModal(false)} className="text-[#7A839E] hover:text-[#141B34]">✕</button>
+              <button onClick={() => setShowImportModal(false)} className="text-subtle hover:text-fg">✕</button>
             </div>
 
             {/* File Input Box */}
-            <div className="border-2 border-dashed border-[#E4E8F2] hover:border-[#3B6FD4] rounded-xl p-6 text-center space-y-3 bg-[#F4F6FC]/50 transition-colors">
-              <Upload className="w-8 h-8 text-[#3B6FD4] mx-auto" />
+            <div className="border-2 border-dashed border-line2 hover:border-fg rounded-xl p-6 text-center space-y-3 bg-surface/50 transition-colors">
+              <Upload className="w-8 h-8 text-fg mx-auto" />
               <div>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-[#3B6FD4] text-[#FFFFFF] text-xs font-semibold rounded-lg hover:bg-[#2F5CB8] transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-ink text-onink text-xs font-semibold rounded-lg hover:bg-ink/85 transition-colors cursor-pointer"
                 >
                   Select File
                 </button>
@@ -700,26 +700,26 @@ export default function EngineerList() {
                   onChange={handleFileChange}
                 />
               </div>
-              <p className="text-xs text-[#7A839E]">
+              <p className="text-xs text-subtle">
                 Supported Formats: <strong>.xlsx, .xls, .csv</strong>
               </p>
               {importFile && (
-                <div className="text-xs font-semibold text-[#141B34] bg-[#FFFFFF] px-3 py-1.5 rounded border border-[#E4E8F2] inline-block">
+                <div className="text-xs font-semibold text-fg bg-surface2 px-3 py-1.5 rounded border border-line2 inline-block">
                   📄 {importFile.name} ({(importFile.size / 1024).toFixed(1)} KB)
                 </div>
               )}
             </div>
 
             {/* Format Instructions */}
-            <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2] text-xs text-[#7A839E] space-y-1">
-              <span className="font-semibold text-[#141B34] block">Expected Column Headers:</span>
-              <p className="font-mono text-[11px] text-[#3B6FD4]">
+            <div className="bg-surface p-3 rounded-lg border border-line2 text-xs text-subtle space-y-1">
+              <span className="font-semibold text-fg block">Expected Column Headers:</span>
+              <p className="font-mono text-[11px] text-fg">
                 Code, Name, Email, Phone, Designation, Department
               </p>
             </div>
 
             {parsingError && (
-              <div className="p-3 bg-[#E5484D]/10 border border-[#E5484D]/30 rounded-lg text-[#E5484D] text-xs">
+              <div className="p-3 bg-bad/10 border border-bad/30 rounded-lg text-bad text-xs">
                 {parsingError}
               </div>
             )}
@@ -728,11 +728,11 @@ export default function EngineerList() {
             {parsedRows.length > 0 && !importResult && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-[#141B34]">Preview ({parsedRows.length} rows found)</span>
+                  <span className="font-semibold text-fg">Preview ({parsedRows.length} rows found)</span>
                 </div>
-                <div className="max-h-48 overflow-y-auto border border-[#E4E8F2] rounded-lg">
+                <div className="max-h-48 overflow-y-auto border border-line2 rounded-lg">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#F4F6FC] text-[#7A839E] font-semibold uppercase sticky top-0 border-b border-[#E4E8F2]">
+                    <thead className="bg-surface text-subtle font-semibold uppercase sticky top-0 border-b border-line2">
                       <tr>
                         <th className="p-2">Code</th>
                         <th className="p-2">Name</th>
@@ -740,19 +740,19 @@ export default function EngineerList() {
                         <th className="p-2">Phone</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E4E8F2] text-[#141B34]">
+                    <tbody className="divide-y divide-line2 text-fg">
                       {parsedRows.slice(0, 10).map((r, i) => (
                         <tr key={i}>
                           <td className="p-2 font-mono">{r.code || r['Code'] || r['Employee Code'] || '—'}</td>
                           <td className="p-2 font-semibold">{r.name || r['Name'] || r['Full Name'] || '—'}</td>
-                          <td className="p-2 text-[#7A839E]">{r.email || r['Email'] || '—'}</td>
-                          <td className="p-2 text-[#7A839E]">{r.phone || r['Phone'] || '—'}</td>
+                          <td className="p-2 text-subtle">{r.email || r['Email'] || '—'}</td>
+                          <td className="p-2 text-subtle">{r.phone || r['Phone'] || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   {parsedRows.length > 10 && (
-                    <div className="p-2 text-center text-xs text-[#7A839E] bg-[#F4F6FC]">
+                    <div className="p-2 text-center text-xs text-subtle bg-surface">
                       ...and {parsedRows.length - 10} more rows
                     </div>
                   )}
@@ -762,24 +762,24 @@ export default function EngineerList() {
 
             {/* Import Result Summary */}
             {importResult && (
-              <div className="p-4 bg-[#2FBF71]/10 border border-[#2FBF71]/30 rounded-lg text-xs space-y-2">
-                <div className="font-bold text-[#2FBF71] text-sm">Import Completed!</div>
+              <div className="p-4 bg-good/10 border border-good/30 rounded-lg text-xs space-y-2">
+                <div className="font-bold text-good text-sm">Import Completed!</div>
                 <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-[#FFFFFF] p-2 rounded border border-[#2FBF71]/20">
-                    <span className="text-[#7A839E] block">Created</span>
-                    <span className="font-bold text-lg text-[#2FBF71]">{importResult.createdCount}</span>
+                  <div className="bg-surface2 p-2 rounded border border-good/20">
+                    <span className="text-subtle block">Created</span>
+                    <span className="font-bold text-lg text-good">{importResult.createdCount}</span>
                   </div>
-                  <div className="bg-[#FFFFFF] p-2 rounded border border-[#3B6FD4]/20">
-                    <span className="text-[#7A839E] block">Updated</span>
-                    <span className="font-bold text-lg text-[#3B6FD4]">{importResult.updatedCount}</span>
+                  <div className="bg-surface2 p-2 rounded border border-fg/20">
+                    <span className="text-subtle block">Updated</span>
+                    <span className="font-bold text-lg text-fg">{importResult.updatedCount}</span>
                   </div>
-                  <div className="bg-[#FFFFFF] p-2 rounded border border-[#E5484D]/20">
-                    <span className="text-[#7A839E] block">Errors</span>
-                    <span className="font-bold text-lg text-[#E5484D]">{importResult.errorCount}</span>
+                  <div className="bg-surface2 p-2 rounded border border-bad/20">
+                    <span className="text-subtle block">Errors</span>
+                    <span className="font-bold text-lg text-bad">{importResult.errorCount}</span>
                   </div>
                 </div>
                 {importResult.errors.length > 0 && (
-                  <div className="text-[#E5484D] pt-2 border-t border-[#E5484D]/20 space-y-1">
+                  <div className="text-bad pt-2 border-t border-bad/20 space-y-1">
                     {importResult.errors.map((err, idx) => (
                       <p key={idx}>• {err}</p>
                     ))}
@@ -789,11 +789,11 @@ export default function EngineerList() {
             )}
 
             {/* Actions */}
-            <div className="flex justify-end space-x-3 pt-2 border-t border-[#E4E8F2]">
+            <div className="flex justify-end space-x-3 pt-2 border-t border-line2">
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 bg-[#F4F6FC] text-[#7A839E] border border-[#E4E8F2] rounded-lg text-xs font-semibold"
+                className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs font-semibold"
               >
                 {importResult ? 'Close' : 'Cancel'}
               </button>
@@ -802,7 +802,7 @@ export default function EngineerList() {
                   type="button"
                   disabled={parsedRows.length === 0 || importing}
                   onClick={handleImportSubmit}
-                  className="px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] disabled:opacity-50 text-[#F4F6FC] font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-semibold rounded-lg text-xs transition-colors cursor-pointer"
                 >
                   {importing ? 'Importing...' : `Import ${parsedRows.length} Engineers`}
                 </button>

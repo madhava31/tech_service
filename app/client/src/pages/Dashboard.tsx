@@ -99,17 +99,17 @@ function formatDate(d: string) {
 function FollowUpRow({ item }: { item: DashboardFollowUp }) {
   return (
     <Link
-      className="flex items-center justify-between p-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAF9] transition-colors border border-[#E2EAE5]"
+      className="flex items-center justify-between p-2.5 rounded-lg bg-surface2 hover:bg-surface transition-colors border border-line2"
       to={`/quotations/${item.quotation_id}`}
     >
       <div className="flex flex-col min-w-0">
-        <span className="text-xs font-bold text-[#141B34] truncate">{item.company_name || '—'}</span>
-        <span className="text-[11px] text-[#64748B]">
+        <span className="text-xs font-bold text-fg truncate">{item.company_name || '—'}</span>
+        <span className="text-[11px] text-subtle">
           {item.quotation_number} · Due: {formatDate(item.follow_up_date)}
         </span>
-        {item.notes && <span className="text-[11px] text-[#64748B] italic mt-0.5">"{item.notes}"</span>}
+        {item.notes && <span className="text-[11px] text-subtle italic mt-0.5">"{item.notes}"</span>}
       </div>
-      <span className="text-xs font-bold text-[#059669] flex items-center gap-1 shrink-0 ml-2">
+      <span className="text-xs font-bold text-good flex items-center gap-1 shrink-0 ml-2">
         View <ArrowRightIcon className="size-3" />
       </span>
     </Link>
@@ -127,9 +127,9 @@ const ACTIVITY_META: Record<ActivityType, { icon: ComponentType; to: (id: number
 // Widget Error Boundary Fallback Component
 function WidgetErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="p-4 rounded-lg bg-[#FCEBEC] border border-[#F2C4C6] text-[#C8323A] flex items-center justify-between gap-3 text-xs font-semibold">
+    <div className="p-4 rounded-lg bg-badbg border border-[#F2C4C6] text-bad flex items-center justify-between gap-3 text-xs font-semibold">
       <span>{message}</span>
-      <Button size="sm" variant="destructive" onClick={onRetry} className="h-7 text-xs gap-1 bg-[#E5484D] hover:bg-[#C8323A]">
+      <Button size="sm" variant="destructive" onClick={onRetry} className="h-7 text-xs gap-1 bg-bad hover:bg-bad">
         <RefreshCwIcon className="size-3" /> Retry
       </Button>
     </div>
@@ -422,13 +422,13 @@ export default function Dashboard() {
       : '/quotations';
 
   return (
-    <div className="text-[#141B34] px-4 tablet-lg:px-6 pt-1 flex flex-col gap-5">
+    <div className="text-fg px-4 tablet-lg:px-6 pt-1 flex flex-col gap-5">
 
       {/* 1. PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#141B34] tracking-tight">Business Analytics</h1>
-          <p className="text-xs text-[#7A839E] mt-0.5">Real-time view of revenue, quotations, customers and business performance.</p>
+          <h1 className="text-3xl font-extrabold text-fg tracking-tight">Business Analytics</h1>
+          <p className="text-xs text-subtle mt-0.5">Real-time view of revenue, quotations, customers and business performance.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -436,9 +436,9 @@ export default function Dashboard() {
             size="sm"
             onClick={() => fetchAllData(currentRange)}
             disabled={refreshing}
-            className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] text-xs font-semibold gap-1.5 shadow-xs"
+            className="h-9 border-line2 bg-surface2 text-fg hover:bg-surface text-xs font-semibold gap-1.5 shadow-xs"
           >
-            <RefreshCwIcon className={`size-3.5 ${refreshing ? 'animate-spin text-[#059669]' : 'text-[#64748B]'}`} />
+            <RefreshCwIcon className={`size-3.5 ${refreshing ? 'animate-spin text-good' : 'text-subtle'}`} />
             <span>Refresh</span>
           </Button>
 
@@ -448,18 +448,18 @@ export default function Dashboard() {
               variant="outline"
               size="sm"
               onClick={() => setDateDropdownOpen(!dateDropdownOpen)}
-              className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] text-xs font-semibold gap-2 shadow-xs"
+              className="h-9 border-line2 bg-surface2 text-fg hover:bg-surface text-xs font-semibold gap-2 shadow-xs"
               title="Click to change period"
             >
-              <CalendarIcon className="size-3.5 text-[#059669]" />
+              <CalendarIcon className="size-3.5 text-good" />
               <span>{currentRange.label}</span>
-              <ChevronDownIcon className="size-3 text-[#94A3B8]" />
+              <ChevronDownIcon className="size-3 text-subtle" />
             </Button>
 
             {dateDropdownOpen && (
-              <div className="absolute right-0 top-11 z-50 min-w-[180px] p-1.5 rounded-[10px] bg-white border border-[#E2EAE5] shadow-[0_12px_28px_rgba(20,33,61,0.08)] animate-in fade-in duration-150">
-                <div className="px-2 py-1 border-b border-[#E2EAE5] mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Filter by Period</span>
+              <div className="absolute right-0 top-11 z-50 min-w-[180px] p-1.5 rounded-[10px] bg-surface2 border border-line2 shadow-[0_12px_28px_rgba(20,33,61,0.08)] animate-in fade-in duration-150">
+                <div className="px-2 py-1 border-b border-line2 mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-subtle">Filter by Period</span>
                 </div>
                 <div className="space-y-0.5">
                   {presets.map((p) => {
@@ -471,12 +471,12 @@ export default function Dashboard() {
                         onClick={() => handleSelectRangePreset(p)}
                         className={`w-full text-left px-2 py-1.5 rounded-[7px] text-[12px] font-medium transition-colors flex items-center justify-between ${
                           isActive
-                            ? 'bg-[#ECFDF5] text-[#059669] font-bold border border-[#A7F3D0]'
-                            : 'text-[#64748B] hover:text-[#141B34] hover:bg-[#F8FAF9]'
+                            ? 'bg-goodbg text-good font-bold border border-goodbg'
+                            : 'text-subtle hover:text-fg hover:bg-surface'
                         }`}
                       >
                         <span>{p.label}</span>
-                        {isActive && <CheckIcon className="size-3.5 text-[#059669]" />}
+                        {isActive && <CheckIcon className="size-3.5 text-good" />}
                       </button>
                     );
                   })}
@@ -485,7 +485,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <Button asChild size="sm" className="h-9 gap-2 font-bold bg-[#059669] text-white hover:bg-[#047857] shadow-xs">
+          <Button asChild size="sm" className="h-9 gap-2 font-bold bg-good text-onink hover:bg-good shadow-xs">
             <Link to="/quotations/new">
               <PlusIcon className="size-4" />
               <span>+ New Quotation</span>
@@ -500,7 +500,7 @@ export default function Dashboard() {
       ) : !data ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl bg-[#FFFFFF]" />
+            <Skeleton key={i} className="h-20 w-full rounded-xl bg-surface2" />
           ))}
         </div>
       ) : (
@@ -511,46 +511,46 @@ export default function Dashboard() {
               value: formatCurrency(data.historicalRevenue),
               foot: '2024 Closed Volume',
               badge: 'Closed',
-              badgeColor: 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
+              badgeColor: 'bg-goodbg text-good border-[#BBF7D0]',
             },
             {
               label: 'Accepted Revenue',
               value: formatCurrency(data.acceptedQuotationRevenue),
               foot: `${data.counts.quotations} Active Proposals`,
               badge: 'Confirmed',
-              badgeColor: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+              badgeColor: 'bg-goodbg text-good border-goodbg',
             },
             {
               label: 'Open Quotations',
               value: String(data.counts.quotations),
               foot: `${data.counts.companies} Client Accounts`,
               badge: 'Pipeline',
-              badgeColor: 'bg-[#F8FAF9] text-[#64748B] border-[#E2EAE5]',
+              badgeColor: 'bg-surface text-subtle border-line2',
             },
             {
               label: 'Purchase Orders',
               value: String(data.counts.purchaseOrders),
               foot: `${data.counts.products} Catalog Items`,
               badge: 'Fulfilled',
-              badgeColor: 'bg-[#F8FAF9] text-[#64748B] border-[#E2EAE5]',
+              badgeColor: 'bg-surface text-subtle border-line2',
             },
           ].map((kpi) => (
             <div
               key={kpi.label}
-              className="rounded-card border border-[#E2EAE5] bg-white p-4 flex flex-col justify-between shadow-card hover:shadow-lift transition-all"
+              className="rounded-card border border-line2 bg-surface2 p-4 flex flex-col justify-between shadow-card hover:shadow-lift transition-all"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#64748B]">
+                <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-subtle">
                   {kpi.label}
                 </span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${kpi.badgeColor}`}>
                   {kpi.badge}
                 </span>
               </div>
-              <span className="text-[26px] leading-tight font-extrabold tracking-tight mt-2 text-[#141B34]">
+              <span className="text-[26px] leading-tight font-extrabold tracking-tight mt-2 text-fg">
                 {kpi.value}
               </span>
-              <span className="text-[11.5px] text-[#64748B] mt-1 font-medium">
+              <span className="text-[11.5px] text-subtle mt-1 font-medium">
                 {kpi.foot}
               </span>
             </div>
@@ -562,16 +562,16 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Revenue Analytics Primary Card (8 Cols) */}
-        <Card className="lg:col-span-8 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] flex flex-col justify-between shadow-card">
+        <Card className="lg:col-span-8 bg-surface2 border-line2 text-fg flex flex-col justify-between shadow-card">
           <CardHeader className="p-5 pb-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-base font-bold text-[#141B34]">Revenue Analytics</CardTitle>
-                <CardDescription className="text-xs text-[#64748B] mt-0.5">Revenue performance across the selected period.</CardDescription>
+                <CardTitle className="text-base font-bold text-fg">Revenue Analytics</CardTitle>
+                <CardDescription className="text-xs text-subtle mt-0.5">Revenue performance across the selected period.</CardDescription>
               </div>
 
               {/* Interactive Period Tabs */}
-              <div className="flex items-center gap-1 bg-[#F8FAF9] p-1 rounded-lg border border-[#E2EAE5] text-xs font-semibold text-[#64748B]">
+              <div className="flex items-center gap-1 bg-surface p-1 rounded-lg border border-line2 text-xs font-semibold text-subtle">
                 <Button
                   size="sm"
                   variant="ghost"
@@ -582,8 +582,8 @@ export default function Dashboard() {
                   }}
                   className={`h-7 px-2.5 text-xs transition-colors ${
                     currentRange.id === 'thisMonth'
-                      ? 'bg-[#FFFFFF] text-[#059669] font-bold shadow-xs border border-[#E2EAE5]'
-                      : 'text-[#64748B] hover:text-[#141B34]'
+                      ? 'bg-surface2 text-good font-bold shadow-xs border border-line2'
+                      : 'text-subtle hover:text-fg'
                   }`}
                 >
                   This Month
@@ -598,8 +598,8 @@ export default function Dashboard() {
                   }}
                   className={`h-7 px-2.5 text-xs transition-colors ${
                     currentRange.id === 'thisQuarter'
-                      ? 'bg-[#FFFFFF] text-[#059669] font-bold shadow-xs border border-[#E2EAE5]'
-                      : 'text-[#64748B] hover:text-[#141B34]'
+                      ? 'bg-surface2 text-good font-bold shadow-xs border border-line2'
+                      : 'text-subtle hover:text-fg'
                   }`}
                 >
                   This Quarter
@@ -614,8 +614,8 @@ export default function Dashboard() {
                   }}
                   className={`h-7 px-2.5 text-xs transition-colors ${
                     currentRange.id === 'thisYear'
-                      ? 'bg-[#FFFFFF] text-[#059669] font-bold shadow-xs border border-[#E2EAE5]'
-                      : 'text-[#64748B] hover:text-[#141B34]'
+                      ? 'bg-surface2 text-good font-bold shadow-xs border border-line2'
+                      : 'text-subtle hover:text-fg'
                   }`}
                 >
                   This Year
@@ -625,10 +625,10 @@ export default function Dashboard() {
 
             {/* Dynamic Revenue Display */}
             <div className="mt-3 flex items-baseline gap-3 flex-wrap">
-              <div className="text-3xl font-extrabold text-[#141B34] tracking-tight">
+              <div className="text-3xl font-extrabold text-fg tracking-tight">
                 {!data ? '—' : formatCurrency(displayedRevenue)}
               </div>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full border border-[#A7F3D0]">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-good bg-goodbg px-2 py-0.5 rounded-full border border-goodbg">
                 ● {displayedSubtitle}
               </span>
             </div>
@@ -636,7 +636,7 @@ export default function Dashboard() {
 
           <CardContent className="p-5 pt-2">
             {!data ? (
-              <Skeleton className="h-[240px] w-full rounded-lg bg-[#F8FAF9]" />
+              <Skeleton className="h-[240px] w-full rounded-lg bg-surface" />
             ) : (
               <RevenueLineChart data={displayedChartData} />
             )}
@@ -644,14 +644,14 @@ export default function Dashboard() {
         </Card>
 
         {/* Customer Performance Card (4 Cols) */}
-        <Card className="lg:col-span-4 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] flex flex-col justify-between shadow-card">
+        <Card className="lg:col-span-4 bg-surface2 border-line2 text-fg flex flex-col justify-between shadow-card">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34]">Customer Performance</CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Key accounts generating revenue.</CardDescription>
+            <CardTitle className="text-base font-bold text-fg">Customer Performance</CardTitle>
+            <CardDescription className="text-xs text-subtle mt-0.5">Key accounts generating revenue.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0">
             {!data ? (
-              <Skeleton className="h-44 w-full rounded-lg bg-[#F8FAF9]" />
+              <Skeleton className="h-44 w-full rounded-lg bg-surface" />
             ) : (
               <HorizontalBarChart data={topCompaniesChartData} color="#059669" />
             )}
@@ -664,10 +664,10 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Quotation Pipeline Conversion Funnel (7 Cols) */}
-        <Card className="lg:col-span-7 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
+        <Card className="lg:col-span-7 bg-surface2 border-line2 text-fg shadow-card">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34]">Quotation Pipeline Funnel</CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Proposal conversion rate and stage distribution.</CardDescription>
+            <CardTitle className="text-base font-bold text-fg">Quotation Pipeline Funnel</CardTitle>
+            <CardDescription className="text-xs text-subtle mt-0.5">Proposal conversion rate and stage distribution.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0">
             {pipelineError ? (
@@ -676,7 +676,7 @@ export default function Dashboard() {
                 onRetry={() => api.dashboard.pipeline({ start: currentRange.start, end: currentRange.end }).then(setPipeline)}
               />
             ) : !pipeline ? (
-              <Skeleton className="h-48 w-full rounded-lg bg-[#F8FAF9]" />
+              <Skeleton className="h-48 w-full rounded-lg bg-surface" />
             ) : (
               <PipelineDonutChart
                 stages={pipelineStages}
@@ -688,13 +688,13 @@ export default function Dashboard() {
         </Card>
 
         {/* Key Business Insights (5 Cols) */}
-        <Card className="lg:col-span-5 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card flex flex-col justify-between">
+        <Card className="lg:col-span-5 bg-surface2 border-line2 text-fg shadow-card flex flex-col justify-between">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34] flex items-center gap-2">
-              <SparklesIcon className="size-4 text-[#059669]" />
+            <CardTitle className="text-base font-bold text-fg flex items-center gap-2">
+              <SparklesIcon className="size-4 text-good" />
               <span>Key Business Insights</span>
             </CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Operational summary derived from active data.</CardDescription>
+            <CardDescription className="text-xs text-subtle mt-0.5">Operational summary derived from active data.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0 space-y-3">
             {attentionError ? (
@@ -702,22 +702,22 @@ export default function Dashboard() {
             ) : attention && attention.items.length > 0 ? (
               <Link
                 to={attention.items[0].route}
-                className="p-3 rounded-lg bg-[#F8FAF9] border border-[#E2EAE5] hover:border-[#D1DDD6] transition-colors flex items-start gap-3 block"
+                className="p-3 rounded-lg bg-surface border border-line2 hover:border-[#D1DDD6] transition-colors flex items-start gap-3 block"
               >
-                <AlertCircleIcon className="size-4 text-[#E5484D] mt-0.5 shrink-0" />
+                <AlertCircleIcon className="size-4 text-bad mt-0.5 shrink-0" />
                 <div className="text-xs">
-                  <span className="font-bold text-[#141B34] block">{attention.items[0].title}</span>
-                  <span className="text-[#64748B] mt-0.5 block">{attention.items[0].description}</span>
+                  <span className="font-bold text-fg block">{attention.items[0].title}</span>
+                  <span className="text-subtle mt-0.5 block">{attention.items[0].description}</span>
                 </div>
               </Link>
             ) : null}
 
             {data && (
-              <div className="p-3 rounded-lg bg-[#F8FAF9] border border-[#E2EAE5] flex items-start gap-3">
-                <CheckCircle2Icon className="size-4 text-[#059669] mt-0.5 shrink-0" />
+              <div className="p-3 rounded-lg bg-surface border border-line2 flex items-start gap-3">
+                <CheckCircle2Icon className="size-4 text-good mt-0.5 shrink-0" />
                 <div className="text-xs">
-                  <span className="font-bold text-[#141B34] block">{data.counts.companies} Active Client Accounts</span>
-                  <span className="text-[#64748B] mt-0.5 block">Generating {formatCurrency(data.acceptedQuotationRevenue)} in accepted proposal revenue.</span>
+                  <span className="font-bold text-fg block">{data.counts.companies} Active Client Accounts</span>
+                  <span className="text-subtle mt-0.5 block">Generating {formatCurrency(data.acceptedQuotationRevenue)} in accepted proposal revenue.</span>
                 </div>
               </div>
             )}
@@ -725,12 +725,12 @@ export default function Dashboard() {
             {followUps && (
               <Link
                 to={followUpsViewAllLink}
-                className="p-3 rounded-lg bg-[#F8FAF9] border border-[#E2EAE5] hover:border-[#D1DDD6] transition-colors flex items-start gap-3 block"
+                className="p-3 rounded-lg bg-surface border border-line2 hover:border-[#D1DDD6] transition-colors flex items-start gap-3 block"
               >
-                <CalendarIcon className="size-4 text-[#059669] mt-0.5 shrink-0" />
+                <CalendarIcon className="size-4 text-good mt-0.5 shrink-0" />
                 <div className="text-xs">
-                  <span className="font-bold text-[#141B34] block">{followUps.summary.totalScheduledCount} Scheduled Customer Follow-Ups</span>
-                  <span className="text-[#64748B] mt-0.5 block">
+                  <span className="font-bold text-fg block">{followUps.summary.totalScheduledCount} Scheduled Customer Follow-Ups</span>
+                  <span className="text-subtle mt-0.5 block">
                     {followUps.summary.overdueCount > 0
                       ? `${followUps.summary.overdueCount} overdue touchpoints requiring immediate action.`
                       : 'All scheduled touchpoints are currently up to date.'}
@@ -747,13 +747,13 @@ export default function Dashboard() {
       <div ref={followUpsSectionRef} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Today's Scheduled Follow-Ups (6 Cols) */}
-        <Card className="lg:col-span-6 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
+        <Card className="lg:col-span-6 bg-surface2 border-line2 text-fg shadow-card">
           <CardHeader className="p-5 pb-3 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base font-bold text-[#141B34]">Follow-Up Activity</CardTitle>
-              <CardDescription className="text-xs text-[#64748B] mt-0.5">Scheduled customer touchpoints.</CardDescription>
+              <CardTitle className="text-base font-bold text-fg">Follow-Up Activity</CardTitle>
+              <CardDescription className="text-xs text-subtle mt-0.5">Scheduled customer touchpoints.</CardDescription>
             </div>
-            <Button asChild size="sm" variant="ghost" className="h-7 text-xs font-bold text-[#059669] hover:bg-[#F8FAF9]">
+            <Button asChild size="sm" variant="ghost" className="h-7 text-xs font-bold text-good hover:bg-surface">
               <Link to={followUpsViewAllLink}>View All →</Link>
             </Button>
           </CardHeader>
@@ -761,9 +761,9 @@ export default function Dashboard() {
             {followUpsError ? (
               <WidgetErrorState message="Unable to load follow-ups." onRetry={() => api.dashboard.followUps().then(setFollowUps)} />
             ) : !followUps ? (
-              <Skeleton className="h-36 w-full rounded-lg bg-[#F8FAF9]" />
+              <Skeleton className="h-36 w-full rounded-lg bg-surface" />
             ) : followUps.summary.totalScheduledCount === 0 ? (
-              <p className="text-xs text-[#64748B] py-6 text-center">No scheduled follow-ups.</p>
+              <p className="text-xs text-subtle py-6 text-center">No scheduled follow-ups.</p>
             ) : (
               <div className="space-y-2">
                 {followUps.overdue.slice(0, 3).map((f) => (
@@ -781,14 +781,14 @@ export default function Dashboard() {
         </Card>
 
         {/* Top Product Performance Leaderboard (6 Cols) */}
-        <Card className="lg:col-span-6 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
+        <Card className="lg:col-span-6 bg-surface2 border-line2 text-fg shadow-card">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34]">Product Performance</CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Best selling catalog items.</CardDescription>
+            <CardTitle className="text-base font-bold text-fg">Product Performance</CardTitle>
+            <CardDescription className="text-xs text-subtle mt-0.5">Best selling catalog items.</CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0">
             {!data ? (
-              <Skeleton className="h-36 w-full rounded-lg bg-[#F8FAF9]" />
+              <Skeleton className="h-36 w-full rounded-lg bg-surface" />
             ) : (
               <HorizontalBarChart data={topProductsChartData} color="#10B981" />
             )}
@@ -798,10 +798,10 @@ export default function Dashboard() {
       </div>
 
       {/* 6. ROW 4: RECENT SYSTEM ACTIVITY TIMELINE (12 COLS) */}
-      <Card ref={recentActivitySectionRef} className="bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
+      <Card ref={recentActivitySectionRef} className="bg-surface2 border-line2 text-fg shadow-card">
         <CardHeader className="p-5 pb-3">
-          <CardTitle className="text-base font-bold text-[#141B34]">Recent System Activity</CardTitle>
-          <CardDescription className="text-xs text-[#64748B] mt-0.5">Operational audit log of recent transactions.</CardDescription>
+          <CardTitle className="text-base font-bold text-fg">Recent System Activity</CardTitle>
+          <CardDescription className="text-xs text-subtle mt-0.5">Operational audit log of recent transactions.</CardDescription>
         </CardHeader>
         <CardContent className="p-5 pt-0">
           {recentActivityError ? (
@@ -810,37 +810,37 @@ export default function Dashboard() {
               onRetry={() => api.dashboard.recentActivity().then((d) => setRecentActivity(d.activity))}
             />
           ) : recentActivity === null ? (
-            <Skeleton className="h-32 w-full rounded-lg bg-[#F8FAF9]" />
+            <Skeleton className="h-32 w-full rounded-lg bg-surface" />
           ) : recentActivity.length === 0 ? (
-            <p className="text-xs text-[#64748B] py-4 text-center">No activity recorded yet.</p>
+            <p className="text-xs text-subtle py-4 text-center">No activity recorded yet.</p>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-[#E2EAE5] bg-[#F8FAF9] hover:bg-transparent">
-                  <TableHead className="text-xs h-8 text-[#64748B] font-bold">Document</TableHead>
-                  <TableHead className="text-xs h-8 text-[#64748B] font-bold">Account</TableHead>
-                  <TableHead className="text-xs h-8 text-[#64748B] font-bold">Status</TableHead>
-                  <TableHead className="text-xs h-8 text-right text-[#64748B] font-bold">Date</TableHead>
+                <TableRow className="border-line2 bg-surface hover:bg-transparent">
+                  <TableHead className="text-xs h-8 text-subtle font-bold">Document</TableHead>
+                  <TableHead className="text-xs h-8 text-subtle font-bold">Account</TableHead>
+                  <TableHead className="text-xs h-8 text-subtle font-bold">Status</TableHead>
+                  <TableHead className="text-xs h-8 text-right text-subtle font-bold">Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentActivity.map((item) => {
                   const meta = ACTIVITY_META[item.type];
                   return (
-                    <TableRow key={`${item.type}-${item.id}`} className="border-[#F0F4F1] hover:bg-[#F8FAF9] cursor-pointer">
-                      <TableCell className="py-2.5 text-xs font-bold text-[#141B34]">
-                        <Link to={meta.to(item.id)} className="hover:underline flex items-center gap-2 text-[#059669]">
+                    <TableRow key={`${item.type}-${item.id}`} className="border-line2 hover:bg-surface cursor-pointer">
+                      <TableCell className="py-2.5 text-xs font-bold text-fg">
+                        <Link to={meta.to(item.id)} className="hover:underline flex items-center gap-2 text-good">
                           <span className="shrink-0"><meta.icon /></span>
                           <span>{item.number}</span>
                         </Link>
                       </TableCell>
-                      <TableCell className="py-2.5 text-xs text-[#64748B]">{item.company_name || '—'}</TableCell>
+                      <TableCell className="py-2.5 text-xs text-subtle">{item.company_name || '—'}</TableCell>
                       <TableCell className="py-2.5">
-                        <Badge variant="outline" className="text-[10px] capitalize font-semibold border-[#A7F3D0] text-[#059669] bg-[#ECFDF5]">
+                        <Badge variant="outline" className="text-[10px] capitalize font-semibold border-goodbg text-good bg-goodbg">
                           {item.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-2.5 text-xs text-[#64748B] text-right font-medium">{formatDate(item.date)}</TableCell>
+                      <TableCell className="py-2.5 text-xs text-subtle text-right font-medium">{formatDate(item.date)}</TableCell>
                     </TableRow>
                   );
                 })}

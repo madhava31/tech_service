@@ -140,46 +140,46 @@ export default function Opportunities() {
   );
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
       {/* Header & Stat Summary */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Growth Opportunities
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+          <p className="margin-0 text-[13.5px] text-subtle">
             Evidence-backed recommendations detected from real transactional data. Read-only.
           </p>
         </div>
 
         {summary && (
-          <div className="grid grid-cols-4 border border-[#E4E8F2] rounded-[12px] bg-[#FFFFFF] overflow-hidden">
-            <div className="p-[10px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">TOTAL</span>
-              <span className="text-[18px] font-medium text-[#141B34]">{summary.total}</span>
+          <div className="grid grid-cols-4 border border-line2 rounded-[12px] bg-surface2 overflow-hidden">
+            <div className="p-[10px_14px] border-r border-line2 flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-faint">TOTAL</span>
+              <span className="text-[18px] font-medium text-fg">{summary.total}</span>
             </div>
-            <div className="p-[10px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">HIGH</span>
-              <span className="text-[18px] font-medium text-[#E5484D]">{summary.high}</span>
+            <div className="p-[10px_14px] border-r border-line2 flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-faint">HIGH</span>
+              <span className="text-[18px] font-medium text-bad">{summary.high}</span>
             </div>
-            <div className="p-[10px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">MEDIUM</span>
-              <span className="text-[18px] font-medium text-[#E8A33D]">{summary.medium}</span>
+            <div className="p-[10px_14px] border-r border-line2 flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-faint">MEDIUM</span>
+              <span className="text-[18px] font-medium text-warn">{summary.medium}</span>
             </div>
             <div className="p-[10px_14px] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">LOW</span>
-              <span className="text-[18px] font-medium text-[#3B6FD4]">{summary.low}</span>
+              <span className="text-[10.5px] tracking-[.08em] text-faint">LOW</span>
+              <span className="text-[18px] font-medium text-fg">{summary.low}</span>
             </div>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-[12px] bg-badbg border border-badbg text-bad text-[13px] flex items-center justify-between gap-4">
           <span>{error}</span>
           <button
             onClick={loadOpportunities}
-            className="px-3 py-1.5 rounded-[8px] bg-[#F7E0E1] border border-[#F4D6D7] hover:bg-[#F6DCDD] text-[#141B34] text-[12px] font-medium transition-colors cursor-pointer shrink-0"
+            className="px-3 py-1.5 rounded-[8px] bg-badbg border border-badbg hover:bg-badbg text-fg text-[12px] font-medium transition-colors cursor-pointer shrink-0"
           >
             Retry
           </button>
@@ -187,11 +187,11 @@ export default function Opportunities() {
       )}
 
       {loading && !data && (
-        <div className="p-8 text-center text-[#7A839E] text-[13px]">Loading growth opportunities...</div>
+        <div className="p-8 text-center text-subtle text-[13px]">Loading growth opportunities...</div>
       )}
 
       {!loading && !error && data && data.length === 0 && (
-        <div className="p-12 text-center bg-[#FFFFFF] border border-[#E4E8F2] rounded-[14px] text-[#7A839E] text-[13px]">
+        <div className="p-12 text-center bg-surface2 border border-line2 rounded-[14px] text-subtle text-[13px]">
           No growth opportunities detected from current transactional data.
         </div>
       )}
@@ -199,7 +199,7 @@ export default function Opportunities() {
       {data && data.length > 0 && (
         <>
           {/* Filters Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-[#FFFFFF] border border-[#E4E8F2] rounded-[14px] p-3.5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-surface2 border border-line2 rounded-[14px] p-3.5">
             <div className="flex items-center gap-2.5 flex-wrap">
               <ExpandableSearch
                 value={search}
@@ -211,7 +211,7 @@ export default function Opportunities() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
+                className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
               >
                 <option value="">All Types</option>
                 {Object.entries(TYPE_LABELS).map(([k, label]) => (
@@ -223,7 +223,7 @@ export default function Opportunities() {
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
+                className="h-[30px] px-2 rounded-[8px] bg-surface border border-line2 text-fg text-[12px] outline-none cursor-pointer"
               >
                 <option value="">All Priorities</option>
                 <option value="high">High Priority</option>
@@ -231,7 +231,7 @@ export default function Opportunities() {
                 <option value="low">Low Priority</option>
               </select>
             </div>
-            <span className="text-[11.5px] text-[#A8AEC4]">
+            <span className="text-[11.5px] text-faint">
               Showing {filtered.length} of {data.length} opportunities
             </span>
           </div>
@@ -245,11 +245,11 @@ export default function Opportunities() {
               return (
                 <article
                   key={i}
-                  className="bg-[#FFFFFF] border border-[#E4E8F2] hover:border-[#D4DAEA] rounded-[14px] p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5"
+                  className="bg-surface2 border border-line2 hover:border-line2 rounded-[14px] p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:-translate-y-0.5"
                 >
                   <div className="flex flex-col gap-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] tracking-[.08em] uppercase border border-[#D9E2F4] rounded-[7px] px-2 py-0.5 text-[#3B6FD4]">
+                      <span className="text-[11px] tracking-[.08em] uppercase border border-line2 rounded-[7px] px-2 py-0.5 text-fg">
                         {TYPE_LABELS[o.type]}
                       </span>
                       <span
@@ -262,31 +262,31 @@ export default function Opportunities() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <span className="text-[14px] font-medium text-[#141B34]">{o.company_name}</span>
-                      <h4 className="margin-0 text-[13px] font-semibold text-[#3B6FD4]">{o.title}</h4>
-                      <p className="margin-0 text-[12px] text-[#7A839E] leading-[1.45] text-pretty">
+                      <span className="text-[14px] font-medium text-fg">{o.company_name}</span>
+                      <h4 className="margin-0 text-[13px] font-semibold text-fg">{o.title}</h4>
+                      <p className="margin-0 text-[12px] text-subtle leading-[1.45] text-pretty">
                         {o.description}
                       </p>
                     </div>
 
                     {evidence && (
-                      <div className="p-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[11.5px] text-[#7A839E]">
-                        <span className="font-semibold text-[#141B34] block mb-0.5">Evidence:</span>
+                      <div className="p-2 rounded-[8px] bg-surface border border-line2 text-[11.5px] text-subtle">
+                        <span className="font-semibold text-fg block mb-0.5">Evidence:</span>
                         {evidence}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2.5 pt-2 border-t border-[#EEF1F9]">
-                    <div className="text-[12px] text-[#141B34]">
-                      <span className="text-[#A8AEC4] font-medium mr-1">Action:</span>
+                  <div className="flex flex-col gap-2.5 pt-2 border-t border-line2">
+                    <div className="text-[12px] text-fg">
+                      <span className="text-faint font-medium mr-1">Action:</span>
                       {o.action}
                     </div>
 
                     {link && (
                       <Link
                         to={link.to}
-                        className="h-[30px] px-3 rounded-[8px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[12px] inline-flex items-center justify-center hover:bg-[#E3EAF7] transition-colors no-underline self-start"
+                        className="h-[30px] px-3 rounded-[8px] bg-transparent border border-line2 text-fg font-medium text-[12px] inline-flex items-center justify-center hover:bg-tile transition-colors no-underline self-start"
                       >
                         {link.label} →
                       </Link>
@@ -296,7 +296,7 @@ export default function Opportunities() {
               );
             })}
             {filtered.length === 0 && (
-              <div className="col-span-full p-8 text-center bg-[#FFFFFF] border border-[#E4E8F2] rounded-[14px] text-[#7A839E] text-[13px]">
+              <div className="col-span-full p-8 text-center bg-surface2 border border-line2 rounded-[14px] text-subtle text-[13px]">
                 No matching opportunities found.
               </div>
             )}

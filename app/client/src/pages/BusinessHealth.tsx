@@ -104,14 +104,14 @@ export default function BusinessHealth() {
   const strokeDashoffset = overallScore != null ? 490 - (overallScore / 100) * 490 : 490;
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="p-6 flex flex-col gap-6 text-fg min-h-screen">
       {toast && (
         <div
           role="status"
           className={`fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-[12px] shadow-lg border flex items-start gap-3 transition-all ${
             toast.type === 'success'
-              ? 'bg-[#E3F7EC] border-[#BFEAD3] text-[#1E8A52]'
-              : 'bg-[#F8E4E4] border-[#F4D6D7] text-[#C8323A]'
+              ? 'bg-goodbg border-[#BFEAD3] text-[#1E8A52]'
+              : 'bg-badbg border-badbg text-bad'
           }`}
         >
           {toast.type === 'success' ? (
@@ -137,7 +137,7 @@ export default function BusinessHealth() {
           <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
             Business Health
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+          <p className="margin-0 text-[13.5px] text-subtle">
             A composite read of momentum, pipeline, collections, retention and mix.
           </p>
         </div>
@@ -148,7 +148,7 @@ export default function BusinessHealth() {
               type="button"
               onClick={handleRestore}
               disabled={actionLoading || loading}
-              className="h-[34px] px-3.5 rounded-[9px] bg-[#FFFFFF] border border-[#D9E2F4] text-[#3B6FD4] hover:bg-[#F4F6FC] text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+              className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-fg hover:bg-surface text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
               title="Sync with Live System Data"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
@@ -159,7 +159,7 @@ export default function BusinessHealth() {
               type="button"
               onClick={handleReset}
               disabled={actionLoading || loading}
-              className="h-[34px] px-3.5 rounded-[9px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#E5484D] hover:bg-[#FDF2F2] hover:border-[#F4D6D7] text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+              className="h-[34px] px-3.5 rounded-[9px] bg-surface2 border border-line2 text-bad hover:bg-[#FDF2F2] hover:border-badbg text-[12.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm disabled:opacity-50"
               title="Reset Business Health page data only"
             >
               <RotateCcw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
@@ -171,7 +171,7 @@ export default function BusinessHealth() {
             type="button"
             onClick={fetchData}
             disabled={loading || actionLoading}
-            className="h-[34px] w-[34px] rounded-[9px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC] flex items-center justify-center cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+            className="h-[34px] w-[34px] rounded-[9px] bg-surface2 border border-line2 text-subtle hover:text-fg hover:bg-surface flex items-center justify-center cursor-pointer transition-colors shadow-sm disabled:opacity-50"
             title="Refresh Score"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -181,7 +181,7 @@ export default function BusinessHealth() {
 
       {/* Reset State Notice Banner */}
       {businessHealth?.isReset && (
-        <div className="p-3.5 rounded-[12px] bg-[#FFF8EB] border border-[#F6ECDC] text-[#D97706] text-[12.5px] flex items-center justify-between gap-4">
+        <div className="p-3.5 rounded-[12px] bg-[#FFF8EB] border border-warnbg text-warn text-[12.5px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-semibold shrink-0">Notice:</span>
             <span>Business Health page data has been reset. All other system records (companies, products, quotations, reports) remain completely untouched.</span>
@@ -190,7 +190,7 @@ export default function BusinessHealth() {
             type="button"
             onClick={handleRestore}
             disabled={actionLoading}
-            className="px-3 py-1 rounded-[7px] bg-[#FFFFFF] border border-[#E8D7BE] text-[#B45309] font-medium text-[11.5px] hover:bg-[#FEF3C7] cursor-pointer shrink-0 transition-colors"
+            className="px-3 py-1 rounded-[7px] bg-surface2 border border-[#E8D7BE] text-warn font-medium text-[11.5px] hover:bg-warnbg cursor-pointer shrink-0 transition-colors"
           >
             Restore Live Data
           </button>
@@ -198,28 +198,28 @@ export default function BusinessHealth() {
       )}
 
       {error ? (
-        <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-[12px] bg-badbg border border-badbg text-bad text-[13px] flex items-center justify-between gap-4">
           <span>Unable to load business health score.</span>
           <button
             type="button"
             onClick={fetchData}
-            className="px-3 py-1.5 rounded-[8px] bg-[#F7DFE0] hover:bg-[#F5DADB] text-[#141B34] text-xs font-semibold cursor-pointer transition-colors"
+            className="px-3 py-1.5 rounded-[8px] bg-badbg hover:bg-badbg text-fg text-xs font-semibold cursor-pointer transition-colors"
           >
             Retry
           </button>
         </div>
       ) : !businessHealth ? (
-        <div className="p-8 text-center text-[#7A839E] text-[13px] rounded-[16px] bg-[#FFFFFF] border border-[#E4E8F2]">
+        <div className="p-8 text-center text-subtle text-[13px] rounded-[16px] bg-surface2 border border-line2">
           Loading business health score...
         </div>
       ) : businessHealth.overallScore == null ? (
-        <div className="p-8 text-center text-[#7A839E] text-[13px] rounded-[16px] bg-[#FFFFFF] border border-[#E4E8F2]">
+        <div className="p-8 text-center text-subtle text-[13px] rounded-[16px] bg-surface2 border border-line2">
           Not enough data yet to calculate a business health score.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Gauge & Component Breakdown Card (7 Cols) */}
-          <section className="lg:col-span-7 bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-6">
+          <section className="lg:col-span-7 bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-6">
             <div className="flex flex-col md:flex-row items-center gap-7">
               {/* Circular SVG Donut Gauge */}
               <div className="relative grid place-items-center w-[168px] h-[168px] shrink-0">
@@ -239,10 +239,10 @@ export default function BusinessHealth() {
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center select-none pointer-events-none">
-                  <span className="text-[38px] font-medium tracking-[-.02em] leading-none text-[#141B34]">
+                  <span className="text-[38px] font-medium tracking-[-.02em] leading-none text-fg">
                     {overallScore}
                   </span>
-                  <span className="text-[11.5px] text-[#7A839E] mt-1">out of 100</span>
+                  <span className="text-[11.5px] text-subtle mt-1">out of 100</span>
                 </div>
               </div>
 
@@ -254,16 +254,16 @@ export default function BusinessHealth() {
                   return (
                     <div key={c.label} className="flex flex-col gap-1.25">
                       <div className="flex justify-between gap-3 text-[12.5px]">
-                        <span className="text-[#141B34] font-medium">{c.label}</span>
+                        <span className="text-fg font-medium">{c.label}</span>
                         <span style={{ color: tone }} className="font-bold">{c.score ?? '—'}</span>
                       </div>
-                      <div className="h-1.5 rounded-[3px] bg-[#F7F8FC] overflow-hidden">
+                      <div className="h-1.5 rounded-[3px] bg-surface overflow-hidden">
                         <div
                           className="h-full rounded-[3px] transition-all duration-500"
                           style={{ width: `${Math.min(100, Math.max(0, scoreVal))}%`, backgroundColor: tone }}
                         />
                       </div>
-                      <span className="text-[11px] text-[#A8AEC4]">{c.detail}</span>
+                      <span className="text-[11px] text-faint">{c.detail}</span>
                     </div>
                   );
                 })}
@@ -272,29 +272,29 @@ export default function BusinessHealth() {
           </section>
 
           {/* Recommendation & Insights Column (5 Cols) */}
-          <section className="lg:col-span-5 bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-4">
-            <h2 className="margin-0 text-[16px] font-medium text-[#141B34]">
+          <section className="lg:col-span-5 bg-surface2 border border-line2 rounded-[16px] p-6 flex flex-col gap-4">
+            <h2 className="margin-0 text-[16px] font-medium text-fg">
               What is influencing the score
             </h2>
 
             {businessHealth.recommendation ? (
-              <div className="flex gap-3 p-3.5 rounded-[12px] bg-[#F7F8FC] border border-[#E4E8F2]">
-                <span aria-hidden="true" className="shrink-0 w-7 h-7 rounded-[8px] bg-[#FFFFFF] border border-[#DCE2F0] text-[#E8A33D] grid place-items-center text-[13px] font-bold">
+              <div className="flex gap-3 p-3.5 rounded-[12px] bg-surface border border-line2">
+                <span aria-hidden="true" className="shrink-0 w-7 h-7 rounded-[8px] bg-surface2 border border-line2 text-warn grid place-items-center text-[13px] font-bold">
                   !
                 </span>
                 <div className="flex flex-col gap-1 text-[12.5px]">
-                  <span className="font-medium text-[#141B34]">{businessHealth.recommendation.title}</span>
-                  <p className="margin-0 text-[#7A839E] leading-[1.5]">{businessHealth.recommendation.detail}</p>
+                  <span className="font-medium text-fg">{businessHealth.recommendation.title}</span>
+                  <p className="margin-0 text-subtle leading-[1.5]">{businessHealth.recommendation.detail}</p>
                 </div>
               </div>
             ) : (
-              <div className="flex gap-3 p-3.5 rounded-[12px] bg-[#F7F8FC] border border-[#E4E8F2]">
-                <span aria-hidden="true" className="shrink-0 w-7 h-7 rounded-[8px] bg-[#FFFFFF] border border-[#DCE2F0] text-[#3B6FD4] grid place-items-center text-[13px] font-bold">
+              <div className="flex gap-3 p-3.5 rounded-[12px] bg-surface border border-line2">
+                <span aria-hidden="true" className="shrink-0 w-7 h-7 rounded-[8px] bg-surface2 border border-line2 text-fg grid place-items-center text-[13px] font-bold">
                   ▲
                 </span>
                 <div className="flex flex-col gap-1 text-[12.5px]">
-                  <span className="font-medium text-[#141B34]">All key metrics healthy</span>
-                  <p className="margin-0 text-[#7A839E] leading-[1.5]">Every scored operational area is performing within target bounds.</p>
+                  <span className="font-medium text-fg">All key metrics healthy</span>
+                  <p className="margin-0 text-subtle leading-[1.5]">Every scored operational area is performing within target bounds.</p>
                 </div>
               </div>
             )}
@@ -302,11 +302,11 @@ export default function BusinessHealth() {
             {/* General Highlights derived from components */}
             <div className="flex flex-col gap-2.5 pt-2">
               {Object.values(businessHealth.components).map((c: BusinessHealthComponent) => (
-                <div key={c.label} className="p-3 rounded-[10px] bg-[#F7F8FC]/50 border border-[#E4E8F2]/60 flex items-start gap-2.5 text-[12px]">
+                <div key={c.label} className="p-3 rounded-[10px] bg-surface/50 border border-line2 flex items-start gap-2.5 text-[12px]">
                   <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: componentTone(c.score) }} />
                   <div className="flex flex-col">
-                    <span className="font-medium text-[#141B34]">{c.label} ({c.score ?? '—'})</span>
-                    <span className="text-[#7A839E]">{c.detail}</span>
+                    <span className="font-medium text-fg">{c.label} ({c.score ?? '—'})</span>
+                    <span className="text-subtle">{c.detail}</span>
                   </div>
                 </div>
               ))}

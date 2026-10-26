@@ -1,7 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-// Aurora light theme. Key names are unchanged from the previous dark theme on purpose —
-// every existing `bg-tc-card` / `text-tc-secondary` / `border-tc-border` usage keeps working,
-// it just resolves to the light palette now.
+// Technicon design system (from design/technicon-erp.html).
+// Every colour is a CSS variable defined in src/styles.css, with a light and a dark value,
+// so the whole app switches theme by toggling the `dark` class on <html>.
+// Colours are stored as RGB channels so opacity modifiers (bg-ink/10) keep working.
+const t = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   darkMode: ["class"],
   content: [
@@ -18,7 +21,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Schibsted Grotesk"', 'system-ui', 'sans-serif'],
+        sans: ['Outfit', 'ui-sans-serif', 'system-ui', '-apple-system', '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
       screens: {
         'desktop-xl': '1440px',
@@ -27,92 +30,111 @@ export default {
         'mobile-sm': '390px',
       },
       colors: {
-        border: "var(--border, #E4E8F2)",
-        input: "var(--input, #E4E8F2)",
-        ring: "var(--ring, #3B6FD4)",
-        background: "var(--background, #F4F6FC)",
-        foreground: "var(--foreground, #141B34)",
-        tc: {
-          bg: "#F4F6FC",
-          sidebar: "#FFFFFF",
-          card: "#FFFFFF",
-          surface: "#F7F8FC",
-          sunken: "#EEF1F9",
-          border: "#E4E8F2",
-          borderStrong: "#D4DAEA",
-          text: "#141B34",
-          secondary: "#7A839E",
-          muted: "#A8AEC4",
-          accent: "#3B6FD4",
-          accentMuted: "#6B78D6",
-          accentLight: "#6D9BE8",
-          success: "#2FBF71",
-          warning: "#E8A33D",
-          danger: "#E5484D",
-          info: "#6B78D6",
-        },
-        primary: {
-          DEFAULT: "#3B6FD4",
-          foreground: "#F4F6FC",
-        },
-        secondary: {
-          DEFAULT: "#F7F8FC",
-          foreground: "#141B34",
-        },
-        destructive: {
-          DEFAULT: "#E5484D",
-          foreground: "#FFFFFF",
-        },
-        muted: {
-          DEFAULT: "#F7F8FC",
-          foreground: "#7A839E",
-        },
-        accent: {
-          DEFAULT: "#3B6FD4",
-          foreground: "#F4F6FC",
-        },
-        popover: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#141B34",
-        },
-        card: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#141B34",
-        },
+        // Design-system tokens
+        canvas: t('bg'),
+        surface: t('surface'),
+        surface2: t('surface-2'),
+        tile: t('tile'),
+        fg: t('fg'),
+        subtle: t('muted'),
+        faint: t('faint'),
+        ink: t('ink'),
+        onink: t('on-ink'),
+        charcoal: t('charcoal'),
+        oncharcoal: t('on-charcoal'),
+        dock: t('dock'),
+        dockfg: t('dock-fg'),
+        good: t('good'),
+        goodbg: t('good-bg'),
+        bad: t('bad'),
+        badbg: t('bad-bg'),
+        warn: t('warn'),
+        warnbg: t('warn-bg'),
+        line: 'rgb(var(--line-rgb) / 0.07)',
+        line2: 'rgb(var(--line-rgb) / 0.13)',
+
+        // shadcn semantic names, mapped onto the tokens so existing UI components restyle
+        border: 'rgb(var(--line-rgb) / 0.13)',
+        input: 'rgb(var(--line-rgb) / 0.13)',
+        ring: t('fg'),
+        background: t('bg'),
+        foreground: t('fg'),
+        primary: { DEFAULT: t('ink'), foreground: t('on-ink') },
+        secondary: { DEFAULT: t('tile'), foreground: t('fg') },
+        destructive: { DEFAULT: t('bad'), foreground: t('on-ink') },
+        muted: { DEFAULT: t('tile'), foreground: t('muted') },
+        accent: { DEFAULT: t('tile'), foreground: t('fg') },
+        popover: { DEFAULT: t('surface-2'), foreground: t('fg') },
+        card: { DEFAULT: t('surface-2'), foreground: t('fg') },
         sidebar: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#141B34",
-          primary: "#3B6FD4",
-          "primary-foreground": "#FFFFFF",
-          accent: "#EEF1F9",
-          "accent-foreground": "#3B6FD4",
-          border: "#E4E8F2",
-          ring: "#3B6FD4",
+          DEFAULT: t('dock'),
+          foreground: t('dock-fg'),
+          primary: t('on-ink'),
+          "primary-foreground": t('ink'),
+          accent: t('charcoal'),
+          "accent-foreground": t('on-charcoal'),
+          border: 'rgb(var(--line-rgb) / 0.13)',
+          ring: t('fg'),
+        },
+        // Legacy palette names, kept so any remaining tc-* usage follows the theme
+        tc: {
+          bg: t('bg'),
+          sidebar: t('dock'),
+          card: t('surface-2'),
+          surface: t('surface'),
+          sunken: t('tile'),
+          border: 'rgb(var(--line-rgb) / 0.13)',
+          borderStrong: 'rgb(var(--line-rgb) / 0.2)',
+          text: t('fg'),
+          secondary: t('muted'),
+          muted: t('faint'),
+          accent: t('ink'),
+          accentMuted: t('charcoal'),
+          accentLight: t('muted'),
+          success: t('good'),
+          warning: t('warn'),
+          danger: t('bad'),
+          info: t('fg'),
         },
       },
       backgroundImage: {
-        // The soft blue-lavender wash behind the whole app, taken from the reference dashboard.
-        aurora: "linear-gradient(180deg,#DFE6F8 0%,#EDF1FA 32%,#F4F6FC 68%)",
-        navy: "linear-gradient(135deg,#3B6FD4 0%,#2F5CB8 100%)",
-        "navy-deep": "linear-gradient(135deg,#4A7DD8 0%,#2F5CB8 100%)",
+        aurora: "none",
+        navy: "linear-gradient(135deg, rgb(var(--ink)) 0%, rgb(var(--charcoal)) 100%)",
+        "navy-deep": "linear-gradient(135deg, rgb(var(--ink)) 0%, rgb(var(--charcoal)) 100%)",
       },
       borderRadius: {
-        // `xl` is deliberately larger than Tailwind's 12px default: the reference design's
-        // signature is generously rounded cards, and ~274 existing elements already use
-        // rounded-xl, so widening it here restyles them all without touching markup.
         xl: "18px",
-        "2xl": "24px",
+        "2xl": "22px",
         lg: "16px",
         md: "10px",
         sm: "8px",
-        card: "20px",
+        card: "22px",
         ctl: "12px",
       },
       boxShadow: {
-        card: "0 2px 12px rgba(20,27,52,0.06)",
-        lift: "0 8px 24px rgba(20,27,52,0.10)",
-        rail: "0 4px 20px rgba(20,27,52,0.08)",
-        navy: "0 6px 18px rgba(59,111,212,0.28)",
+        card: "var(--shadow)",
+        lift: "var(--shadow), 0 0 0 1px rgb(var(--line-rgb) / 0.07), 0 30px 60px -24px rgba(0,0,0,.35)",
+        rail: "0 18px 40px -18px rgba(0,0,0,.55)",
+        navy: "0 10px 22px -12px rgba(0,0,0,.45)",
+        hero: "0 18px 36px -22px rgba(0,0,0,.6)",
+      },
+      transitionTimingFunction: {
+        ease: "cubic-bezier(.65,0,.35,1)",
+        spring: "cubic-bezier(.2,.9,.25,1.04)",
+        out: "cubic-bezier(.16,1,.3,1)",
+      },
+      keyframes: {
+        rise: { from: { opacity: "0", transform: "translateY(16px) scale(.985)", filter: "blur(5px)" }, to: { opacity: "1", transform: "none", filter: "none" } },
+        fadeUp: { from: { opacity: "0", transform: "translateY(6px)" }, to: { opacity: "1", transform: "none" } },
+        titleIn: { from: { opacity: "0", filter: "blur(10px)", transform: "translateY(6px)" }, to: { opacity: "1", filter: "blur(0)", transform: "none" } },
+        panelIn: { from: { opacity: "0", transform: "translateY(-6px) scale(.96)" }, to: { opacity: "1", transform: "none" } },
+        growY: { from: { transform: "scaleY(0)" }, to: { transform: "scaleY(1)" } },
+      },
+      animation: {
+        rise: "rise .7s cubic-bezier(.16,1,.3,1) both",
+        "fade-up": "fadeUp .45s cubic-bezier(.16,1,.3,1) both",
+        "title-in": "titleIn .7s cubic-bezier(.16,1,.3,1) both",
+        "panel-in": "panelIn .35s cubic-bezier(.2,.9,.25,1.04) both",
       },
     },
   },

@@ -22,7 +22,7 @@ export function RevenueLineChart({
   const containerRef = useRef<HTMLDivElement>(null);
 
   if (!data || data.length === 0) {
-    return <p className="text-xs text-[#7A839E] py-8 text-center">No revenue analytics data recorded.</p>;
+    return <p className="text-xs text-subtle py-8 text-center">No revenue analytics data recorded.</p>;
   }
 
   const height = 260;
@@ -128,9 +128,9 @@ export function RevenueLineChart({
       </svg>
 
       {/* Axis Labels */}
-      <div className="flex justify-between mt-2 px-1 text-[11px] font-semibold text-[#7A839E]">
+      <div className="flex justify-between mt-2 px-1 text-[11px] font-semibold text-subtle">
         {data.map((d, i) => (
-          <span key={i} className={hoverIndex === i ? 'text-[#3B6FD4] font-bold' : ''}>
+          <span key={i} className={hoverIndex === i ? 'text-fg font-bold' : ''}>
             {d.label}
           </span>
         ))}
@@ -139,14 +139,14 @@ export function RevenueLineChart({
       {/* Cursor Tooltip */}
       {activePoint && (
         <div
-          className="absolute bg-[#141B34] text-white px-3 py-2 rounded-lg text-xs font-bold border border-[#E4E8F2] shadow-card pointer-events-none z-30 whitespace-nowrap transition-all duration-75"
+          className="absolute bg-ink text-onink px-3 py-2 rounded-lg text-xs font-bold border border-line2 shadow-card pointer-events-none z-30 whitespace-nowrap transition-all duration-75"
           style={{
             left: `${mousePos.x}px`,
             top: `${mousePos.y - 45}px`,
             transform: 'translate(-50%, -100%)',
           }}
         >
-          <div className="text-[#3B6FD4] text-[10px] uppercase tracking-wider">{activePoint.label}</div>
+          <div className="text-fg text-[10px] uppercase tracking-wider">{activePoint.label}</div>
           <div className="text-sm mt-0.5">{formatValue(activePoint.value)}</div>
         </div>
       )}
