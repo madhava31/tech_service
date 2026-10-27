@@ -4,8 +4,39 @@ import multer from 'multer';
 import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
+import { ensureInventorySchema, getUserTable, resolveUserId } from '../db/inventorySchema.js';
+import * as inventory from '../inventory/service.js';
 
 const router = Router();
+
+// Databases created from schema.sql alone have no inventory tables; create them before any query.
+router.use(async (req, res, next) => {
+  try {
+    await ensureInventorySchema();
+    next();
+  } catch (err) {
+    console.error('Failed to prepare inventory tables:', err);
+    res.status(500).json({ error: 'Inventory storage is unavailable. Please try again.' });
+  }
+});
+
+// Service errors carry an HTTP status (400 validation, 404 missing record); anything else is a 500.
+function sendError(res, err, fallbackMessage) {
+  const status = err.status || 500;
+  if (status >= 500) console.error(`${fallbackMessage}:`, err);
+  res.status(status).json({ error: status >= 500 ? fallbackMessage : err.message });
+}
+
+function optionalId(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function pageParams(query, defaultLimit = 50) {
+  const limit = Math.min(1000, Math.max(1, Number(query.limit) || defaultLimit));
+  const offset = Math.max(0, Number(query.offset) || 0);
+  return { limit, offset };
+}
 
 const uploadExcel = multer({
   storage: multer.memoryStorage(),
@@ -38,16 +69,6 @@ function normalizeHeader(h) {
     .replace(/[^a-z0-9]/g, '');
 }
 
-
-// Helper: Safely resolve valid user ID in "user" table to satisfy foreign key constraints
-async function getValidUserId(userId) {
-  if (!userId) return null;
-  try {
-    const row = await db.prepare('SELECT id FROM "user" WHERE id = ?').get(userId);
-    if (row) return row.id;
-  } catch (err) {}
-  return null;
-}
 
 let defaultWarehouseCached = null;
 
@@ -99,61 +120,13 @@ async function getNextReceiptNumber(prefix = 'REC') {
 /**
  * GET /api/inventory/overview
  */
+
 router.get('/overview', requireAuth, async (req, res) => {
   try {
     await ensureDefaultWarehouse();
-    const [warehouses, totalProductsRow, stockSums] = await Promise.all([
-      db.prepare(`SELECT * FROM warehouse ORDER BY is_default DESC, id ASC`).all(),
-      db.prepare(`SELECT COUNT(*) AS c FROM product`).get(),
-      db.prepare(`
-        SELECT 
-          COALESCE(SUM(on_hand_quantity), 0) AS on_hand,
-          COALESCE(SUM(reserved_quantity), 0) AS reserved,
-          COALESCE(SUM(incoming_quantity), 0) AS incoming
-        FROM inventory_stock
-      `).get(),
-    ]);
-
-    const totalProducts = Number(totalProductsRow?.c || 0);
-
-    const onHand = Number(stockSums?.on_hand || 0);
-    const reserved = Number(stockSums?.reserved || 0);
-    const incoming = Number(stockSums?.incoming || 0);
-    const available = Math.max(0, onHand - reserved);
-    const lowStockCount = 0;
-    const outOfStockCount = 0;
-
-    res.json({
-      warehouses: warehouses.map((w) => ({
-        id: w.id,
-        name: w.name,
-        code: w.code,
-        address: w.address || '',
-        city: w.city || '',
-        state: w.state || '',
-        is_default: w.is_default,
-        is_active: w.is_active,
-      })),
-      stockSummary: [],
-      totalProducts,
-      lowStockCount,
-      outOfStockCount,
-      metrics: {
-        totalWarehouses: warehouses.length,
-        activeWarehouses: warehouses.filter((w) => w.is_active === 1).length,
-        totalTrackedProducts: totalProducts,
-        productsWithStock: totalProducts,
-        totalOnHandQuantity: onHand,
-        totalReservedQuantity: reserved,
-        totalAvailableQuantity: available,
-        totalIncomingQuantity: incoming,
-        lowStockCount,
-        outOfStockCount,
-      },
-    });
+    res.json(await inventory.getInventoryOverview());
   } catch (err) {
-    console.error('Failed to get inventory overview:', err);
-    res.status(500).json({ error: 'Failed to fetch inventory overview' });
+    sendError(res, err, 'Failed to fetch inventory overview');
   }
 });
 
@@ -340,26 +313,17 @@ router.get('/warehouses', requireAuth, async (req, res) => {
 /**
  * GET /api/inventory/warehouses/:id
  */
+
 router.get('/warehouses/:id', requireAuth, async (req, res) => {
   try {
-    const whId = Number(req.params.id);
-    const wh = await db.prepare(`SELECT * FROM warehouse WHERE id = ?`).get(whId);
-    if (!wh) return res.status(404).json({ error: 'Warehouse not found' });
+    const whId = optionalId(req.params.id);
+    if (!whId) return res.status(400).json({ error: 'Invalid warehouse ID' });
 
-    res.json({
-      id: wh.id,
-      name: wh.name,
-      code: wh.code,
-      address: wh.address || '',
-      city: wh.city || '',
-      state: wh.state || '',
-      is_default: Number(wh.is_default || 0),
-      is_active: Number(wh.is_active || 0),
-      stockSummary: [],
-    });
+    const warehouse = await inventory.getWarehouseById(whId);
+    if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });
+    res.json(warehouse);
   } catch (err) {
-    console.error('Failed to get warehouse details:', err);
-    res.status(500).json({ error: 'Failed to fetch warehouse details' });
+    sendError(res, err, 'Failed to fetch warehouse details');
   }
 });
 
@@ -583,86 +547,23 @@ router.delete('/warehouses/:id', requireAuth, async (req, res) => {
  * GET /api/inventory/stock
  * Authority Inventory Stock Ledger summary (returns `{ items: [...], total, limit, offset }`)
  */
+
 router.get('/stock', requireAuth, async (req, res) => {
   try {
     await ensureDefaultWarehouse();
-    const { warehouseId, status, q, limit = 25, offset = 0 } = req.query;
-
-    const conditions = [];
-    const params = [];
-
-    if (q) {
-      const term = `%${q}%`;
-      conditions.push(`(p.part_no LIKE ? OR p.description LIKE ?)`);
-      params.push(term, term);
-    }
-
-    const whereSql = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-
-    const countRow = await db.prepare(`SELECT COUNT(*) AS total FROM product p ${whereSql}`).get(...params);
-    const total = Number(countRow?.total || 0);
-
-    const queryParams = [...params, Number(limit), Number(offset)];
-    const products = await db
-      .prepare(`
-        SELECT 
-          p.id AS product_id,
-          p.part_no,
-          p.description,
-          p.hsn_sac,
-          p.unit,
-          COALESCE(SUM(s.on_hand_quantity), 0) AS on_hand_quantity,
-          COALESCE(SUM(s.reserved_quantity), 0) AS reserved_quantity,
-          COALESCE(SUM(s.incoming_quantity), 0) AS incoming_quantity,
-          COUNT(DISTINCT s.warehouse_id) AS warehouse_count
-        FROM product p
-        LEFT JOIN inventory_stock s ON s.product_id = p.id ${warehouseId ? 'AND s.warehouse_id = ' + Number(warehouseId) : ''}
-        ${whereSql}
-        GROUP BY p.id, p.part_no, p.description, p.hsn_sac, p.unit
-        ORDER BY p.part_no ASC
-        LIMIT ? OFFSET ?
-      `)
-      .all(...queryParams);
-
-    const items = products.map((p) => {
-      const onHand = Number(p.on_hand_quantity || 0);
-      const reserved = Number(p.reserved_quantity || 0);
-      const available = Math.max(0, onHand - reserved);
-      const incoming = Number(p.incoming_quantity || 0);
-
-      let stockStatus = 'healthy';
-      if (onHand <= 0) {
-        stockStatus = 'out_of_stock';
-      } else if (available <= 5) {
-        stockStatus = 'critical';
-      } else if (available <= 10) {
-        stockStatus = 'low_stock';
-      }
-
-      return {
-        productId: p.product_id,
-        partNo: p.part_no,
-        description: p.description,
-        hsnSac: p.hsn_sac || '',
-        unit: p.unit || 'Nos',
-        warehouseCount: Math.max(1, Number(p.warehouse_count || 0)),
-        onHandQuantity: onHand,
-        reservedQuantity: reserved,
-        availableQuantity: available,
-        incomingQuantity: incoming,
-        status: stockStatus,
-      };
-    });
-
-    res.json({
-      items,
-      total,
-      limit: Number(limit),
-      offset: Number(offset),
-    });
+    const { limit, offset } = pageParams(req.query, 25);
+    res.json(
+      await inventory.getStockSummary({
+        warehouseId: optionalId(req.query.warehouseId),
+        lowStockOnly: req.query.lowStock === 'true',
+        status: req.query.status ? String(req.query.status).trim() : null,
+        q: req.query.q ? String(req.query.q).trim() : null,
+        limit,
+        offset,
+      })
+    );
   } catch (err) {
-    console.error('Failed to load stock list:', err);
-    res.status(500).json({ error: err.message || 'Failed to load stock data' });
+    sendError(res, err, 'Failed to load stock data');
   }
 });
 
@@ -819,6 +720,7 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
     let updatedCount = 0;
     const errors = [];
     let totalProcessed = 0;
+    const importedBy = await resolveUserId(req.user);
 
     await db.transaction(async () => {
       for (let r = headerRowIdx + 1; r <= worksheet.rowCount; r++) {
@@ -837,6 +739,17 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
         const incomingQty = Number(rawIncoming) || 0;
         const unit = colMap.unit ? String(getCellValue(row.getCell(colMap.unit)) || 'Nos').trim() : 'Nos';
         const hsnSac = colMap.hsn_sac ? String(getCellValue(row.getCell(colMap.hsn_sac)) || '').trim() : '';
+
+        // inventory_stock CHECKs (non-negative, on_hand >= reserved) would abort the whole
+        // transaction on one bad row, so report and skip it instead.
+        if (qty < 0 || reservedQty < 0 || incomingQty < 0) {
+          errors.push(`Row ${r} (${partNo}): quantities cannot be negative`);
+          continue;
+        }
+        if (reservedQty > qty) {
+          errors.push(`Row ${r} (${partNo}): reserved (${reservedQty}) cannot exceed on-hand (${qty})`);
+          continue;
+        }
 
         let targetWhId = defaultWh.id;
         if (colMap.warehouse) {
@@ -896,11 +809,24 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
         const beforeReserved = existingStock ? Number(existingStock.reserved_quantity || 0) : 0;
         const diffQty = qty - beforeOnHand;
 
-        // Record stock movement audit entry
-        await db.prepare(`
-          INSERT INTO inventory_movement (warehouse_id, product_id, movement_type, quantity, before_on_hand, after_on_hand, before_reserved, after_reserved, reference_type, reason, created_at)
-          VALUES (?, ?, 'ADJUSTMENT', ?, ?, ?, ?, ?, 'EXCEL_IMPORT', ?, NOW())
-        `).run(targetWhId, product.id, diffQty, beforeOnHand, qty, beforeReserved, reservedQty, `Imported from Excel: ${req.file.originalname}`);
+        // Record stock movement audit entry (quantity is the size of the change; before/after give direction)
+        if (diffQty !== 0 || reservedQty !== beforeReserved) {
+          await db.prepare(`
+            INSERT INTO inventory_movement (warehouse_id, product_id, movement_type, quantity, before_on_hand, after_on_hand, before_reserved, after_reserved, reference_type, reason, created_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EXCEL_IMPORT', ?, ?, NOW())
+          `).run(
+            targetWhId,
+            product.id,
+            existingStock ? 'ADJUSTMENT' : 'OPENING_STOCK',
+            Math.abs(diffQty),
+            beforeOnHand,
+            qty,
+            beforeReserved,
+            reservedQty,
+            `Imported from Excel: ${req.file.originalname}`,
+            importedBy
+          );
+        }
       }
     });
 
@@ -1044,13 +970,14 @@ router.get('/stock/:productId', requireAuth, async (req, res) => {
  */
 // Helper: Retrieve complete Stock Receipt Detail object formatted with dual camelCase and snake_case properties
 async function fetchStockReceiptDetail(recId) {
+  const userTable = await getUserTable();
   const r = await db
     .prepare(`
       SELECT r.*, w.name AS warehouse_name, w.code AS warehouse_code,
              u.username AS created_by_username
       FROM stock_receipt r
       LEFT JOIN warehouse w ON w.id = r.warehouse_id
-      LEFT JOIN app_user u ON u.id = r.created_by
+      LEFT JOIN ${userTable} u ON u.id = r.created_by
       WHERE r.id = ?
     `)
     .get(recId);
@@ -1072,7 +999,7 @@ async function fetchStockReceiptDetail(recId) {
       SELECT m.*, p.part_no, u.username AS created_by_username
       FROM inventory_movement m
       LEFT JOIN product p ON p.id = m.product_id
-      LEFT JOIN app_user u ON u.id = m.created_by
+      LEFT JOIN ${userTable} u ON u.id = m.created_by
       WHERE m.reference_type = 'STOCK_RECEIPT' AND m.reference_id = ?
       ORDER BY m.id ASC
     `)
@@ -1442,7 +1369,7 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
       return res.status(400).json({ error: 'No valid items with positive quantity found in the Excel sheet.' });
     }
 
-    const validUserId = await getValidUserId(req.user?.id);
+    const validUserId = await resolveUserId(req.user);
     const recNum = await getNextReceiptNumber('REC');
     const primaryWhId = parsedItems[0].warehouseId || defaultWh.id;
 
@@ -1510,7 +1437,7 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
           INSERT INTO inventory_movement (
             warehouse_id, product_id, movement_type, quantity, before_on_hand, after_on_hand,
             before_reserved, after_reserved, reference_type, reference_id, reason, created_by, created_at
-          ) VALUES (?, ?, 'INWARD', ?, ?, ?, ?, ?, 'STOCK_RECEIPT', ?, ?, ?, NOW())
+          ) VALUES (?, ?, 'STOCK_IN', ?, ?, ?, ?, ?, 'STOCK_RECEIPT', ?, ?, ?, NOW())
         `).run(
           it.warehouseId,
           product.id,
@@ -1622,7 +1549,7 @@ router.post('/receipts', requireAuth, async (req, res) => {
     const recNum = receiptNumber && receiptNumber.trim() ? receiptNumber.trim() : await getNextReceiptNumber('REC');
     const status = confirmImmediately ? 'CONFIRMED' : 'DRAFT';
 
-    const validUserId = await getValidUserId(req.user?.id);
+    const validUserId = await resolveUserId(req.user);
 
     const insertedReceipt = await db.prepare(`
       INSERT INTO stock_receipt (
@@ -1711,7 +1638,7 @@ router.post('/receipts/:id/confirm', requireAuth, async (req, res) => {
       return res.json(detail);
     }
 
-    const validUserId = await getValidUserId(req.user?.id);
+    const validUserId = await resolveUserId(req.user);
     const items = await db.prepare(`SELECT * FROM stock_receipt_item WHERE receipt_id = ?`).all(recId);
 
     for (const it of items) {
@@ -1785,132 +1712,44 @@ router.post('/receipts/:id/cancel', requireAuth, async (req, res) => {
 /**
  * GET /api/inventory/movements
  */
+
 router.get('/movements', requireAuth, async (req, res) => {
   try {
-    const { warehouseId, productId, movementType, limit = 50, offset = 0 } = req.query;
-    const conditions = [];
-    const params = [];
-
-    if (warehouseId) {
-      conditions.push(`m.warehouse_id = ?`);
-      params.push(Number(warehouseId));
-    }
-    if (productId) {
-      conditions.push(`m.product_id = ?`);
-      params.push(Number(productId));
-    }
-    if (movementType) {
-      conditions.push(`m.movement_type = ?`);
-      params.push(String(movementType));
-    }
-
-    const whereSql = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-    const countRow = await db.prepare(`SELECT COUNT(*) AS total FROM inventory_movement m ${whereSql}`).get(...params);
-    const total = Number(countRow?.total || 0);
-
-    const queryParams = [...params, Number(limit), Number(offset)];
-    const movements = await db
-      .prepare(`
-        SELECT m.*, p.part_no, p.description, w.name AS warehouse_name, w.code AS warehouse_code
-        FROM inventory_movement m
-        LEFT JOIN product p ON p.id = m.product_id
-        LEFT JOIN warehouse w ON w.id = m.warehouse_id
-        ${whereSql}
-        ORDER BY m.id DESC
-        LIMIT ? OFFSET ?
-      `)
-      .all(...queryParams);
-
-    res.json({
-      movements: movements.map((m) => ({
-        id: m.id,
-        warehouseId: m.warehouse_id,
-        warehouseName: m.warehouse_name || '',
-        warehouseCode: m.warehouse_code || '',
-        productId: m.product_id,
-        partNo: m.part_no || '',
-        description: m.description || '',
-        movementType: m.movement_type,
-        quantity: Number(m.quantity || 0),
-        beforeOnHand: Number(m.before_on_hand || 0),
-        afterOnHand: Number(m.after_on_hand || 0),
-        referenceType: m.reference_type || '',
-        referenceId: m.reference_id || '',
-        reason: m.reason || '',
-        createdAt: m.created_at,
-      })),
-      total,
-      limit: Number(limit),
-      offset: Number(offset),
-    });
+    const { limit, offset } = pageParams(req.query);
+    res.json(
+      await inventory.getMovements({
+        warehouseId: optionalId(req.query.warehouseId),
+        productId: optionalId(req.query.productId),
+        movementType: req.query.movementType ? String(req.query.movementType).trim() : null,
+        referenceType: req.query.referenceType ? String(req.query.referenceType).trim() : null,
+        referenceId: req.query.referenceId ? String(req.query.referenceId).trim() : null,
+        limit,
+        offset,
+      })
+    );
   } catch (err) {
-    console.error('Failed to list movements:', err);
-    res.status(500).json({ error: err.message || 'Failed to list movements' });
+    sendError(res, err, 'Failed to list movements');
   }
 });
 
 /**
  * GET /api/inventory/reservations
  */
+
 router.get('/reservations', requireAuth, async (req, res) => {
   try {
-    const { warehouseId, productId, status, limit = 50, offset = 0 } = req.query;
-    const conditions = [];
-    const params = [];
-
-    if (warehouseId) {
-      conditions.push(`r.warehouse_id = ?`);
-      params.push(Number(warehouseId));
-    }
-    if (productId) {
-      conditions.push(`r.product_id = ?`);
-      params.push(Number(productId));
-    }
-    if (status) {
-      conditions.push(`r.status = ?`);
-      params.push(String(status));
-    }
-
-    const whereSql = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-    const countRow = await db.prepare(`SELECT COUNT(*) AS total FROM stock_reservation r ${whereSql}`).get(...params);
-    const total = Number(countRow?.total || 0);
-
-    const queryParams = [...params, Number(limit), Number(offset)];
-    const reservations = await db
-      .prepare(`
-        SELECT r.*, p.part_no, p.description, w.name AS warehouse_name, w.code AS warehouse_code
-        FROM stock_reservation r
-        LEFT JOIN product p ON p.id = r.product_id
-        LEFT JOIN warehouse w ON w.id = r.warehouse_id
-        ${whereSql}
-        ORDER BY r.id DESC
-        LIMIT ? OFFSET ?
-      `)
-      .all(...queryParams);
-
-    res.json({
-      reservations: reservations.map((r) => ({
-        id: r.id,
-        warehouseId: r.warehouse_id,
-        warehouseName: r.warehouse_name || '',
-        warehouseCode: r.warehouse_code || '',
-        productId: r.product_id,
-        partNo: r.part_no || '',
-        description: r.description || '',
-        quantity: Number(r.quantity || 0),
-        status: r.status,
-        referenceType: r.reference_type || '',
-        referenceId: r.reference_id || '',
-        notes: r.notes || '',
-        createdAt: r.created_at,
-      })),
-      total,
-      limit: Number(limit),
-      offset: Number(offset),
-    });
+    const { limit, offset } = pageParams(req.query);
+    res.json(
+      await inventory.getReservations({
+        warehouseId: optionalId(req.query.warehouseId),
+        productId: optionalId(req.query.productId),
+        status: req.query.status ? String(req.query.status).trim() : null,
+        limit,
+        offset,
+      })
+    );
   } catch (err) {
-    console.error('Failed to list reservations:', err);
-    res.status(500).json({ error: err.message || 'Failed to list reservations' });
+    sendError(res, err, 'Failed to list reservations');
   }
 });
 
@@ -2059,6 +1898,7 @@ router.post('/reservations/import-excel', requireAuth, uploadExcel.single('file'
 
     let createdCount = 0;
     const errors = [];
+    const reservedBy = await resolveUserId(req.user);
 
     await db.transaction(async () => {
       for (let r = headerRowIdx + 1; r <= worksheet.rowCount; r++) {
@@ -2091,18 +1931,21 @@ router.post('/reservations/import-excel', requireAuth, uploadExcel.single('file'
           product = await db.prepare('INSERT INTO product (part_no, description, unit) VALUES (?, ?, \'Nos\') RETURNING id').get(partNo, partNo);
         }
 
-        const stockRow = await db.prepare('SELECT id, reserved_quantity FROM inventory_stock WHERE warehouse_id = ? AND product_id = ?').get(targetWhId, product.id);
-        if (stockRow) {
-          await db.prepare('UPDATE inventory_stock SET reserved_quantity = reserved_quantity + ?, updated_at = NOW() WHERE warehouse_id = ? AND product_id = ?').run(qty, targetWhId, product.id);
-        } else {
-          await db.prepare('INSERT INTO inventory_stock (warehouse_id, product_id, on_hand_quantity, reserved_quantity, created_at, updated_at) VALUES (?, ?, 0, ?, NOW(), NOW())').run(targetWhId, product.id, qty);
+        // inventory_stock enforces on_hand >= reserved, so reserving more than is available would
+        // abort the whole import transaction; report the row and keep going instead.
+        const stockRow = await inventory.getOrCreateStockRow(targetWhId, product.id);
+        const available = Number(stockRow.on_hand_quantity) - Number(stockRow.reserved_quantity);
+        if (qty > available) {
+          errors.push(`Row ${r} (${partNo}): requested ${qty} but only ${Math.max(0, available)} available to reserve`);
+          continue;
         }
+        await db.prepare('UPDATE inventory_stock SET reserved_quantity = reserved_quantity + ?, updated_at = NOW() WHERE warehouse_id = ? AND product_id = ?').run(qty, targetWhId, product.id);
 
         await db.prepare(`
           INSERT INTO stock_reservation (
-            warehouse_id, product_id, quantity, status, reference_type, reference_id, notes, created_at
-          ) VALUES (?, ?, ?, 'ACTIVE', ?, ?, ?, NOW())
-        `).run(targetWhId, product.id, qty, refType || 'MANUAL', refId || null, notes || `Excel import: ${req.file.originalname}`);
+            warehouse_id, product_id, quantity, status, reference_type, reference_id, notes, reserved_by, created_at
+          ) VALUES (?, ?, ?, 'ACTIVE', ?, ?, ?, ?, NOW())
+        `).run(targetWhId, product.id, qty, refType || 'MANUAL', refId || null, notes || `Excel import: ${req.file.originalname}`, reservedBy);
 
         createdCount++;
       }
@@ -2160,22 +2003,428 @@ router.delete('/reservations/:id', requireAuth, async (req, res) => {
 /**
  * GET /api/inventory/transfers
  */
+
 router.get('/transfers', requireAuth, async (req, res) => {
   try {
-    res.json({ transfers: [], total: 0, limit: 50, offset: 0 });
+    const { limit, offset } = pageParams(req.query);
+    res.json(
+      await inventory.getStockTransfers({
+        warehouseId: optionalId(req.query.warehouseId),
+        status: req.query.status ? String(req.query.status).trim() : null,
+        limit,
+        offset,
+      })
+    );
   } catch (err) {
-    res.status(500).json({ error: 'Failed to list transfers' });
+    sendError(res, err, 'Failed to list transfers');
   }
 });
 
 /**
  * GET /api/inventory/operations/audit
  */
+
 router.get('/operations/audit', requireAuth, async (req, res) => {
   try {
-    res.json({ movements: [], total: 0, limit: 50, offset: 0 });
+    const { limit, offset } = pageParams(req.query);
+    res.json(
+      await inventory.getOperationsInventoryAudit({
+        warehouseId: optionalId(req.query.warehouseId),
+        productId: optionalId(req.query.productId),
+        movementType: req.query.movementType ? String(req.query.movementType).trim() : null,
+        limit,
+        offset,
+      })
+    );
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch audit movements' });
+    sendError(res, err, 'Failed to fetch inventory audit');
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Stock movements: stock-in / stock-out / adjust / return / reservations
+// ---------------------------------------------------------------------------
+
+function requireFields(body, fields) {
+  const missing = fields.filter((f) => body[f] === undefined || body[f] === null || body[f] === '');
+  return missing.length ? `${missing.join(', ')} ${missing.length > 1 ? 'are' : 'is'} required` : null;
+}
+
+/**
+ * POST /api/inventory/stock-in
+ */
+router.post('/stock-in', requireAuth, async (req, res) => {
+  try {
+    const missing = requireFields(req.body, ['warehouseId', 'productId', 'quantity']);
+    if (missing) return res.status(400).json({ error: missing });
+
+    const { warehouseId, productId, quantity, referenceType, referenceId, reason } = req.body;
+    const result = await inventory.recordStockIn({
+      warehouseId: Number(warehouseId),
+      productId: Number(productId),
+      quantity: Number(quantity),
+      referenceType: referenceType || undefined,
+      referenceId,
+      reason: reason || undefined,
+      userId: await resolveUserId(req.user),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    sendError(res, err, 'Failed to record stock in');
+  }
+});
+
+/**
+ * POST /api/inventory/stock-out
+ */
+router.post('/stock-out', requireAuth, async (req, res) => {
+  try {
+    const missing = requireFields(req.body, ['warehouseId', 'productId', 'quantity']);
+    if (missing) return res.status(400).json({ error: missing });
+
+    const { warehouseId, productId, quantity, referenceType, referenceId, reason } = req.body;
+    const result = await inventory.recordStockOut({
+      warehouseId: Number(warehouseId),
+      productId: Number(productId),
+      quantity: Number(quantity),
+      referenceType: referenceType || undefined,
+      referenceId,
+      reason: reason || undefined,
+      userId: await resolveUserId(req.user),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    sendError(res, err, 'Failed to record stock out');
+  }
+});
+
+/**
+ * POST /api/inventory/adjust
+ * Set on-hand to an absolute quantity (opening stock / physical count).
+ */
+router.post('/adjust', requireAuth, async (req, res) => {
+  try {
+    const missing = requireFields(req.body, ['warehouseId', 'productId', 'newOnHandQuantity']);
+    if (missing) return res.status(400).json({ error: missing });
+
+    const { warehouseId, productId, newOnHandQuantity, reason, referenceType, referenceId } = req.body;
+    const result = await inventory.adjustStock({
+      warehouseId: Number(warehouseId),
+      productId: Number(productId),
+      newOnHandQuantity: Number(newOnHandQuantity),
+      reason: reason || undefined,
+      referenceType: referenceType || undefined,
+      referenceId,
+      userId: await resolveUserId(req.user),
+    });
+    res.json(result);
+  } catch (err) {
+    sendError(res, err, 'Failed to adjust stock');
+  }
+});
+
+/**
+ * POST /api/inventory/adjustments
+ * Increase or decrease on-hand by a quantity.
+ */
+router.post('/adjustments', requireAuth, async (req, res) => {
+  try {
+    const missing = requireFields(req.body, ['warehouseId', 'productId', 'direction', 'quantity']);
+    if (missing) return res.status(400).json({ error: missing });
+
+    const { warehouseId, productId, direction, quantity, reason, notes } = req.body;
+    const result = await inventory.createStockAdjustment({
+      warehouseId: Number(warehouseId),
+      productId: Number(productId),
+      direction,
+      quantity: Number(quantity),
+      reason: reason || undefined,
+      notes: notes || '',
+      userId: await resolveUserId(req.user),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    sendError(res, err, 'Failed to create stock adjustment');
+  }
+});
+
+async function handleReturn(req, res) {
+  try {
+    const missing = requireFields(req.body, ['warehouseId', 'productId', 'quantity']);
+    if (missing) return res.status(400).json({ error: missing });
+
+    const { warehouseId, productId, quantity, referenceType, referenceId, reason, notes } = req.body;
+    const result = await inventory.recordReturn({
+      warehouseId: Number(warehouseId),
+      productId: Number(productId),
+      quantity: Number(quantity),
+      referenceType: referenceType || undefined,
+      referenceId,
+      reason: reason || undefined,
+      notes: notes || '',
+      userId: await resolveUserId(req.user),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    sendError(res, err, 'Failed to record stock return');
+  }
+}
+
+/**
+ * POST /api/inventory/return and /api/inventory/returns
+ */
+router.post('/return', requireAuth, handleReturn);
+router.post('/returns', requireAuth, handleReturn);
+
+/**
+ * POST /api/inventory/reserve
+ */
+router.post('/reserve', requireAuth, async (req, res) => {
+  try {
+    const missing = requireFields(req.body, ['warehouseId', 'productId', 'quantity']);
+    if (missing) return res.status(400).json({ error: missing });
+
+    const { warehouseId, productId, quantity, referenceType, referenceId, notes } = req.body;
+    const result = await inventory.reserveStock({
+      warehouseId: Number(warehouseId),
+      productId: Number(productId),
+      quantity: Number(quantity),
+      referenceType: referenceType || undefined,
+      referenceId,
+      notes: notes || '',
+      userId: await resolveUserId(req.user),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    sendError(res, err, 'Failed to reserve stock');
+  }
+});
+
+/**
+ * POST /api/inventory/release-reservation/:id
+ */
+router.post('/release-reservation/:id', requireAuth, async (req, res) => {
+  try {
+    const reservationId = optionalId(req.params.id);
+    if (!reservationId) return res.status(400).json({ error: 'Invalid reservation ID' });
+    res.json(await inventory.releaseReservation({ reservationId }));
+  } catch (err) {
+    sendError(res, err, 'Failed to release reservation');
+  }
+});
+
+/**
+ * POST /api/inventory/fulfill-reservation/:id
+ */
+router.post('/fulfill-reservation/:id', requireAuth, async (req, res) => {
+  try {
+    const reservationId = optionalId(req.params.id);
+    if (!reservationId) return res.status(400).json({ error: 'Invalid reservation ID' });
+    res.json(await inventory.fulfillReservation({ reservationId, userId: await resolveUserId(req.user) }));
+  } catch (err) {
+    sendError(res, err, 'Failed to fulfill reservation');
+  }
+});
+
+/**
+ * GET /api/inventory/reservations/:id
+ * Registered after /reservations/template so that path isn't read as an id.
+ */
+router.get('/reservations/:id', requireAuth, async (req, res) => {
+  try {
+    const id = optionalId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Invalid reservation ID' });
+
+    const reservation = await inventory.getReservationById(id);
+    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    res.json(reservation);
+  } catch (err) {
+    sendError(res, err, 'Failed to fetch reservation');
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Excel stock inward: analyze workbook, preview mapped rows, preview JSON rows
+// ---------------------------------------------------------------------------
+
+// Runs the multer upload and turns its errors (size / file type) into 400s instead of the
+// generic 500 from the app-level error handler.
+function withExcelUpload(handler) {
+  return (req, res) => {
+    uploadExcel.single('file')(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        const message = err.code === 'LIMIT_FILE_SIZE' ? 'The file is too large (maximum allowed is 25MB)' : `Upload error: ${err.message}`;
+        return res.status(400).json({ error: message });
+      }
+      if (err) return res.status(400).json({ error: err.message || 'Upload failed' });
+      if (!req.file) return res.status(400).json({ error: 'No Excel file uploaded' });
+      handler(req, res);
+    });
+  };
+}
+
+/**
+ * POST /api/inventory/receipts/analyze-excel
+ */
+router.post(
+  '/receipts/analyze-excel',
+  requireAuth,
+  withExcelUpload(async (req, res) => {
+    try {
+      res.json(await inventory.analyzeExcelStockWorkbook(req.file.buffer));
+    } catch (err) {
+      res.status(err.status || 400).json({ error: err.message || 'Could not parse Excel workbook' });
+    }
+  })
+);
+
+/**
+ * POST /api/inventory/receipts/preview-excel
+ */
+router.post(
+  '/receipts/preview-excel',
+  requireAuth,
+  withExcelUpload(async (req, res) => {
+    try {
+      const warehouseId = optionalId(req.body.warehouseId);
+      if (!warehouseId) return res.status(400).json({ error: 'Warehouse is required' });
+
+      const partNoColumn = req.body.partNoColumn ? String(req.body.partNoColumn).trim() : null;
+      const quantityColumn = req.body.quantityColumn ? String(req.body.quantityColumn).trim() : null;
+      if (!partNoColumn || !quantityColumn) {
+        return res.status(400).json({ error: 'Part Number and Quantity column mappings are required' });
+      }
+
+      const rows = await inventory.extractMappedRows(req.file.buffer, {
+        sheetName: req.body.sheetName ? String(req.body.sheetName).trim() : null,
+        partNoColumn,
+        quantityColumn,
+        notesColumn: req.body.notesColumn ? String(req.body.notesColumn).trim() : null,
+      });
+      res.json(
+        await inventory.previewExcelStockInward({
+          warehouseId,
+          rows,
+          duplicateHandling: req.body.duplicateHandling || 'combine',
+          sourceReference: req.body.sourceReference || null,
+        })
+      );
+    } catch (err) {
+      res.status(err.status || 400).json({ error: err.message || 'Could not parse workbook data' });
+    }
+  })
+);
+
+/**
+ * POST /api/inventory/receipts/preview-rows
+ */
+router.post('/receipts/preview-rows', requireAuth, async (req, res) => {
+  try {
+    const { warehouseId, rows, duplicateHandling, sourceReference } = req.body;
+    res.json(await inventory.previewExcelStockInward({ warehouseId, rows, duplicateHandling, sourceReference }));
+  } catch (err) {
+    sendError(res, err, 'Failed to preview rows');
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Operations control center
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/inventory/operations/overview
+ */
+router.get('/operations/overview', requireAuth, async (req, res) => {
+  try {
+    res.json(await inventory.getOperationsOverview({ warehouseId: optionalId(req.query.warehouseId) }));
+  } catch (err) {
+    sendError(res, err, 'Failed to fetch inventory operations overview');
+  }
+});
+
+/**
+ * GET /api/inventory/operations/alerts
+ */
+router.get('/operations/alerts', requireAuth, async (req, res) => {
+  try {
+    const { limit, offset } = pageParams(req.query);
+    res.json(
+      await inventory.getOperationsStockAlerts({
+        warehouseId: optionalId(req.query.warehouseId),
+        category: req.query.category ? String(req.query.category).trim() : null,
+        severity: req.query.severity ? String(req.query.severity).trim() : null,
+        limit,
+        offset,
+      })
+    );
+  } catch (err) {
+    sendError(res, err, 'Failed to fetch stock alerts');
+  }
+});
+
+const operationsLists = {
+  critical: [inventory.getOperationsCriticalStock, 'Failed to fetch critical stock'],
+  'out-of-stock': [inventory.getOperationsOutOfStock, 'Failed to fetch out of stock items'],
+  'restock-queue': [inventory.getOperationsRestockQueue, 'Failed to fetch restock queue'],
+  incoming: [inventory.getOperationsIncomingStock, 'Failed to fetch incoming stock'],
+  'pending-reservations': [inventory.getOperationsPendingReservations, 'Failed to fetch pending reservations'],
+};
+
+/**
+ * GET /api/inventory/operations/{critical,out-of-stock,restock-queue,incoming,pending-reservations}
+ */
+for (const [path, [load, failureMessage]] of Object.entries(operationsLists)) {
+  router.get(`/operations/${path}`, requireAuth, async (req, res) => {
+    try {
+      const { limit, offset } = pageParams(req.query);
+      res.json(await load({ warehouseId: optionalId(req.query.warehouseId), limit, offset }));
+    } catch (err) {
+      sendError(res, err, failureMessage);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Transfers
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/inventory/transfers/:id
+ */
+router.get('/transfers/:id', requireAuth, async (req, res) => {
+  try {
+    const id = optionalId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Invalid transfer ID' });
+
+    const transfer = await inventory.getTransferById(id);
+    if (!transfer) return res.status(404).json({ error: 'Stock transfer not found' });
+    res.json(transfer);
+  } catch (err) {
+    sendError(res, err, 'Failed to fetch stock transfer');
+  }
+});
+
+/**
+ * POST /api/inventory/transfers
+ */
+router.post('/transfers', requireAuth, async (req, res) => {
+  try {
+    const missing = requireFields(req.body, ['sourceWarehouseId', 'destinationWarehouseId', 'productId', 'quantity']);
+    if (missing) return res.status(400).json({ error: missing });
+
+    const { sourceWarehouseId, destinationWarehouseId, productId, quantity, reference, notes } = req.body;
+    const transfer = await inventory.createStockTransfer({
+      sourceWarehouseId: Number(sourceWarehouseId),
+      destinationWarehouseId: Number(destinationWarehouseId),
+      productId: Number(productId),
+      quantity: Number(quantity),
+      reference,
+      notes,
+      userId: await resolveUserId(req.user),
+    });
+    res.status(201).json(transfer);
+  } catch (err) {
+    sendError(res, err, 'Failed to create stock transfer');
   }
 });
 
