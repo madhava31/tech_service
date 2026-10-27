@@ -19,10 +19,10 @@ const TREND_LABELS: Record<ProductTrendDirection, string> = {
 };
 
 const TREND_COLORS: Record<ProductTrendDirection, string> = {
-  growing: '#3B6FD4',
-  declining: '#E5484D',
-  stable: '#E8A33D',
-  no_data: '#A8AEC4',
+  growing: 'rgb(var(--good))',
+  declining: 'rgb(var(--bad))',
+  stable: 'rgb(var(--warn))',
+  no_data: 'rgb(var(--faint))',
 };
 
 const TREND_FILTERS: ProductTrendDirection[] = ['growing', 'declining', 'stable', 'no_data'];
@@ -96,37 +96,37 @@ export default function ProductIntelligenceOverview() {
   );
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header & Top Summary Strip */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1>
             Product Intelligence
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Which codes carry revenue, which are slipping, and quotation activity vs sales.
           </p>
         </div>
 
         {data && (
-          <div className="grid grid-cols-2 md:grid-cols-4 border border-[#E4E8F2] rounded-[12px] bg-[#FFFFFF] overflow-hidden">
-            <div className="p-[10px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">TOTAL PRODUCTS</span>
-              <span className="text-[18px] font-medium text-[#141B34]">{data.summary.totalProducts}</span>
+          <div className="grid grid-cols-2 md:grid-cols-4  rounded-[18px] shadow-card bg-surface2 overflow-hidden">
+            <div className="p-[10px_14px] border-r border-line2 flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-faint">TOTAL PRODUCTS</span>
+              <span className="text-[18px] font-medium text-fg">{data.summary.totalProducts}</span>
             </div>
-            <div className="p-[10px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">WITH SALES</span>
-              <span className="text-[18px] font-medium text-[#3B6FD4]">{data.summary.productsWithSales}</span>
+            <div className="p-[10px_14px] border-r border-line2 flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-faint">WITH SALES</span>
+              <span className="text-[18px] font-medium text-fg">{data.summary.productsWithSales}</span>
             </div>
-            <div className="p-[10px_14px] border-r border-[#EEF1F9] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">TOP REVENUE</span>
-              <span className="text-[14px] font-medium text-[#141B34] truncate max-w-[120px]">
+            <div className="p-[10px_14px] border-r border-line2 flex flex-col gap-[2px]">
+              <span className="text-[10.5px] tracking-[.08em] text-faint">TOP REVENUE</span>
+              <span className="text-[14px] font-medium text-fg truncate max-w-[120px]">
                 {data.summary.topRevenueProduct?.part_no || '—'}
               </span>
             </div>
             <div className="p-[10px_14px] flex flex-col gap-[2px]">
-              <span className="text-[10.5px] tracking-[.08em] text-[#A8AEC4]">TOP UNITS</span>
-              <span className="text-[14px] font-medium text-[#141B34] truncate max-w-[120px]">
+              <span className="text-[10.5px] tracking-[.08em] text-faint">TOP UNITS</span>
+              <span className="text-[14px] font-medium text-fg truncate max-w-[120px]">
                 {data.summary.topUnitsProduct?.part_no || '—'}
               </span>
             </div>
@@ -135,11 +135,11 @@ export default function ProductIntelligenceOverview() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-[12px] bg-badbg border border-badbg text-bad text-[13px] flex items-center justify-between gap-4">
           <span>{error}</span>
           <button
             onClick={loadSummary}
-            className="px-3 py-1.5 rounded-[8px] bg-[#F7E0E1] border border-[#F4D6D7] hover:bg-[#F6DCDD] text-[#141B34] text-[12px] font-medium transition-colors cursor-pointer shrink-0"
+            className="px-3 py-1.5 rounded-[8px] bg-badbg border border-badbg hover:bg-badbg text-fg text-[12px] font-medium transition-colors cursor-pointer shrink-0"
           >
             Retry
           </button>
@@ -147,19 +147,19 @@ export default function ProductIntelligenceOverview() {
       )}
 
       {loading && !data && (
-        <div className="p-8 text-center text-[#7A839E] text-[13px]">Loading product intelligence summary...</div>
+        <div className="p-8 text-center text-subtle text-[13px]">Loading product intelligence summary...</div>
       )}
 
       {!loading && !error && data && data.products.length === 0 && (
-        <div className="p-12 text-center bg-[#FFFFFF] border border-[#E4E8F2] rounded-[14px] text-[#7A839E] text-[13px]">
+        <div className="p-12 text-center bg-surface2 border border-line2 rounded-[14px] text-subtle text-[13px]">
           No products found in the catalog.
         </div>
       )}
 
       {data && data.products.length > 0 && (
-        <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4">
+        <section className="ts-card ts-white ts-tbl flex flex-col gap-4">
           {/* Search & Trend Filter Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 ts-tbar">
             <div className="flex items-center gap-2.5 flex-wrap">
               <ExpandableSearch
                 value={search}
@@ -171,7 +171,7 @@ export default function ProductIntelligenceOverview() {
               <select
                 value={trendFilter}
                 onChange={(e) => setTrendFilter(e.target.value)}
-                className="h-[30px] px-2 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#141B34] text-[12px] outline-none cursor-pointer"
+                className="ts-fi ts-sel"
               >
                 <option value="">All Trends</option>
                 {TREND_FILTERS.map((t) => (
@@ -181,69 +181,69 @@ export default function ProductIntelligenceOverview() {
                 ))}
               </select>
             </div>
-            <span className="text-[11.5px] text-[#A8AEC4]">
+            <span className="ts-showing ts-muted">
               Showing {filtered.length} of {data.products.length} products
             </span>
           </div>
 
           {/* Intelligence Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] border-collapse text-[12.5px]">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
-                <tr className="border-b border-[#EEF1F9]">
-                  <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    PRODUCT CODE & DESCRIPTION
+                <tr>
+                  <th>
+                    Product code & description
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    REVENUE
+                  <th className="ts-r">
+                    Revenue
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    UNITS
+                  <th className="ts-r">
+                    Units
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    CUSTOMERS
+                  <th className="ts-r">
+                    Customers
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    AVG SELLING PRICE
+                  <th className="ts-r">
+                    Avg selling price
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    QUOTES
+                  <th className="ts-r">
+                    Quotes
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    TREND
+                  <th className="ts-r">
+                    Trend
                   </th>
-                  <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                    ACTION
+                  <th className="ts-r">
+                    Action
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {paged.map((p) => {
-                  const tone = TREND_COLORS[p.trendDirection] || '#7A839E';
+                  const tone = TREND_COLORS[p.trendDirection] || 'rgb(var(--muted))';
                   return (
-                    <tr key={p.id} className="border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors">
+                    <tr key={p.id} >
                       <td className="p-[11px_10px]">
                         <div className="flex flex-col">
                           <Link
                             to={`/products/${p.id}/intelligence`}
-                            className="text-[#3B6FD4] font-mono text-[12px] font-medium hover:underline"
+                            className="text-fg font-mono text-[12px] font-medium hover:underline"
                           >
                             {p.part_no}
                           </Link>
-                          <span className="text-[#141B34] text-[12.5px] truncate max-w-[260px]">
+                          <span className="text-fg text-[12.5px] truncate max-w-[260px]">
                             {p.description}
                           </span>
                         </div>
                       </td>
-                      <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
+                      <td className="p-[11px_10px] text-right font-medium text-fg">
                         {formatCurrency(p.revenue)}
                       </td>
-                      <td className="p-[11px_10px] text-right text-[#7A839E]">{p.unitsSold}</td>
-                      <td className="p-[11px_10px] text-right text-[#7A839E]">{p.customers}</td>
-                      <td className="p-[11px_10px] text-right text-[#7A839E]">
+                      <td className="p-[11px_10px] text-right text-subtle">{p.unitsSold}</td>
+                      <td className="p-[11px_10px] text-right text-subtle">{p.customers}</td>
+                      <td className="p-[11px_10px] text-right text-subtle">
                         {formatCurrency(p.avgSellingPrice)}
                       </td>
-                      <td className="p-[11px_10px] text-right text-[#7A839E]">{p.quotationCount}</td>
+                      <td className="p-[11px_10px] text-right text-subtle">{p.quotationCount}</td>
                       <td className="p-[11px_10px] text-right">
                         <span className="inline-flex items-center gap-1.5 capitalize text-[11px] font-medium" style={{ color: tone }}>
                           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tone }} />
@@ -253,7 +253,7 @@ export default function ProductIntelligenceOverview() {
                       <td className="p-[11px_10px] text-right">
                         <Link
                           to={`/products/${p.id}/intelligence`}
-                          className="text-[12px] text-[#3B6FD4] hover:underline font-medium"
+                          className="text-[12px] text-fg hover:underline font-medium"
                         >
                           View →
                         </Link>
@@ -263,7 +263,7 @@ export default function ProductIntelligenceOverview() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="text-center py-8 text-[#7A839E] text-[13px]">
+                    <td colSpan={8} className="ts-empty">
                       No matching products found.
                     </td>
                   </tr>

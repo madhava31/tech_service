@@ -76,46 +76,46 @@ export default function BranchDocumentSettings() {
   }
 
   if (loading) {
-    return <div className="p-6 text-[#7A839E] text-sm">Loading branch document print settings...</div>;
+    return <div className="p-6 text-subtle text-sm">Loading branch document print settings...</div>;
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0 max-w-4xl">
       {/* Header */}
-      <div className="pb-4 border-b border-[#E4E8F2]">
+      <div className="ts-phead !mb-2 !block">
         <div className="flex items-center gap-2 mb-1">
-          <Link to="/settings/multi-firm" className="text-xs text-[#7A839E] hover:text-[#3B6FD4]">
+          <Link to="/settings/multi-firm" className="text-[13px] text-subtle hover:text-fg">
             ← Back to Multi-Firm Settings
           </Link>
         </div>
-        <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">
+        <h1 className="ts-title">
           Document Print Settings — {branch?.name} ({branch?.code})
         </h1>
-        <p className="text-xs text-[#7A839E] mt-1">
+        <p className="ts-muted m-0 mt-1.5 text-[14px]">
           Customize company header, bank details, GSTIN, and legal terms printed on PDF Quotations generated from this branch.
         </p>
       </div>
 
       {error && (
-        <div className="p-4 bg-[#E5484D]/10 border border-[#E5484D]/30 rounded-xl text-[#E5484D] text-sm">
+        <div className="ts-warnbox">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="p-4 bg-[#2FBF71]/10 border border-[#2FBF71]/30 rounded-xl text-[#2FBF71] text-sm font-semibold">
+        <div className="ts-okbox">
           {success}
         </div>
       )}
 
-      <form onSubmit={handleSave} className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 space-y-6">
+      <form onSubmit={handleSave} className="ts-card ts-white ts-tbl space-y-6">
         {/* Company Header Settings */}
-        <div className="space-y-4 border-b border-[#E4E8F2] pb-6">
-          <h2 className="text-sm uppercase font-semibold text-[#3B6FD4] tracking-wider">
+        <div className="space-y-4 border-b border-dashed border-line2 pb-6">
+          <h2 className="m-0 text-[15px] font-medium text-fg">
             PDF Document Header & Tax Details
           </h2>
           <div>
-            <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">
+            <label className="ts-lbl">
               Document Header Title
             </label>
             <input
@@ -123,12 +123,12 @@ export default function BranchDocumentSettings() {
               placeholder="TECHNICON SERVICES — HYDERABAD MAIN"
               value={headerTitle}
               onChange={(e) => setHeaderTitle(e.target.value)}
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">
+            <label className="ts-lbl">
               Branch Document Printed Address
             </label>
             <textarea
@@ -136,78 +136,78 @@ export default function BranchDocumentSettings() {
               placeholder="Plot No. 45, Auto Nagar, Industrial Area, Hyderabad, Telangana - 500070"
               value={docAddress}
               onChange={(e) => setDocAddress(e.target.value)}
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Branch GSTIN</label>
+              <label className="ts-lbl">Branch GSTIN</label>
               <input
                 type="text"
                 placeholder="36AAAAA0000A1Z5"
                 value={gstin}
                 onChange={(e) => setGstin(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono uppercase"
+                className="ts-fi"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">PAN Number</label>
+              <label className="ts-lbl">PAN Number</label>
               <input
                 type="text"
                 placeholder="AAAAA0000A"
                 value={pan}
                 onChange={(e) => setPan(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono uppercase"
+                className="ts-fi"
               />
             </div>
           </div>
         </div>
 
         {/* Bank Details */}
-        <div className="space-y-4 border-b border-[#E4E8F2] pb-6">
-          <h2 className="text-sm uppercase font-semibold text-[#3B6FD4] tracking-wider">
+        <div className="space-y-4 border-b border-dashed border-line2 pb-6">
+          <h2 className="m-0 text-[15px] font-medium text-fg">
             Branch Bank Account Details (For PDF Payments)
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Bank Name</label>
+              <label className="ts-lbl">Bank Name</label>
               <input
                 type="text"
                 placeholder="HDFC Bank"
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                className="ts-fi"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Account Holder Name</label>
+              <label className="ts-lbl">Account Holder Name</label>
               <input
                 type="text"
                 placeholder="TECHNICON SERVICES"
                 value={bankAccountHolder}
                 onChange={(e) => setBankAccountHolder(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                className="ts-fi"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">Account Number</label>
+              <label className="ts-lbl">Account Number</label>
               <input
                 type="text"
                 placeholder="50200012345678"
                 value={bankAccountNo}
                 onChange={(e) => setBankAccountNo(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono"
+                className="ts-fi"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase font-semibold text-[#7A839E] mb-1">IFSC Code</label>
+              <label className="ts-lbl">IFSC Code</label>
               <input
                 type="text"
                 placeholder="HDFC0000123"
                 value={bankIfsc}
                 onChange={(e) => setBankIfsc(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono uppercase"
+                className="ts-fi"
               />
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function BranchDocumentSettings() {
 
         {/* Terms & Conditions */}
         <div className="space-y-4">
-          <h2 className="text-sm uppercase font-semibold text-[#3B6FD4] tracking-wider">
+          <h2 className="m-0 text-[15px] font-medium text-fg">
             Branch Standard Terms & Conditions
           </h2>
           <textarea
@@ -223,7 +223,7 @@ export default function BranchDocumentSettings() {
             placeholder="1. Payment terms: 30 days net from invoice date.\n2. Goods once sold will not be taken back.\n3. Subject to Hyderabad Jurisdiction."
             value={terms}
             onChange={(e) => setTerms(e.target.value)}
-            className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2.5 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] font-mono text-xs"
+            className="ts-fi"
           />
         </div>
 
@@ -231,7 +231,7 @@ export default function BranchDocumentSettings() {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2.5 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-sm transition-colors cursor-pointer"
+            className="ts-btn ts-dark"
           >
             {saving ? 'Saving Settings...' : 'Save Branch Document Settings'}
           </button>

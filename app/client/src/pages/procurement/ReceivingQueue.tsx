@@ -89,17 +89,17 @@ export default function ReceivingQueue() {
   };
 
   return (
-    <div className="page-container">
-      <div className="flex-between mb-2">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <h1 className="page-title">Procurement Receiving Queue</h1>
-          <p className="muted text-sm">Operational receiving desk. Record stock receipts and trigger atomic stock inward updates.</p>
+          <h1 className="ts-title">Procurement Receiving Queue</h1>
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">Operational receiving desk. Record stock receipts and trigger atomic stock inward updates.</p>
         </div>
-        <div className="flex-gap">
-          <Link to="/procurement" className="btn secondary">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/procurement" className="ts-btn ts-ghost">
             ← Control Center
           </Link>
-          <Link to="/procurement/incoming" className="btn secondary">
+          <Link to="/procurement/incoming" className="ts-btn ts-ghost">
             Incoming POs
           </Link>
         </div>
@@ -107,20 +107,20 @@ export default function ReceivingQueue() {
 
       {/* RECEIVING TABLE */}
       {loading ? (
-        <p className="loading-text">Loading receiving queue...</p>
+        <p className="ts-empty">Loading receiving queue...</p>
       ) : error ? (
-        <div className="error-banner">
+        <div className="ts-warnbox">
           <p>{error}</p>
-          <button className="btn secondary text-sm" onClick={loadQueue}>Retry</button>
+          <button className="ts-btn ts-ghost text-[13.5px]" onClick={loadQueue}>Retry</button>
         </div>
       ) : items.length === 0 ? (
-        <div className="empty-state">
-          <p className="muted">No outstanding items waiting to be received.</p>
+        <div className="ts-empty">
+          <p className="text-subtle">No outstanding items waiting to be received.</p>
         </div>
       ) : (
-        <div className="card">
-          <div className="table-responsive">
-            <table className="data-table">
+        <div className="ts-card ts-tbl">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
                 <tr>
                   <th>PO Number</th>
@@ -128,25 +128,25 @@ export default function ReceivingQueue() {
                   <th>Supplier</th>
                   <th>Part Number</th>
                   <th>Description</th>
-                  <th className="text-right">Ordered Qty</th>
-                  <th className="text-right">Already Received</th>
-                  <th className="text-right">Pending Receivable</th>
+                  <th className="ts-r">Ordered Qty</th>
+                  <th className="ts-r">Already Received</th>
+                  <th className="ts-r">Pending Receivable</th>
                   <th className="text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((it, idx) => (
                   <tr key={idx}>
-                    <td className="font-mono font-bold">{it.po_number}</td>
+                    <td className="num">{it.po_number}</td>
                     <td>{it.po_date}</td>
                     <td>{it.supplier_name}</td>
-                    <td className="font-mono font-medium">{it.part_no}</td>
+                    <td className="num font-medium">{it.part_no}</td>
                     <td>{it.product_description}</td>
-                    <td className="text-right font-mono font-bold">{it.ordered_quantity}</td>
-                    <td className="text-right font-mono info">{it.receivedQuantity}</td>
-                    <td className="text-right font-mono warning font-bold">{it.pendingQuantity}</td>
+                    <td className="ts-r num">{it.ordered_quantity}</td>
+                    <td className="ts-r num text-fg">{it.receivedQuantity}</td>
+                    <td className="ts-r num text-warn">{it.pendingQuantity}</td>
                     <td className="text-center">
-                      <button className="btn accent text-xs" onClick={() => openReceiveModal(it)}>
+                      <button className="ts-btn ts-ghost ts-xs text-fg" onClick={() => openReceiveModal(it)}>
                         Receive Stock
                       </button>
                     </td>
@@ -160,28 +160,28 @@ export default function ReceivingQueue() {
 
       {/* RECEIVE STOCK MODAL */}
       {selectedItem && (
-        <div className="modal-overlay">
-          <div className="modal-content card max-w-lg">
-            <div className="flex-between mb-3">
-              <h2 className="card-title">Receive Stock — PO #{selectedItem.po_number}</h2>
-              <button className="btn secondary text-xs" onClick={() => setSelectedItem(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-modal w-full ts-card ts-tbl max-w-lg">
+            <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+              <h2 className="m-0 text-[15px] font-medium text-fg">Receive Stock — PO #{selectedItem.po_number}</h2>
+              <button className="ts-btn ts-ghost ts-xs" onClick={() => setSelectedItem(null)}>
                 ✕
               </button>
             </div>
 
-            {modalError && <div className="error-banner mb-3 text-xs">{modalError}</div>}
+            {modalError && <div className="ts-warnbox mb-3 text-[13px]">{modalError}</div>}
 
             <form onSubmit={handleReceiveStock} className="flex-col gap-3">
-              <div className="p-2 rounded bg-secondary-dark text-xs font-mono">
-                <div>Part: <strong className="text-[#141B34]">{selectedItem.part_no}</strong> ({selectedItem.product_description})</div>
+              <div className="bg-tile text-[13px] num rounded-[14px] p-3.5">
+                <div>Part: <strong className="text-fg">{selectedItem.part_no}</strong> ({selectedItem.product_description})</div>
                 <div>Supplier: {selectedItem.supplier_name}</div>
                 <div>Ordered: {selectedItem.ordered_quantity} | Already Received: {selectedItem.receivedQuantity} | <strong>Remaining: {selectedItem.pendingQuantity}</strong></div>
               </div>
 
               <div>
-                <label className="text-xs muted block mb-1">Receiving Warehouse *</label>
+                <label className="text-[13px] text-subtle block mb-1">Receiving Warehouse *</label>
                 <select
-                  className="input-field w-full"
+                  className="ts-fi w-full"
                   value={warehouseId}
                   onChange={(e) => setWarehouseId(Number(e.target.value))}
                 >
@@ -194,26 +194,26 @@ export default function ReceivingQueue() {
               </div>
 
               <div>
-                <label className="text-xs muted block mb-1">Receive Quantity Now *</label>
+                <label className="text-[13px] text-subtle block mb-1">Receive Quantity Now *</label>
                 <input
                   type="number"
                   min="1"
                   max={selectedItem.pendingQuantity}
-                  className="input-field w-full font-bold"
+                  className="ts-fi w-full font-medium"
                   value={receiveQty}
                   onChange={(e) => setReceiveQty(Number(e.target.value))}
                   required
                 />
-                <div className="text-xs muted mt-1">
+                <div className="ts-muted m-0 mt-1.5 text-[14px]">
                   Remaining after this receipt: <strong>{Math.max(0, selectedItem.pendingQuantity - receiveQty)}</strong> units
                 </div>
               </div>
 
               <div>
-                <label className="text-xs muted block mb-1">Reference / Invoice # (Optional)</label>
+                <label className="text-[13px] text-subtle block mb-1">Reference / Invoice # (Optional)</label>
                 <input
                   type="text"
-                  className="input-field w-full"
+                  className="ts-fi w-full"
                   placeholder="e.g. INV-9908 / Delivery Challan"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
@@ -221,9 +221,9 @@ export default function ReceivingQueue() {
               </div>
 
               <div>
-                <label className="text-xs muted block mb-1">Notes / Receiving Remarks</label>
+                <label className="text-[13px] text-subtle block mb-1">Notes / Receiving Remarks</label>
                 <textarea
-                  className="input-field w-full"
+                  className="ts-fi w-full"
                   rows={2}
                   placeholder="Inward inspection notes..."
                   value={notes}
@@ -232,10 +232,10 @@ export default function ReceivingQueue() {
               </div>
 
               <div className="flex-end gap-2 mt-2">
-                <button type="button" className="btn secondary text-xs" onClick={() => setSelectedItem(null)}>
+                <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setSelectedItem(null)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn accent text-xs" disabled={submitting}>
+                <button type="submit" className="ts-btn ts-ghost ts-xs text-fg" disabled={submitting}>
                   {submitting ? 'Confirming Stock Inward...' : 'Confirm Stock Receipt (STOCK_IN)'}
                 </button>
               </div>

@@ -12,6 +12,7 @@ import {
   type FollowUpStatus,
 } from '../../api';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/state-views';
+import { Seg } from '../../components/ds/Seg';
 
 function formatCurrency(val: number) {
   return new Intl.NumberFormat('en-IN', {
@@ -26,14 +27,14 @@ function formatDate(d: string | null) {
   return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-const PIPELINE_STAGES: { key: DerivedPipelineStage; label: string; color: string }[] = [
-  { key: 'QUOTATION_DRAFT', label: 'Quotation Draft', color: '#7A839E' },
-  { key: 'AWAITING_CUSTOMER', label: 'Awaiting Customer', color: '#E8A33D' },
-  { key: 'PO_CREATED', label: 'PO Created', color: '#6B78D6' },
-  { key: 'PI_CREATED', label: 'PI Created', color: '#9333EA' },
-  { key: 'READY_TO_DISPATCH', label: 'Ready to Dispatch', color: '#2563EB' },
-  { key: 'PARTIALLY_DISPATCHED', label: 'Partially Dispatched', color: '#E07B39' },
-  { key: 'COMPLETED', label: 'Completed', color: '#3B6FD4' },
+const PIPELINE_STAGES: { key: DerivedPipelineStage; label: string }[] = [
+  { key: 'QUOTATION_DRAFT', label: 'Quotation Draft' },
+  { key: 'AWAITING_CUSTOMER', label: 'Awaiting Customer' },
+  { key: 'PO_CREATED', label: 'PO Created' },
+  { key: 'PI_CREATED', label: 'PI Created' },
+  { key: 'READY_TO_DISPATCH', label: 'Ready to Dispatch' },
+  { key: 'PARTIALLY_DISPATCHED', label: 'Partially Dispatched' },
+  { key: 'COMPLETED', label: 'Completed' },
 ];
 
 export default function SalesPipeline() {
@@ -230,17 +231,17 @@ export default function SalesPipeline() {
   }
 
   return (
-    <div className="sales-pipeline-container p-4 space-y-4 max-w-[1700px] mx-auto">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E4E8F2] p-4 rounded-xl">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">Sales Pipeline</h1>
-            <span className="bg-[#F7F8FC] text-[#3B6FD4] text-xs font-semibold px-2.5 py-0.5 rounded-full border border-[#D4DAEA]">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="ts-title">Sales Pipeline</h1>
+            <span className="ts-headtag">
               Live Control
             </span>
           </div>
-          <p className="text-xs text-[#7A839E] mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Real-time opportunity & follow-up control center anchored on backend-authoritative stage tracking.
           </p>
         </div>
@@ -248,40 +249,19 @@ export default function SalesPipeline() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={loadData}
-            className="btn small secondary bg-[#F7F8FC] text-[#141B34] border-[#E4E8F2] hover:bg-[#E4E8F2] transition-colors"
+            className="ts-btn ts-ghost ts-xs"
             title="Refresh Data"
           >
-            🔄 Refresh
+            Refresh
           </button>
 
-          <div className="inline-flex p-0.5 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg">
-            <button
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === 'kanban'
-                  ? 'bg-[#F7F8FC] text-[#3B6FD4] font-semibold border border-[#D4DAEA]'
-                  : 'text-[#7A839E] hover:text-[#141B34]'
-              }`}
-              onClick={() => setViewMode('kanban')}
-            >
-              📊 Kanban
-            </button>
-            <button
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === 'table'
-                  ? 'bg-[#F7F8FC] text-[#3B6FD4] font-semibold border border-[#D4DAEA]'
-                  : 'text-[#7A839E] hover:text-[#141B34]'
-              }`}
-              onClick={() => setViewMode('table')}
-            >
-              📋 Table
-            </button>
-          </div>
+          <Seg small label="View" value={viewMode} onChange={setViewMode} options={[{ value: 'kanban', label: 'Board' }, { value: 'table', label: 'Table' }]} />
 
           <button
-            className="btn small bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold transition-colors px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs"
+            className="ts-btn ts-dark ts-xs"
             onClick={handleExportExcel}
           >
-            📥 Export Excel
+            Export Excel
           </button>
         </div>
       </div>
@@ -290,119 +270,111 @@ export default function SalesPipeline() {
 
       {/* KPI Summary Block */}
       {summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Open Pipeline</div>
-            <div className="text-lg font-bold text-[#3B6FD4] mt-1">{formatCurrency(summary.open_pipeline_value)}</div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">{summary.open_quotations_count} Active Quotes</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="ts-card ts-kpi-sm">
+            <div className="text-[13px] text-subtle truncate">Open Pipeline</div>
+            <div className="ts-val num text-fg truncate">{formatCurrency(summary.open_pipeline_value)}</div>
+            <div className="text-[12px] text-faint mt-1 truncate">{summary.open_quotations_count} Active Quotes</div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Awaiting Customer</div>
-            <div className="text-lg font-bold text-[#E8A33D] mt-1">
+          <div className="ts-card ts-kpi-sm">
+            <div className="text-[13px] text-subtle truncate">Awaiting Customer</div>
+            <div className="ts-val num text-warn truncate">
               {summary.stage_counts.AWAITING_CUSTOMER || 0}
             </div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">
+            <div className="text-[12px] text-faint mt-1 truncate">
               {formatCurrency(summary.stage_values.AWAITING_CUSTOMER || 0)}
             </div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">PO Created</div>
-            <div className="text-lg font-bold text-[#6B78D6] mt-1">{summary.stage_counts.PO_CREATED || 0}</div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">{formatCurrency(summary.stage_values.PO_CREATED || 0)}</div>
+          <div className="ts-card ts-kpi-sm">
+            <div className="text-[13px] text-subtle truncate">PO Created</div>
+            <div className="ts-val num text-fg truncate">{summary.stage_counts.PO_CREATED || 0}</div>
+            <div className="text-[12px] text-faint mt-1 truncate">{formatCurrency(summary.stage_values.PO_CREATED || 0)}</div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">PI Created</div>
-            <div className="text-lg font-bold text-[#9333EA] mt-1">{summary.stage_counts.PI_CREATED || 0}</div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">{formatCurrency(summary.stage_values.PI_CREATED || 0)}</div>
+          <div className="ts-card ts-kpi-sm">
+            <div className="text-[13px] text-subtle truncate">PI Created</div>
+            <div className="ts-val num text-fg truncate">{summary.stage_counts.PI_CREATED || 0}</div>
+            <div className="text-[12px] text-faint mt-1 truncate">{formatCurrency(summary.stage_values.PI_CREATED || 0)}</div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Ready Dispatch</div>
-            <div className="text-lg font-bold text-[#2563EB] mt-1">
+          <div className="ts-card ts-kpi-sm">
+            <div className="text-[13px] text-subtle truncate">Ready Dispatch</div>
+            <div className="ts-val num text-fg truncate">
               {summary.stage_counts.READY_TO_DISPATCH || 0}
             </div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">
+            <div className="text-[12px] text-faint mt-1 truncate">
               {formatCurrency(summary.stage_values.READY_TO_DISPATCH || 0)}
             </div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Follow-Ups Due</div>
-            <div className="text-lg font-bold text-[#6B78D6] mt-1">{summary.due_today_followups_count}</div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">Due Today</div>
+          <div className="ts-card ts-kpi-sm">
+            <div className="text-[13px] text-subtle truncate">Follow-Ups Due</div>
+            <div className="ts-val num text-fg truncate">{summary.due_today_followups_count}</div>
+            <div className="text-[12px] text-faint mt-1 truncate">Due Today</div>
           </div>
 
           <div
-            className={`bg-[#FFFFFF] border p-3 rounded-xl transition-colors ${
-              summary.overdue_followups_count > 0
-                ? 'border-[#E5484D]/40 bg-[#E5484D]/5'
-                : 'border-[#E4E8F2]'
-            }`}
+            className={`ts-card ts-kpi-sm ${summary.overdue_followups_count > 0 ? '!bg-badbg' : ''}`}
           >
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Overdue</div>
-            <div className="text-lg font-bold text-[#E5484D] mt-1">{summary.overdue_followups_count}</div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">Requires Action</div>
+            <div className="text-[13px] text-subtle truncate">Overdue</div>
+            <div className="ts-val num text-bad truncate">{summary.overdue_followups_count}</div>
+            <div className="text-[12px] text-faint mt-1 truncate">Requires Action</div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] transition-colors">
-            <div className="text-[10px] uppercase font-semibold tracking-wider text-[#7A839E]">Stale / Stock Risk</div>
-            <div className="text-lg font-bold text-[#E8A33D] mt-1">
+          <div className="ts-card ts-kpi-sm">
+            <div className="text-[13px] text-subtle truncate">Stale / Stock Risk</div>
+            <div className="ts-val num text-warn truncate">
               {summary.stale_quotations_count} / {summary.stock_risk_count}
             </div>
-            <div className="text-[11px] text-[#A8AEC4] mt-0.5">High Value: {summary.high_value_count}</div>
+            <div className="text-[12px] text-faint mt-1 truncate">High Value: {summary.high_value_count}</div>
           </div>
         </div>
       )}
 
       {/* Collapsible Management Attention Panel */}
       {alerts.length > 0 && (
-        <div className="bg-[#FFFFFF] border border-[#E8A33D]/40 rounded-xl overflow-hidden">
+        <div className="ts-card !p-0 overflow-hidden">
           <button
             type="button"
             onClick={() => setAlertsOpen((prev) => !prev)}
-            className="w-full px-4 py-2.5 bg-[#F7F8FC]/80 flex items-center justify-between text-xs font-semibold text-[#E8A33D] hover:bg-[#F7F8FC] transition-colors cursor-pointer select-none"
+            className="w-full px-5 py-3.5 flex items-center justify-between gap-3 text-[14.5px] font-medium text-fg hover:bg-tile transition-colors cursor-pointer select-none"
           >
-            <div className="flex items-center gap-2">
-              <span>⚠️ Management Attention Controls</span>
-              <span className="bg-[#E8A33D]/20 text-[#E8A33D] px-2 py-0.5 rounded-full text-[11px] border border-[#E8A33D]/30">
-                {alerts.length} Actionable Alerts
+            <div className="flex items-center gap-2 flex-wrap text-left">
+              <span>Management attention</span>
+              <span className="ts-st ts-tone-warn">
+                {alerts.length} actionable alerts
               </span>
             </div>
-            <span className="text-xs font-bold text-[#7A839E]">{alertsOpen ? '▲ Collapse' : '▼ Expand'}</span>
+            <span className="text-[13px] text-subtle shrink-0">{alertsOpen ? 'Collapse' : 'Expand'}</span>
           </button>
 
           {alertsOpen && (
-            <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 border-t border-[#E4E8F2]">
+            <div className="p-3 pt-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {alerts.map((a) => (
                 <div
                   key={a.id}
-                  className="bg-[#F4F6FC] border border-[#E4E8F2] p-2.5 rounded-lg text-xs flex flex-col justify-between hover:border-[#D4DAEA] transition-colors"
+                  className="bg-tile p-3.5 rounded-[15px] text-[13px] flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between font-semibold text-[#141B34] mb-1">
+                    <div className="flex items-center justify-between gap-2 font-medium text-fg mb-1.5">
                       <span>{a.title}</span>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          a.severity === 'HIGH' || a.severity === 'URGENT'
-                            ? 'bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30'
-                            : 'bg-[#E8A33D]/20 text-[#E8A33D] border border-[#E8A33D]/30'
-                        }`}
+                        className={`ts-st ${a.severity === 'HIGH' || a.severity === 'URGENT' ? 'ts-tone-bad' : 'ts-tone-warn'}`}
                       >
                         {a.severity}
                       </span>
                     </div>
-                    <p className="text-[#7A839E] text-[11px] leading-relaxed">{a.message}</p>
+                    <p className="text-subtle text-[12.5px] leading-relaxed m-0">{a.message}</p>
                   </div>
                   {a.quotation_id && (
-                    <div className="mt-2 pt-1.5 border-t border-[#E4E8F2]/60 flex justify-end">
+                    <div className="mt-2.5 pt-2 border-t border-dashed border-line2 flex justify-end">
                       <Link
                         to={`/quotations/${a.quotation_id}`}
-                        className="text-[#3B6FD4] text-[11px] font-semibold hover:underline flex items-center gap-1"
+                        className="text-fg text-[12.5px] hover:underline flex items-center gap-1"
                       >
-                        Inspect Quotation →
+                        Inspect quotation →
                       </Link>
                     </div>
                   )}
@@ -414,13 +386,13 @@ export default function SalesPipeline() {
       )}
 
       {/* Responsive Filter Bar */}
-      <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-3.5 rounded-xl space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
+      <div className="ts-card flex flex-col gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <div>
-            <label className="block text-[#7A839E] font-medium mb-1">Search Keywords</label>
+            <label className="ts-lbl">Search Keywords</label>
             <input
               type="text"
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
+              className="ts-fi"
               placeholder="Search quotation, customer, engineer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -428,9 +400,9 @@ export default function SalesPipeline() {
           </div>
 
           <div>
-            <label className="block text-[#7A839E] font-medium mb-1">Pipeline Stage</label>
+            <label className="ts-lbl">Pipeline Stage</label>
             <select
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
+              className="ts-fi"
               value={selectedStage}
               onChange={(e) => setSelectedStage(e.target.value)}
             >
@@ -444,9 +416,9 @@ export default function SalesPipeline() {
           </div>
 
           <div>
-            <label className="block text-[#7A839E] font-medium mb-1">Stock Risk Status</label>
+            <label className="ts-lbl">Stock Risk Status</label>
             <select
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
+              className="ts-fi"
               value={selectedStockStatus}
               onChange={(e) => setSelectedStockStatus(e.target.value)}
             >
@@ -459,9 +431,9 @@ export default function SalesPipeline() {
           </div>
 
           <div>
-            <label className="block text-[#7A839E] font-medium mb-1">Date Range</label>
+            <label className="ts-lbl">Date Range</label>
             <select
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg focus:border-[#3B6FD4] outline-none text-xs"
+              className="ts-fi"
               value={selectedDateRange}
               onChange={(e) => setSelectedDateRange(e.target.value)}
             >
@@ -474,21 +446,21 @@ export default function SalesPipeline() {
             </select>
           </div>
 
-          <div className="flex items-center gap-4 sm:col-span-2 lg:col-span-2 pt-2 sm:pt-4">
-            <label className="flex items-center gap-1.5 cursor-pointer text-[#141B34] select-none text-xs font-medium">
+          <div className="flex items-center gap-4 flex-wrap sm:col-span-2 lg:col-span-2 pt-1 sm:pt-6">
+            <label className="flex items-center gap-2 cursor-pointer text-fg select-none text-[13.5px]">
               <input
                 type="checkbox"
-                className="accent-[#3B6FD4] rounded w-3.5 h-3.5"
+                className="accent-[rgb(var(--fg))] w-4 h-4"
                 checked={onlyHighValue}
                 onChange={(e) => setOnlyHighValue(e.target.checked)}
               />
               High Value Only (≥ ₹5L)
             </label>
 
-            <label className="flex items-center gap-1.5 cursor-pointer text-[#141B34] select-none text-xs font-medium">
+            <label className="flex items-center gap-2 cursor-pointer text-fg select-none text-[13.5px]">
               <input
                 type="checkbox"
-                className="accent-[#3B6FD4] rounded w-3.5 h-3.5"
+                className="accent-[rgb(var(--fg))] w-4 h-4"
                 checked={onlyStale}
                 onChange={(e) => setOnlyStale(e.target.checked)}
               />
@@ -499,49 +471,49 @@ export default function SalesPipeline() {
 
         {/* Active Filter Chips */}
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 pt-2 border-t border-[#E4E8F2] flex-wrap text-xs">
-            <span className="text-[#7A839E] font-semibold text-[11px] uppercase tracking-wider">Active Filters:</span>
+          <div className="flex items-center gap-2 pt-3 border-t border-dashed border-line2 flex-wrap text-[12.5px]">
+            <span className="text-subtle">Active filters</span>
             {search && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#141B34] border border-[#D4DAEA]">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tile text-fg">
                 Search: "{search}"
-                <button onClick={() => setSearch('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
+                <button onClick={() => setSearch('')} className="hover:text-bad ml-1 text-subtle">×</button>
               </span>
             )}
             {selectedStage && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#3B6FD4] border border-[#D4DAEA]">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tile text-fg">
                 Stage: {PIPELINE_STAGES.find((s) => s.key === selectedStage)?.label || selectedStage}
-                <button onClick={() => setSelectedStage('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
+                <button onClick={() => setSelectedStage('')} className="hover:text-bad ml-1 text-subtle">×</button>
               </span>
             )}
             {selectedStockStatus && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#E8A33D] border border-[#D4DAEA]">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tile text-fg">
                 Stock: {selectedStockStatus.replace('_', ' ')}
-                <button onClick={() => setSelectedStockStatus('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
+                <button onClick={() => setSelectedStockStatus('')} className="hover:text-bad ml-1 text-subtle">×</button>
               </span>
             )}
             {selectedDateRange && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F7F8FC] text-[#6B78D6] border border-[#D4DAEA]">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tile text-fg">
                 Date: {selectedDateRange}
-                <button onClick={() => setSelectedDateRange('')} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
+                <button onClick={() => setSelectedDateRange('')} className="hover:text-bad ml-1 text-subtle">×</button>
               </span>
             )}
             {onlyHighValue && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30 font-semibold">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tile text-fg">
                 High Value Only
-                <button onClick={() => setOnlyHighValue(false)} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
+                <button onClick={() => setOnlyHighValue(false)} className="hover:text-bad ml-1 text-subtle">×</button>
               </span>
             )}
             {onlyStale && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E5484D]/10 text-[#E5484D] border border-[#E5484D]/30 font-semibold">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tile text-fg">
                 Stale Only
-                <button onClick={() => setOnlyStale(false)} className="hover:text-[#E5484D] ml-1 font-bold">×</button>
+                <button onClick={() => setOnlyStale(false)} className="hover:text-bad ml-1 text-subtle">×</button>
               </span>
             )}
             <button
               onClick={resetFilters}
-              className="text-xs text-[#E5484D] hover:underline font-semibold ml-auto"
+              className="ts-btn ts-ghost ts-xs text-bad ml-auto"
             >
-              Clear All Filters
+              Clear all
             </button>
           </div>
         )}
@@ -556,134 +528,82 @@ export default function SalesPipeline() {
             onAction={resetFilters}
           />
         ) : (
-          <div className="flex gap-4 overflow-x-auto pb-6 items-start w-full min-h-[650px] scrollbar-thin">
-            {PIPELINE_STAGES.map((stage) => {
+          <div className="ts-kboard">
+            {PIPELINE_STAGES.map((stage, i) => {
               const cols = kanbanColumns[stage.key] || [];
               const colValue = cols.reduce((sum, r) => sum + r.net_subtotal, 0);
 
               return (
-                <div
-                  key={stage.key}
-                  className="w-[320px] min-w-[320px] shrink-0 bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3 flex flex-col max-h-[calc(100vh-220px)]"
-                >
-                  {/* Sticky Stage Header */}
-                  <div className="sticky top-0 bg-[#F4F6FC] z-10 pb-2.5 mb-2.5 border-b border-[#E4E8F2] flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color }}></div>
-                      <span className="font-bold text-xs text-[#141B34]">{stage.label}</span>
-                      <span className="text-[11px] bg-[#F7F8FC] text-[#7A839E] px-2 py-0.5 rounded-full font-semibold border border-[#D4DAEA]">
-                        {cols.length}
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-[#3B6FD4] font-mono">{formatCurrency(colValue)}</div>
-                  </div>
+                <section key={stage.key} className="ts-kcol" style={{ ['--i' as any]: i }}>
+                  <header>
+                    <i className={stage.key === 'COMPLETED' ? 'won' : ''} />
+                    {stage.label} <span>{cols.length}</span>
+                    <b className="num">{formatCurrency(colValue)}</b>
+                  </header>
 
-                  {/* Stage Opportunities Cards List */}
-                  <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
+                  <div className="ts-kcards">
                     {cols.length === 0 ? (
-                      <div className="text-xs text-[#A8AEC4] text-center py-10 italic bg-[#FFFFFF]/30 rounded-lg border border-dashed border-[#E4E8F2]">
-                        No opportunities
-                      </div>
+                      <div className="ts-kempty">No opportunities</div>
                     ) : (
                       cols.map((rec) => (
-                        <div
-                          key={rec.quotation_id}
-                          className="card bg-[#FFFFFF] border border-[#E4E8F2] p-3 rounded-xl hover:border-[#D4DAEA] hover:bg-[#F7F8FC] transition-all shadow-sm group"
-                        >
-                          {/* Header: QTN Number & Net Subtotal */}
-                          <div className="flex justify-between items-start gap-2 mb-1.5">
-                            <Link
-                              to={`/quotations/${rec.quotation_id}`}
-                              className="font-mono text-xs font-bold text-[#3B6FD4] hover:underline"
-                            >
+                        <article key={rec.quotation_id} className="ts-kcard">
+                          <div className="ts-kc-top">
+                            <Link to={`/quotations/${rec.quotation_id}`} className="ts-ktag num hover:text-fg">
                               {rec.quotation_number}
                             </Link>
-                            <span className="font-bold text-xs text-[#141B34] font-mono">
-                              {formatCurrency(rec.net_subtotal)}
+                            <span className="text-[13.5px] text-fg num">{formatCurrency(rec.net_subtotal)}</span>
+                          </div>
+
+                          <h5 title={rec.customer_name}>{rec.customer_name}</h5>
+
+                          <div className="ts-kmeta">
+                            <span className="truncate">{rec.engineer_name}</span>
+                            <span className="truncate">{rec.branch_name}</span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5 mt-2.5">
+                            <span className={`ts-ktag ${rec.is_stale ? 'ts-ktag-bad' : ''}`}>
+                              {rec.age_days}d old
                             </span>
-                          </div>
-
-                          {/* Customer Name */}
-                          <div className="text-xs font-bold text-[#141B34] truncate mb-1.5" title={rec.customer_name}>
-                            {rec.customer_name}
-                          </div>
-
-                          {/* Engineer & Branch */}
-                          <div className="text-[11px] text-[#7A839E] flex justify-between mb-2 pb-1.5 border-b border-[#E4E8F2]/60">
-                            <span>👤 {rec.engineer_name}</span>
-                            <span>🏢 {rec.branch_name}</span>
-                          </div>
-
-                          {/* Status & Metadata Badges */}
-                          <div className="flex flex-wrap gap-1 mb-2.5">
                             <span
-                              className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                                rec.is_stale
-                                  ? 'bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30'
-                                  : 'bg-[#F7F8FC] text-[#7A839E] border border-[#E4E8F2]'
-                              }`}
+                              className={`ts-ktag ${rec.stock_status === 'FULLY_AVAILABLE' ? 'ts-ktag-good' : rec.stock_status === 'PARTIAL_STOCK' ? 'ts-ktag-warn' : 'ts-ktag-bad'}`}
                             >
-                              Age: {rec.age_days}d
+                              {rec.stock_status.replace('_', ' ').toLowerCase()}
                             </span>
-
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                                rec.stock_status === 'FULLY_AVAILABLE'
-                                  ? 'bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30'
-                                  : rec.stock_status === 'PARTIAL_STOCK'
-                                  ? 'bg-[#E8A33D]/10 text-[#E8A33D] border border-[#E8A33D]/30'
-                                  : 'bg-[#E5484D]/10 text-[#E5484D] border border-[#E5484D]/30'
-                              }`}
-                            >
-                              Stock: {rec.stock_status.replace('_', ' ')}
-                            </span>
-
-                            {rec.is_high_value && (
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#3B6FD4]/20 text-[#3B6FD4] font-bold border border-[#3B6FD4]/40">
-                                ★ High Value
-                              </span>
-                            )}
+                            {rec.is_high_value && <span className="ts-ktag ts-ktag-ink">High value</span>}
                           </div>
 
-                          {/* Next Action Box */}
-                          <div className="text-[11px] bg-[#F4F6FC] p-2 rounded-lg border border-[#E4E8F2] mb-2.5 text-[#7A839E] space-y-1">
+                          <div className="ts-knext">
                             <div className="truncate">
-                              <strong className="text-[#141B34]">Next:</strong> {rec.next_action}
+                              <span className="text-fg">Next:</span> {rec.next_action}
                             </div>
                             {rec.next_follow_up_date && (
-                              <div className="text-[10px] text-[#6B78D6] font-medium flex items-center gap-1 pt-1 border-t border-[#E4E8F2]/40">
-                                📅 Follow-up: {formatDate(rec.next_follow_up_date)} {rec.next_follow_up_time || ''}
+                              <div className="mt-1 text-fg">
+                                Follow-up {formatDate(rec.next_follow_up_date)} {rec.next_follow_up_time || ''}
                               </div>
                             )}
                           </div>
 
-                          {/* Card Action Links */}
-                          <div className="flex justify-between items-center pt-1.5 border-t border-[#E4E8F2]/60">
-                            <Link
-                              to={`/quotations/${rec.quotation_id}`}
-                              className="text-[11px] font-semibold text-[#7A839E] hover:text-[#141B34] transition-colors"
-                            >
-                              View Detail →
+                          <div className="ts-kfoot">
+                            <Link to={`/quotations/${rec.quotation_id}`} className="text-[12.5px] text-subtle hover:text-fg transition-colors">
+                              View detail →
                             </Link>
-                            <button
-                              className="btn tiny bg-[#F7F8FC] text-[#3B6FD4] border border-[#D4DAEA] hover:bg-[#E4E8F2] text-[11px] font-semibold px-2.5 py-1 rounded-md"
-                              onClick={() => openCreateFollowUp(rec)}
-                            >
+                            <button className="ts-btn ts-ghost ts-xs" onClick={() => openCreateFollowUp(rec)}>
                               + Follow-up
                             </button>
                           </div>
-                        </div>
+                        </article>
                       ))
                     )}
                   </div>
-                </div>
+                </section>
               );
             })}
           </div>
         )
       ) : (
         /* Table View */
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-sm">
+        <div className="ts-card ts-white ts-tbl overflow-hidden">
           {records.length === 0 ? (
             <EmptyState
               title="No pipeline records found"
@@ -691,67 +611,61 @@ export default function SalesPipeline() {
               onAction={resetFilters}
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="border-b border-[#E4E8F2] bg-[#F7F8FC]/80 text-[#7A839E] uppercase text-[10px] tracking-wider font-semibold">
-                    <th className="p-3">Quotation No</th>
-                    <th className="p-3">Customer</th>
-                    <th className="p-3">Engineer</th>
-                    <th className="p-3">Branch</th>
-                    <th className="p-3 text-right">Value (₹)</th>
-                    <th className="p-3">Current Stage</th>
-                    <th className="p-3 text-right">Age</th>
-                    <th className="p-3">Next Follow-up</th>
-                    <th className="p-3">Stock Risk</th>
-                    <th className="p-3">Next Action</th>
-                    <th className="p-3 text-center">Action</th>
+                  <tr>
+                    <th>Quotation no</th>
+                    <th>Customer</th>
+                    <th>Engineer</th>
+                    <th>Branch</th>
+                    <th className="ts-r">Value (₹)</th>
+                    <th>Current stage</th>
+                    <th className="ts-r">Age</th>
+                    <th>Next follow-up</th>
+                    <th>Stock risk</th>
+                    <th>Next action</th>
+                    <th className="text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2]/50">
+                <tbody>
                   {records.map((r) => (
-                    <tr key={r.quotation_id} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                      <td className="p-3 font-bold font-mono">
-                        <Link to={`/quotations/${r.quotation_id}`} className="text-[#3B6FD4] hover:underline">
+                    <tr key={r.quotation_id}>
+                      <td className="num">
+                        <Link to={`/quotations/${r.quotation_id}`} className="text-fg hover:underline">
                           {r.quotation_number}
                         </Link>
                       </td>
-                      <td className="p-3 text-[#141B34] font-medium max-w-[200px] truncate" title={r.customer_name}>
+                      <td className="max-w-[200px] truncate" title={r.customer_name}>
                         {r.customer_name}
                       </td>
-                      <td className="p-3 text-[#7A839E]">{r.engineer_name}</td>
-                      <td className="p-3 text-[#7A839E]">{r.branch_name}</td>
-                      <td className="p-3 text-right font-bold text-[#141B34] font-mono">
+                      <td className="text-subtle">{r.engineer_name}</td>
+                      <td className="text-subtle">{r.branch_name}</td>
+                      <td className="ts-r num">
                         {formatCurrency(r.net_subtotal)}
                       </td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F7F8FC] text-[#6B78D6] border border-[#D4DAEA]">
+                      <td>
+                        <span className="ts-st">
                           {r.pipeline_stage_label}
                         </span>
                       </td>
-                      <td className="p-3 text-right text-[#7A839E] font-mono">{r.age_days}d</td>
-                      <td className="p-3 text-[#6B78D6]">
+                      <td className="ts-r num text-subtle">{r.age_days}d</td>
+                      <td className="">
                         {r.next_follow_up_date ? formatDate(r.next_follow_up_date) : 'None'}
                       </td>
-                      <td className="p-3">
+                      <td>
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                            r.stock_status === 'FULLY_AVAILABLE'
-                              ? 'bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30'
-                              : r.stock_status === 'PARTIAL_STOCK'
-                              ? 'bg-[#E8A33D]/10 text-[#E8A33D] border border-[#E8A33D]/30'
-                              : 'bg-[#E5484D]/10 text-[#E5484D] border border-[#E5484D]/30'
-                          }`}
+                          className={`ts-ktag ${r.stock_status === 'FULLY_AVAILABLE' ? 'ts-ktag-good' : r.stock_status === 'PARTIAL_STOCK' ? 'ts-ktag-warn' : 'ts-ktag-bad'}`}
                         >
                           {r.stock_status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="p-3 text-[#141B34] max-w-[180px] truncate" title={r.next_action}>
+                      <td className="max-w-[180px] truncate" title={r.next_action}>
                         {r.next_action}
                       </td>
-                      <td className="p-3 text-center">
+                      <td className="text-center">
                         <button
-                          className="btn tiny bg-[#F7F8FC] text-[#3B6FD4] border border-[#D4DAEA] hover:bg-[#E4E8F2] text-[11px] font-semibold px-2.5 py-1 rounded-md"
+                          className="ts-btn ts-ghost ts-xs"
                           onClick={() => openCreateFollowUp(r)}
                         >
                           Follow-up
@@ -768,41 +682,41 @@ export default function SalesPipeline() {
 
       {/* Follow-up Action Modal */}
       {followUpModal.open && (
-        <div className="fixed inset-0 bg-[#141B34]/40 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-5 rounded-xl max-w-md w-full shadow-lift space-y-4">
-            <div className="flex justify-between items-start border-b border-[#E4E8F2] pb-3">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-[2px]">
+          <div className="ts-modal max-w-md w-full flex flex-col gap-4">
+            <div className="flex justify-between items-start gap-3">
               <div>
-                <h3 className="text-base font-bold text-[#141B34]">
+                <h3 className="m-0 text-[15px] font-medium text-fg">
                   Schedule Follow-up for {followUpModal.quotationNumber}
                 </h3>
-                <p className="text-xs text-[#7A839E] mt-0.5">
+                <p className="ts-muted m-0 mt-1.5 text-[14px]">
                   Record follow-up schedule and notes for this sales opportunity.
                 </p>
               </div>
               <button
                 onClick={() => setFollowUpModal({ open: false, mode: 'create' })}
-                className="text-[#7A839E] hover:text-[#141B34] font-bold text-lg"
+                className="ts-btn ts-ghost ts-xs !px-2.5" aria-label="Close"
               >
                 ×
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#7A839E] font-medium mb-1">Follow-up Date</label>
+                  <label className="ts-lbl">Follow-up Date</label>
                   <input
                     type="date"
-                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
+                    className="ts-fi"
                     value={modalDate}
                     onChange={(e) => setModalDate(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="block text-[#7A839E] font-medium mb-1">Time</label>
+                  <label className="ts-lbl">Time</label>
                   <input
                     type="time"
-                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
+                    className="ts-fi"
                     value={modalTime}
                     onChange={(e) => setModalTime(e.target.value)}
                   />
@@ -811,9 +725,9 @@ export default function SalesPipeline() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#7A839E] font-medium mb-1">Priority</label>
+                  <label className="ts-lbl">Priority</label>
                   <select
-                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
+                    className="ts-fi"
                     value={modalPriority}
                     onChange={(e) => setModalPriority(e.target.value as FollowUpPriority)}
                   >
@@ -824,9 +738,9 @@ export default function SalesPipeline() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#7A839E] font-medium mb-1">Follow-up Status</label>
+                  <label className="ts-lbl">Follow-up Status</label>
                   <select
-                    className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
+                    className="ts-fi"
                     value={modalStatus}
                     onChange={(e) => setModalStatus(e.target.value as FollowUpStatus)}
                   >
@@ -839,10 +753,10 @@ export default function SalesPipeline() {
               </div>
 
               <div>
-                <label className="block text-[#7A839E] font-medium mb-1">Notes & Action Required</label>
+                <label className="ts-lbl">Notes & Action Required</label>
                 <textarea
                   rows={3}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2.5 rounded-lg outline-none focus:border-[#3B6FD4]"
+                  className="ts-fi"
                   placeholder="Record customer response details, technical questions, or next required action..."
                   value={modalNotes}
                   onChange={(e) => setModalNotes(e.target.value)}
@@ -850,16 +764,16 @@ export default function SalesPipeline() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E4E8F2]">
+            <div className="flex justify-end gap-2.5 pt-1">
               <button
-                className="btn small bg-[#F7F8FC] text-[#141B34] border border-[#E4E8F2] hover:bg-[#E4E8F2] px-4 py-2 text-xs font-semibold rounded-lg"
+                className="ts-btn ts-ghost ts-xs"
                 onClick={() => setFollowUpModal({ open: false, mode: 'create' })}
                 disabled={submittingModal}
               >
                 Cancel
               </button>
               <button
-                className="btn small bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold px-4 py-2 text-xs rounded-lg"
+                className="ts-btn ts-dark ts-xs"
                 onClick={submitFollowUpModal}
                 disabled={submittingModal}
               >

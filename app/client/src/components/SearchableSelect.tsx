@@ -112,8 +112,8 @@ export default function SearchableSelect({
 
   const inputClasses =
     size === 'sm'
-      ? 'w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg pl-3 pr-8 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors truncate'
-      : 'w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg pl-3.5 pr-9 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors truncate';
+      ? 'ts-fi !pr-9 truncate'
+      : 'ts-fi !pr-10 truncate';
 
   return (
     <div className={`searchable-select ${className}`}>
@@ -159,18 +159,18 @@ export default function SearchableSelect({
             e.preventDefault();
             setOpen((prev) => !prev);
           }}
-          className={`absolute ${size === 'sm' ? 'right-2' : 'right-2.5'} p-1 text-[#7A839E] hover:text-[#3B6FD4] transition-transform duration-200 cursor-pointer flex items-center justify-center`}
+          className={`absolute ${size === 'sm' ? 'right-2' : 'right-2.5'} p-1 text-subtle hover:text-fg transition-transform duration-200 cursor-pointer flex items-center justify-center`}
           aria-label="Toggle dropdown options"
         >
-          <ChevronDown className={`${size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} transition-transform duration-200 ${open ? 'rotate-180 text-[#3B6FD4]' : ''}`} />
+          <ChevronDown className={`${size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} transition-transform duration-200 ${open ? 'rotate-180 text-fg' : ''}`} />
         </button>
       </div>
       {open && (
         <div className="searchable-select-menu">
           {showCustom && (
             <div
-              className={`searchable-select-option custom-add-option flex items-center justify-between gap-2 border-b border-[#E4E8F2] bg-[#EEF4FF] text-[#2563EB] font-medium py-2.5 px-3 cursor-pointer ${
-                highlight === -1 ? 'highlighted bg-[#DBEAFE]' : ''
+              className={`searchable-select-option custom-add-option flex items-center justify-between gap-2 border-b border-line2 bg-tile text-fg font-medium py-2.5 px-3 cursor-pointer ${
+                highlight === -1 ? 'highlighted bg-tile' : ''
               }`}
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -179,23 +179,23 @@ export default function SearchableSelect({
               onMouseEnter={() => setHighlight(-1)}
             >
               <div className="flex items-center gap-2 truncate">
-                <Plus className="w-4 h-4 shrink-0 text-[#2563EB]" />
+                <Plus className="w-4 h-4 shrink-0 text-fg" />
                 <span className="truncate font-semibold text-xs sm:text-sm">
                   {cleanCustomLabel}
                 </span>
               </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-[#3B6FD4]/10 text-[#3B6FD4] shrink-0">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-ink/10 text-fg shrink-0">
                 New (Press Enter)
               </span>
             </div>
           )}
           {filtered.length === 0 && !showCustom && (
-            <div className="searchable-select-empty py-3 text-xs text-[#7A839E]">
+            <div className="searchable-select-empty py-3 text-xs text-subtle">
               No matching records found
             </div>
           )}
           {filtered.length === 0 && showCustom && (
-            <div className="py-2 px-3 text-[11px] text-[#7A839E] bg-[#FAFAFC] border-b border-[#E4E8F2]">
+            <div className="py-2 px-3 text-[11px] text-subtle bg-tile border-b border-line2">
               No existing record found. Click above or press Enter to create and use this custom item.
             </div>
           )}

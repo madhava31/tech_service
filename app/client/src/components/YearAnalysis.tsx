@@ -88,7 +88,7 @@ export function YearAnalysisUploadDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#141B34]/40 px-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] px-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="year-analysis-upload-title"
@@ -96,13 +96,13 @@ export function YearAnalysisUploadDialog({
         if (e.target === e.currentTarget && !uploading) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-xl bg-white border border-[#E2EAE5] shadow-[0_24px_48px_rgba(20,33,61,0.18)] p-5">
+      <div className="ts-modal w-full max-w-md">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="year-analysis-upload-title" className="text-base font-bold text-[#141B34]">
+            <h2 id="year-analysis-upload-title" className="m-0 text-[17px] font-medium text-fg">
               {replacing ? `Replace ${year} Analysis file` : `Add ${year} Analysis file`}
             </h2>
-            <p className="text-xs text-[#64748B] mt-1">
+            <p className="ts-muted m-0 mt-1.5 text-[13.5px]">
               {replacing
                 ? `The new file replaces the ${year} data stored now.`
                 : `No ${year} data is stored yet. Upload the ${year} sales Excel file to build the analysis.`}
@@ -112,17 +112,17 @@ export function YearAnalysisUploadDialog({
             type="button"
             onClick={onClose}
             disabled={uploading}
-            className="text-[#94A3B8] hover:text-[#141B34] disabled:opacity-50"
+            className="ts-btn ts-ghost ts-xs !px-2.5 disabled:opacity-50"
             aria-label="Close"
           >
             <XIcon className="size-4" />
           </button>
         </div>
 
-        <label className="mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#A7F3D0] bg-[#F8FAF9] p-6 text-center cursor-pointer hover:bg-[#ECFDF5] transition-colors">
-          <FileSpreadsheetIcon className="size-7 text-[#059669]" />
-          <span className="text-sm font-semibold text-[#141B34]">{file ? file.name : 'Choose .xlsx file'}</span>
-          <span className="text-[11px] text-[#64748B]">
+        <label className="mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line2 bg-tile p-6 text-center cursor-pointer hover:bg-surface transition-colors">
+          <FileSpreadsheetIcon className="size-7 text-fg" />
+          <span className="text-[14px] font-medium text-fg">{file ? file.name : 'Choose .xlsx file'}</span>
+          <span className="text-[12.5px] text-subtle">
             Same layout as the Import Data sales file: Date, Invoice No, Company, Part No, Description, Qty, Price, Total Amount.
           </span>
           <input
@@ -138,18 +138,18 @@ export function YearAnalysisUploadDialog({
         </label>
 
         {error && (
-          <p className="mt-3 rounded-lg bg-[#FCEBEC] border border-[#F2C4C6] text-[#C8323A] text-xs font-semibold p-2.5">{error}</p>
+          <p className="ts-warnbox mt-3">{error}</p>
         )}
 
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={onClose} disabled={uploading} className="h-9 border-[#E2EAE5] hover:text-[#141B34] text-xs font-semibold">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={uploading} className="ts-btn ts-ghost ts-xs">
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={submit}
             disabled={uploading || !file}
-            className="h-9 gap-1.5 font-bold bg-[#059669] text-white hover:bg-[#047857] text-xs"
+            className="ts-btn ts-dark ts-xs"
           >
             {uploading ? <Loader2Icon className="size-3.5 animate-spin" /> : <UploadIcon className="size-3.5" />}
             {uploading ? 'Importing…' : 'Upload & Analyse'}
@@ -231,25 +231,25 @@ export function PastYearAnalysisButton({
         onClick={toggleMenu}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
-        className={`h-9 border-[#A7F3D0] bg-[#ECFDF5] text-[#047857] hover:bg-[#D1FAE5] hover:text-[#047857] text-xs font-bold gap-1.5 shadow-xs ${className}`}
+        className={`ts-btn ts-ghost ${className}`}
       >
         <BarChart3Icon className="size-3.5" />
         <span>Past Year Analysis</span>
-        <ChevronDownIcon className="size-3 text-[#059669]" />
+        <ChevronDownIcon className="size-3 text-subtle" />
       </Button>
 
       {menuOpen && (
         <div
           role="menu"
-          className="absolute left-0 top-11 z-50 min-w-[230px] p-1.5 rounded-[10px] bg-white border border-[#E2EAE5] shadow-[0_12px_28px_rgba(20,33,61,0.08)]"
+          className="ts-pop absolute left-0 top-12 z-50 min-w-[240px] p-1.5"
         >
-          <div className="px-2 py-1 border-b border-[#E2EAE5] mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Choose a year</span>
+          <div className="px-2.5 py-1.5 mb-1">
+            <span className="text-[12.5px] text-subtle">Choose a year</span>
           </div>
           {error ? (
-            <p className="px-2 py-2 text-[11px] font-semibold text-[#C8323A]">{error}</p>
+            <p className="px-2.5 py-2 text-[12.5px] text-bad">{error}</p>
           ) : !stored ? (
-            <p className="px-2 py-2 text-[11px] text-[#64748B] flex items-center gap-1.5">
+            <p className="px-2.5 py-2 text-[12.5px] text-subtle flex items-center gap-1.5">
               <Loader2Icon className="size-3 animate-spin" /> Checking stored data…
             </p>
           ) : (
@@ -262,15 +262,15 @@ export function PastYearAnalysisButton({
                     type="button"
                     role="menuitem"
                     onClick={() => chooseYear(year)}
-                    className="w-full text-left px-2 py-1.5 rounded-[7px] text-[12px] font-medium text-[#141B34] hover:bg-[#F8FAF9] flex items-center justify-between gap-3"
+                    className="ts-mi w-full text-left flex items-center justify-between gap-3"
                   >
-                    <span className="font-semibold">{year} Analysis</span>
+                    <span>{year} analysis</span>
                     {saved ? (
-                      <span className="text-[10px] font-bold text-[#059669] bg-[#ECFDF5] border border-[#A7F3D0] rounded-full px-1.5 py-0.5">
+                      <span className="ts-st ts-tone-good">
                         Saved · {saved.importedCount} rows
                       </span>
                     ) : (
-                      <span className="text-[10px] text-[#94A3B8] flex items-center gap-1">
+                      <span className="text-[12px] text-faint flex items-center gap-1">
                         <UploadIcon className="size-3" /> Add file
                       </span>
                     )}
@@ -365,11 +365,11 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
     : [];
 
   return (
-    <div className="text-[#141B34] px-4 tablet-lg:px-6 pt-1 flex flex-col gap-5">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#141B34] tracking-tight">{year} Analysis</h1>
-          <p className="text-xs text-[#7A839E] mt-0.5">
+          <h1 className="ts-title">{year} Analysis</h1>
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Revenue, customers and products from the imported {year} Excel file. Live {liveLabel} data is unchanged.
           </p>
         </div>
@@ -378,9 +378,9 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
             variant="outline"
             size="sm"
             onClick={onExit}
-            className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] hover:text-[#141B34] text-xs font-semibold gap-1.5 shadow-xs"
+            className="ts-btn ts-ghost"
           >
-            <ArrowLeftIcon className="size-3.5 text-[#64748B]" />
+            <ArrowLeftIcon className="size-3.5" />
             Back to {liveLabel}
           </Button>
           {summary && (
@@ -389,16 +389,16 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
                 variant="outline"
                 size="sm"
                 onClick={() => setDialogOpen(true)}
-                className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] hover:text-[#141B34] text-xs font-semibold gap-1.5 shadow-xs"
+                className="ts-btn ts-ghost"
               >
-                <RefreshCwIcon className="size-3.5 text-[#64748B]" />
+                <RefreshCwIcon className="size-3.5" />
                 Replace file
               </Button>
               <Button
                 size="sm"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="h-9 gap-1.5 font-bold bg-[#E5484D] text-white hover:bg-[#C8323A] text-xs shadow-xs"
+                className="ts-btn ts-danger"
               >
                 {deleting ? <Loader2Icon className="size-3.5 animate-spin" /> : <Trash2Icon className="size-3.5" />}
                 Delete {year} Analysis file
@@ -409,42 +409,42 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
       </div>
 
       {summary && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-2 text-xs text-[#047857]">
+        <div className="flex flex-wrap items-center gap-2 rounded-[15px] bg-goodbg px-4 py-3 text-[13px] text-good">
           <FileSpreadsheetIcon className="size-4 shrink-0" />
-          <span className="font-bold">Viewing {year} Analysis</span>
+          <span className="font-medium">Viewing {year} analysis</span>
           <span>· {summary.filename}</span>
-          <span className="text-[#64748B]">· uploaded {formatDateTime(summary.uploadedAt)}</span>
-          {!!summary.skippedCount && <span className="text-[#B45309]">· {summary.skippedCount} rows skipped on import</span>}
+          <span className="text-subtle">· uploaded {formatDateTime(summary.uploadedAt)}</span>
+          {!!summary.skippedCount && <span className="text-warn">· {summary.skippedCount} rows skipped on import</span>}
         </div>
       )}
 
       {notice && (
-        <div className="flex items-start justify-between gap-3 rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] px-3 py-2 text-xs font-semibold text-[#15803D]">
+        <div className="ts-okbox flex items-start justify-between gap-3">
           <span>{notice}</span>
-          <button type="button" onClick={() => setNotice('')} aria-label="Dismiss" className="text-[#15803D]/70 hover:text-[#15803D]">
+          <button type="button" onClick={() => setNotice('')} aria-label="Dismiss" className="opacity-70 hover:opacity-100">
             <XIcon className="size-3.5" />
           </button>
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-lg bg-[#FCEBEC] border border-[#F2C4C6] text-[#C8323A] flex items-center justify-between gap-3 text-xs font-semibold">
+        <div className="ts-warnbox flex items-center justify-between gap-3">
           <span>{error}</span>
-          <Button size="sm" variant="destructive" onClick={load} className="h-7 text-xs gap-1 bg-[#E5484D] hover:bg-[#C8323A]">
+          <Button size="sm" variant="destructive" onClick={load} className="ts-btn ts-danger ts-xs">
             <RefreshCwIcon className="size-3" /> Retry
           </Button>
         </div>
       )}
 
       {missing && !error ? (
-        <Card className="bg-[#FFFFFF] border-[#E2EAE5] shadow-card">
+        <Card className="ts-card !p-0 !border-0">
           <CardContent className="p-8 flex flex-col items-center text-center gap-3">
-            <FileSpreadsheetIcon className="size-10 text-[#059669]" />
+            <FileSpreadsheetIcon className="size-10 text-faint" />
             <div>
-              <p className="text-base font-bold text-[#141B34]">No {year} data found</p>
-              <p className="text-xs text-[#64748B] mt-1">Add the {year} Excel file to see the analysis.</p>
+              <p className="m-0 text-[17px] font-medium text-fg">No {year} data found</p>
+              <p className="ts-muted m-0 mt-1.5 text-[13.5px]">Add the {year} Excel file to see the analysis.</p>
             </div>
-            <Button size="sm" onClick={() => setDialogOpen(true)} className="h-9 gap-1.5 font-bold bg-[#059669] text-white hover:bg-[#047857] text-xs">
+            <Button size="sm" onClick={() => setDialogOpen(true)} className="ts-btn ts-dark ts-xs">
               <UploadIcon className="size-3.5" /> Add a file
             </Button>
           </CardContent>
@@ -453,30 +453,30 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full rounded-xl bg-[#FFFFFF]" />
+              <Skeleton key={i} className="h-20 w-full rounded-[22px] bg-surface2" />
             ))}
           </div>
-          <Skeleton className="h-[300px] w-full rounded-xl bg-[#FFFFFF]" />
+          <Skeleton className="h-[300px] w-full rounded-[22px] bg-surface2" />
         </>
       ) : summary ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {kpiCards.map((c) => (
-              <Card key={c.label} className="bg-[#FFFFFF] border-[#E2EAE5] shadow-card">
+              <Card key={c.label} className="ts-card !p-0 !border-0">
                 <CardContent className="p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">{c.label}</p>
-                  <p className="text-2xl font-extrabold text-[#141B34] mt-1 tracking-tight">{c.value}</p>
-                  <p className="text-[11px] text-[#64748B] mt-1">{c.foot}</p>
+                  <p className="text-[13.5px] text-subtle">{c.label}</p>
+                  <p className="ts-val num !mt-1.5 truncate">{c.value}</p>
+                  <p className="text-[12.5px] text-faint mt-1">{c.foot}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <Card className="lg:col-span-8 bg-[#FFFFFF] border-[#E2EAE5] shadow-card">
+            <Card className="ts-card !p-0 lg:col-span-8 !border-0">
               <CardHeader className="p-5 pb-3">
-                <CardTitle className="text-base font-bold text-[#141B34]">{year} Revenue by Month</CardTitle>
-                <CardDescription className="text-xs text-[#64748B] mt-0.5">
+                <CardTitle className="m-0 text-[15px] font-medium text-fg">{year} Revenue by Month</CardTitle>
+                <CardDescription className="ts-muted m-0 mt-1 text-[13.5px]">
                   Average {formatCurrency(k!.avgMonthlyRevenue)} per active month.
                 </CardDescription>
               </CardHeader>
@@ -484,25 +484,25 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
                 <RevenueLineChart data={summary.monthly.map((m) => ({ label: m.label, value: m.revenue }))} />
               </CardContent>
             </Card>
-            <Card className="lg:col-span-4 bg-[#FFFFFF] border-[#E2EAE5] shadow-card">
+            <Card className="ts-card !p-0 lg:col-span-4 !border-0">
               <CardHeader className="p-5 pb-3">
-                <CardTitle className="text-base font-bold text-[#141B34]">Top Customers</CardTitle>
-                <CardDescription className="text-xs text-[#64748B] mt-0.5">Highest revenue accounts in {year}.</CardDescription>
+                <CardTitle className="m-0 text-[15px] font-medium text-fg">Top Customers</CardTitle>
+                <CardDescription className="ts-muted m-0 mt-1 text-[13.5px]">Highest revenue accounts in {year}.</CardDescription>
               </CardHeader>
               <CardContent className="p-5 pt-0">
                 <HorizontalBarChart
                   data={summary.topCompanies.map((c) => ({ label: c.name, sublabel: `${c.invoices} ${c.invoices === 1 ? 'invoice' : 'invoices'}`, value: c.revenue }))}
-                  color="#059669"
+                  color="rgb(var(--fg))"
                 />
               </CardContent>
             </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <Card className="lg:col-span-7 bg-[#FFFFFF] border-[#E2EAE5] shadow-card">
+            <Card className="ts-card !p-0 lg:col-span-7 !border-0">
               <CardHeader className="p-5 pb-3">
-                <CardTitle className="text-base font-bold text-[#141B34]">Top Products</CardTitle>
-                <CardDescription className="text-xs text-[#64748B] mt-0.5">Best-selling products by revenue in {year}.</CardDescription>
+                <CardTitle className="m-0 text-[15px] font-medium text-fg">Top Products</CardTitle>
+                <CardDescription className="ts-muted m-0 mt-1 text-[13.5px]">Best-selling products by revenue in {year}.</CardDescription>
               </CardHeader>
               <CardContent className="p-5 pt-0">
                 <HorizontalBarChart
@@ -511,42 +511,42 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
                     sublabel: `${p.partNo ? `${p.partNo} · ` : ''}Qty ${formatNumber(p.qty)}`,
                     value: p.revenue,
                   }))}
-                  color="#10B981"
+                  color="rgb(var(--good))"
                 />
               </CardContent>
             </Card>
-            <Card className="lg:col-span-5 bg-[#FFFFFF] border-[#E2EAE5] shadow-card">
+            <Card className="ts-card !p-0 lg:col-span-5 !border-0">
               <CardHeader className="p-5 pb-3">
-                <CardTitle className="text-base font-bold text-[#141B34]">Revenue by State</CardTitle>
-                <CardDescription className="text-xs text-[#64748B] mt-0.5">Where {year} sales came from.</CardDescription>
+                <CardTitle className="m-0 text-[15px] font-medium text-fg">Revenue by State</CardTitle>
+                <CardDescription className="ts-muted m-0 mt-1 text-[13.5px]">Where {year} sales came from.</CardDescription>
               </CardHeader>
               <CardContent className="p-5 pt-0">
-                <HorizontalBarChart data={summary.byState.map((s) => ({ label: s.state, value: s.revenue }))} color="#3B6FD4" />
+                <HorizontalBarChart data={summary.byState.map((s) => ({ label: s.state, value: s.revenue }))} color="rgb(var(--muted))" />
               </CardContent>
             </Card>
           </div>
 
-          <Card className="bg-[#FFFFFF] border-[#E2EAE5] shadow-card">
+          <Card className="ts-card !p-0 !border-0">
             <CardHeader className="p-5 pb-3">
-              <CardTitle className="text-base font-bold text-[#141B34]">Monthly Breakdown</CardTitle>
+              <CardTitle className="m-0 text-[15px] font-medium text-fg">Monthly Breakdown</CardTitle>
             </CardHeader>
             <CardContent className="p-5 pt-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs">Month</TableHead>
-                    <TableHead className="text-xs text-right">Invoices</TableHead>
-                    <TableHead className="text-xs text-right">Revenue</TableHead>
-                    <TableHead className="text-xs text-right">Share</TableHead>
+                    <TableHead>Month</TableHead>
+                    <TableHead className="text-right">Invoices</TableHead>
+                    <TableHead className="text-right">Revenue</TableHead>
+                    <TableHead className="text-right">Share</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {summary.monthly.map((m) => (
                     <TableRow key={m.month}>
-                      <TableCell className="text-xs font-semibold">{m.label} {year}</TableCell>
-                      <TableCell className="text-xs text-right tabular-nums">{formatNumber(m.invoices)}</TableCell>
-                      <TableCell className="text-xs text-right tabular-nums">{formatCurrency(m.revenue)}</TableCell>
-                      <TableCell className="text-xs text-right tabular-nums text-[#64748B]">
+                      <TableCell className="font-medium">{m.label} {year}</TableCell>
+                      <TableCell className="text-right num">{formatNumber(m.invoices)}</TableCell>
+                      <TableCell className="text-right num">{formatCurrency(m.revenue)}</TableCell>
+                      <TableCell className="text-right num text-subtle">
                         {k!.totalRevenue ? `${((m.revenue / k!.totalRevenue) * 100).toFixed(1)}%` : '—'}
                       </TableCell>
                     </TableRow>

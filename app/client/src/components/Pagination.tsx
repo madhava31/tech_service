@@ -10,14 +10,14 @@ interface PaginationProps {
 export function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
   if (totalPages <= 1) return null;
   return (
-    <div className="pagination">
-      <button className="btn small secondary" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+    <div className="flex items-center justify-center gap-3 pt-2">
+      <button className="ts-btn ts-ghost ts-xs" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
         Previous
       </button>
-      <span className="pagination-indicator muted">
+      <span className="ts-muted text-[13px]">
         Page {page} of {totalPages}
       </span>
-      <button className="btn small secondary" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
+      <button className="ts-btn ts-ghost ts-xs" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
         Next
       </button>
     </div>

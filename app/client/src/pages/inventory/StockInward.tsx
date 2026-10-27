@@ -30,20 +30,20 @@ function formatDate(d: string | null | undefined) {
 function ReceiptStatusBadge({ status }: { status: string }) {
   if (status === 'CONFIRMED') {
     return (
-      <span className="px-2 py-0.5 bg-[#DFF5EA] text-[#2FBF71] border border-[#D7F2E5] rounded text-[11px] font-medium">
+      <span className="px-2 py-0.5 bg-goodbg text-good border border-goodbg rounded text-[11px] font-medium">
         Confirmed
       </span>
     );
   }
   if (status === 'DRAFT') {
     return (
-      <span className="px-2 py-0.5 bg-[#F7EFE2] text-[#E8A33D] border border-[#F4E9D6] rounded text-[11px] font-medium">
+      <span className="px-2 py-0.5 bg-warnbg text-warn border border-warnbg rounded text-[11px] font-medium">
         Draft (Staged)
       </span>
     );
   }
   return (
-    <span className="px-2 py-0.5 bg-[#F7E0E1] text-[#E5484D] border border-[#F4D4D5] rounded text-[11px] font-medium">
+    <span className="px-2 py-0.5 bg-badbg text-bad border border-badbg rounded text-[11px] font-medium">
       Cancelled
     </span>
   );
@@ -381,35 +381,35 @@ export default function StockInward() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2 text-xs text-[#7A839E]">
-            <Link to="/inventory" className="hover:text-[#3B6FD4] transition-colors">
+          <div className="flex items-center gap-2 text-xs text-subtle">
+            <Link to="/inventory" className="hover:text-fg transition-colors">
               Inventory
             </Link>
             <span>/</span>
-            <span className="text-[#141B34]">Stock Inward</span>
+            <span className="text-fg">Stock Inward</span>
           </div>
-          <h1 className="margin-0 text-[32px] font-medium tracking-[-.02em] leading-[1.05]">
+          <h1 className="ts-title">
             Stock Inward & Restocking
           </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Receive new physical inventory into warehouse facilities manually or via Excel import.
           </p>
         </div>
         <div className="flex gap-2.5 flex-wrap">
           <button
             onClick={openManualModal}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#141B34] border border-[#E4E8F2] rounded-lg text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-semibold transition-colors"
           >
             <span>📝</span>
             <span>+ Manual Stock Receipt</span>
           </button>
           <button
             onClick={openExcelModal}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
           >
             <span>📊</span>
             <span>Upload Excel</span>
@@ -418,14 +418,14 @@ export default function StockInward() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-[#F7E0E1] border border-[#F4D4D5] text-[#E5484D] flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-badbg border border-badbg text-bad flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span>⚠️</span>
             <span className="text-sm">{error}</span>
           </div>
           <button
             onClick={loadReceipts}
-            className="px-3 py-1 bg-[#F6DCDD] hover:bg-[#F5D8D9] text-[#F09297] rounded text-xs"
+            className="px-3 py-1 bg-badbg hover:bg-badbg text-bad rounded text-xs"
           >
             Retry
           </button>
@@ -433,7 +433,7 @@ export default function StockInward() {
       )}
 
       {/* Filter Control Bar */}
-      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="ts-card ts-white ts-tbl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 flex-wrap">
           {/* Search */}
           <div className="relative min-w-[220px]">
@@ -443,7 +443,7 @@ export default function StockInward() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && loadReceipts()}
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] placeholder-[#A8AEC4] focus:outline-none focus:border-[#3B6FD4]"
+              className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg placeholder-faint focus:outline-none focus:border-fg"
             />
           </div>
 
@@ -454,7 +454,7 @@ export default function StockInward() {
               setSelectedWarehouse(e.target.value);
               setPage(1);
             }}
-            className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
           >
             <option value="">All Warehouses</option>
             {warehouses.map((w) => (
@@ -471,7 +471,7 @@ export default function StockInward() {
               setSelectedStatus(e.target.value);
               setPage(1);
             }}
-            className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
           >
             <option value="">All Statuses</option>
             <option value="CONFIRMED">Confirmed</option>
@@ -486,7 +486,7 @@ export default function StockInward() {
               setSelectedSource(e.target.value);
               setPage(1);
             }}
-            className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
           >
             <option value="">All Sources</option>
             <option value="MANUAL">Manual Entry</option>
@@ -499,93 +499,93 @@ export default function StockInward() {
               setPage(1);
               loadReceipts();
             }}
-            className="px-3 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-xs transition-colors"
+            className="px-3 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
           >
             Apply
           </button>
         </div>
 
-        <div className="text-xs text-[#7A839E]">
+        <div className="text-xs text-subtle">
           Total {total} receipts
         </div>
       </div>
 
       {/* Receipts Table */}
-      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
         {loading ? (
           <div className="p-8 flex flex-col gap-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-[#F7F8FC] rounded animate-pulse" />
+              <div key={i} className="h-12 bg-surface rounded animate-pulse" />
             ))}
           </div>
         ) : receipts.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center gap-3">
             <span className="text-3xl">📥</span>
-            <p className="text-[#141B34] font-medium text-base">No stock receipts recorded</p>
-            <p className="text-xs text-[#7A839E] max-w-sm">
+            <p className="text-fg font-medium text-base">No stock receipts recorded</p>
+            <p className="text-xs text-subtle max-w-sm">
               Use '+ Manual Stock Receipt' or 'Upload Excel' above to receive and record incoming stock.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-[#E4E8F2] text-xs text-[#7A839E] uppercase tracking-wider bg-[#F7F8FC]">
-                  <th className="py-3 px-4 font-medium">Receipt #</th>
-                  <th className="py-3 px-4 font-medium">Date</th>
-                  <th className="py-3 px-4 font-medium">Facility</th>
-                  <th className="py-3 px-4 font-medium">Source</th>
-                  <th className="py-3 px-4 font-medium text-center">SKUs</th>
-                  <th className="py-3 px-4 font-medium text-right">Total Units</th>
-                  <th className="py-3 px-4 font-medium text-center">Status</th>
-                  <th className="py-3 px-4 font-medium">Created By</th>
-                  <th className="py-3 px-4 font-medium text-right">Action</th>
+                <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
+                  <th>Receipt #</th>
+                  <th>Date</th>
+                  <th>Facility</th>
+                  <th>Source</th>
+                  <th className="text-center">SKUs</th>
+                  <th className="ts-r">Total Units</th>
+                  <th className="text-center">Status</th>
+                  <th>Created By</th>
+                  <th className="ts-r">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EEF1F9]">
+              <tbody className="divide-y divide-line2">
                 {receipts.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-[#F7F8FC] transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-medium text-xs text-[#141B34]">
+                  <tr key={rec.id} className="hover:bg-surface transition-colors">
+                    <td className="py-3.5 px-4 font-mono font-medium text-xs text-fg">
                       <Link
                         to={`/inventory/stock-inward/${rec.id}`}
-                        className="text-[#3B6FD4] hover:underline"
+                        className="text-fg hover:underline"
                       >
                         {rec.receipt_number}
                       </Link>
                       {rec.source_reference && (
-                        <p className="text-[11px] text-[#8992AB] truncate max-w-[180px]">
+                        <p className="text-[11px] text-subtle truncate max-w-[180px]">
                           Ref: {rec.source_reference}
                         </p>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-[#7A839E] whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-xs text-subtle whitespace-nowrap">
                       {formatDate(rec.created_at)}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-[#141B34]">
+                    <td className="py-3.5 px-4 text-xs text-fg">
                       <span className="font-medium">{rec.warehouse_name}</span>{' '}
-                      <span className="text-[#8992AB] font-mono">({rec.warehouse_code})</span>
+                      <span className="text-subtle font-mono">({rec.warehouse_code})</span>
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-[#7A839E]">
+                    <td className="py-3.5 px-4 text-xs text-subtle">
                       {rec.source_type}
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <span className="px-2 py-0.5 bg-[#EEF1F9] rounded text-[11px] font-mono text-[#7A839E]">
+                      <span className="px-2 py-0.5 bg-tile rounded text-[11px] font-mono text-subtle">
                         {rec.product_count || 0}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-xs font-mono font-bold text-right text-[#2FBF71]">
+                    <td className="py-3.5 px-4 text-xs font-mono font-bold text-right text-good">
                       +{formatNumber(rec.total_quantity)}
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <ReceiptStatusBadge status={rec.status} />
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-[#7A839E]">
+                    <td className="py-3.5 px-4 text-xs text-subtle">
                       {rec.created_by_username || 'System'}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Link
                         to={`/inventory/stock-inward/${rec.id}`}
-                        className="px-2.5 py-1 bg-[#EEF1F9] hover:bg-[#E4E8F2] text-[#141B34] border border-[#E4E8F2] rounded text-xs font-medium transition-colors"
+                        className="px-2.5 py-1 bg-tile hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
                       >
                         Details →
                       </Link>
@@ -607,17 +607,17 @@ export default function StockInward() {
 
       {/* --- MODAL 1: MANUAL STOCK RECEIPT --- */}
       {manualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141B34]/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl w-full max-w-3xl overflow-hidden shadow-lift my-8">
-            <div className="p-4 border-b border-[#E4E8F2] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="ts-card ts-white ts-tbl w-full max-w-3xl overflow-hidden my-8">
+            <div className="p-4 border-b border-line2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📝</span>
-                <h3 className="font-semibold text-base text-[#141B34]">Manual Stock Receipt</h3>
+                <h3 className="font-semibold text-base text-fg">Manual Stock Receipt</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setManualModalOpen(false)}
-                className="text-[#7A839E] hover:text-[#141B34] text-lg font-bold"
+                className="text-subtle hover:text-fg text-lg font-bold"
               >
                 ✕
               </button>
@@ -625,7 +625,7 @@ export default function StockInward() {
 
             <form onSubmit={handleManualSubmit} className="p-5 flex flex-col gap-4">
               {manualError && (
-                <div className="p-3 bg-[#F7E0E1] border border-[#F4D4D5] text-[#E5484D] rounded-lg text-xs">
+                <div className="p-3 bg-badbg border border-badbg text-bad rounded-lg text-xs">
                   {manualError}
                 </div>
               )}
@@ -633,14 +633,14 @@ export default function StockInward() {
               {/* Receipt Header Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#7A839E]">
-                    Warehouse Facility <span className="text-[#E5484D]">*</span>
+                  <label className="text-xs font-medium text-subtle">
+                    Warehouse Facility <span className="text-bad">*</span>
                   </label>
                   <select
                     required
                     value={manualWarehouseId}
                     onChange={(e) => setManualWarehouseId(Number(e.target.value))}
-                    className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
                   >
                     <option value="">-- Select Destination Facility --</option>
                     {warehouses.map((w) => (
@@ -652,24 +652,24 @@ export default function StockInward() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#7A839E]">
-                    Receipt Number <span className="text-[#E5484D]">*</span>
+                  <label className="text-xs font-medium text-subtle">
+                    Receipt Number <span className="text-bad">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={manualReceiptNumber}
                     onChange={(e) => setManualReceiptNumber(e.target.value)}
-                    className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs font-mono text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs font-mono text-fg focus:outline-none focus:border-fg"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#7A839E]">Source / Vendor</label>
+                  <label className="text-xs font-medium text-subtle">Source / Vendor</label>
                   <select
                     value={manualSourceType}
                     onChange={(e) => setManualSourceType(e.target.value)}
-                    className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
                   >
                     <option value="MANUAL">Manual Restocking</option>
                     <option value="VENDOR_DELIVERY">Vendor Delivery</option>
@@ -678,7 +678,7 @@ export default function StockInward() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#7A839E]">
+                  <label className="text-xs font-medium text-subtle">
                     Vendor Delivery / Challan Ref
                   </label>
                   <input
@@ -686,7 +686,7 @@ export default function StockInward() {
                     placeholder="e.g. DC-9841 / INV-2024-01"
                     value={manualSourceRef}
                     onChange={(e) => setManualSourceRef(e.target.value)}
-                    className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
                   />
                 </div>
               </div>
@@ -694,36 +694,36 @@ export default function StockInward() {
               {/* Line Items Table */}
               <div className="flex flex-col gap-2 pt-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#141B34] uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-fg uppercase tracking-wider">
                     Receipt Line Items ({manualItems.length})
                   </span>
                   <button
                     type="button"
                     onClick={addManualItem}
-                    className="px-2.5 py-1 bg-[#EEF1F9] hover:bg-[#E4E8F2] text-[#3B6FD4] border border-[#E4E8F2] rounded text-xs font-medium transition-colors"
+                    className="px-2.5 py-1 bg-tile hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
                   >
                     + Add Line
                   </button>
                 </div>
 
-                <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                <div className="bg-surface border border-line2 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-[#E4E8F2] text-[#7A839E] uppercase bg-[#F7F8FC]">
-                        <th className="py-2.5 px-3">Product / Part No</th>
-                        <th className="py-2.5 px-3 w-28 text-right">Inward Qty</th>
-                        <th className="py-2.5 px-3">Notes</th>
-                        <th className="py-2.5 px-3 w-10 text-center"></th>
+                      <tr className="border-b border-line2 text-subtle uppercase bg-surface">
+                        <th>Product / Part No</th>
+                        <th className="ts-r">Inward Qty</th>
+                        <th>Notes</th>
+                        <th className="text-center"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#EEF1F9]">
+                    <tbody className="divide-y divide-line2">
                       {manualItems.map((item, idx) => (
                         <tr key={idx}>
                           <td className="py-2 px-3">
                             <select
                               value={item.productId}
                               onChange={(e) => updateManualItem(idx, 'productId', e.target.value)}
-                              className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded px-2 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-fg"
                             >
                               {products.map((p) => (
                                 <option key={p.id} value={p.id}>
@@ -740,7 +740,7 @@ export default function StockInward() {
                               required
                               value={item.quantity}
                               onChange={(e) => updateManualItem(idx, 'quantity', e.target.value)}
-                              className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded px-2 py-1.5 text-xs font-mono text-right text-[#2FBF71] focus:outline-none focus:border-[#3B6FD4]"
+                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs font-mono text-right text-good focus:outline-none focus:border-fg"
                             />
                           </td>
                           <td className="py-2 px-3">
@@ -749,7 +749,7 @@ export default function StockInward() {
                               placeholder="Line note..."
                               value={item.notes}
                               onChange={(e) => updateManualItem(idx, 'notes', e.target.value)}
-                              className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded px-2 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-fg"
                             />
                           </td>
                           <td className="py-2 px-3 text-center">
@@ -757,7 +757,7 @@ export default function StockInward() {
                               <button
                                 type="button"
                                 onClick={() => removeManualItem(idx)}
-                                className="text-[#E5484D] hover:text-[#F09297] font-bold text-sm"
+                                className="text-bad hover:text-bad font-bold text-sm"
                               >
                                 ✕
                               </button>
@@ -771,38 +771,38 @@ export default function StockInward() {
               </div>
 
               {/* Total Units Summary */}
-              <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg p-3 flex items-center justify-between text-xs">
-                <span className="text-[#7A839E]">Total Incoming Units:</span>
-                <span className="font-mono font-bold text-sm text-[#2FBF71]">
+              <div className="bg-surface border border-line2 rounded-lg p-3 flex items-center justify-between text-xs">
+                <span className="text-subtle">Total Incoming Units:</span>
+                <span className="font-mono font-bold text-sm text-good">
                   +{manualItems.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)} units
                 </span>
               </div>
 
               {/* Confirmation Option */}
               <div className="flex items-center gap-2 pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-[#141B34]">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-fg">
                   <input
                     type="checkbox"
                     checked={manualConfirmImmediately}
                     onChange={(e) => setManualConfirmImmediately(e.target.checked)}
-                    className="rounded border-[#E4E8F2] text-[#3B6FD4] focus:ring-0"
+                    className="rounded border-line2 text-fg focus:ring-0"
                   />
                   <span>Confirm and update physical inventory stock immediately</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#E4E8F2]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-line2">
                 <button
                   type="button"
                   onClick={() => setManualModalOpen(false)}
-                  className="px-3.5 py-2 bg-[#EEF1F9] hover:bg-[#E4E8F2] text-[#7A839E] rounded-lg text-xs font-medium transition-colors"
+                  className="px-3.5 py-2 bg-tile hover:bg-tile text-subtle rounded-lg text-xs font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={manualSaving}
-                  className="px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] disabled:opacity-50 text-[#F4F6FC] rounded-lg text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink rounded-lg text-xs font-semibold transition-colors"
                 >
                   {manualSaving ? 'Recording Receipt...' : 'Save Stock Receipt'}
                 </button>
@@ -814,53 +814,53 @@ export default function StockInward() {
 
       {/* --- MODAL 2: EXCEL RESTOCKING WIZARD --- */}
       {excelModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141B34]/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl w-full max-w-4xl overflow-hidden shadow-lift my-8">
-            <div className="p-4 border-b border-[#E4E8F2] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="ts-card ts-white ts-tbl w-full max-w-4xl overflow-hidden my-8">
+            <div className="p-4 border-b border-line2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📊</span>
-                <h3 className="font-semibold text-base text-[#141B34]">
+                <h3 className="font-semibold text-base text-fg">
                   Excel Stock Restocking Wizard
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setExcelModalOpen(false)}
-                className="text-[#7A839E] hover:text-[#141B34] text-lg font-bold"
+                className="text-subtle hover:text-fg text-lg font-bold"
               >
                 ✕
               </button>
             </div>
 
             {/* Stepper Tabs */}
-            <div className="bg-[#F7F8FC] border-b border-[#E4E8F2] px-6 py-2.5 flex items-center gap-4 text-xs font-medium overflow-x-auto">
+            <div className="bg-surface border-b border-line2 px-6 py-2.5 flex items-center gap-4 text-xs font-medium overflow-x-auto">
               <span
                 className={`px-2.5 py-1 rounded transition-colors ${
-                  excelStep === 'upload' ? 'bg-[#E0F5EB] text-[#3B6FD4] font-bold border border-[#D6F2E4]' : 'text-[#8992AB]'
+                  excelStep === 'upload' ? 'bg-goodbg text-fg font-bold border border-goodbg' : 'text-subtle'
                 }`}
               >
                 1. Upload File
               </span>
-              <span className="text-[#D4DAEA]">→</span>
+              <span className="text-faint">→</span>
               <span
                 className={`px-2.5 py-1 rounded transition-colors ${
-                  excelStep === 'mapping' ? 'bg-[#E0F5EB] text-[#3B6FD4] font-bold border border-[#D6F2E4]' : 'text-[#8992AB]'
+                  excelStep === 'mapping' ? 'bg-goodbg text-fg font-bold border border-goodbg' : 'text-subtle'
                 }`}
               >
                 2. Column Mapping
               </span>
-              <span className="text-[#D4DAEA]">→</span>
+              <span className="text-faint">→</span>
               <span
                 className={`px-2.5 py-1 rounded transition-colors ${
-                  excelStep === 'preview' ? 'bg-[#E0F5EB] text-[#3B6FD4] font-bold border border-[#D6F2E4]' : 'text-[#8992AB]'
+                  excelStep === 'preview' ? 'bg-goodbg text-fg font-bold border border-goodbg' : 'text-subtle'
                 }`}
               >
                 3. Validate & Impact
               </span>
-              <span className="text-[#D4DAEA]">→</span>
+              <span className="text-faint">→</span>
               <span
                 className={`px-2.5 py-1 rounded transition-colors ${
-                  excelStep === 'success' ? 'bg-[#E0F5EB] text-[#3B6FD4] font-bold border border-[#D6F2E4]' : 'text-[#8992AB]'
+                  excelStep === 'success' ? 'bg-goodbg text-fg font-bold border border-goodbg' : 'text-subtle'
                 }`}
               >
                 4. Confirm & Result
@@ -869,7 +869,7 @@ export default function StockInward() {
 
             <div className="p-6 flex flex-col gap-4">
               {excelError && (
-                <div className="p-3 bg-[#F7E0E1] border border-[#F4D4D5] text-[#E5484D] rounded-lg text-xs flex items-center justify-between">
+                <div className="p-3 bg-badbg border border-badbg text-bad rounded-lg text-xs flex items-center justify-between">
                   <span>⚠️ {excelError}</span>
                 </div>
               )}
@@ -877,17 +877,17 @@ export default function StockInward() {
               {/* STEP 1: UPLOAD */}
               {excelStep === 'upload' && (
                 <div className="flex flex-col gap-4">
-                  <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-[#E4E8F2] rounded-xl bg-[#F4F6FC] gap-4">
+                  <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-line2 rounded-xl bg-surface gap-4">
                     <span className="text-4xl">📁</span>
                     <div className="text-center">
-                      <p className="text-sm font-medium text-[#141B34]">
+                      <p className="text-sm font-medium text-fg">
                         Select Excel Stock Inward File
                       </p>
-                      <p className="text-xs text-[#7A839E] mt-1">
-                        Supports <strong className="text-[#141B34]">.xlsx</strong> and <strong className="text-[#141B34]">.xls</strong> files (Maximum safe file size: 5MB, up to 2,000 rows).
+                      <p className="text-xs text-subtle mt-1">
+                        Supports <strong className="text-fg">.xlsx</strong> and <strong className="text-fg">.xls</strong> files (Maximum safe file size: 5MB, up to 2,000 rows).
                       </p>
                     </div>
-                    <label className="cursor-pointer px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold text-xs rounded-lg transition-colors shadow-card shadow-[#3B6FD4]/10">
+                    <label className="cursor-pointer px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold text-xs rounded-lg transition-colors shadow-card">
                       {excelBusy ? 'Analyzing Workbook...' : 'Browse File'}
                       <input
                         type="file"
@@ -903,13 +903,13 @@ export default function StockInward() {
                   </div>
 
                   {excelFile && (
-                    <div className="p-3.5 bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl flex items-center justify-between text-xs">
+                    <div className="p-3.5 bg-surface border border-line2 rounded-xl flex items-center justify-between text-xs">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">📄</span>
                         <div>
-                          <p className="font-medium text-[#141B34]">{excelFile.name}</p>
-                          <p className="text-[11px] text-[#7A839E]">
-                            {(excelFile.size / 1024).toFixed(1)} KB • Upload Status: <span className="text-[#2FBF71]">Ready</span>
+                          <p className="font-medium text-fg">{excelFile.name}</p>
+                          <p className="text-[11px] text-subtle">
+                            {(excelFile.size / 1024).toFixed(1)} KB • Upload Status: <span className="text-good">Ready</span>
                           </p>
                         </div>
                       </div>
@@ -924,13 +924,13 @@ export default function StockInward() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Destination Facility */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-medium text-[#7A839E]">
-                        Destination Warehouse <span className="text-[#E5484D]">*</span>
+                      <label className="text-xs font-medium text-subtle">
+                        Destination Warehouse <span className="text-bad">*</span>
                       </label>
                       <select
                         value={excelWarehouseId}
                         onChange={(e) => setExcelWarehouseId(Number(e.target.value))}
-                        className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
                       >
                         <option value="">-- Select Destination Warehouse --</option>
                         {warehouses.map((w) => (
@@ -943,11 +943,11 @@ export default function StockInward() {
 
                     {/* Worksheet Selector */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-medium text-[#7A839E]">Worksheet</label>
+                      <label className="text-xs font-medium text-subtle">Worksheet</label>
                       <select
                         value={excelSheetName}
                         onChange={(e) => setExcelSheetName(e.target.value)}
-                        className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
                       >
                         {excelAnalysis.sheets.map((s) => (
                           <option key={s.name} value={s.name}>
@@ -959,13 +959,13 @@ export default function StockInward() {
 
                     {/* Part Number Column Mapping */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-medium text-[#7A839E]">
-                        Part Number Column <span className="text-[#E5484D]">*</span>
+                      <label className="text-xs font-medium text-subtle">
+                        Part Number Column <span className="text-bad">*</span>
                       </label>
                       <select
                         value={excelPartNoCol}
                         onChange={(e) => setExcelPartNoCol(e.target.value)}
-                        className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
                       >
                         <option value="">-- Select Excel Column --</option>
                         {excelAnalysis.sheets
@@ -980,13 +980,13 @@ export default function StockInward() {
 
                     {/* Quantity Column Mapping */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-medium text-[#7A839E]">
-                        Quantity Column <span className="text-[#E5484D]">*</span>
+                      <label className="text-xs font-medium text-subtle">
+                        Quantity Column <span className="text-bad">*</span>
                       </label>
                       <select
                         value={excelQtyCol}
                         onChange={(e) => setExcelQtyCol(e.target.value)}
-                        className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
                       >
                         <option value="">-- Select Excel Column --</option>
                         {excelAnalysis.sheets
@@ -1002,13 +1002,13 @@ export default function StockInward() {
 
                   {/* Sample Data Table */}
                   <div className="flex flex-col gap-1.5 pt-2">
-                    <span className="text-xs font-medium text-[#7A839E]">
+                    <span className="text-xs font-medium text-subtle">
                       Sample Data from Selected Sheet:
                     </span>
-                    <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg overflow-x-auto">
+                    <div className="bg-surface border border-line2 rounded-lg overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-[#E4E8F2] text-[#8992AB] uppercase bg-[#F7F8FC]">
+                          <tr className="border-b border-line2 text-subtle uppercase bg-surface">
                             {excelAnalysis.sheets
                               .find((s) => s.name === excelSheetName)
                               ?.headers.map((h) => (
@@ -1018,7 +1018,7 @@ export default function StockInward() {
                               ))}
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#EEF1F9]">
+                        <tbody className="divide-y divide-line2">
                           {excelAnalysis.sheets
                             .find((s) => s.name === excelSheetName)
                             ?.sampleRows.slice(0, 4)
@@ -1027,7 +1027,7 @@ export default function StockInward() {
                                 {excelAnalysis.sheets
                                   .find((s) => s.name === excelSheetName)
                                   ?.headers.map((h) => (
-                                    <td key={h} className="py-1.5 px-3 text-[#7A839E] whitespace-nowrap">
+                                    <td key={h} className="py-1.5 px-3 text-subtle whitespace-nowrap">
                                       {row[h] || '—'}
                                     </td>
                                   ))}
@@ -1038,11 +1038,11 @@ export default function StockInward() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-3 border-t border-[#E4E8F2]">
+                  <div className="flex justify-between items-center pt-3 border-t border-line2">
                     <button
                       type="button"
                       onClick={() => setExcelStep('upload')}
-                      className="text-xs text-[#7A839E] hover:text-[#141B34]"
+                      className="text-xs text-subtle hover:text-fg"
                     >
                       ← Choose different file
                     </button>
@@ -1050,7 +1050,7 @@ export default function StockInward() {
                       type="button"
                       disabled={excelBusy || !excelWarehouseId || !excelPartNoCol || !excelQtyCol}
                       onClick={handleExcelPreview}
-                      className="px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] disabled:opacity-50 text-[#F4F6FC] font-semibold text-xs rounded-lg transition-colors"
+                      className="px-4 py-2 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-semibold text-xs rounded-lg transition-colors"
                     >
                       {excelBusy ? 'Validating against Catalogue...' : 'Validate & Preview Impact →'}
                     </button>
@@ -1063,27 +1063,27 @@ export default function StockInward() {
                 <div className="flex flex-col gap-4">
                   {/* Summary KPI Cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3">
-                      <span className="text-[11px] text-[#7A839E]">Total File Rows</span>
-                      <div className="text-xl font-bold text-[#141B34] mt-1">
+                    <div className="bg-surface border border-line2 rounded-xl p-3">
+                      <span className="text-[11px] text-subtle">Total File Rows</span>
+                      <div className="text-xl font-bold text-fg mt-1">
                         {excelPreview.summary.totalRows}
                       </div>
                     </div>
-                    <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3">
-                      <span className="text-[11px] text-[#2FBF71]">Valid Products</span>
-                      <div className="text-xl font-bold text-[#2FBF71] mt-1">
+                    <div className="bg-surface border border-line2 rounded-xl p-3">
+                      <span className="text-[11px] text-good">Valid Products</span>
+                      <div className="text-xl font-bold text-good mt-1">
                         {excelPreview.summary.validItemCount}
                       </div>
                     </div>
-                    <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3">
-                      <span className="text-[11px] text-[#E5484D]">Invalid Rows</span>
-                      <div className="text-xl font-bold text-[#E5484D] mt-1">
+                    <div className="bg-surface border border-line2 rounded-xl p-3">
+                      <span className="text-[11px] text-bad">Invalid Rows</span>
+                      <div className="text-xl font-bold text-bad mt-1">
                         {excelPreview.summary.invalidRowCount}
                       </div>
                     </div>
-                    <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-3 bg-gradient-to-b from-[#F4F6FC] to-[#E4F6ED]">
-                      <span className="text-[11px] text-[#3B6FD4]">Incoming Units</span>
-                      <div className="text-xl font-bold text-[#3B6FD4] mt-1">
+                    <div className="bg-surface border border-line2 rounded-xl p-3 bg-gradient-to-b from-surface to-goodbg">
+                      <span className="text-[11px] text-fg">Incoming Units</span>
+                      <div className="text-xl font-bold text-fg mt-1">
                         +{formatNumber(excelPreview.summary.totalIncomingUnits)}
                       </div>
                     </div>
@@ -1091,7 +1091,7 @@ export default function StockInward() {
 
                   {/* Warnings Box */}
                   {excelPreview.warnings.length > 0 && (
-                    <div className="p-3.5 bg-[#F7EFE2] border border-[#F4E9D6] text-[#E8A33D] rounded-xl text-xs flex flex-col gap-1">
+                    <div className="p-3.5 bg-warnbg border border-warnbg text-warn rounded-xl text-xs flex flex-col gap-1">
                       <span className="font-semibold flex items-center gap-1">
                         <span>⚠️</span> System Warnings & Information:
                       </span>
@@ -1105,15 +1105,15 @@ export default function StockInward() {
 
                   {/* Invalid Rows Table */}
                   {excelPreview.invalidRows.length > 0 && (
-                    <div className="bg-[#F7E0E1] border border-[#F4D4D5] rounded-xl p-3.5 flex flex-col gap-2">
+                    <div className="bg-badbg border border-badbg rounded-xl p-3.5 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-[#E5484D]">
+                        <span className="text-xs font-semibold text-bad">
                           ❌ Rejected Rows ({excelPreview.invalidRows.length}) — will NOT be imported:
                         </span>
                         <Link
                           to="/products"
                           target="_blank"
-                          className="text-xs text-[#3B6FD4] hover:underline flex items-center gap-1 font-medium"
+                          className="text-xs text-fg hover:underline flex items-center gap-1 font-medium"
                         >
                           <span>View Products</span>
                           <span>→</span>
@@ -1122,24 +1122,24 @@ export default function StockInward() {
                       <div className="max-h-36 overflow-y-auto">
                         <table className="w-full text-left text-xs border-collapse">
                           <thead>
-                            <tr className="text-[#F09297] border-b border-[#F4D4D5] bg-[#F6DEDF]">
-                              <th className="py-1.5 px-2">Row #</th>
-                              <th className="py-1.5 px-2">Part No</th>
-                              <th className="py-1.5 px-2 text-right">Quantity</th>
-                              <th className="py-1.5 px-2">Validation Error</th>
+                            <tr className="text-bad border-b border-badbg bg-badbg">
+                              <th>Row #</th>
+                              <th>Part No</th>
+                              <th className="ts-r">Quantity</th>
+                              <th>Validation Error</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#F6DCDD]">
+                          <tbody className="divide-y divide-badbg">
                             {excelPreview.invalidRows.map((inv, idx) => (
                               <tr key={idx}>
-                                <td className="py-1.5 px-2 font-mono text-[#7A839E]">
+                                <td className="py-1.5 px-2 font-mono text-subtle">
                                   {inv.rowNumber}
                                 </td>
-                                <td className="py-1.5 px-2 font-mono text-[#E5484D]">
+                                <td className="py-1.5 px-2 font-mono text-bad">
                                   {inv.partNo || '—'}
                                 </td>
-                                <td className="py-1.5 px-2 text-right text-[#7A839E]">{inv.quantity || '—'}</td>
-                                <td className="py-1.5 px-2 text-[#F09297]">{inv.reason}</td>
+                                <td className="py-1.5 px-2 text-right text-subtle">{inv.quantity || '—'}</td>
+                                <td className="py-1.5 px-2 text-bad">{inv.reason}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1150,44 +1150,44 @@ export default function StockInward() {
 
                   {/* Valid Items Stock Impact Table */}
                   <div className="flex flex-col gap-1.5">
-                    <span className="text-xs font-semibold text-[#141B34] uppercase tracking-wider">
+                    <span className="text-xs font-semibold text-fg uppercase tracking-wider">
                       Stock Impact Preview ({excelPreview.validItems.length} Products):
                     </span>
-                    <div className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg overflow-x-auto max-h-56 overflow-y-auto">
+                    <div className="bg-surface border border-line2 rounded-lg overflow-x-auto max-h-56 overflow-y-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-[#E4E8F2] text-[#7A839E] uppercase bg-[#F7F8FC]">
-                            <th className="py-2.5 px-3">Status</th>
-                            <th className="py-2.5 px-3">Part No</th>
-                            <th className="py-2.5 px-3">Description</th>
-                            <th className="py-2.5 px-3 text-right">Current On Hand</th>
-                            <th className="py-2.5 px-3 text-right">Inward Qty</th>
-                            <th className="py-2.5 px-3 text-right">Projected On Hand</th>
-                            <th className="py-2.5 px-3 text-right">Projected Available</th>
+                          <tr className="border-b border-line2 text-subtle uppercase bg-surface">
+                            <th>Status</th>
+                            <th>Part No</th>
+                            <th>Description</th>
+                            <th className="ts-r">Current On Hand</th>
+                            <th className="ts-r">Inward Qty</th>
+                            <th className="ts-r">Projected On Hand</th>
+                            <th className="ts-r">Projected Available</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#EEF1F9]">
+                        <tbody className="divide-y divide-line2">
                           {excelPreview.validItems.map((item) => (
-                            <tr key={item.productId} className="hover:bg-[#F7F8FC]">
-                              <td className="py-2 px-3 text-[11px] font-semibold text-[#2FBF71]">
+                            <tr key={item.productId} className="hover:bg-surface">
+                              <td className="py-2 px-3 text-[11px] font-semibold text-good">
                                 ✓ VALID
                               </td>
-                              <td className="py-2 px-3 font-mono font-medium text-[#141B34]">
+                              <td className="py-2 px-3 font-mono font-medium text-fg">
                                 {item.partNo}
                               </td>
-                              <td className="py-2 px-3 text-[#7A839E] max-w-[200px] truncate">
+                              <td className="py-2 px-3 text-subtle max-w-[200px] truncate">
                                 {item.description}
                               </td>
-                              <td className="py-2 px-3 font-mono text-right text-[#7A839E]">
+                              <td className="py-2 px-3 font-mono text-right text-subtle">
                                 {item.currentOnHand} {item.unit}
                               </td>
-                              <td className="py-2 px-3 font-mono text-right font-bold text-[#2FBF71]">
+                              <td className="py-2 px-3 font-mono text-right font-bold text-good">
                                 +{item.incomingQuantity}
                               </td>
-                              <td className="py-2 px-3 font-mono text-right font-semibold text-[#141B34]">
+                              <td className="py-2 px-3 font-mono text-right font-semibold text-fg">
                                 {item.projectedOnHand}
                               </td>
-                              <td className="py-2 px-3 font-mono text-right font-bold text-[#3B6FD4]">
+                              <td className="py-2 px-3 font-mono text-right font-bold text-fg">
                                 {item.projectedAvailable}
                               </td>
                             </tr>
@@ -1198,33 +1198,33 @@ export default function StockInward() {
                   </div>
 
                   {/* Header Details for Confirmation */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#E4E8F2]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-line2">
                     <div className="flex flex-col gap-1">
-                      <label className="text-[11px] text-[#7A839E]">Receipt Number</label>
+                      <label className="text-[11px] text-subtle">Receipt Number</label>
                       <input
                         type="text"
                         value={excelReceiptNumber}
                         onChange={(e) => setExcelReceiptNumber(e.target.value)}
-                        className="bg-[#F4F6FC] border border-[#E4E8F2] rounded px-2.5 py-1.5 text-xs font-mono text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                        className="bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs font-mono text-fg focus:outline-none focus:border-fg"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-[11px] text-[#7A839E]">Delivery Reference / Invoice</label>
+                      <label className="text-[11px] text-subtle">Delivery Reference / Invoice</label>
                       <input
                         type="text"
                         placeholder="e.g. PO-8411 / Vendor Bill"
                         value={excelSourceRef}
                         onChange={(e) => setExcelSourceRef(e.target.value)}
-                        className="bg-[#F4F6FC] border border-[#E4E8F2] rounded px-2.5 py-1.5 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                        className="bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs text-fg focus:outline-none focus:border-fg"
                       />
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-3 border-t border-[#E4E8F2]">
+                  <div className="flex justify-between items-center pt-3 border-t border-line2">
                     <button
                       type="button"
                       onClick={() => setExcelStep('mapping')}
-                      className="text-xs text-[#7A839E] hover:text-[#141B34]"
+                      className="text-xs text-subtle hover:text-fg"
                     >
                       ← Back to Mapping
                     </button>
@@ -1232,7 +1232,7 @@ export default function StockInward() {
                       type="button"
                       disabled={excelBusy || excelPreview.validItems.length === 0}
                       onClick={handleExcelConfirm}
-                      className="px-5 py-2.5 bg-[#3B6FD4] hover:bg-[#2F5CB8] disabled:opacity-50 text-[#F4F6FC] font-bold text-xs rounded-lg transition-colors shadow-card shadow-[#3B6FD4]/10"
+                      className="px-5 py-2.5 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-bold text-xs rounded-lg transition-colors shadow-card"
                     >
                       {excelBusy
                         ? 'Confirming Receipt...'
@@ -1245,48 +1245,48 @@ export default function StockInward() {
               {/* STEP 4: SUCCESS RESULT PAGE (STEP 12 COMPLIANCE) */}
               {excelStep === 'success' && (
                 <div className="p-6 text-center flex flex-col items-center gap-6">
-                  <div className="w-16 h-16 rounded-full bg-[#E0F5EB] border border-[#D6F2E4] text-[#3B6FD4] flex items-center justify-center text-3xl">
+                  <div className="w-16 h-16 rounded-full bg-goodbg border border-goodbg text-fg flex items-center justify-center text-3xl">
                     ✓
                   </div>
 
                   <div>
-                    <h4 className="text-xl font-bold text-[#141B34]">
+                    <h4 className="text-xl font-bold text-fg">
                       Stock Import Successful
                     </h4>
-                    <p className="text-xs text-[#7A839E] mt-1 max-w-md">
+                    <p className="text-xs text-subtle mt-1 max-w-md">
                       Physical inventory stock levels, movements, and stock intelligence metrics have been updated atomically.
                     </p>
                   </div>
 
                   {/* Summary Card */}
-                  <div className="w-full max-w-md bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl p-4 space-y-2 text-xs text-left">
-                    <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                      <span className="text-[#7A839E]">Stock Receipt Number:</span>
-                      <span className="font-mono font-bold text-[#3B6FD4]">
+                  <div className="w-full max-w-md bg-surface border border-line2 rounded-xl p-4 space-y-2 text-xs text-left">
+                    <div className="flex justify-between py-1 border-b border-line2">
+                      <span className="text-subtle">Stock Receipt Number:</span>
+                      <span className="font-mono font-bold text-fg">
                         {excelReceiptNumber}
                       </span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                      <span className="text-[#7A839E]">Products Updated:</span>
-                      <span className="font-mono font-semibold text-[#141B34]">
+                    <div className="flex justify-between py-1 border-b border-line2">
+                      <span className="text-subtle">Products Updated:</span>
+                      <span className="font-mono font-semibold text-fg">
                         {excelPreview?.summary.validItemCount ?? 0} SKUs
                       </span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                      <span className="text-[#7A839E]">Units Added:</span>
-                      <span className="font-mono font-bold text-[#2FBF71]">
+                    <div className="flex justify-between py-1 border-b border-line2">
+                      <span className="text-subtle">Units Added:</span>
+                      <span className="font-mono font-bold text-good">
                         +{formatNumber(excelPreview?.summary.totalIncomingUnits)} units
                       </span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                      <span className="text-[#7A839E]">Destination Warehouse:</span>
-                      <span className="font-semibold text-[#141B34]">
+                    <div className="flex justify-between py-1 border-b border-line2">
+                      <span className="text-subtle">Destination Warehouse:</span>
+                      <span className="font-semibold text-fg">
                         {warehouses.find((w) => w.id === Number(excelWarehouseId))?.name || 'Central Warehouse'}
                       </span>
                     </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-[#7A839E]">Date & Time:</span>
-                      <span className="text-[#7A839E]">
+                      <span className="text-subtle">Date & Time:</span>
+                      <span className="text-subtle">
                         {formatDate(new Date().toISOString())}
                       </span>
                     </div>
@@ -1298,7 +1298,7 @@ export default function StockInward() {
                       <Link
                         to={`/inventory/stock-inward/${createdReceiptId}`}
                         onClick={() => setExcelModalOpen(false)}
-                        className="px-4 py-2.5 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-bold text-xs rounded-lg transition-colors"
+                        className="px-4 py-2.5 bg-ink hover:bg-ink/85 text-onink font-bold text-xs rounded-lg transition-colors"
                       >
                         View Stock Receipt →
                       </Link>
@@ -1307,7 +1307,7 @@ export default function StockInward() {
                     <Link
                       to="/inventory/stock"
                       onClick={() => setExcelModalOpen(false)}
-                      className="px-4 py-2.5 bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#141B34] border border-[#E4E8F2] rounded-lg text-xs font-semibold transition-colors"
+                      className="px-4 py-2.5 bg-surface hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-semibold transition-colors"
                     >
                       View Stock Ledger
                     </Link>
@@ -1315,14 +1315,14 @@ export default function StockInward() {
                     <Link
                       to="/inventory/intelligence"
                       onClick={() => setExcelModalOpen(false)}
-                      className="px-4 py-2.5 bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#3B6FD4] border border-[#D6F2E4] rounded-lg text-xs font-semibold transition-colors"
+                      className="px-4 py-2.5 bg-surface hover:bg-tile text-fg border border-goodbg rounded-lg text-xs font-semibold transition-colors"
                     >
                       View Stock Intelligence
                     </Link>
 
                     <button
                       onClick={() => setExcelModalOpen(false)}
-                      className="px-4 py-2.5 bg-[#F4F6FC] hover:bg-[#F7F8FC] text-[#7A839E] border border-[#E4E8F2] rounded-lg text-xs font-medium transition-colors"
+                      className="px-4 py-2.5 bg-surface hover:bg-surface text-subtle border border-line2 rounded-lg text-xs font-medium transition-colors"
                     >
                       Back to Stock Inward
                     </button>

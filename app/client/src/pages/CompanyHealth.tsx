@@ -23,12 +23,12 @@ function relativeDays(days: number | null) {
 }
 
 const STATUS_COLORS: Record<CustomerHealthStatus, string> = {
-  new: '#3B6FD4',
-  strong: '#3B6FD4',
-  active: '#3B6FD4',
-  at_risk: '#E8A33D',
-  inactive: '#E5484D',
-  no_history: '#A8AEC4',
+  new: 'rgb(var(--good))',
+  strong: 'rgb(var(--good))',
+  active: 'rgb(var(--good))',
+  at_risk: 'rgb(var(--warn))',
+  inactive: 'rgb(var(--bad))',
+  no_history: 'rgb(var(--faint))',
 };
 
 const DESCRIPTION: Record<CustomerHealthStatus, string> = {
@@ -65,58 +65,58 @@ export default function CompanyHealth() {
     fetchData();
   }, [id]);
 
-  const color = data ? STATUS_COLORS[data.health.status] || '#7A839E' : '#7A839E';
+  const color = data ? STATUS_COLORS[data.health.status] || 'rgb(var(--muted))' : 'rgb(var(--muted))';
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center gap-4 text-[12.5px]">
-        <Link to="/customer-health" className="text-[#3B6FD4] hover:underline font-medium">
+        <Link to="/customer-health" className="text-fg hover:underline font-medium">
           ← Back to Customer Health
         </Link>
-        <span className="text-[#A8AEC4]">·</span>
-        <Link to="/companies" className="text-[#7A839E] hover:text-[#141B34] transition-colors">
+        <span className="text-faint">·</span>
+        <Link to="/companies" className="text-subtle hover:text-fg transition-colors">
           View All Companies
         </Link>
       </div>
 
       {/* Page Header */}
       <div className="flex flex-col gap-1.5">
-        <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
+        <h1>
           {data ? data.company.name : 'Company Health'}
         </h1>
-        <p className="margin-0 text-[13.5px] text-[#7A839E]">
+        <p className="ts-muted m-0 mt-1.5 text-[14px]">
           Detailed health profile, order history, and account metrics.
         </p>
       </div>
 
       {error ? (
-        <div className="p-4 rounded-[12px] bg-[#F8E4E4] border border-[#F4D6D7] text-[#E5484D] text-[13px] flex items-center justify-between gap-4">
+        <div className="p-4 rounded-[12px] bg-badbg border border-badbg text-bad text-[13px] flex items-center justify-between gap-4">
           <span>{error === 'Company not found' ? `Company #${id} was not found in the database.` : error}</span>
           {error !== 'Company not found' && (
             <button
               type="button"
               onClick={fetchData}
-              className="px-3 py-1.5 rounded-[8px] bg-[#F7DFE0] hover:bg-[#F5DADB] text-[#141B34] text-xs font-semibold cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-[8px] bg-badbg hover:bg-badbg text-fg text-xs font-semibold cursor-pointer transition-colors"
             >
               Retry
             </button>
           )}
         </div>
       ) : loading && !data ? (
-        <div className="p-8 text-center text-[#7A839E] text-[13px] rounded-[16px] bg-[#FFFFFF] border border-[#E4E8F2]">
+        <div className="p-8 text-center text-subtle text-[13px] rounded-[16px] bg-surface2 border border-line2">
           Loading company health details...
         </div>
       ) : data ? (
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF1F9] pb-4">
+        <div className="ts-card ts-white ts-tbl flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line2 pb-4">
             <div>
-              <h2 className="text-xl font-bold text-[#141B34]">{data.company.name}</h2>
-              <p className="text-xs text-[#7A839E] mt-0.5">Account ID: #{data.company.id}</p>
+              <h2 className="text-xl font-bold text-fg">{data.company.name}</h2>
+              <p className="text-xs text-subtle mt-0.5">Account ID: #{data.company.id}</p>
             </div>
             <div>
               <span
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-[8px] border border-[#E4E8F2] text-xs font-semibold"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-[8px] border border-line2 text-xs font-semibold"
                 style={{ color }}
               >
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
@@ -125,42 +125,42 @@ export default function CompanyHealth() {
             </div>
           </div>
 
-          <p className="text-sm text-[#7A839E] leading-relaxed">
+          <p className="text-sm text-subtle leading-relaxed">
             {DESCRIPTION[data.health.status]}
           </p>
 
           {data.health.status !== 'no_history' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-[12px] bg-[#F7F8FC] border border-[#E4E8F2]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-[12px] bg-surface border border-line2">
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Total Business</span>
-                <span className="text-xl font-extrabold text-[#141B34] mt-1">{formatCurrency(data.health.totalRevenue)}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-subtle">Total Business</span>
+                <span className="text-xl font-extrabold text-fg mt-1">{formatCurrency(data.health.totalRevenue)}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Total Orders</span>
-                <span className="text-xl font-extrabold text-[#141B34] mt-1">{data.health.orderCount}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-subtle">Total Orders</span>
+                <span className="text-xl font-extrabold text-fg mt-1">{data.health.orderCount}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Last Order</span>
-                <span className="text-xl font-extrabold text-[#141B34] mt-1">{relativeDays(data.health.daysSinceLastOrder)}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-subtle">Last Order</span>
+                <span className="text-xl font-extrabold text-fg mt-1">{relativeDays(data.health.daysSinceLastOrder)}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A839E]">Avg Order Value</span>
-                <span className="text-xl font-extrabold text-[#3B6FD4] mt-1">{formatCurrency(data.health.avgOrderValue)}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-subtle">Avg Order Value</span>
+                <span className="text-xl font-extrabold text-fg mt-1">{formatCurrency(data.health.avgOrderValue)}</span>
               </div>
             </div>
           ) : (
-            <div className="p-6 text-center text-[#7A839E] text-xs rounded-[12px] bg-[#F7F8FC] border border-[#E4E8F2]">
+            <div className="p-6 text-center text-subtle text-xs rounded-[12px] bg-surface border border-line2">
               No sales records or order history recorded for this company.
             </div>
           )}
 
           {data.health.status !== 'no_history' && (
-            <div className="text-xs text-[#A8AEC4] flex flex-wrap gap-x-4 gap-y-1">
-              <span>First order: <strong className="text-[#7A839E]">{formatDate(data.health.firstOrderDate)}</strong></span>
+            <div className="text-xs text-faint flex flex-wrap gap-x-4 gap-y-1">
+              <span>First order: <strong className="text-subtle">{formatDate(data.health.firstOrderDate)}</strong></span>
               <span>·</span>
-              <span>Last order: <strong className="text-[#7A839E]">{formatDate(data.health.lastOrderDate)}</strong></span>
+              <span>Last order: <strong className="text-subtle">{formatDate(data.health.lastOrderDate)}</strong></span>
               <span>·</span>
-              <span>Inactivity threshold: <strong className="text-[#7A839E]">{data.health.lapseMonths} months</strong></span>
+              <span>Inactivity threshold: <strong className="text-subtle">{data.health.lapseMonths} months</strong></span>
             </div>
           )}
         </div>
@@ -181,86 +181,86 @@ function Customer360Section({ companyId, companyName }: { companyId: number; com
     });
   }, [companyId]);
 
-  if (!c360) return <div className="text-xs text-[#A8AEC4] p-4">Loading Customer 360 Pipeline...</div>;
+  if (!c360) return <div className="text-xs text-faint p-4">Loading Customer 360 Pipeline...</div>;
 
   return (
-    <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E4E8F2] pb-4">
+    <div className="ts-card ts-white ts-tbl flex flex-col gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line2 pb-4">
         <div>
-          <h2 className="text-lg font-bold text-[#141B34]">Customer 360 Pipeline Control</h2>
-          <p className="text-xs text-[#7A839E]">
-            Assigned Engineer: <strong className="text-[#141B34]">{c360.customer.assigned_engineer || 'Unassigned'}</strong> | Branch: <strong className="text-[#141B34]">{c360.customer.branch || 'Main'}</strong>
+          <h2 className="text-lg font-bold text-fg">Customer 360 Pipeline Control</h2>
+          <p className="text-xs text-subtle">
+            Assigned Engineer: <strong className="text-fg">{c360.customer.assigned_engineer || 'Unassigned'}</strong> | Branch: <strong className="text-fg">{c360.customer.branch || 'Main'}</strong>
           </p>
         </div>
       </div>
 
       {/* KPI Overview */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
-          <span className="text-[10px] uppercase text-[#7A839E] block">Confirmed Sales</span>
-          <span className="text-lg font-bold text-[#3B6FD4]">{formatCurrency(c360.sales_summary.confirmed_sales_value)}</span>
+        <div className="bg-surface p-3 rounded-lg border border-line2">
+          <span className="text-[10px] uppercase text-subtle block">Confirmed Sales</span>
+          <span className="text-lg font-bold text-fg">{formatCurrency(c360.sales_summary.confirmed_sales_value)}</span>
         </div>
-        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
-          <span className="text-[10px] uppercase text-[#7A839E] block">Open Pipeline Value</span>
-          <span className="text-lg font-bold text-[#6B78D6]">{formatCurrency(c360.sales_summary.open_pipeline_value)}</span>
+        <div className="bg-surface p-3 rounded-lg border border-line2">
+          <span className="text-[10px] uppercase text-subtle block">Open Pipeline Value</span>
+          <span className="text-lg font-bold text-fg">{formatCurrency(c360.sales_summary.open_pipeline_value)}</span>
         </div>
-        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
-          <span className="text-[10px] uppercase text-[#7A839E] block">Open Quotations</span>
-          <span className="text-lg font-bold text-[#141B34]">{c360.sales_summary.open_quotations_count}</span>
+        <div className="bg-surface p-3 rounded-lg border border-line2">
+          <span className="text-[10px] uppercase text-subtle block">Open Quotations</span>
+          <span className="text-lg font-bold text-fg">{c360.sales_summary.open_quotations_count}</span>
         </div>
-        <div className="bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
-          <span className="text-[10px] uppercase text-[#7A839E] block">Open Orders</span>
-          <span className="text-lg font-bold text-[#E8A33D]">{c360.sales_summary.open_orders_count}</span>
+        <div className="bg-surface p-3 rounded-lg border border-line2">
+          <span className="text-[10px] uppercase text-subtle block">Open Orders</span>
+          <span className="text-lg font-bold text-warn">{c360.sales_summary.open_orders_count}</span>
         </div>
       </div>
 
       {/* Activity Timestamps */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-[#F4F6FC] p-3 rounded-lg border border-[#E4E8F2]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-surface p-3 rounded-lg border border-line2">
         <div>
-          <span className="text-[#7A839E] block">Last Quotation:</span>
-          <strong className="text-[#141B34]">{formatDate(c360.activity.last_quotation_date)}</strong>
+          <span className="text-subtle block">Last Quotation:</span>
+          <strong className="text-fg">{formatDate(c360.activity.last_quotation_date)}</strong>
         </div>
         <div>
-          <span className="text-[#7A839E] block">Last Follow-up:</span>
-          <strong className="text-[#141B34]">{formatDate(c360.activity.last_follow_up_date)}</strong>
+          <span className="text-subtle block">Last Follow-up:</span>
+          <strong className="text-fg">{formatDate(c360.activity.last_follow_up_date)}</strong>
         </div>
         <div>
-          <span className="text-[#7A839E] block">Last PO / Order:</span>
-          <strong className="text-[#141B34]">{formatDate(c360.activity.last_order_date)}</strong>
+          <span className="text-subtle block">Last PO / Order:</span>
+          <strong className="text-fg">{formatDate(c360.activity.last_order_date)}</strong>
         </div>
         <div>
-          <span className="text-[#7A839E] block">Last Confirmed Sale:</span>
-          <strong className="text-[#3B6FD4]">{formatDate(c360.activity.last_confirmed_sale_date)}</strong>
+          <span className="text-subtle block">Last Confirmed Sale:</span>
+          <strong className="text-fg">{formatDate(c360.activity.last_confirmed_sale_date)}</strong>
         </div>
       </div>
 
       {/* Current Active Opportunities */}
       <div>
-        <h3 className="text-xs font-semibold text-[#7A839E] uppercase mb-2">Active Commercial Opportunities</h3>
-        <div className="overflow-x-auto">
+        <h3 className="text-xs font-semibold text-subtle uppercase mb-2">Active Commercial Opportunities</h3>
+        <div className="ts-tblwrap">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-[#E4E8F2] text-[#7A839E]">
-                <th className="p-2">Quotation No</th>
-                <th className="p-2 text-right">Value (₹)</th>
-                <th className="p-2">Stage</th>
-                <th className="p-2 text-right">Age</th>
-                <th className="p-2">Next Follow-up</th>
-                <th className="p-2">Stock State</th>
+              <tr className="border-b border-line2 text-subtle">
+                <th>Quotation No</th>
+                <th className="ts-r">Value (₹)</th>
+                <th>Stage</th>
+                <th className="ts-r">Age</th>
+                <th>Next Follow-up</th>
+                <th>Stock State</th>
               </tr>
             </thead>
             <tbody>
               {c360.current_opportunities?.map((op: any) => (
-                <tr key={op.quotation_id} className="border-b border-[#E4E8F2]/50">
-                  <td className="p-2 font-bold text-[#3B6FD4]">
+                <tr key={op.quotation_id} >
+                  <td className="p-2 font-bold text-fg">
                     <Link to={`/quotations/${op.quotation_id}`}>{op.quotation_number}</Link>
                   </td>
-                  <td className="p-2 text-right font-semibold text-[#141B34]">{formatCurrency(op.net_subtotal)}</td>
+                  <td className="p-2 text-right font-semibold text-fg">{formatCurrency(op.net_subtotal)}</td>
                   <td className="p-2"><span className="badge info">{op.pipeline_stage_label}</span></td>
-                  <td className="p-2 text-right text-[#7A839E]">{op.age_days}d</td>
-                  <td className="p-2 text-[#6B78D6]">{op.next_follow_up_date ? formatDate(op.next_follow_up_date) : 'None'}</td>
+                  <td className="p-2 text-right text-subtle">{op.age_days}d</td>
+                  <td className="p-2 text-fg">{op.next_follow_up_date ? formatDate(op.next_follow_up_date) : 'None'}</td>
                   <td className="p-2">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${op.stock_status === 'FULLY_AVAILABLE' ? 'bg-[#3B6FD4]/10 text-[#3B6FD4]' : 'bg-[#E8A33D]/10 text-[#E8A33D]'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${op.stock_status === 'FULLY_AVAILABLE' ? 'bg-ink/10 text-fg' : 'bg-warn/10 text-warn'}`}>
                       {op.stock_status}
                     </span>
                   </td>
@@ -268,7 +268,7 @@ function Customer360Section({ companyId, companyName }: { companyId: number; com
               ))}
               {(!c360.current_opportunities || c360.current_opportunities.length === 0) && (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-[#A8AEC4]">
+                  <td colSpan={6} className="p-4 text-center text-faint">
                     No active open opportunities for this customer.
                   </td>
                 </tr>

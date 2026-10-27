@@ -29,8 +29,8 @@ export default function FlaggedSalesRecords() {
     setPage(1);
   }, [search]);
 
-  if (error) return <div className="error">{error}</div>;
-  if (!data) return <p className="muted loading-text">Loading…</p>;
+  if (error) return <div className="ts-warnbox">{error}</div>;
+  if (!data) return <p className="text-subtle ts-empty">Loading…</p>;
 
   const q = search.toLowerCase();
   const filtered = search
@@ -44,18 +44,20 @@ export default function FlaggedSalesRecords() {
   const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
-    <div>
-      <h2>Flagged Sales Records</h2>
-      <p className="page-subtitle">Imported sales rows with missing or unclear data that need review.</p>
-
-      <div className="inactive-summary">
-        <div className="inactive-summary-count">
-          {data.count} Flagged Record{data.count === 1 ? '' : 's'}
-        </div>
-        <div className="inactive-summary-hint">Data quality issues found during import (missing or unclear fields).</div>
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 !block">
+      <h1 className="ts-title">Flagged Sales Records</h1>
+      <p className="ts-muted m-0 mt-1.5 text-[14px]">Imported sales rows with missing or unclear data that need review.</p>
       </div>
 
-      <div className="mb-3">
+      <div className="ts-card ts-kpi-sm flex flex-wrap items-baseline justify-between gap-2">
+        <div className="text-[22px] font-medium text-fg num tracking-[-.02em]">
+          {data.count} Flagged Record{data.count === 1 ? '' : 's'}
+        </div>
+        <div className="text-[13px] text-subtle">Data quality issues found during import (missing or unclear fields).</div>
+      </div>
+
+      <div>
         <ExpandableSearch
           value={search}
           onChange={setSearch}
@@ -65,9 +67,9 @@ export default function FlaggedSalesRecords() {
         />
       </div>
 
-      <div className="card">
-        <div className="table-scroll">
-          <table className="data-table">
+      <div className="ts-card ts-tbl">
+        <div className="ts-tblwrap">
+          <table>
             <thead>
               <tr>
                 <th>Date</th>
@@ -75,7 +77,7 @@ export default function FlaggedSalesRecords() {
                 <th>Company</th>
                 <th>Part No</th>
                 <th>Product</th>
-                <th className="text-right">Amount</th>
+                <th className="ts-r">Amount</th>
                 <th>Reason</th>
               </tr>
             </thead>
@@ -87,13 +89,13 @@ export default function FlaggedSalesRecords() {
                   <td>{r.company_name || '-'}</td>
                   <td>{r.part_no || '-'}</td>
                   <td>{r.product_description || '-'}</td>
-                  <td className="text-right">{formatCurrency(r.total_amount)}</td>
-                  <td className="muted">{r.review_reason || '-'}</td>
+                  <td className="ts-r">{formatCurrency(r.total_amount)}</td>
+                  <td className="text-subtle">{r.review_reason || '-'}</td>
                 </tr>
               ))}
               {filtered.length === 0 && data.records.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="muted">
+                  <td colSpan={7} className="text-subtle">
                     No flagged sales records.
                     <br />
                     You're all caught up.
@@ -102,7 +104,7 @@ export default function FlaggedSalesRecords() {
               )}
               {filtered.length === 0 && data.records.length > 0 && (
                 <tr>
-                  <td colSpan={7} className="muted">
+                  <td colSpan={7} className="text-subtle">
                     No matches.
                   </td>
                 </tr>

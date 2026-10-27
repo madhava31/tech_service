@@ -1,3 +1,4 @@
+import { Seg } from '../../components/ds/Seg';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -435,28 +436,28 @@ export default function SaleReportNew() {
 
   if (loading) {
     return (
-      <div className="p-8 max-w-5xl mx-auto text-center text-[#7A839E]">
+      <div className="p-8 max-w-5xl mx-auto text-center text-subtle">
         Loading Sale Report details...
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex items-center gap-3">
           <Link
             to="/sale-reports"
-            className="p-2 bg-[#F7F8FC] border border-[#EEF1F9] text-[#7A839E] hover:text-[#141B34] rounded-lg transition-colors"
+            className="ts-iconbtn" aria-label="Back to sale reports"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[#141B34]">
+            <h1 className="ts-title ts-title-sm">
               {isEditing ? `Edit Draft Sale Report` : 'Create New Sale Report'}
             </h1>
-            <p className="text-xs text-[#7A839E] mt-0.5">
+            <p className="ts-muted m-0 mt-1.5 text-[14px]">
               Select an internal document or manually record external customer sale
             </p>
           </div>
@@ -465,7 +466,7 @@ export default function SaleReportNew() {
         <div className="flex items-center gap-2.5">
           <Link
             to="/sale-reports"
-            className="px-3.5 py-2 bg-[#F7F8FC] border border-[#EEF1F9] text-[#7A839E] hover:text-[#141B34] rounded-lg text-xs font-medium transition-colors"
+            className="ts-btn ts-ghost ts-xs"
           >
             Cancel
           </Link>
@@ -473,7 +474,7 @@ export default function SaleReportNew() {
             type="button"
             onClick={() => handleSubmit(false)}
             disabled={submitting}
-            className="px-4 py-2 bg-[#EEF1F9] border border-[#D4DAEA] text-[#141B34] hover:bg-[#E4E8F2] rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+            className="ts-btn ts-ghost ts-xs"
           >
             Save as Draft
           </button>
@@ -481,7 +482,7 @@ export default function SaleReportNew() {
             type="button"
             onClick={() => handleSubmit(true)}
             disabled={submitting}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] hover:bg-[#2F5CB8] rounded-lg text-xs font-semibold transition-colors shadow-sm disabled:opacity-50"
+            className="ts-btn ts-dark ts-xs"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Confirm & Stock OUT</span>
@@ -491,7 +492,7 @@ export default function SaleReportNew() {
 
       {/* Error Alert */}
       {error && (
-        <div className="p-4 bg-[#F7E0E0] border border-[#F4D4D5] rounded-xl flex items-center gap-3 text-sm text-[#E5484D]">
+        <div className="ts-warnbox">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -499,70 +500,51 @@ export default function SaleReportNew() {
 
       {/* Stock Availability Warning Banner */}
       {stockValidationErrors.length > 0 && (
-        <div className="p-4 bg-[#F7EEE0] border border-[#F4E9D5] rounded-xl flex items-start gap-3 text-sm text-[#E8A33D]">
+        <div className="ts-warnbox !bg-warnbg !text-warn flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold">Stock Warning: Insufficient Available Stock</p>
-            <ul className="list-disc pl-5 text-xs text-[#E8A33D] space-y-0.5">
+            <ul className="list-disc pl-5 text-xs text-warn space-y-0.5">
               {stockValidationErrors.map((err, i) => (
                 <li key={i}>{err}</li>
               ))}
             </ul>
-            <p className="text-xs text-[#7A839E] pt-1">
+            <p className="text-xs text-subtle pt-1">
               You can still <strong>Save as Draft</strong>, but confirmation will be blocked until inventory is stocked.
             </p>
           </div>
         </div>
       )}
 
-      {/* Source Choice Tabs */}
+      {/* Source choice */}
       {!isEditing && (
-        <div className="grid grid-cols-2 gap-3 p-1.5 bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl">
-          <button
-            type="button"
-            onClick={() => {
-              setSourceMode('INTERNAL_DOCUMENT');
-              setLineItems([]);
-            }}
-            className={`flex items-center justify-center gap-2.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
-              sourceMode === 'INTERNAL_DOCUMENT'
-                ? 'bg-[#EEF1F9] text-[#3B6FD4] shadow-sm border border-[#DCE2F0]'
-                : 'text-[#8992AB] hover:text-[#141B34]'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>CASE 1 — From Existing Quotation / PO / PI</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setSourceMode('DIRECT_EXTERNAL');
-              setLineItems([]);
-            }}
-            className={`flex items-center justify-center gap-2.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
-              sourceMode === 'DIRECT_EXTERNAL'
-                ? 'bg-[#EEF1F9] text-[#3B6FD4] shadow-sm border border-[#DCE2F0]'
-                : 'text-[#8992AB] hover:text-[#141B34]'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>CASE 2 — Direct External PO / PI</span>
-          </button>
+        <div className="ts-card ts-white" style={{ padding: 12 }}>
+          <div className="max-w-full overflow-x-auto no-scrollbar rounded-full">
+            <Seg
+              label="Sale report source"
+              value={sourceMode}
+              options={[
+                { value: 'INTERNAL_DOCUMENT', label: 'Case 1 · From quotation, PO or PI' },
+                { value: 'DIRECT_EXTERNAL', label: 'Case 2 · Direct external PO or PI' },
+              ]}
+              onChange={(v) => { setSourceMode(v as typeof sourceMode); setLineItems([]); }}
+            />
+          </div>
         </div>
       )}
 
       {/* Top Document Details Card */}
-      <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-5 space-y-4">
-        <h2 className="text-sm font-bold text-[#141B34] flex items-center gap-2 border-b border-[#EEF1F9] pb-3">
-          <Building2 className="w-4 h-4 text-[#3B6FD4]" />
+      <div className="ts-card space-y-4">
+        <h2 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2 border-dashed border-line2 pb-3 border-b">
+          <Building2 className="w-4 h-4 text-fg" />
           <span>Sale Report Header Information</span>
         </h2>
 
         {/* Case 1 Internal Document Picker */}
         {sourceMode === 'INTERNAL_DOCUMENT' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-[#EEF1F9]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-line2">
             <div>
-              <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+              <label className="ts-lbl">
                 1. Filter by Company (Optional)
               </label>
               <select
@@ -578,7 +560,7 @@ export default function SaleReportNew() {
                     }
                   }
                 }}
-                className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                className="ts-fi"
               >
                 <option value="">All Companies</option>
                 {companies.map((c) => (
@@ -590,7 +572,7 @@ export default function SaleReportNew() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+              <label className="ts-lbl">
                 2. Source Document Type
               </label>
               <select
@@ -600,7 +582,7 @@ export default function SaleReportNew() {
                   setSelectedDocId('');
                   setLineItems([]);
                 }}
-                className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                className="ts-fi"
               >
                 <option value="quotation">Quotation (QTN)</option>
                 <option value="po">Purchase Order (PO)</option>
@@ -609,13 +591,13 @@ export default function SaleReportNew() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+              <label className="ts-lbl">
                 3. Select Source Document
               </label>
               <select
                 value={selectedDocId}
                 onChange={(e) => handleSelectDocument(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                className="ts-fi"
               >
                 <option value="">Choose eligible document...</option>
                 {availableDocs.map((doc: any) => (
@@ -632,8 +614,8 @@ export default function SaleReportNew() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Company Name */}
           <div className="relative">
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
-              Company Name <span className="text-[#E5484D]">*</span>
+            <label className="ts-lbl">
+              Company Name <span className="text-bad">*</span>
             </label>
             <input
               type="text"
@@ -641,19 +623,19 @@ export default function SaleReportNew() {
               value={companyName}
               onChange={(e) => handleCompanyInput(e.target.value)}
               disabled={sourceMode === 'INTERNAL_DOCUMENT' && Boolean(selectedDocId)}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4] disabled:opacity-60"
+              className="ts-fi"
             />
             {showCompanySuggestions && companySuggestions.length > 0 && (
-              <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-[#F7F8FC] border border-[#DCE2F0] rounded-lg shadow-card overflow-hidden max-h-48 overflow-y-auto">
+              <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface border border-line2 rounded-lg shadow-card overflow-hidden max-h-48 overflow-y-auto">
                 {companySuggestions.map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => handleSelectCompanySuggestion(c)}
-                    className="w-full text-left px-3 py-2 text-xs text-[#141B34] hover:bg-[#EEF1F9] flex items-center justify-between border-b border-[#EEF1F9] last:border-b-0"
+                    className="w-full text-left px-3 py-2 text-xs text-fg hover:bg-tile flex items-center justify-between border-b border-line2 last:border-b-0"
                   >
                     <span>{c.name}</span>
-                    {c.phone && <span className="text-[11px] text-[#8992AB]">{c.phone}</span>}
+                    {c.phone && <span className="text-[11px] text-subtle">{c.phone}</span>}
                   </button>
                 ))}
               </div>
@@ -662,7 +644,7 @@ export default function SaleReportNew() {
 
           {/* Invoice Number */}
           <div>
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+            <label className="ts-lbl">
               Invoice Number
             </label>
             <input
@@ -670,26 +652,26 @@ export default function SaleReportNew() {
               placeholder="e.g. INV-2026-001 or External Ref"
               value={invoiceNumber}
               onChange={(e) => setInvoiceNumber(e.target.value)}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
 
           {/* Sale Date */}
           <div>
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
-              Sale Date <span className="text-[#E5484D]">*</span>
+            <label className="ts-lbl">
+              Sale Date <span className="text-bad">*</span>
             </label>
             <input
               type="date"
               value={saleDate}
               onChange={(e) => setSaleDate(e.target.value)}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
 
           {/* Phone Number */}
           <div>
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+            <label className="ts-lbl">
               Phone Number
             </label>
             <input
@@ -697,19 +679,19 @@ export default function SaleReportNew() {
               placeholder="Customer contact phone"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
 
           {/* Warehouse Selection */}
           <div>
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
-              Warehouse for Stock OUT <span className="text-[#E5484D]">*</span>
+            <label className="ts-lbl">
+              Warehouse for Stock OUT <span className="text-bad">*</span>
             </label>
             <select
               value={selectedWarehouseId}
               onChange={(e) => setSelectedWarehouseId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             >
               <option value="">Select Warehouse...</option>
               {warehouses.map((w) => (
@@ -722,7 +704,7 @@ export default function SaleReportNew() {
 
           {/* External Source Reference */}
           <div>
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+            <label className="ts-lbl">
               Source Reference / PO Ref
             </label>
             <input
@@ -730,13 +712,13 @@ export default function SaleReportNew() {
               placeholder="Customer PO #, email note, etc."
               value={sourceReference}
               onChange={(e) => setSourceReference(e.target.value)}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
 
           {/* Tax Percent */}
           <div>
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+            <label className="ts-lbl">
               GST / Tax Percent (%)
             </label>
             <input
@@ -745,13 +727,13 @@ export default function SaleReportNew() {
               max="100"
               value={taxPercent}
               onChange={(e) => setTaxPercent(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-medium text-[#8992AB] mb-1.5">
+            <label className="ts-lbl">
               Notes / Dispatch Remarks
             </label>
             <input
@@ -759,19 +741,19 @@ export default function SaleReportNew() {
               placeholder="Optional remarks"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="ts-fi"
             />
           </div>
         </div>
       </div>
 
       {/* Line Items Card */}
-      <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF1F9] pb-3">
+      <div className="ts-card space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line2 pb-3">
           <div className="flex items-center gap-2">
-            <Boxes className="w-4 h-4 text-[#3B6FD4]" />
-            <h2 className="text-sm font-bold text-[#141B34]">Products & Quantities for Stock OUT</h2>
-            <span className="text-xs text-[#8992AB]">({activeItems.length} items included)</span>
+            <Boxes className="w-4 h-4 text-fg" />
+            <h2 className="m-0 text-[15px] font-medium text-fg">Products & Quantities for Stock OUT</h2>
+            <span className="text-xs text-subtle">({activeItems.length} items included)</span>
           </div>
 
           {/* Direct Product Picker for Case 2 */}
@@ -782,10 +764,10 @@ export default function SaleReportNew() {
                 placeholder="Search catalogue by part # or name to add..."
                 value={productSearchQuery}
                 onChange={(e) => handleProductSearch(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#EDF0F8] border border-[#DCE2F0] rounded-lg text-xs text-[#141B34] placeholder-[#A8AEC4] focus:outline-none focus:border-[#3B6FD4]"
+                className="ts-fi"
               />
               {showProductDropdown && filteredProducts.length > 0 && (
-                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-[#F7F8FC] border border-[#DCE2F0] rounded-lg shadow-card overflow-hidden max-h-60 overflow-y-auto">
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface border border-line2 rounded-lg shadow-card overflow-hidden max-h-60 overflow-y-auto">
                   {filteredProducts.map((p) => {
                     const st = stockMap[p.id];
                     const avail = st ? st.available : 0;
@@ -794,14 +776,14 @@ export default function SaleReportNew() {
                         key={p.id}
                         type="button"
                         onClick={() => handleAddDirectProduct(p)}
-                        className="w-full text-left px-3 py-2 text-xs text-[#141B34] hover:bg-[#EEF1F9] flex items-center justify-between border-b border-[#EEF1F9] last:border-b-0"
+                        className="w-full text-left px-3 py-2 text-xs text-fg hover:bg-tile flex items-center justify-between border-b border-line2 last:border-b-0"
                       >
                         <div className="flex flex-col">
                           <span className="font-mono font-semibold">{p.part_no}</span>
-                          <span className="text-[11px] text-[#8992AB] line-clamp-1">{p.description}</span>
+                          <span className="text-[11px] text-subtle line-clamp-1">{p.description}</span>
                         </div>
                         <span className={`text-[11px] px-2 py-0.5 rounded font-mono ${
-                          avail > 0 ? 'bg-[#E1F5EB] text-[#2FBF71]' : 'bg-[#F7E0E1] text-[#E5484D]'
+                          avail > 0 ? 'bg-goodbg text-good' : 'bg-badbg text-bad'
                         }`}>
                           Avail: {avail}
                         </span>
@@ -815,38 +797,38 @@ export default function SaleReportNew() {
         </div>
 
         {/* Items Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#7A839E]">
-            <thead className="bg-[#EDF0F8] border-b border-[#EEF1F9] text-[#8992AB] uppercase tracking-wider font-semibold">
+        <div className="ts-tblwrap">
+          <table className="w-full text-left text-xs text-subtle">
+            <thead>
               <tr>
-                {sourceMode === 'INTERNAL_DOCUMENT' && <th className="px-3 py-3 w-10 text-center">Include</th>}
-                <th className="px-3 py-3">Part Number</th>
-                <th className="px-3 py-3">Description</th>
-                <th className="px-3 py-3">HSN</th>
+                {sourceMode === 'INTERNAL_DOCUMENT' && <th className="text-center">Include</th>}
+                <th>Part Number</th>
+                <th>Description</th>
+                <th>HSN</th>
                 {sourceMode === 'INTERNAL_DOCUMENT' && (
                   <>
-                    <th className="px-3 py-3 text-right">Quote Qty</th>
-                    <th className="px-3 py-3 text-right">Already Sold</th>
-                    <th className="px-3 py-3 text-right">Remaining</th>
+                    <th className="ts-r">Quote Qty</th>
+                    <th className="ts-r">Already Sold</th>
+                    <th className="ts-r">Remaining</th>
                   </>
                 )}
-                <th className="px-3 py-3 text-center">Warehouse Stock</th>
-                <th className="px-3 py-3 w-28 text-right">Sale Qty</th>
-                <th className="px-3 py-3 w-28 text-right">Price (₹)</th>
-                <th className="px-3 py-3 text-right">Total (₹)</th>
-                {sourceMode === 'DIRECT_EXTERNAL' && <th className="px-3 py-3 w-10"></th>}
+                <th className="text-center">Warehouse Stock</th>
+                <th className="ts-r">Sale Qty</th>
+                <th className="ts-r">Price (₹)</th>
+                <th className="ts-r">Total (₹)</th>
+                {sourceMode === 'DIRECT_EXTERNAL' && <th></th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F7F8FC]">
+            <tbody>
               {loadingDoc ? (
                 <tr>
-                  <td colSpan={11} className="px-3 py-8 text-center text-[#8992AB]">
+                  <td colSpan={11} className="px-3 py-8 text-center text-subtle">
                     Loading document items...
                   </td>
                 </tr>
               ) : lineItems.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-3 py-8 text-center text-[#A8AEC4]">
+                  <td colSpan={11} className="px-3 py-8 text-center text-faint">
                     {sourceMode === 'INTERNAL_DOCUMENT'
                       ? 'Select a source document above to load items.'
                       : 'Search and select products from the catalogue above to add line items.'}
@@ -864,8 +846,8 @@ export default function SaleReportNew() {
                   return (
                     <tr
                       key={it.id}
-                      className={`hover:bg-[#F7F8FC] transition-colors ${
-                        !it.selected ? 'opacity-45 bg-[#E9EDF7]' : ''
+                      className={`hover:bg-surface transition-colors ${
+                        !it.selected ? 'opacity-45 bg-tile' : ''
                       }`}
                     >
                       {sourceMode === 'INTERNAL_DOCUMENT' && (
@@ -874,28 +856,28 @@ export default function SaleReportNew() {
                             type="checkbox"
                             checked={it.selected}
                             onChange={(e) => handleItemChange(it.id, 'selected', e.target.checked)}
-                            className="rounded border-[#DCE2F0] bg-[#EDF0F8] text-[#3B6FD4] focus:ring-0 cursor-pointer"
+                            className="rounded border-line2 bg-tile text-fg focus:ring-0 cursor-pointer"
                           />
                         </td>
                       )}
-                      <td className="px-3 py-3 font-mono font-semibold text-[#141B34] whitespace-nowrap">
+                      <td className="px-3 py-3 font-mono font-semibold text-fg whitespace-nowrap">
                         {it.partNo}
                       </td>
-                      <td className="px-3 py-3 max-w-xs truncate text-[#2C3454]" title={it.description}>
+                      <td className="px-3 py-3 max-w-xs truncate text-fg" title={it.description}>
                         {it.description}
                       </td>
-                      <td className="px-3 py-3 font-mono text-[#8992AB]">
+                      <td className="px-3 py-3 font-mono text-subtle">
                         {it.hsnSac || '—'}
                       </td>
                       {sourceMode === 'INTERNAL_DOCUMENT' && (
                         <>
-                          <td className="px-3 py-3 text-right font-mono text-[#8992AB]">
+                          <td className="px-3 py-3 text-right font-mono text-subtle">
                             {it.originalQty}
                           </td>
-                          <td className="px-3 py-3 text-right font-mono text-[#8992AB]">
+                          <td className="px-3 py-3 text-right font-mono text-subtle">
                             {it.previouslySoldQty || 0}
                           </td>
-                          <td className="px-3 py-3 text-right font-mono font-semibold text-[#141B34]">
+                          <td className="px-3 py-3 text-right font-mono font-semibold text-fg">
                             {it.remainingQty}
                           </td>
                         </>
@@ -904,10 +886,10 @@ export default function SaleReportNew() {
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono ${
                             availableStock === 0
-                              ? 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
+                              ? 'bg-badbg text-bad border border-badbg'
                               : isOverStock
-                              ? 'bg-[#F7EEE0] text-[#E8A33D] border border-[#F4E9D5]'
-                              : 'bg-[#E2F6EC] text-[#2FBF71] border border-[#D9F3E6]'
+                              ? 'bg-warnbg text-warn border border-warnbg'
+                              : 'bg-goodbg text-good border border-goodbg'
                           }`}
                         >
                           Avail: {availableStock}
@@ -927,10 +909,10 @@ export default function SaleReportNew() {
                               e.target.value === '' ? '' : Math.max(0, Number(e.target.value))
                             )
                           }
-                          className={`w-20 px-2 py-1 bg-[#EDF0F8] border rounded text-right font-mono text-xs focus:outline-none ${
+                          className={`w-20 px-2 py-1 bg-tile border rounded text-right font-mono text-xs focus:outline-none ${
                             isOverStock
-                              ? 'border-[#E5484D] text-[#E5484D] focus:border-[#E5484D]'
-                              : 'border-[#DCE2F0] text-[#141B34] focus:border-[#3B6FD4]'
+                              ? 'border-bad text-bad focus:border-bad'
+                              : 'border-line2 text-fg focus:border-fg'
                           }`}
                         />
                       </td>
@@ -948,10 +930,10 @@ export default function SaleReportNew() {
                               e.target.value === '' ? '' : Math.max(0, Number(e.target.value))
                             )
                           }
-                          className="w-24 px-2 py-1 bg-[#EDF0F8] border border-[#DCE2F0] rounded text-right font-mono text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                          className="w-24 px-2 py-1 bg-tile border border-line2 rounded text-right font-mono text-xs text-fg focus:outline-none focus:border-fg"
                         />
                       </td>
-                      <td className="px-3 py-3 text-right font-mono font-semibold text-[#141B34] whitespace-nowrap">
+                      <td className="px-3 py-3 text-right font-mono font-semibold text-fg whitespace-nowrap">
                         {formatINR(lineTotal)}
                       </td>
                       {sourceMode === 'DIRECT_EXTERNAL' && (
@@ -959,7 +941,7 @@ export default function SaleReportNew() {
                           <button
                             type="button"
                             onClick={() => handleRemoveLineItem(it.id)}
-                            className="text-[#A8AEC4] hover:text-[#E5484D] transition-colors p-1"
+                            className="text-faint hover:text-bad transition-colors p-1"
                             title="Remove item"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -975,18 +957,18 @@ export default function SaleReportNew() {
         </div>
 
         {/* Pricing Summary Bar */}
-        <div className="pt-4 border-t border-[#EEF1F9] flex flex-col sm:flex-row justify-end items-end sm:items-center gap-6 text-sm font-mono">
+        <div className="pt-4 border-t border-line2 flex flex-col sm:flex-row justify-end items-end sm:items-center gap-6 text-sm font-mono">
           <div className="text-right">
-            <span className="text-xs text-[#8992AB] block font-sans">Subtotal</span>
-            <span className="text-[#141B34] font-semibold">{formatINR(subtotal)}</span>
+            <span className="text-xs text-subtle block font-sans">Subtotal</span>
+            <span className="text-fg font-semibold">{formatINR(subtotal)}</span>
           </div>
           <div className="text-right">
-            <span className="text-xs text-[#8992AB] block font-sans">GST ({taxPercent}%)</span>
-            <span className="text-[#2C3454] font-semibold">{formatINR(taxAmount)}</span>
+            <span className="text-xs text-subtle block font-sans">GST ({taxPercent}%)</span>
+            <span className="text-fg font-semibold">{formatINR(taxAmount)}</span>
           </div>
-          <div className="text-right pl-4 border-l border-[#EEF1F9]">
-            <span className="text-xs text-[#8992AB] block font-sans">Total Amount</span>
-            <span className="text-xl text-[#3B6FD4] font-bold">{formatINR(totalAmount)}</span>
+          <div className="text-right pl-4 border-l border-line2">
+            <span className="text-xs text-subtle block font-sans">Total Amount</span>
+            <span className="text-xl text-fg font-bold">{formatINR(totalAmount)}</span>
           </div>
         </div>
       </div>

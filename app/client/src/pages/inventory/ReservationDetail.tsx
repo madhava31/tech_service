@@ -40,31 +40,31 @@ function formatDateTime(d: string | null | undefined) {
 function StatusBadge({ status }: { status: string }) {
   if (status === 'ACTIVE') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6] rounded-lg text-xs font-semibold">
-        <span className="w-2 h-2 rounded-full bg-[#E8A33D]" />
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-warnbg text-warn border border-warnbg rounded-lg text-xs font-medium">
+        <span className="w-2 h-2 rounded-full bg-warn" />
         Active (Stock Committed)
       </span>
     );
   }
   if (status === 'FULFILLED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4] rounded-lg text-xs font-semibold">
-        <span className="w-2 h-2 rounded-full bg-[#2FBF71]" />
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-goodbg text-good border border-goodbg rounded-lg text-xs font-medium">
+        <span className="w-2 h-2 rounded-full bg-good" />
         Fulfilled (Physical Stock Deducted)
       </span>
     );
   }
   if (status === 'RELEASED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4] rounded-lg text-xs font-semibold">
-        <span className="w-2 h-2 rounded-full bg-[#6D9BE8]" />
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-tile text-fg border border-line2 rounded-lg text-xs font-medium">
+        <span className="w-2 h-2 rounded-full bg-ink" />
         Released
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5] rounded-lg text-xs font-semibold">
-      <span className="w-2 h-2 rounded-full bg-[#E5484D]" />
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-badbg text-bad border border-badbg rounded-lg text-xs font-medium">
+      <span className="w-2 h-2 rounded-full bg-bad" />
       Cancelled
     </span>
   );
@@ -131,7 +131,7 @@ export default function ReservationDetail() {
 
   if (loading) {
     return (
-      <div className="p-8 max-w-5xl mx-auto text-center text-[#7A839E]">
+      <div className="p-8 max-w-5xl mx-auto text-center text-subtle">
         Loading reservation details...
       </div>
     );
@@ -142,12 +142,12 @@ export default function ReservationDetail() {
       <div className="p-6 max-w-5xl mx-auto space-y-4">
         <Link
           to="/inventory/reservations"
-          className="inline-flex items-center gap-2 text-xs text-[#7A839E] hover:text-[#141B34]"
+          className="inline-flex items-center gap-2 text-xs text-subtle hover:text-fg"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Reservations</span>
         </Link>
-        <div className="p-4 bg-[#F7E0E0] border border-[#F4D4D5] rounded-xl text-sm text-[#E5484D] flex items-center gap-3">
+        <div className="ts-warnbox">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error || 'Reservation not found'}</span>
         </div>
@@ -156,19 +156,19 @@ export default function ReservationDetail() {
   }
 
   return (
-    <div className="p-6 max-w-[1280px] mx-auto space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="space-y-1">
           <Link
             to="/inventory/reservations"
-            className="inline-flex items-center gap-1.5 text-xs text-[#7A839E] hover:text-[#141B34] transition-colors mb-1"
+            className="inline-flex items-center gap-1.5 text-[13px] text-subtle hover:text-fg transition-colors mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Reservations</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold font-mono tracking-tight text-[#141B34]">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="ts-title num">
               #RES-{reservation.id}
             </h1>
             <StatusBadge status={reservation.status} />
@@ -177,18 +177,18 @@ export default function ReservationDetail() {
 
         {/* Action Controls for ACTIVE reservations */}
         {reservation.status === 'ACTIVE' && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => setReleaseModalOpen(true)}
-              className="px-4 py-2 bg-[#E1E6F6] border border-[#D9DFF4] text-[#3B6FD4] hover:bg-[#DBE1F5] rounded-lg text-sm font-semibold transition-colors"
+              className="ts-btn ts-ghost"
             >
               Release Reservation
             </button>
             <button
               type="button"
               onClick={() => setFulfillModalOpen(true)}
-              className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] hover:bg-[#2F5CB8] rounded-lg text-sm font-semibold transition-colors shadow-sm"
+              className="ts-btn ts-dark"
             >
               Fulfill & Deduct Stock
             </button>
@@ -199,117 +199,117 @@ export default function ReservationDetail() {
       {/* Info Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Product Card */}
-        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#8992AB] uppercase tracking-wider">
-            <Boxes className="w-4 h-4 text-[#3B6FD4]" />
+        <div className="ts-card space-y-3">
+          <div className="text-[13px] text-subtle flex items-center gap-2">
+            <Boxes className="w-4 h-4 text-fg" />
             <span>Reserved Product</span>
           </div>
 
-          <div className="space-y-2 text-xs text-[#2C3454]">
+          <div className="space-y-2 text-xs text-fg">
             <div>
               <Link
                 to={`/inventory/stock/${reservation.product_id}`}
-                className="text-base font-bold text-[#141B34] hover:text-[#3B6FD4] transition-colors flex items-center gap-1.5 font-mono"
+                className="text-base font-medium text-fg hover:text-fg transition-colors flex items-center gap-1.5 num"
               >
                 <span>{reservation.part_no}</span>
                 <ExternalLink className="w-3.5 h-3.5 opacity-60" />
               </Link>
-              <p className="text-xs text-[#8992AB] mt-0.5 line-clamp-2">{reservation.product_description}</p>
+              <p className="text-xs text-subtle mt-0.5 line-clamp-2">{reservation.product_description}</p>
             </div>
             {reservation.hsn_sac && (
               <div className="flex justify-between">
-                <span className="text-[#8992AB]">HSN Code:</span>
-                <span className="font-mono text-[#141B34]">{reservation.hsn_sac}</span>
+                <span className="text-subtle">HSN Code:</span>
+                <span className="num text-fg">{reservation.hsn_sac}</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-[#8992AB]">Unit of Measure:</span>
-              <span className="text-[#141B34]">{reservation.unit || 'Nos'}</span>
+              <span className="text-subtle">Unit of Measure:</span>
+              <span className="text-fg">{reservation.unit || 'Nos'}</span>
             </div>
           </div>
         </div>
 
         {/* Warehouse Card */}
-        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#8992AB] uppercase tracking-wider">
-            <WarehouseIcon className="w-4 h-4 text-[#3B6FD4]" />
+        <div className="ts-card space-y-3">
+          <div className="text-[13px] text-subtle flex items-center gap-2">
+            <WarehouseIcon className="w-4 h-4 text-fg" />
             <span>Warehouse Location</span>
           </div>
 
-          <div className="space-y-2 text-xs text-[#2C3454]">
+          <div className="space-y-2 text-xs text-fg">
             <div>
               <Link
                 to={`/inventory/warehouses/${reservation.warehouse_id}`}
-                className="text-base font-bold text-[#141B34] hover:text-[#3B6FD4] transition-colors flex items-center gap-1.5"
+                className="text-base font-medium text-fg hover:text-fg transition-colors flex items-center gap-1.5"
               >
                 <span>{reservation.warehouse_name}</span>
-                <span className="text-xs font-mono text-[#8992AB]">({reservation.warehouse_code})</span>
+                <span className="text-xs num text-subtle">({reservation.warehouse_code})</span>
               </Link>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#8992AB]">Reserved By:</span>
-              <span className="text-[#141B34]">{reservation.reserved_by_username || 'Staff'}</span>
+              <span className="text-subtle">Reserved By:</span>
+              <span className="text-fg">{reservation.reserved_by_username || 'Staff'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#8992AB]">Created Date:</span>
-              <span className="text-[#2C3454]">{formatDate(reservation.created_at)}</span>
+              <span className="text-subtle">Created Date:</span>
+              <span className="text-fg">{formatDate(reservation.created_at)}</span>
             </div>
           </div>
         </div>
 
         {/* Current Stock Snapshot Card */}
-        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#8992AB] uppercase tracking-wider">
-            <Lock className="w-4 h-4 text-[#E8A33D]" />
+        <div className="ts-card space-y-3">
+          <div className="text-[13px] text-subtle flex items-center gap-2">
+            <Lock className="w-4 h-4 text-warn" />
             <span>Current Stock Snapshot</span>
           </div>
 
-          <div className="space-y-2 text-xs font-mono">
-            <div className="flex justify-between p-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg">
-              <span className="text-[#8992AB]">On-Hand Physical:</span>
-              <span className="text-[#141B34] font-bold text-sm">{reservation.stock.onHand}</span>
+          <div className="space-y-2 text-[13px]">
+            <div className="flex justify-between items-center px-3.5 py-2.5 bg-tile rounded-[12px]">
+              <span className="text-subtle">On-Hand Physical:</span>
+              <span className="text-fg font-medium text-[14px] num">{reservation.stock.onHand}</span>
             </div>
-            <div className="flex justify-between p-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg">
-              <span className="text-[#E8A33D]">Total Reserved:</span>
-              <span className="text-[#E8A33D] font-bold text-sm">{reservation.stock.reserved}</span>
+            <div className="flex justify-between items-center px-3.5 py-2.5 bg-tile rounded-[12px]">
+              <span className="text-warn">Total Reserved:</span>
+              <span className="text-warn font-medium text-[14px] num">{reservation.stock.reserved}</span>
             </div>
-            <div className="flex justify-between p-2 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg">
-              <span className="text-[#2FBF71]">Net Available:</span>
-              <span className="text-[#2FBF71] font-bold text-sm">{reservation.stock.available}</span>
+            <div className="flex justify-between items-center px-3.5 py-2.5 bg-tile rounded-[12px]">
+              <span className="text-good">Net Available:</span>
+              <span className="text-good font-medium text-[14px] num">{reservation.stock.available}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Reservation Details Box */}
-      <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-5 space-y-4">
-        <h2 className="text-sm font-bold text-[#141B34]">Commitment Details</h2>
+      <div className="ts-card space-y-4">
+        <h2 className="m-0 text-[15px] font-medium text-fg">Commitment Details</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
-          <div className="p-3 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg">
-            <span className="text-[#8992AB] block text-[11px]">Reserved Quantity</span>
-            <span className="text-xl font-bold text-[#E8A33D] mt-1 block">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs num">
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <span className="text-subtle block text-[12.5px]">Reserved Quantity</span>
+            <span className="text-xl font-medium text-warn mt-1 block">
               {reservation.quantity} {reservation.unit || 'Nos'}
             </span>
           </div>
 
-          <div className="p-3 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg">
-            <span className="text-[#8992AB] block text-[11px]">Reference Type</span>
-            <span className="text-sm font-semibold text-[#2C3454] mt-1 block">
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <span className="text-subtle block text-[12.5px]">Reference Type</span>
+            <span className="text-sm font-medium text-fg mt-1 block">
               {reservation.reference_type || 'MANUAL'}
             </span>
           </div>
 
-          <div className="p-3 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg">
-            <span className="text-[#8992AB] block text-[11px]">Reference ID / Doc #</span>
-            <span className="text-sm font-semibold text-[#141B34] mt-1 block">
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <span className="text-subtle block text-[12.5px]">Reference ID / Doc #</span>
+            <span className="text-sm font-medium text-fg mt-1 block">
               {reservation.reference_id || '—'}
             </span>
           </div>
 
-          <div className="p-3 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg">
-            <span className="text-[#8992AB] block text-[11px]">Lifecycle Date</span>
-            <span className="text-xs text-[#2C3454] mt-1 block">
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <span className="text-subtle block text-[12.5px]">Lifecycle Date</span>
+            <span className="text-xs text-fg mt-1 block">
               {reservation.status === 'FULFILLED'
                 ? `Fulfilled: ${formatDateTime(reservation.fulfilled_at)}`
                 : reservation.status === 'RELEASED'
@@ -320,44 +320,44 @@ export default function ReservationDetail() {
         </div>
 
         {reservation.notes && (
-          <div className="p-3.5 bg-[#EDF0F8] border border-[#EEF1F9] rounded-lg text-xs space-y-1">
-            <span className="text-[#8992AB] font-medium">Notes & Context:</span>
-            <p className="text-[#2C3454] italic">{reservation.notes}</p>
+          <div className="bg-tile rounded-[14px] p-3.5 text-xs space-y-1">
+            <span className="text-subtle font-medium">Notes & Context:</span>
+            <p className="text-fg italic">{reservation.notes}</p>
           </div>
         )}
       </div>
 
       {/* Audit Trail Movements */}
       {reservation.movements && reservation.movements.length > 0 && (
-        <div className="bg-[#F7F8FC] border border-[#EEF1F9] rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#EEF1F9] pb-3">
-            <TrendingDown className="w-4 h-4 text-[#3B6FD4]" />
-            <h2 className="text-sm font-bold text-[#141B34]">Linked Inventory Movements</h2>
+        <div className="ts-card ts-tbl space-y-4">
+          <div className="flex items-center gap-2">
+            <TrendingDown className="w-4 h-4 text-fg" />
+            <h2 className="m-0 text-[15px] font-medium text-fg">Linked Inventory Movements</h2>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#7A839E]">
-              <thead className="bg-[#EDF0F8] border-b border-[#EEF1F9] text-[#8992AB] uppercase tracking-wider font-semibold">
+          <div className="ts-tblwrap">
+            <table>
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">Log ID</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Movement Type</th>
-                  <th className="px-4 py-3 text-right">Quantity</th>
-                  <th className="px-4 py-3 text-right">Before On-Hand</th>
-                  <th className="px-4 py-3 text-right">After On-Hand</th>
-                  <th className="px-4 py-3">Reason</th>
+                  <th>Log ID</th>
+                  <th>Date</th>
+                  <th>Movement Type</th>
+                  <th className="ts-r">Quantity</th>
+                  <th className="ts-r">Before On-Hand</th>
+                  <th className="ts-r">After On-Hand</th>
+                  <th>Reason</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F7F8FC]">
+              <tbody>
                 {reservation.movements.map((m) => (
-                  <tr key={m.id} className="hover:bg-[#F7F8FC]">
-                    <td className="px-4 py-3 font-mono font-semibold text-[#141B34]">#{m.id}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{formatDateTime(m.created_at)}</td>
-                    <td className="px-4 py-3 font-mono text-[#2FBF71] font-semibold">{m.movement_type}</td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-[#E5484D]">-{m.quantity}</td>
-                    <td className="px-4 py-3 text-right font-mono text-[#2C3454]">{m.before_on_hand}</td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-[#2FBF71]">{m.after_on_hand}</td>
-                    <td className="px-4 py-3 text-[#2C3454]">{m.reason || '—'}</td>
+                  <tr key={m.id}>
+                    <td className="num text-fg">#{m.id}</td>
+                    <td className="whitespace-nowrap">{formatDateTime(m.created_at)}</td>
+                    <td className="num text-good">{m.movement_type}</td>
+                    <td className="ts-r num text-bad">-{m.quantity}</td>
+                    <td className="ts-r num text-fg">{m.before_on_hand}</td>
+                    <td className="ts-r num text-good">{m.after_on_hand}</td>
+                    <td className="text-fg">{m.reason || '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -368,25 +368,25 @@ export default function ReservationDetail() {
 
       {/* Release Confirmation Modal */}
       {releaseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141B34]/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-[#F7F8FC] border border-[#E4E8F2] rounded-xl max-w-md w-full p-6 shadow-lift space-y-4">
-            <div className="flex items-center gap-3 text-[#3B6FD4]">
-              <div className="p-2 bg-[#E1E6F6] border border-[#D9DFF4] rounded-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-modal max-w-md w-full space-y-4">
+            <div className="flex items-center gap-3 text-fg">
+              <div className="bg-tile rounded-[14px] p-3.5">
                 <RotateCcw className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#141B34]">Release Stock Reservation</h3>
-                <p className="text-xs text-[#8992AB] font-mono">#RES-{reservation.id}</p>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Release Stock Reservation</h3>
+                <p className="text-xs text-subtle num">#RES-{reservation.id}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#2C3454]">
+            <p className="text-sm text-fg">
               Releasing this reservation will decrease <strong>reserved stock by {reservation.quantity}</strong> and return available stock to normal.
               Physical on-hand stock will remain completely unchanged.
             </p>
 
             {error && (
-              <div className="p-3 bg-[#F7E0E0] border border-[#F4D4D5] rounded-lg text-xs text-[#E5484D]">
+              <div className="ts-warnbox">
                 {error}
               </div>
             )}
@@ -396,7 +396,7 @@ export default function ReservationDetail() {
                 type="button"
                 onClick={() => setReleaseModalOpen(false)}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-[#F7F8FC] border border-[#DCE2F0] text-[#2C3454] hover:text-[#141B34] rounded-lg text-sm font-medium transition-colors"
+                className="ts-btn ts-ghost"
               >
                 Cancel
               </button>
@@ -404,7 +404,7 @@ export default function ReservationDetail() {
                 type="button"
                 onClick={handleRelease}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] hover:bg-[#2563EB] rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                className="ts-btn ts-dark"
               >
                 {actionLoading ? 'Releasing...' : 'Yes, Release Reservation'}
               </button>
@@ -415,25 +415,25 @@ export default function ReservationDetail() {
 
       {/* Fulfill Confirmation Modal */}
       {fulfillModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141B34]/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-[#F7F8FC] border border-[#E4E8F2] rounded-xl max-w-md w-full p-6 shadow-lift space-y-4">
-            <div className="flex items-center gap-3 text-[#2FBF71]">
-              <div className="p-2 bg-[#E0F5EA] border border-[#D6F2E4] rounded-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-modal max-w-md w-full space-y-4">
+            <div className="flex items-center gap-3 text-good">
+              <div className="p-2 bg-goodbg border border-goodbg rounded-lg">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#141B34]">Fulfill Stock Reservation</h3>
-                <p className="text-xs text-[#8992AB] font-mono">#RES-{reservation.id}</p>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Fulfill Stock Reservation</h3>
+                <p className="text-xs text-subtle num">#RES-{reservation.id}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#2C3454]">
+            <p className="text-sm text-fg">
               Fulfilling this reservation will perform an <strong>atomic STOCK OUT</strong> of {reservation.quantity} {reservation.unit || 'Nos'} for {reservation.part_no}.
               Physical on-hand stock will decrease, and an inventory movement will be logged.
             </p>
 
             {error && (
-              <div className="p-3 bg-[#F7E0E0] border border-[#F4D4D5] rounded-lg text-xs text-[#E5484D]">
+              <div className="ts-warnbox">
                 {error}
               </div>
             )}
@@ -443,7 +443,7 @@ export default function ReservationDetail() {
                 type="button"
                 onClick={() => setFulfillModalOpen(false)}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-[#F7F8FC] border border-[#DCE2F0] text-[#2C3454] hover:text-[#141B34] rounded-lg text-sm font-medium transition-colors"
+                className="ts-btn ts-ghost"
               >
                 Cancel
               </button>
@@ -451,7 +451,7 @@ export default function ReservationDetail() {
                 type="button"
                 onClick={handleFulfill}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-[#3B6FD4] text-[#F4F6FC] hover:bg-[#2F5CB8] rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                className="ts-btn ts-dark"
               >
                 {actionLoading ? 'Fulfilling...' : 'Yes, Fulfill & Deduct Stock'}
               </button>

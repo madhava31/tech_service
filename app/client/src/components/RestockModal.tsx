@@ -220,24 +220,24 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#141B34]/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
       onClick={() => {
         if (!loading) onClose();
       }}
     >
       <div
-        className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+        className="bg-surface2 border border-line2 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="p-5 border-b border-[#EEF1F9] flex items-center justify-between bg-[#F7F8FC]">
+        <div className="p-5 border-b border-line2 flex items-center justify-between bg-surface">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E1E6F6] border border-[#D9DFF4] flex items-center justify-center text-[#3B6FD4]">
+            <div className="w-9 h-9 rounded-xl bg-tile border border-line2 flex items-center justify-center text-fg">
               <PackageCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#141B34] margin-0 leading-tight">Restock Product</h2>
-              <p className="text-xs text-[#7A839E] margin-0 mt-0.5">
+              <h2 className="text-base font-bold text-fg margin-0 leading-tight">Restock Product</h2>
+              <p className="text-xs text-subtle margin-0 mt-0.5">
                 Manual stock inward into PostgreSQL inventory
               </p>
             </div>
@@ -246,7 +246,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#7A839E] hover:text-[#141B34] hover:bg-[#EEF1F9] transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-subtle hover:text-fg hover:bg-tile transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -255,39 +255,39 @@ export const RestockModal: React.FC<RestockModalProps> = ({
         {/* Modal Content */}
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4 overflow-y-auto max-h-[80vh]">
           {/* Selected Product Banner */}
-          <div className="p-3.5 bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl flex flex-col gap-2">
+          <div className="p-3.5 bg-surface border border-line2 rounded-xl flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-sm font-bold text-[#3B6FD4] bg-[#FFFFFF] px-2 py-0.5 border border-[#E4E8F2] rounded">
+              <span className="font-mono text-sm font-bold text-fg bg-surface2 px-2 py-0.5 border border-line2 rounded">
                 {partNo}
               </span>
-              <span className="text-xs text-[#7A839E] font-medium">Unit: {unit}</span>
+              <span className="text-xs text-subtle font-medium">Unit: {unit}</span>
             </div>
-            {description && <p className="text-xs text-[#141B34] font-medium margin-0 line-clamp-2">{description}</p>}
+            {description && <p className="text-xs text-fg font-medium margin-0 line-clamp-2">{description}</p>}
 
             {/* Current Stock Metrics Row */}
-            <div className="grid grid-cols-4 gap-2 mt-1 pt-2 border-t border-[#E4E8F2] text-center">
-              <div className="bg-[#FFFFFF] p-2 rounded-lg border border-[#EEF1F9]">
-                <span className="text-[10px] uppercase text-[#7A839E] font-semibold block">On Hand</span>
-                <span className="text-xs font-bold text-[#141B34] font-mono">{fetchingStock ? '...' : currentOnHand}</span>
+            <div className="grid grid-cols-4 gap-2 mt-1 pt-2 border-t border-line2 text-center">
+              <div className="bg-surface2 p-2 rounded-lg border border-line2">
+                <span className="text-[10px] uppercase text-subtle font-semibold block">On Hand</span>
+                <span className="text-xs font-bold text-fg font-mono">{fetchingStock ? '...' : currentOnHand}</span>
               </div>
-              <div className="bg-[#FFFFFF] p-2 rounded-lg border border-[#EEF1F9]">
-                <span className="text-[10px] uppercase text-[#E8A33D] font-semibold block">Reserved</span>
-                <span className="text-xs font-bold text-[#E8A33D] font-mono">{fetchingStock ? '...' : currentReserved}</span>
+              <div className="bg-surface2 p-2 rounded-lg border border-line2">
+                <span className="text-[10px] uppercase text-warn font-semibold block">Reserved</span>
+                <span className="text-xs font-bold text-warn font-mono">{fetchingStock ? '...' : currentReserved}</span>
               </div>
-              <div className="bg-[#FFFFFF] p-2 rounded-lg border border-[#EEF1F9]">
-                <span className="text-[10px] uppercase text-[#3B6FD4] font-semibold block">Available</span>
-                <span className="text-xs font-bold text-[#3B6FD4] font-mono">{fetchingStock ? '...' : currentAvailable}</span>
+              <div className="bg-surface2 p-2 rounded-lg border border-line2">
+                <span className="text-[10px] uppercase text-fg font-semibold block">Available</span>
+                <span className="text-xs font-bold text-fg font-mono">{fetchingStock ? '...' : currentAvailable}</span>
               </div>
-              <div className="bg-[#FFFFFF] p-2 rounded-lg border border-[#EEF1F9]">
-                <span className="text-[10px] uppercase text-[#2FBF71] font-semibold block">Incoming</span>
-                <span className="text-xs font-bold text-[#2FBF71] font-mono">{fetchingStock ? '...' : currentIncoming}</span>
+              <div className="bg-surface2 p-2 rounded-lg border border-line2">
+                <span className="text-[10px] uppercase text-good font-semibold block">Incoming</span>
+                <span className="text-xs font-bold text-good font-mono">{fetchingStock ? '...' : currentIncoming}</span>
               </div>
             </div>
           </div>
 
           {/* Form Error Alert */}
           {error && (
-            <div className="p-3 bg-[#F7E0E0] border border-[#F4D4D5] text-[#E5484D] rounded-xl text-xs flex items-center gap-2">
+            <div className="p-3 bg-badbg border border-badbg text-bad rounded-xl text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -295,7 +295,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
           {/* Success Notification */}
           {successMsg && (
-            <div className="p-3 bg-[#E0F5EA] border border-[#D6F2E4] text-[#2FBF71] rounded-xl text-xs flex items-center gap-2">
+            <div className="p-3 bg-goodbg border border-goodbg text-good rounded-xl text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
@@ -303,15 +303,15 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
           {/* Warehouse Selector */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-[#141B34] flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-[#7A839E]" />
-              Receiving Warehouse Facility <span className="text-[#E5484D]">*</span>
+            <label className="text-xs font-bold text-fg flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-subtle" />
+              Receiving Warehouse Facility <span className="text-bad">*</span>
             </label>
             <select
               disabled={loading}
               value={selectedWarehouseId}
               onChange={(e) => setSelectedWarehouseId(Number(e.target.value))}
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl px-3.5 py-2.5 text-xs text-[#141B34] font-medium focus:outline-none focus:border-[#3B6FD4] focus:bg-[#FFFFFF]"
+              className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2.5 text-xs text-fg font-medium focus:outline-none focus:border-fg focus:bg-surface2"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -323,10 +323,10 @@ export const RestockModal: React.FC<RestockModalProps> = ({
 
           {/* Restock Quantity Input */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-[#141B34] flex items-center justify-between">
+            <label className="text-xs font-bold text-fg flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Boxes className="w-3.5 h-3.5 text-[#3B6FD4]" />
-                Inward Quantity ({unit}) <span className="text-[#E5484D]">*</span>
+                <Boxes className="w-3.5 h-3.5 text-fg" />
+                Inward Quantity ({unit}) <span className="text-bad">*</span>
               </span>
               {product.suggestedRestockQty && product.suggestedRestockQty > 0 && (
                 <button
@@ -335,7 +335,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                     setQuantity(String(product.suggestedRestockQty));
                     setQuantityError('');
                   }}
-                  className="text-[11px] text-[#3B6FD4] hover:underline font-medium"
+                  className="text-[11px] text-fg hover:underline font-medium"
                 >
                   Use suggested +{product.suggestedRestockQty}
                 </button>
@@ -349,22 +349,22 @@ export const RestockModal: React.FC<RestockModalProps> = ({
               disabled={loading}
               value={quantity}
               onChange={handleQuantityChange}
-              className={`w-full bg-[#F4F6FC] border ${
-                quantityError ? 'border-[#E5484D] bg-[#F7E0E0]/20' : 'border-[#E4E8F2]'
-              } rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-[#141B34] focus:outline-none focus:border-[#3B6FD4] focus:bg-[#FFFFFF]`}
+              className={`w-full bg-surface border ${
+                quantityError ? 'border-bad bg-badbg/20' : 'border-line2'
+              } rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-fg focus:outline-none focus:border-fg focus:bg-surface2`}
             />
-            {quantityError && <span className="text-[11px] text-[#E5484D] font-medium">{quantityError}</span>}
+            {quantityError && <span className="text-[11px] text-bad font-medium">{quantityError}</span>}
           </div>
 
           {/* Source & Reference Details */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#7A839E]">Source Type</label>
+              <label className="text-xs font-semibold text-subtle">Source Type</label>
               <select
                 disabled={loading}
                 value={sourceType}
                 onChange={(e) => setSourceType(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl px-3.5 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-fg"
               >
                 <option value="MANUAL">Manual Restocking</option>
                 <option value="VENDOR_DELIVERY">Vendor Delivery</option>
@@ -373,45 +373,45 @@ export const RestockModal: React.FC<RestockModalProps> = ({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#7A839E]">PO / Challan Ref</label>
+              <label className="text-xs font-semibold text-subtle">PO / Challan Ref</label>
               <input
                 type="text"
                 placeholder="e.g. PO-98214"
                 disabled={loading}
                 value={sourceReference}
                 onChange={(e) => setSourceReference(e.target.value)}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl px-3.5 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-fg"
               />
             </div>
           </div>
 
           {/* Notes Input */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#7A839E]">Restock Notes / Reason</label>
+            <label className="text-xs font-semibold text-subtle">Restock Notes / Reason</label>
             <input
               type="text"
               placeholder="e.g. Received new stock batch from supplier"
               disabled={loading}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-xl px-3.5 py-2 text-xs text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+              className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-fg"
             />
           </div>
 
           {/* Modal Actions */}
-          <div className="pt-3 border-t border-[#EEF1F9] flex items-center justify-end gap-3 mt-1">
+          <div className="pt-3 border-t border-line2 flex items-center justify-end gap-3 mt-1">
             <button
               type="button"
               disabled={loading}
               onClick={onClose}
-              className="px-4 py-2.5 bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#7A839E] border border-[#E4E8F2] rounded-xl text-xs font-semibold transition-colors"
+              className="px-4 py-2.5 bg-surface hover:bg-tile text-subtle border border-line2 rounded-xl text-xs font-semibold transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-[#3B6FD4] hover:bg-[#2F5CB8] disabled:bg-[#A8AEC4] text-[#F4F6FC] rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2"
+              className="px-5 py-2.5 bg-ink hover:bg-ink/85 disabled:bg-faint text-onink rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2"
             >
               {loading ? (
                 <>

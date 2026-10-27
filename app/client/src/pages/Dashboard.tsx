@@ -19,6 +19,12 @@ import {
   getStoredDateRange,
   type DateRangePreset,
 } from '../lib/date-presets';
+import { Seg } from '../components/ds/Seg';
+import { Spark } from '../components/ds/Spark';
+import { Gauge } from '../components/ds/Gauge';
+import { RevenueBars } from '../components/ds/RevenueBars';
+import { CountUp } from '../components/ds/CountUp';
+import { lakh } from '../components/ds/format';
 import { RevenueLineChart } from '../components/RevenueLineChart';
 import { PipelineDonutChart } from '../components/PipelineDonutChart';
 import { HorizontalBarChart } from '../components/HorizontalBarChart';
@@ -100,17 +106,17 @@ function formatDate(d: string) {
 function FollowUpRow({ item }: { item: DashboardFollowUp }) {
   return (
     <Link
-      className="flex items-center justify-between p-2.5 rounded-lg bg-[#FFFFFF] hover:bg-[#F8FAF9] transition-colors border border-[#E2EAE5]"
+      className="flex items-center justify-between p-2.5 rounded-lg bg-surface2 hover:bg-surface transition-colors border border-line2"
       to={`/quotations/${item.quotation_id}`}
     >
       <div className="flex flex-col min-w-0">
-        <span className="text-xs font-bold text-[#141B34] truncate">{item.company_name || '—'}</span>
-        <span className="text-[11px] text-[#64748B]">
+        <span className="text-xs font-bold text-fg truncate">{item.company_name || '—'}</span>
+        <span className="text-[11px] text-subtle">
           {item.quotation_number} · Due: {formatDate(item.follow_up_date)}
         </span>
-        {item.notes && <span className="text-[11px] text-[#64748B] italic mt-0.5">"{item.notes}"</span>}
+        {item.notes && <span className="text-[11px] text-subtle italic mt-0.5">"{item.notes}"</span>}
       </div>
-      <span className="text-xs font-bold text-[#059669] flex items-center gap-1 shrink-0 ml-2">
+      <span className="text-xs font-bold text-good flex items-center gap-1 shrink-0 ml-2">
         View <ArrowRightIcon className="size-3" />
       </span>
     </Link>
@@ -128,9 +134,9 @@ const ACTIVITY_META: Record<ActivityType, { icon: ComponentType; to: (id: number
 // Widget Error Boundary Fallback Component
 function WidgetErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="p-4 rounded-lg bg-[#FCEBEC] border border-[#F2C4C6] text-[#C8323A] flex items-center justify-between gap-3 text-xs font-semibold">
+    <div className="p-4 rounded-lg bg-badbg border border-badbg text-bad flex items-center justify-between gap-3 text-xs font-semibold">
       <span>{message}</span>
-      <Button size="sm" variant="destructive" onClick={onRetry} className="h-7 text-xs gap-1 bg-[#E5484D] hover:bg-[#C8323A]">
+      <Button size="sm" variant="destructive" onClick={onRetry} className="h-7 text-xs gap-1 bg-bad hover:bg-bad">
         <RefreshCwIcon className="size-3" /> Retry
       </Button>
     </div>
@@ -435,436 +441,196 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
       ? '/follow-ups-due-today'
       : '/quotations';
 
+  // ---------- figures for the redesigned layout (all from the data loaded above) ----------
+  const SEG_LABEL: Record<string, string> = { last30: '30 days', thisMonth: 'Month', thisQuarter: 'Quarter', thisYear: 'Year', allTime: 'All time' };
+  const counts = data?.counts;
+  const stages = pipeline?.stages ?? [];
+  const stageCount = (k: string) => stages.find((st) => st.key === k)?.count ?? 0;
+  const openStages = [stageCount('draft'), stageCount('sent'), stageCount('accepted')];
+  const openMax = Math.max(1, ...openStages);
+  const fulfil = pipeline?.fulfillment;
+  const invoicedPct = fulfil && fulfil.purchaseOrderCount > 0 ? Math.min(100, Math.round((fulfil.performaInvoiceCount / fulfil.purchaseOrderCount) * 100)) : 0;
+  const acceptedRate = pipelineAcceptedRate || 0;
+  const wonValueShare = pipeline && pipeline.summary.totalValue > 0 ? pipeline.summary.wonValue / pipeline.summary.totalValue : 0;
+  const closed = (pipeline?.summary.wonCount ?? 0) + (pipeline?.summary.lostCount ?? 0);
+  const winRate = closed > 0 ? (pipeline!.summary.wonCount / closed) : null;
+  const sparkVals = displayedChartData.slice(-7).map((d) => d.value);
+  const tickVals = displayedChartData.slice(-14).map((d) => d.value);
+  const tickMax = Math.max(1, ...tickVals);
+  const topCos = (data?.topCompanies ?? []).slice(0, 4);
+  const topProds = (data?.topProducts ?? []).slice(0, 4);
+  const fuList = followUps ? [...followUps.overdue, ...followUps.dueToday, ...followUps.upcoming].slice(0, 4) : [];
+  const overdueIds = new Set((followUps?.overdue ?? []).map((f) => f.id));
+  const initials = (n?: string) => (n || '—').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  const RING = 119.4;
+  const loading = !data && !error;
+  const skel = (w: string, h = 28) => <span className="ts-skel" style={{ display: 'block', width: w, height: h, marginTop: 10 }} />;
+
   return (
-    <div className="text-[#141B34] px-4 tablet-lg:px-6 pt-1 flex flex-col gap-5">
+    <div className="ts-page-pad">
+      <div className="ts-phead">
+        <h1>Dashboard</h1>
+        <span className="ts-grow" />
+        <button type="button" className="ts-btn ts-ghost" onClick={() => fetchAllData(currentRange, true)} disabled={refreshing}>
+          <RefreshCwIcon className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'Refreshing' : 'Refresh'}
+        </button>
+      </div>
 
-      {/* 1. PAGE HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-[#141B34] tracking-tight">Business Analytics</h1>
-          <p className="text-xs text-[#7A839E] mt-0.5">Real-time view of revenue, quotations, customers and business performance.</p>
+      <div className="ts-toolbar">
+        <div className="max-w-full overflow-x-auto no-scrollbar rounded-full">
+          <Seg
+            label="Period"
+            value={currentRange.id}
+            options={presets.map((p) => ({ value: p.id, label: SEG_LABEL[p.id] || p.label }))}
+            onChange={(id) => { const p = presets.find((x) => x.id === id); if (p) handleSelectRangePreset(p); }}
+          />
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="ts-meta"><CalendarIcon className="size-4" /> {displayedSubtitle}</div>
+        <div className="ts-end flex flex-wrap items-center gap-2">
           <PastYearAnalysisButton onOpen={onOpenAnalysis} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchAllData(currentRange)}
-            disabled={refreshing}
-            className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] text-xs font-semibold gap-1.5 shadow-xs"
-          >
-            <RefreshCwIcon className={`size-3.5 ${refreshing ? 'animate-spin text-[#059669]' : 'text-[#64748B]'}`} />
-            <span>Refresh</span>
-          </Button>
-
-          {/* Interactive Date Range Selector Button */}
-          <div className="relative" ref={dateDropdownRef}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDateDropdownOpen(!dateDropdownOpen)}
-              className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] text-xs font-semibold gap-2 shadow-xs"
-              title="Click to change period"
-            >
-              <CalendarIcon className="size-3.5 text-[#059669]" />
-              <span>{currentRange.label}</span>
-              <ChevronDownIcon className="size-3 text-[#94A3B8]" />
-            </Button>
-
-            {dateDropdownOpen && (
-              <div className="absolute right-0 top-11 z-50 min-w-[180px] p-1.5 rounded-[10px] bg-white border border-[#E2EAE5] shadow-[0_12px_28px_rgba(20,33,61,0.08)] animate-in fade-in duration-150">
-                <div className="px-2 py-1 border-b border-[#E2EAE5] mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Filter by Period</span>
-                </div>
-                <div className="space-y-0.5">
-                  {presets.map((p) => {
-                    const isActive = currentRange.id === p.id || currentRange.label === p.label;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handleSelectRangePreset(p)}
-                        className={`w-full text-left px-2 py-1.5 rounded-[7px] text-[12px] font-medium transition-colors flex items-center justify-between ${
-                          isActive
-                            ? 'bg-[#ECFDF5] text-[#059669] font-bold border border-[#A7F3D0]'
-                            : 'text-[#64748B] hover:text-[#141B34] hover:bg-[#F8FAF9]'
-                        }`}
-                      >
-                        <span>{p.label}</span>
-                        {isActive && <CheckIcon className="size-3.5 text-[#059669]" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <Button asChild size="sm" className="h-9 gap-2 font-bold bg-[#059669] text-white hover:bg-[#047857] shadow-xs">
-            <Link to="/quotations/new">
-              <PlusIcon className="size-4" />
-              <span>+ New Quotation</span>
-            </Link>
-          </Button>
+          <Link className="ts-btn ts-ghost" to="/business-health"><SparklesIcon /> Business health</Link>
         </div>
       </div>
 
-      {/* 2. EXECUTIVE SUPPORTING KPI STRIP */}
-      {error ? (
-        <WidgetErrorState message="Unable to load summary metrics." onRetry={() => fetchAllData(currentRange)} />
-      ) : !data ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl bg-[#FFFFFF]" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {
-              label: 'Historical Revenue',
-              value: formatCurrency(data.historicalRevenue),
-              foot: '2024 Closed Volume',
-              badge: 'Closed',
-              badgeColor: 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
-            },
-            {
-              label: 'Accepted Revenue',
-              value: formatCurrency(data.acceptedQuotationRevenue),
-              foot: `${data.counts.quotations} Active Proposals`,
-              badge: 'Confirmed',
-              badgeColor: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-            },
-            {
-              label: 'Open Quotations',
-              value: String(data.counts.quotations),
-              foot: `${data.counts.companies} Client Accounts`,
-              badge: 'Pipeline',
-              badgeColor: 'bg-[#F8FAF9] text-[#64748B] border-[#E2EAE5]',
-            },
-            {
-              label: 'Purchase Orders',
-              value: String(data.counts.purchaseOrders),
-              foot: `${data.counts.products} Catalog Items`,
-              badge: 'Fulfilled',
-              badgeColor: 'bg-[#F8FAF9] text-[#64748B] border-[#E2EAE5]',
-            },
-          ].map((kpi) => (
-            <div
-              key={kpi.label}
-              className="rounded-card border border-[#E2EAE5] bg-white p-4 flex flex-col justify-between shadow-card hover:shadow-lift transition-all"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#64748B]">
-                  {kpi.label}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${kpi.badgeColor}`}>
-                  {kpi.badge}
-                </span>
-              </div>
-              <span className="text-[26px] leading-tight font-extrabold tracking-tight mt-2 text-[#141B34]">
-                {kpi.value}
-              </span>
-              <span className="text-[11.5px] text-[#64748B] mt-1 font-medium">
-                {kpi.foot}
-              </span>
-            </div>
-          ))}
-        </div>
+      {error && (
+        <div className="ts-warnbox"><span>Dashboard figures could not load: {error}</span>
+          <button type="button" className="ts-btn" onClick={() => fetchAllData(currentRange, true)}><RefreshCwIcon /> Retry</button></div>
       )}
 
-      {/* 3. ROW 1: REVENUE ANALYTICS CENTERPIECE (8 COLS) + CUSTOMER PERFORMANCE (4 COLS) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Revenue Analytics Primary Card (8 Cols) */}
-        <Card className="lg:col-span-8 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] flex flex-col justify-between shadow-card">
-          <CardHeader className="p-5 pb-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <CardTitle className="text-base font-bold text-[#141B34]">Revenue Analytics</CardTitle>
-                <CardDescription className="text-xs text-[#64748B] mt-0.5">Revenue performance across the selected period.</CardDescription>
-              </div>
-
-              {/* Interactive Period Tabs */}
-              <div className="flex items-center gap-1 bg-[#F8FAF9] p-1 rounded-lg border border-[#E2EAE5] text-xs font-semibold text-[#64748B]">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setActivePeriodTab('thisMonth');
-                    const p = presets.find((x) => x.id === 'thisMonth');
-                    if (p) handleSelectRangePreset(p);
-                  }}
-                  className={`h-7 px-2.5 text-xs transition-colors ${
-                    currentRange.id === 'thisMonth'
-                      ? 'bg-[#FFFFFF] text-[#059669] font-bold shadow-xs border border-[#E2EAE5]'
-                      : 'text-[#64748B] hover:text-[#141B34]'
-                  }`}
-                >
-                  This Month
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setActivePeriodTab('thisQuarter');
-                    const p = presets.find((x) => x.id === 'thisQuarter');
-                    if (p) handleSelectRangePreset(p);
-                  }}
-                  className={`h-7 px-2.5 text-xs transition-colors ${
-                    currentRange.id === 'thisQuarter'
-                      ? 'bg-[#FFFFFF] text-[#059669] font-bold shadow-xs border border-[#E2EAE5]'
-                      : 'text-[#64748B] hover:text-[#141B34]'
-                  }`}
-                >
-                  This Quarter
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setActivePeriodTab('thisYear');
-                    const p = presets.find((x) => x.id === 'thisYear');
-                    if (p) handleSelectRangePreset(p);
-                  }}
-                  className={`h-7 px-2.5 text-xs transition-colors ${
-                    currentRange.id === 'thisYear'
-                      ? 'bg-[#FFFFFF] text-[#059669] font-bold shadow-xs border border-[#E2EAE5]'
-                      : 'text-[#64748B] hover:text-[#141B34]'
-                  }`}
-                >
-                  This Year
-                </Button>
-              </div>
-            </div>
-
-            {/* Dynamic Revenue Display */}
-            <div className="mt-3 flex items-baseline gap-3 flex-wrap">
-              <div className="text-3xl font-extrabold text-[#141B34] tracking-tight">
-                {!data ? '—' : formatCurrency(displayedRevenue)}
-              </div>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full border border-[#A7F3D0]">
-                ● {displayedSubtitle}
-              </span>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-5 pt-2">
-            {!data ? (
-              <Skeleton className="h-[240px] w-full rounded-lg bg-[#F8FAF9]" />
-            ) : (
-              <RevenueLineChart data={displayedChartData} />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Customer Performance Card (4 Cols) */}
-        <Card className="lg:col-span-4 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] flex flex-col justify-between shadow-card">
-          <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34]">Customer Performance</CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Key accounts generating revenue.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-5 pt-0">
-            {!data ? (
-              <Skeleton className="h-44 w-full rounded-lg bg-[#F8FAF9]" />
-            ) : (
-              <HorizontalBarChart data={topCompaniesChartData} color="#059669" />
-            )}
-          </CardContent>
-        </Card>
-
+      {/* KPI row */}
+      <div className="ts-grid ts-kpis">
+        <div className="ts-card ts-charcoal" style={{ ['--i' as string]: 0 }}>
+          <div className="ts-ch">Revenue</div>
+          <div className="ts-kbody"><div>
+            {loading ? skel('70%') : <div className="ts-val num"><CountUp value={displayedRevenue} format={formatCurrency} /></div>}
+            <div className="ts-delta">{currentRange.label}</div></div>
+            <div className="ts-minibars" aria-hidden="true">{(sparkVals.length ? sparkVals.slice(-3) : [0, 0, 0]).map((v, i, a) => <i key={i} style={{ ['--h' as string]: `${8 + Math.round((v / Math.max(1, ...a)) * 36)}px`, ['--d' as string]: `${i * 80}ms` }} />)}</div>
+          </div>
+          <Link className="ts-kfoot" to="/sale-reports">See sale reports</Link>
+        </div>
+        <div className="ts-card ts-white" style={{ ['--i' as string]: 1 }}>
+          <div className="ts-ch">Accepted quotations</div>
+          <div className="ts-kbody"><div>
+            {loading ? skel('70%') : <div className="ts-val num"><CountUp value={data?.acceptedQuotationRevenue ?? 0} format={formatCurrency} /></div>}
+            <div className="ts-delta">{counts ? `${counts.quotations} quotations in total` : '—'}</div></div>
+            <Spark values={sparkVals} small />
+          </div>
+          <Link className="ts-kfoot" to="/quotations">See quotations</Link>
+        </div>
+        <div className="ts-card" style={{ ['--i' as string]: 2 }}>
+          <div className="ts-ch">Purchase orders</div>
+          <div className="ts-kbody"><div>
+            {loading ? skel('40%') : <div className="ts-val num"><CountUp value={counts?.purchaseOrders ?? 0} format={(v) => Math.round(v).toLocaleString('en-IN')} /></div>}
+            <div className="ts-delta">{counts ? `${counts.performaInvoices} performa invoices` : '—'}</div></div>
+            <svg className="ts-ring" width="46" height="46" viewBox="0 0 46 46" aria-label={`${invoicedPct}% of purchase orders invoiced`}>
+              <title>{invoicedPct}% of purchase orders invoiced</title>
+              <circle className="ts-bg" cx="23" cy="23" r="19" />
+              <circle className="ts-fg" cx="23" cy="23" r="19" transform="rotate(-90 23 23)" strokeDasharray={RING} strokeDashoffset={pipeline ? RING * (1 - invoicedPct / 100) : RING} />
+              <text x="23" y="27" textAnchor="middle">{invoicedPct}%</text>
+            </svg>
+          </div>
+          <Link className="ts-kfoot" to="/purchase-orders">See purchase orders</Link>
+        </div>
+        <div className="ts-card" style={{ ['--i' as string]: 3 }}>
+          <div className="ts-ch">Quote acceptance</div>
+          <div className="ts-kbody"><div>
+            {!pipeline && !pipelineError ? skel('50%') : <div className="ts-val num"><CountUp value={acceptedRate} format={(v) => `${v.toFixed(1)}%`} /></div>}
+            <div className="ts-delta">{pipeline ? `${pipeline.summary.wonCount} of ${pipeline.summary.totalOpportunities} quotations` : pipelineError ? 'Pipeline unavailable' : '—'}</div></div>
+            <div className="ts-ticks" aria-hidden="true">{(tickVals.length ? tickVals : Array(14).fill(0)).map((v, i) => <i key={i} style={{ ['--h' as string]: `${6 + Math.round((v / tickMax) * 32)}px`, ['--d' as string]: `${i * 30}ms` }} />)}</div>
+          </div>
+          <Link className="ts-kfoot" to="/sales/pipeline">See pipeline</Link>
+        </div>
       </div>
 
-      {/* 4. ROW 2: CONVERSION FUNNEL (7 COLS) + KEY BUSINESS INSIGHTS (5 COLS) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Quotation Pipeline Conversion Funnel (7 Cols) */}
-        <Card className="lg:col-span-7 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
-          <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34]">Quotation Pipeline Funnel</CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Proposal conversion rate and stage distribution.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-5 pt-0">
-            {pipelineError ? (
-              <WidgetErrorState
-                message="Unable to load pipeline."
-                onRetry={() => api.dashboard.pipeline({ start: currentRange.start, end: currentRange.end }).then(setPipeline)}
-              />
-            ) : !pipeline ? (
-              <Skeleton className="h-48 w-full rounded-lg bg-[#F8FAF9]" />
-            ) : (
-              <PipelineDonutChart
-                stages={pipelineStages}
-                totalValue={pipelineTotalValue}
-                acceptedRate={pipelineAcceptedRate}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Key Business Insights (5 Cols) */}
-        <Card className="lg:col-span-5 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card flex flex-col justify-between">
-          <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34] flex items-center gap-2">
-              <SparklesIcon className="size-4 text-[#059669]" />
-              <span>Key Business Insights</span>
-            </CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Operational summary derived from active data.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-5 pt-0 space-y-3">
-            {attentionError ? (
-              <WidgetErrorState message="Unable to load alerts." onRetry={() => api.dashboard.attention().then(setAttention)} />
-            ) : attention && attention.items.length > 0 ? (
-              <Link
-                to={attention.items[0].route}
-                className="p-3 rounded-lg bg-[#F8FAF9] border border-[#E2EAE5] hover:border-[#D1DDD6] transition-colors flex items-start gap-3 block"
-              >
-                <AlertCircleIcon className="size-4 text-[#E5484D] mt-0.5 shrink-0" />
-                <div className="text-xs">
-                  <span className="font-bold text-[#141B34] block">{attention.items[0].title}</span>
-                  <span className="text-[#64748B] mt-0.5 block">{attention.items[0].description}</span>
-                </div>
-              </Link>
-            ) : null}
-
-            {data && (
-              <div className="p-3 rounded-lg bg-[#F8FAF9] border border-[#E2EAE5] flex items-start gap-3">
-                <CheckCircle2Icon className="size-4 text-[#059669] mt-0.5 shrink-0" />
-                <div className="text-xs">
-                  <span className="font-bold text-[#141B34] block">{data.counts.companies} Active Client Accounts</span>
-                  <span className="text-[#64748B] mt-0.5 block">Generating {formatCurrency(data.acceptedQuotationRevenue)} in accepted proposal revenue.</span>
-                </div>
-              </div>
-            )}
-
-            {followUps && (
-              <Link
-                to={followUpsViewAllLink}
-                className="p-3 rounded-lg bg-[#F8FAF9] border border-[#E2EAE5] hover:border-[#D1DDD6] transition-colors flex items-start gap-3 block"
-              >
-                <CalendarIcon className="size-4 text-[#059669] mt-0.5 shrink-0" />
-                <div className="text-xs">
-                  <span className="font-bold text-[#141B34] block">{followUps.summary.totalScheduledCount} Scheduled Customer Follow-Ups</span>
-                  <span className="text-[#64748B] mt-0.5 block">
-                    {followUps.summary.overdueCount > 0
-                      ? `${followUps.summary.overdueCount} overdue touchpoints requiring immediate action.`
-                      : 'All scheduled touchpoints are currently up to date.'}
-                  </span>
-                </div>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
-
+      {/* Gauge + revenue chart */}
+      <div className="ts-grid ts-row2">
+        <div className="ts-card ts-charcoal ts-gauge-card" style={{ ['--i' as string]: 4 }}>
+          <div className="ts-ch">Quotation win rate</div>
+          <div className="ts-gwrap">
+            <Gauge value={winRate ?? 0} />
+            <div className="ts-gval"><div className="ts-big"><span className="num"><CountUp value={Math.round((winRate ?? 0) * 100)} format={(v) => String(Math.round(v))} duration={1700} /></span><span style={{ fontSize: '.5em', opacity: .7, marginLeft: -8 }}>%</span></div><small>of closed quotations won</small></div>
+          </div>
+          <h4>{winRate == null ? 'No closed quotations yet' : winRate >= 0.5 ? 'Winning more than you lose' : 'Room to improve'}</h4>
+          <p>{pipeline ? (winRate == null ? 'Accept or reject quotations and your win rate shows here.' : `${pipeline.summary.wonCount} won and ${pipeline.summary.lostCount ?? 0} lost · ${Math.round(wonValueShare * 100)}% of pipeline value won.`) : pipelineError ? 'Pipeline figures could not load.' : 'Loading…'}</p>
+          <Link className="ts-kfoot" to="/sales/pipeline">See pipeline</Link>
+        </div>
+        <div className="ts-card ts-white" style={{ ['--i' as string]: 5 }}>
+          <div className="ts-rhead"><div className="ts-ch"><b>Revenue</b> <span>{loading ? '' : `${formatCurrency(displayedRevenue)} · ${currentRange.label}`}</span></div></div>
+          {loading ? <div className="ts-skel" style={{ height: 280, marginTop: 12 }} /> : <RevenueBars data={displayedChartData} />}
+        </div>
       </div>
 
-      {/* 5. ROW 3: FOLLOW-UPS & PRODUCT PERFORMANCE (6 COLS + 6 COLS) */}
-      <div ref={followUpsSectionRef} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Today's Scheduled Follow-Ups (6 Cols) */}
-        <Card className="lg:col-span-6 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
-          <CardHeader className="p-5 pb-3 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-bold text-[#141B34]">Follow-Up Activity</CardTitle>
-              <CardDescription className="text-xs text-[#64748B] mt-0.5">Scheduled customer touchpoints.</CardDescription>
-            </div>
-            <Button asChild size="sm" variant="ghost" className="h-7 text-xs font-bold text-[#059669] hover:bg-[#F8FAF9]">
-              <Link to={followUpsViewAllLink}>View All →</Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="p-5 pt-0">
-            {followUpsError ? (
-              <WidgetErrorState message="Unable to load follow-ups." onRetry={() => api.dashboard.followUps().then(setFollowUps)} />
-            ) : !followUps ? (
-              <Skeleton className="h-36 w-full rounded-lg bg-[#F8FAF9]" />
-            ) : followUps.summary.totalScheduledCount === 0 ? (
-              <p className="text-xs text-[#64748B] py-6 text-center">No scheduled follow-ups.</p>
-            ) : (
-              <div className="space-y-2">
-                {followUps.overdue.slice(0, 3).map((f) => (
-                  <FollowUpRow key={f.id} item={f} />
-                ))}
-                {followUps.dueToday.slice(0, 2).map((f) => (
-                  <FollowUpRow key={f.id} item={f} />
-                ))}
-                {followUps.overdue.length === 0 && followUps.dueToday.length === 0 && followUps.upcoming.slice(0, 3).map((f) => (
-                  <FollowUpRow key={f.id} item={f} />
-                ))}
+      {/* Lists */}
+      <div className="ts-grid ts-row3">
+        <div className="ts-card" style={{ ['--i' as string]: 6 }}>
+          <div className="ts-ch"><b>Top customers</b></div>
+          <p className="ts-muted" style={{ margin: '2px 0 0', fontSize: 13 }}>Revenue · {currentRange.label}</p>
+          {topCos.length ? <div className="ts-list">{topCos.map((c, i) => (
+            <div key={c.company_name} className="ts-li"><span className="ts-rk">0{i + 1}</span><div style={{ minWidth: 0 }}><div className="ts-nm">{c.company_name}</div><div className="ts-sub">{c.orders} order{c.orders === 1 ? '' : 's'}</div><div className="ts-meter"><i style={{ width: `${(c.total / topCos[0].total) * 100}%` }} /></div></div><span className="ts-amt num">{lakh(c.total)}</span></div>
+          ))}</div> : <div className="ts-dempty"><p>{loading ? 'Loading…' : 'No customer revenue in this period.'}</p></div>}
+        </div>
+        <div className="ts-card" style={{ ['--i' as string]: 7 }}>
+          <div className="ts-ch"><b>Best-selling products</b></div>
+          <p className="ts-muted" style={{ margin: '2px 0 0', fontSize: 13 }}>By revenue · {currentRange.label}</p>
+          {topProds.length ? <div className="ts-list">{topProds.map((p, i) => (
+            <div key={p.part_no + i} className="ts-li"><span className="ts-rk">0{i + 1}</span><div style={{ minWidth: 0 }}><div className="ts-nm" title={p.product_description}>{p.product_description}</div><div className="ts-sub">{p.part_no} · {Math.round(p.qty).toLocaleString('en-IN')} units</div><div className="ts-meter"><i style={{ width: `${(p.total / topProds[0].total) * 100}%` }} /></div></div><span className="ts-amt num">{lakh(p.total)}</span></div>
+          ))}</div> : <div className="ts-dempty"><p>{loading ? 'Loading…' : 'No product sales in this period.'}</p></div>}
+        </div>
+        <div className="ts-card" style={{ ['--i' as string]: 8 }} ref={followUpsSectionRef}>
+          <div className="ts-rhead"><div className="ts-ch"><b>Follow-ups</b></div><Link className="ts-muted" style={{ fontSize: 13 }} to={followUpsViewAllLink}>View all →</Link></div>
+          {followUpsError ? <div className="ts-dempty"><p>Follow-ups could not load.</p><button type="button" className="ts-btn ts-ghost" onClick={() => fetchFollowUps(fetchReqIdRef.current, true)}><RefreshCwIcon /> Retry</button></div>
+          : fuList.length ? <div className="ts-list">{fuList.map((f) => {
+            const late = overdueIds.has(f.id);
+            return (
+              <div key={f.id} className="ts-li" style={{ gridTemplateColumns: '28px minmax(0,1fr) auto' }}>
+                <span className="ts-av" title={f.created_by_username}>{initials(f.created_by_username)}</span>
+                <div style={{ minWidth: 0 }}><Link to={`/quotations/${f.quotation_id}`}><div className="ts-nm">{f.quotation_number}</div></Link><div className="ts-sub">{f.company_name || '—'}</div></div>
+                <span className={`ts-due ${late ? 'ts-warn' : ''}`}>{formatDate(f.follow_up_date)}</span>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Top Product Performance Leaderboard (6 Cols) */}
-        <Card className="lg:col-span-6 bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
-          <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-bold text-[#141B34]">Product Performance</CardTitle>
-            <CardDescription className="text-xs text-[#64748B] mt-0.5">Best selling catalog items.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-5 pt-0">
-            {!data ? (
-              <Skeleton className="h-36 w-full rounded-lg bg-[#F8FAF9]" />
-            ) : (
-              <HorizontalBarChart data={topProductsChartData} color="#10B981" />
-            )}
-          </CardContent>
-        </Card>
-
+            );
+          })}</div> : <div className="ts-dempty"><p>{followUps ? 'No follow-ups scheduled.' : 'Loading…'}</p></div>}
+        </div>
       </div>
 
-      {/* 6. ROW 4: RECENT SYSTEM ACTIVITY TIMELINE (12 COLS) */}
-      <Card ref={recentActivitySectionRef} className="bg-[#FFFFFF] border-[#E2EAE5] text-[#141B34] shadow-card">
-        <CardHeader className="p-5 pb-3">
-          <CardTitle className="text-base font-bold text-[#141B34]">Recent System Activity</CardTitle>
-          <CardDescription className="text-xs text-[#64748B] mt-0.5">Operational audit log of recent transactions.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-5 pt-0">
-          {recentActivityError ? (
-            <WidgetErrorState
-              message="Unable to load recent activity."
-              onRetry={() => api.dashboard.recentActivity().then((d) => setRecentActivity(d.activity))}
-            />
-          ) : recentActivity === null ? (
-            <Skeleton className="h-32 w-full rounded-lg bg-[#F8FAF9]" />
-          ) : recentActivity.length === 0 ? (
-            <p className="text-xs text-[#64748B] py-4 text-center">No activity recorded yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-[#E2EAE5] bg-[#F8FAF9] hover:bg-transparent">
-                  <TableHead className="text-xs h-8 text-[#64748B] font-bold">Document</TableHead>
-                  <TableHead className="text-xs h-8 text-[#64748B] font-bold">Account</TableHead>
-                  <TableHead className="text-xs h-8 text-[#64748B] font-bold">Status</TableHead>
-                  <TableHead className="text-xs h-8 text-right text-[#64748B] font-bold">Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentActivity.map((item) => {
-                  const meta = ACTIVITY_META[item.type];
-                  return (
-                    <TableRow key={`${item.type}-${item.id}`} className="border-[#F0F4F1] hover:bg-[#F8FAF9] cursor-pointer">
-                      <TableCell className="py-2.5 text-xs font-bold text-[#141B34]">
-                        <Link to={meta.to(item.id)} className="hover:underline flex items-center gap-2 text-[#059669]">
-                          <span className="shrink-0"><meta.icon /></span>
-                          <span>{item.number}</span>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="py-2.5 text-xs text-[#64748B]">{item.company_name || '—'}</TableCell>
-                      <TableCell className="py-2.5">
-                        <Badge variant="outline" className="text-[10px] capitalize font-semibold border-[#A7F3D0] text-[#059669] bg-[#ECFDF5]">
-                          {item.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-2.5 text-xs text-[#64748B] text-right font-medium">{formatDate(item.date)}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Needs attention + pipeline */}
+      <div className="ts-grid ts-row-half">
+        <div className="ts-card" style={{ ['--i' as string]: 9 }}>
+          <div className="ts-ch"><b>Needs attention</b></div>
+          {attentionError ? <div className="ts-dempty"><p>Alerts could not load.</p></div>
+          : attention && attention.items.length ? <div className="ts-list">{attention.items.slice(0, 5).map((a, i) => (
+            <Link key={i} to={a.route} className="ts-attn">
+              <span className="ts-av" aria-hidden="true">{a.priority === 'high' ? '!' : a.count || '•'}</span>
+              <span style={{ minWidth: 0 }}><b>{a.title}</b><small>{a.description}</small></span>
+            </Link>
+          ))}</div> : <div className="ts-dempty"><p>{attention ? 'Nothing needs attention right now.' : 'Loading…'}</p></div>}
+        </div>
+        <div className="ts-card" style={{ ['--i' as string]: 10 }}>
+          <div className="ts-ch"><b>Quotation pipeline</b></div>
+          {pipelineError ? <div className="ts-dempty"><p>Pipeline could not load.</p></div>
+          : stages.length ? <div style={{ marginTop: 10 }}>
+            {stages.map((st) => (
+              <div key={st.key} className="ts-hbar"><span>{st.label}</span><div className="ts-t"><i style={{ width: `${(st.count / Math.max(1, ...stages.map((x) => x.count))) * 100}%` }} /></div><span className="ts-p num">{st.count}</span></div>
+            ))}
+            <p className="ts-muted" style={{ fontSize: 13, margin: '10px 0 0' }}>{formatCurrency(pipelineTotalValue)} across {pipeline!.summary.totalOpportunities} quotations · {acceptedRate.toFixed(1)}% accepted.</p>
+          </div> : <div className="ts-dempty"><p>{pipeline ? 'No quotations in this period.' : 'Loading…'}</p></div>}
+        </div>
+      </div>
 
+      {/* Recent activity */}
+      <div className="ts-card ts-white" style={{ ['--i' as string]: 11, marginTop: 16 }} ref={recentActivitySectionRef}>
+        <div className="ts-ch"><b>Recent activity</b></div>
+        {recentActivityError ? <div className="ts-dempty"><p>Recent activity could not load.</p><button type="button" className="ts-btn ts-ghost" onClick={() => api.dashboard.recentActivity().then((d) => setRecentActivity(d.activity))}><RefreshCwIcon /> Retry</button></div>
+        : recentActivity && recentActivity.length ? <div className="ts-list">{recentActivity.slice(0, 8).map((item) => {
+          const meta = ACTIVITY_META[item.type as ActivityType];
+          return (
+            <Link key={`${item.type}-${item.id}`} to={meta ? meta.to(item.id) : '#'} className="ts-li" style={{ gridTemplateColumns: '28px minmax(0,1fr) auto', color: 'inherit', textDecoration: 'none' }}>
+              <span className="ts-av">{meta?.label.split(' ').map((w) => w[0]).join('') || '•'}</span>
+              <div style={{ minWidth: 0 }}><div className="ts-nm">{item.number}{item.company_name ? ` · ${item.company_name}` : ''}</div><div className="ts-sub">{meta?.label} · {item.status}</div></div>
+              <span className="ts-due">{formatDate(item.date)}</span>
+            </Link>
+          );
+        })}</div> : <div className="ts-dempty"><p>{recentActivity ? 'No activity yet.' : 'Loading…'}</p></div>}
+      </div>
     </div>
   );
 }

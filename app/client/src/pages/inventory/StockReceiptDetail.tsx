@@ -20,20 +20,20 @@ function formatDate(d: string | null | undefined) {
 function ReceiptStatusBadge({ status }: { status: string }) {
   if (status === 'CONFIRMED') {
     return (
-      <span className="px-2.5 py-1 bg-[#DFF5EA] text-[#2FBF71] border border-[#D7F2E5] rounded text-xs font-semibold">
+      <span className="px-2.5 py-1 bg-goodbg text-good border border-goodbg rounded text-xs font-semibold">
         CONFIRMED
       </span>
     );
   }
   if (status === 'DRAFT') {
     return (
-      <span className="px-2.5 py-1 bg-[#F7EFE2] text-[#E8A33D] border border-[#F4E9D6] rounded text-xs font-semibold">
+      <span className="px-2.5 py-1 bg-warnbg text-warn border border-warnbg rounded text-xs font-semibold">
         DRAFT (STAGED)
       </span>
     );
   }
   return (
-    <span className="px-2.5 py-1 bg-[#F7E0E1] text-[#E5484D] border border-[#F4D4D5] rounded text-xs font-semibold">
+    <span className="px-2.5 py-1 bg-badbg text-bad border border-badbg rounded text-xs font-semibold">
       CANCELLED
     </span>
   );
@@ -41,7 +41,7 @@ function ReceiptStatusBadge({ status }: { status: string }) {
 
 function MovementTypeBadge({ type }: { type: InventoryMovementType }) {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium tracking-wide bg-[#DFF5EA] text-[#2FBF71]">
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium tracking-wide bg-goodbg text-good">
       Stock In
     </span>
   );
@@ -107,18 +107,18 @@ export default function StockReceiptDetail() {
 
   if (loading) {
     return (
-      <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
-        <div className="h-6 w-48 bg-[#F7F8FC] rounded animate-pulse" />
-        <div className="h-24 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl animate-pulse" />
-        <div className="h-48 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl animate-pulse" />
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
+        <div className="h-6 w-48 bg-surface rounded animate-pulse" />
+        <div className="h-24 bg-surface2 border border-line2 rounded-xl animate-pulse" />
+        <div className="h-48 bg-surface2 border border-line2 rounded-xl animate-pulse" />
       </div>
     );
   }
 
   if (error || !receipt) {
     return (
-      <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
-        <div className="p-6 rounded-xl bg-[#F7E0E1] border border-[#F4D4D5] text-[#E5484D] flex flex-col items-start gap-4">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6">
+        <div className="p-6 rounded-xl bg-badbg border border-badbg text-bad flex flex-col items-start gap-4">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚠️</span>
             <div>
@@ -128,7 +128,7 @@ export default function StockReceiptDetail() {
           </div>
           <Link
             to="/inventory/stock-inward"
-            className="px-3.5 py-2 bg-[#F6DCDD] hover:bg-[#F5D8D9] text-[#F09297] border border-[#F2CFD1] rounded-lg text-xs font-medium"
+            className="px-3.5 py-2 bg-badbg hover:bg-badbg text-bad border border-badbg rounded-lg text-xs font-medium"
           >
             ← Back to Stock Inward
           </Link>
@@ -138,23 +138,23 @@ export default function StockReceiptDetail() {
   }
 
   return (
-    <div className="p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
       {/* Breadcrumbs */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs text-[#7A839E]">
-          <Link to="/inventory" className="hover:text-[#3B6FD4] transition-colors">
+        <div className="flex items-center gap-2 text-xs text-subtle">
+          <Link to="/inventory" className="hover:text-fg transition-colors">
             Inventory
           </Link>
           <span>/</span>
-          <Link to="/inventory/stock-inward" className="hover:text-[#3B6FD4] transition-colors">
+          <Link to="/inventory/stock-inward" className="hover:text-fg transition-colors">
             Stock Inward
           </Link>
           <span>/</span>
-          <span className="text-[#141B34] font-mono">{receipt.receipt_number}</span>
+          <span className="text-fg font-mono">{receipt.receipt_number}</span>
         </div>
         <Link
           to="/inventory/stock-inward"
-          className="text-xs text-[#7A839E] hover:text-[#141B34] transition-colors flex items-center gap-1"
+          className="text-xs text-subtle hover:text-fg transition-colors flex items-center gap-1"
         >
           <span>←</span>
           <span>All Receipts</span>
@@ -162,27 +162,27 @@ export default function StockReceiptDetail() {
       </div>
 
       {actionError && (
-        <div className="p-3 bg-[#F7E0E1] border border-[#F4D4D5] text-[#E5484D] rounded-lg text-xs">
+        <div className="p-3 bg-badbg border border-badbg text-bad rounded-lg text-xs">
           {actionError}
         </div>
       )}
 
       {/* Header Info Card */}
-      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="ts-card ts-white ts-tbl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="px-2.5 py-1 bg-[#EEF1F9] border border-[#E4E8F2] rounded text-sm font-mono font-bold text-[#3B6FD4]">
+            <span className="px-2.5 py-1 bg-tile border border-line2 rounded text-sm font-mono font-bold text-fg">
               {receipt.receipt_number}
             </span>
             <ReceiptStatusBadge status={receipt.status} />
-            <span className="text-xs text-[#7A839E]">
-              Source: <strong className="text-[#141B34]">{receipt.source_type}</strong>
+            <span className="text-xs text-subtle">
+              Source: <strong className="text-fg">{receipt.source_type}</strong>
             </span>
           </div>
 
-          <div className="text-xs text-[#7A839E] flex items-center gap-4 flex-wrap">
+          <div className="text-xs text-subtle flex items-center gap-4 flex-wrap">
             <span>
-              Facility: <strong className="text-[#141B34]">{receipt.warehouse_name} ({receipt.warehouse_code})</strong>
+              Facility: <strong className="text-fg">{receipt.warehouse_name} ({receipt.warehouse_code})</strong>
             </span>
             <span>•</span>
             <span>Recorded: {formatDate(receipt.created_at)}</span>
@@ -201,7 +201,7 @@ export default function StockReceiptDetail() {
           </div>
 
           {(receipt.source_reference || receipt.notes) && (
-            <div className="text-xs text-[#8992AB] mt-1 flex flex-col gap-0.5">
+            <div className="text-xs text-subtle mt-1 flex flex-col gap-0.5">
               {receipt.source_reference && <span>Reference: {receipt.source_reference}</span>}
               {receipt.notes && <span>Notes: {receipt.notes}</span>}
             </div>
@@ -215,14 +215,14 @@ export default function StockReceiptDetail() {
               <button
                 disabled={actionBusy}
                 onClick={handleCancel}
-                className="px-3.5 py-2 bg-[#F7E0E1] hover:bg-[#F6DCDD] text-[#E5484D] border border-[#F4D4D5] rounded-lg text-xs font-semibold transition-colors"
+                className="px-3.5 py-2 bg-badbg hover:bg-badbg text-bad border border-badbg rounded-lg text-xs font-semibold transition-colors"
               >
                 Cancel Receipt
               </button>
               <button
                 disabled={actionBusy}
                 onClick={handleConfirm}
-                className="px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-xs transition-colors"
+                className="px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
               >
                 {actionBusy ? 'Confirming...' : 'Confirm Receipt Now →'}
               </button>
@@ -231,7 +231,7 @@ export default function StockReceiptDetail() {
 
           <Link
             to={`/inventory/warehouses/${receipt.warehouse_id}`}
-            className="px-3 py-2 bg-[#EEF1F9] hover:bg-[#E4E8F2] text-[#141B34] border border-[#E4E8F2] rounded-lg text-xs font-medium transition-colors"
+            className="px-3 py-2 bg-tile hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-medium transition-colors"
           >
             View Warehouse →
           </Link>
@@ -240,93 +240,93 @@ export default function StockReceiptDetail() {
 
       {/* Summary KPI row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-          <span className="text-[12px] text-[#7A839E] font-medium">Distinct Products</span>
-          <div className="mt-2 text-2xl font-bold text-[#141B34]">
+        <div className="ts-card ts-white ts-tbl">
+          <span className="text-[12px] text-subtle font-medium">Distinct Products</span>
+          <div className="mt-2 text-2xl font-bold text-fg">
             {receipt.productCount}
           </div>
-          <span className="text-[11px] text-[#7A839E]">SKUs received</span>
+          <span className="text-[11px] text-subtle">SKUs received</span>
         </div>
 
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4 bg-gradient-to-b from-[#FFFFFF] to-[#E4F6ED]">
-          <span className="text-[12px] text-[#2FBF71] font-medium">Total Quantity</span>
-          <div className="mt-2 text-2xl font-bold text-[#2FBF71]">
+        <div className="ts-card ts-white ts-tbl bg-gradient-to-b from-surface2 to-goodbg">
+          <span className="text-[12px] text-good font-medium">Total Quantity</span>
+          <div className="mt-2 text-2xl font-bold text-good">
             +{formatNumber(receipt.totalQuantity)}
           </div>
-          <span className="text-[11px] text-[#2FBF71]">Total units added to on-hand</span>
+          <span className="text-[11px] text-good">Total units added to on-hand</span>
         </div>
 
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-          <span className="text-[12px] text-[#7A839E] font-medium">Audit Movements</span>
-          <div className="mt-2 text-2xl font-bold text-[#141B34]">
+        <div className="ts-card ts-white ts-tbl">
+          <span className="text-[12px] text-subtle font-medium">Audit Movements</span>
+          <div className="mt-2 text-2xl font-bold text-fg">
             {receipt.movements?.length || 0}
           </div>
-          <span className="text-[11px] text-[#7A839E]">Ledger records created</span>
+          <span className="text-[11px] text-subtle">Ledger records created</span>
         </div>
 
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-4">
-          <span className="text-[12px] text-[#7A839E] font-medium">Receipt Lifecycle</span>
-          <div className="mt-2 text-base font-bold text-[#141B34]">
+        <div className="ts-card ts-white ts-tbl">
+          <span className="text-[12px] text-subtle font-medium">Receipt Lifecycle</span>
+          <div className="mt-2 text-base font-bold text-fg">
             {receipt.status}
           </div>
-          <span className="text-[11px] text-[#7A839E]">
+          <span className="text-[11px] text-subtle">
             {receipt.status === 'CONFIRMED' ? 'Physical stock active' : 'Staged pending confirmation'}
           </span>
         </div>
       </div>
 
       {/* Line Items Table */}
-      <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-[#E4E8F2] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#141B34] flex items-center gap-2">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
+        <div className="p-4 border-b border-line2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
             <span>📦</span> Receipt Line Items ({receipt.items?.length || 0})
           </h2>
-          <span className="text-xs text-[#7A839E]">Detailed product receipt breakdown</span>
+          <span className="text-xs text-subtle">Detailed product receipt breakdown</span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="ts-tblwrap">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b border-[#E4E8F2] text-xs text-[#7A839E] uppercase tracking-wider bg-[#F7F8FC]">
-                <th className="py-3 px-4 font-medium">Part No</th>
-                <th className="py-3 px-4 font-medium">Product Description</th>
-                <th className="py-3 px-4 font-medium text-right">Received Qty</th>
-                <th className="py-3 px-4 font-medium text-right">Before On Hand</th>
-                <th className="py-3 px-4 font-medium text-right">After On Hand</th>
-                <th className="py-3 px-4 font-medium">Notes</th>
-                <th className="py-3 px-4 font-medium text-right">Stock Ledger</th>
+              <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
+                <th>Part No</th>
+                <th>Product Description</th>
+                <th className="ts-r">Received Qty</th>
+                <th className="ts-r">Before On Hand</th>
+                <th className="ts-r">After On Hand</th>
+                <th>Notes</th>
+                <th className="ts-r">Stock Ledger</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EEF1F9]">
+            <tbody className="divide-y divide-line2">
               {receipt.items.map((item) => (
-                <tr key={item.id} className="hover:bg-[#F7F8FC] transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-medium text-xs text-[#141B34]">
+                <tr key={item.id} className="hover:bg-surface transition-colors">
+                  <td className="py-3.5 px-4 font-mono font-medium text-xs text-fg">
                     <Link
                       to={`/inventory/stock/${item.product_id}`}
-                      className="text-[#3B6FD4] hover:underline"
+                      className="text-fg hover:underline"
                     >
                       {item.part_no}
                     </Link>
                   </td>
-                  <td className="py-3.5 px-4 text-xs text-[#7A839E] max-w-[280px] truncate">
+                  <td className="py-3.5 px-4 text-xs text-subtle max-w-[280px] truncate">
                     {item.product_description}
                   </td>
-                  <td className="py-3.5 px-4 text-xs font-mono font-bold text-right text-[#2FBF71]">
-                    +{formatNumber(item.quantity)} <span className="text-[#8992AB]">{item.unit || 'Nos'}</span>
+                  <td className="py-3.5 px-4 text-xs font-mono font-bold text-right text-good">
+                    +{formatNumber(item.quantity)} <span className="text-subtle">{item.unit || 'Nos'}</span>
                   </td>
-                  <td className="py-3.5 px-4 text-xs font-mono text-right text-[#7A839E]">
+                  <td className="py-3.5 px-4 text-xs font-mono text-right text-subtle">
                     {receipt.status === 'CONFIRMED' ? item.before_on_hand : '—'}
                   </td>
-                  <td className="py-3.5 px-4 text-xs font-mono font-semibold text-right text-[#141B34]">
+                  <td className="py-3.5 px-4 text-xs font-mono font-semibold text-right text-fg">
                     {receipt.status === 'CONFIRMED' ? item.after_on_hand : '—'}
                   </td>
-                  <td className="py-3.5 px-4 text-xs text-[#8992AB] max-w-[200px] truncate">
+                  <td className="py-3.5 px-4 text-xs text-subtle max-w-[200px] truncate">
                     {item.notes || '—'}
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <Link
                       to={`/inventory/stock/${item.product_id}`}
-                      className="px-2.5 py-1 bg-[#EEF1F9] hover:bg-[#E4E8F2] text-[#141B34] border border-[#E4E8F2] rounded text-xs font-medium transition-colors"
+                      className="px-2.5 py-1 bg-tile hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
                     >
                       Ledger →
                     </Link>
@@ -340,58 +340,58 @@ export default function StockReceiptDetail() {
 
       {/* Linked Movement Audit Ledger */}
       {receipt.movements && receipt.movements.length > 0 && (
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-[#E4E8F2] flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[#141B34] flex items-center gap-2">
+        <div className="ts-card ts-white ts-tbl overflow-hidden">
+          <div className="p-4 border-b border-line2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-fg flex items-center gap-2">
               <span>📋</span> Linked Stock Movements Audit Trail ({receipt.movements.length})
             </h2>
-            <span className="text-xs text-[#7A839E]">Immutable stock ledger records linked to this receipt</span>
+            <span className="text-xs text-subtle">Immutable stock ledger records linked to this receipt</span>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="ts-tblwrap">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-[#E4E8F2] text-xs text-[#7A839E] uppercase tracking-wider bg-[#F7F8FC]">
-                  <th className="py-3 px-4 font-medium">Timestamp</th>
-                  <th className="py-3 px-4 font-medium">Movement Type</th>
-                  <th className="py-3 px-4 font-medium">Part No</th>
-                  <th className="py-3 px-4 font-medium text-right">Quantity</th>
-                  <th className="py-3 px-4 font-medium text-right">Before</th>
-                  <th className="py-3 px-4 font-medium text-right">After</th>
-                  <th className="py-3 px-4 font-medium">Reason / Note</th>
-                  <th className="py-3 px-4 font-medium">User</th>
+                <tr className="border-b border-line2 text-xs text-subtle uppercase tracking-wider bg-surface">
+                  <th>Timestamp</th>
+                  <th>Movement Type</th>
+                  <th>Part No</th>
+                  <th className="ts-r">Quantity</th>
+                  <th className="ts-r">Before</th>
+                  <th className="ts-r">After</th>
+                  <th>Reason / Note</th>
+                  <th>User</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EEF1F9]">
+              <tbody className="divide-y divide-line2">
                 {receipt.movements.map((mov) => (
-                  <tr key={mov.id} className="hover:bg-[#F7F8FC] transition-colors">
-                    <td className="py-3 px-4 text-xs text-[#7A839E] whitespace-nowrap">
+                  <tr key={mov.id} className="hover:bg-surface transition-colors">
+                    <td className="py-3 px-4 text-xs text-subtle whitespace-nowrap">
                       {formatDate(mov.created_at)}
                     </td>
                     <td className="py-3 px-4">
                       <MovementTypeBadge type={mov.movement_type} />
                     </td>
-                    <td className="py-3 px-4 font-mono text-xs text-[#141B34]">
+                    <td className="py-3 px-4 font-mono text-xs text-fg">
                       <Link
                         to={`/inventory/stock/${mov.product_id}`}
-                        className="hover:text-[#3B6FD4] transition-colors"
+                        className="hover:text-fg transition-colors"
                       >
                         {mov.part_no || `Product #${mov.product_id}`}
                       </Link>
                     </td>
-                    <td className="py-3 px-4 text-xs font-mono font-bold text-right text-[#2FBF71]">
+                    <td className="py-3 px-4 text-xs font-mono font-bold text-right text-good">
                       +{mov.quantity}
                     </td>
-                    <td className="py-3 px-4 text-xs font-mono text-right text-[#8992AB]">
+                    <td className="py-3 px-4 text-xs font-mono text-right text-subtle">
                       {mov.before_on_hand}
                     </td>
-                    <td className="py-3 px-4 text-xs font-mono text-right font-semibold text-[#141B34]">
+                    <td className="py-3 px-4 text-xs font-mono text-right font-semibold text-fg">
                       {mov.after_on_hand}
                     </td>
-                    <td className="py-3 px-4 text-xs text-[#8992AB] max-w-[220px] truncate">
+                    <td className="py-3 px-4 text-xs text-subtle max-w-[220px] truncate">
                       {mov.reason || '—'}
                     </td>
-                    <td className="py-3 px-4 text-xs text-[#7A839E]">
+                    <td className="py-3 px-4 text-xs text-subtle">
                       {mov.created_by_username || 'System'}
                     </td>
                   </tr>

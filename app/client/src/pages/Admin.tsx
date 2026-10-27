@@ -151,37 +151,31 @@ export default function Admin() {
   }
 
   return (
-    <div className="w-full space-y-6 px-4 tablet-lg:px-6 pt-2">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Page Header & Navigation Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E4E8F2]">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">System Administration</h1>
-          <p className="text-sm text-[#7A839E] mt-1">Manage platform accounts, database backups, data imports, and system rules.</p>
+          <h1 className="ts-title">System Administration</h1>
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">Manage platform accounts, database backups, data imports, and system rules.</p>
         </div>
 
         {/* Tab Buttons */}
-        <div className="flex items-center space-x-1 bg-[#FFFFFF] p-1 border border-[#E4E8F2] rounded-xl self-start sm:self-auto">
+        <div className="ts-tabs self-start sm:self-auto">
           <button
             onClick={() => setTab('users')}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${
-              tab === 'users' ? 'bg-[#3B6FD4] text-[#F4F6FC]' : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F7F8FC]'
-            }`}
+            className={`ts-tab ${tab === 'users' ? 'ts-on' : ''}`}
           >
             User Accounts
           </button>
           <button
             onClick={() => setTab('data')}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${
-              tab === 'data' ? 'bg-[#3B6FD4] text-[#F4F6FC]' : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F7F8FC]'
-            }`}
+            className={`ts-tab ${tab === 'data' ? 'ts-on' : ''}`}
           >
             Data & Backups
           </button>
           <button
             onClick={() => setTab('config')}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${
-              tab === 'config' ? 'bg-[#3B6FD4] text-[#F4F6FC]' : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F7F8FC]'
-            }`}
+            className={`ts-tab ${tab === 'config' ? 'ts-on' : ''}`}
           >
             Configuration
           </button>
@@ -189,7 +183,7 @@ export default function Admin() {
       </div>
 
       {error && (
-        <div className="p-4 bg-[#E5484D]/10 border border-[#E5484D]/30 rounded-xl text-[#E5484D] text-sm flex items-center space-x-2">
+        <div className="ts-warnbox">
           <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
@@ -198,7 +192,7 @@ export default function Admin() {
       )}
 
       {notice && (
-        <div className="p-4 bg-[#3B6FD4]/10 border border-[#3B6FD4]/30 rounded-xl text-[#3B6FD4] text-sm flex items-center space-x-2">
+        <div className="ts-okbox flex items-center gap-2">
           <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
@@ -210,9 +204,9 @@ export default function Admin() {
       {tab === 'users' && (
         <div className="space-y-6">
           {/* Add User Form Card */}
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-[#141B34] mb-4 pb-3 border-b border-[#E4E8F2] flex items-center space-x-2">
-              <svg className="w-5 h-5 text-[#3B6FD4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="ts-card ts-white ts-tbl">
+            <h2 className="m-0 text-[15px] font-medium text-fg mb-4 pb-3 border-dashed border-line2 flex items-center gap-2 border-b">
+              <svg className="w-5 h-5 text-fg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
               <span>Add New User Account</span>
@@ -220,33 +214,33 @@ export default function Admin() {
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Username</label>
+                <label className="ts-lbl">Username</label>
                 <input
                   type="text"
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
                   placeholder="e.g. john_doe"
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
+                  className="ts-fi"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Password</label>
+                <label className="ts-lbl">Password</label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
+                  className="ts-fi"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">Role</label>
+                <label className="ts-lbl">Role</label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors cursor-pointer"
+                  className="ts-fi"
                 >
                   <option value="staff">Staff (Standard)</option>
                   <option value="admin">Administrator</option>
@@ -257,7 +251,7 @@ export default function Admin() {
                 <button
                   onClick={createUser}
                   disabled={creatingUser || !newUsername || !newPassword}
-                  className="w-full px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50"
+                  className="ts-btn ts-dark w-full justify-center"
                 >
                   {creatingUser ? 'Creating...' : 'Create Account'}
                 </button>
@@ -266,50 +260,46 @@ export default function Admin() {
           </div>
 
           {/* User Table */}
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="px-6 py-4 border-b border-[#E4E8F2] flex justify-between items-center">
-              <h3 className="text-base font-semibold text-[#141B34]">Registered Platform Users</h3>
-              <span className="text-xs text-[#7A839E] bg-[#F4F6FC] px-3 py-1 rounded-full border border-[#E4E8F2]">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="flex justify-between items-center gap-3 pb-1">
+              <h3 className="m-0 text-[15px] font-medium text-fg">Registered Platform Users</h3>
+              <span className="ts-headtag">
                 {users.length} Active Accounts
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] text-[#7A839E] text-xs uppercase font-semibold border-b border-[#E4E8F2]">
-                    <th className="px-6 py-3.5">User</th>
-                    <th className="px-6 py-3.5">Role</th>
-                    <th className="px-6 py-3.5">Created Date</th>
-                    <th className="px-6 py-3.5 text-right">Actions</th>
+                  <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Created Date</th>
+                    <th className="ts-r">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-sm text-[#141B34]">
+                <tbody>
                   {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-[#F7F8FC]/50 transition-colors">
-                      <td className="px-6 py-4 font-semibold flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-[#F7F8FC] border border-[#E4E8F2] flex items-center justify-center text-[#3B6FD4] font-bold text-xs uppercase">
+                    <tr key={u.id}>
+                      <td className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-surface border border-line2 flex items-center justify-center text-fg font-medium text-[13px]">
                           {u.username.substring(0, 2)}
                         </div>
                         <span>{u.username}</span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td>
                         <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            u.role === 'admin'
-                              ? 'bg-[#3B6FD4]/10 text-[#3B6FD4] border border-[#3B6FD4]/30'
-                              : 'bg-[#6B78D6]/10 text-[#6B78D6] border border-[#6B78D6]/30'
-                          }`}
+                          className={`ts-st ${u.role === 'admin' ? 'ts-tone-good' : ''}`}
                         >
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-[#7A839E] text-xs font-mono">{u.created_at}</td>
-                      <td className="px-6 py-4 text-right space-x-2">
+                      <td className="text-subtle num">{u.created_at}</td>
+                      <td className="ts-r gap-2">
                         <button
                           disabled={userActionId === u.id}
                           onClick={() => { setResetTarget(u.id); setResetPassword(''); }}
-                          className="px-3 py-1.5 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#141B34] text-xs font-medium rounded-lg border border-[#E4E8F2] transition-colors"
+                          className="ts-btn ts-ghost ts-xs"
                         >
                           Reset Password
                         </button>
@@ -318,7 +308,7 @@ export default function Admin() {
                           <button
                             disabled={userActionId === u.id}
                             onClick={() => deleteUser(u.id)}
-                            className="px-3 py-1.5 bg-[#E5484D]/10 hover:bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30 text-xs font-medium rounded-lg transition-colors"
+                            className="ts-btn ts-ghost ts-xs !text-bad"
                           >
                             {userActionId === u.id ? 'Deleting...' : 'Delete'}
                           </button>
@@ -333,26 +323,26 @@ export default function Admin() {
 
           {/* Reset Password Modal / Card */}
           {resetTarget != null && (
-            <div className="bg-[#FFFFFF] border border-[#3B6FD4]/50 rounded-xl p-6 shadow-card">
-              <h3 className="text-base font-semibold text-[#141B34] mb-3">Reset Password for User #{resetTarget}</h3>
-              <div className="flex items-center space-x-3 max-w-md">
+            <div className="bg-surface2 border border-fg/50 rounded-xl p-6 shadow-card">
+              <h3 className="m-0 text-[15px] font-medium text-fg mb-3">Reset Password for User #{resetTarget}</h3>
+              <div className="flex items-center gap-3 max-w-md">
                 <input
                   type="password"
                   value={resetPassword}
                   onChange={(e) => setResetPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="flex-1 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4]"
+                  className="ts-fi flex-1"
                 />
                 <button
                   onClick={() => submitResetPassword(resetTarget)}
                   disabled={resettingPassword || !resetPassword}
-                  className="px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold text-xs rounded-lg transition-colors"
+                  className="ts-btn ts-dark ts-xs"
                 >
                   {resettingPassword ? 'Saving...' : 'Confirm Reset'}
                 </button>
                 <button
                   onClick={() => setResetTarget(null)}
-                  className="px-4 py-2 bg-[#F7F8FC] text-[#7A839E] hover:text-[#141B34] font-semibold text-xs rounded-lg border border-[#E4E8F2]"
+                  className="ts-btn ts-ghost ts-xs"
                 >
                   Cancel
                 </button>
@@ -369,20 +359,20 @@ export default function Admin() {
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {Object.entries(stats.counts).map(([table, count]) => (
-                <div key={table} className="bg-[#FFFFFF] border border-[#E4E8F2] p-4 rounded-xl">
-                  <div className="text-xs uppercase font-semibold text-[#7A839E] tracking-wider truncate">
+                <div key={table} className="ts-card">
+                  <div className="text-[13px] font-medium text-subtle truncate">
                     {table.replace(/_/g, ' ')}
                   </div>
-                  <div className="text-2xl font-bold text-[#141B34] mt-1 tabular-nums">
+                  <div className="ts-val num block text-fg">
                     {count.toLocaleString()}
                   </div>
                 </div>
               ))}
-              <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-4 rounded-xl">
-                <div className="text-xs uppercase font-semibold text-[#7A839E] tracking-wider">
+              <div className="ts-card">
+                <div className="text-[13px] font-medium text-subtle">
                   Database Size
                 </div>
-                <div className="text-2xl font-bold text-[#3B6FD4] mt-1 tabular-nums">
+                <div className="ts-val num block text-fg">
                   {formatBytes(stats.dbSizeBytes)}
                 </div>
               </div>
@@ -390,15 +380,15 @@ export default function Admin() {
           )}
 
           {/* Import Batches */}
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
-            <div className="p-6 border-b border-[#E4E8F2] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="p-6 border-b border-line2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-base font-semibold text-[#141B34]">Excel Import Batches</h3>
-                <p className="text-xs text-[#7A839E] mt-0.5">Historical sales imports logged in database</p>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Excel Import Batches</h3>
+                <p className="ts-muted m-0 mt-1.5 text-[14px]">Historical sales imports logged in database</p>
               </div>
               <a
                 href={api.admin.backupUrl()}
-                className="inline-flex items-center px-4 py-2 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#3B6FD4] border border-[#E4E8F2] font-semibold rounded-lg text-xs transition-colors self-start sm:self-auto"
+                className="ts-btn ts-ghost ts-xs"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -407,30 +397,30 @@ export default function Admin() {
               </a>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] text-[#7A839E] text-xs uppercase font-semibold border-b border-[#E4E8F2]">
-                    <th className="px-6 py-3.5">Filename</th>
-                    <th className="px-6 py-3.5">Financial Year</th>
-                    <th className="px-6 py-3.5">Imported At</th>
-                    <th className="px-6 py-3.5 text-right">Rows</th>
-                    <th className="px-6 py-3.5 text-right">Processed</th>
-                    <th className="px-6 py-3.5 text-right">Actions</th>
+                  <tr>
+                    <th>Filename</th>
+                    <th>Financial Year</th>
+                    <th>Imported At</th>
+                    <th className="ts-r">Rows</th>
+                    <th className="ts-r">Processed</th>
+                    <th className="ts-r">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-sm text-[#141B34]">
+                <tbody>
                   {importBatches.map((b) => (
-                    <tr key={b.id} className="hover:bg-[#F7F8FC]/50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-xs">{b.filename}</td>
-                      <td className="px-6 py-4 text-[#7A839E] text-xs">{b.year_label || '-'}</td>
-                      <td className="px-6 py-4 text-[#7A839E] text-xs font-mono">{b.imported_at}</td>
-                      <td className="px-6 py-4 text-right tabular-nums">{b.row_count}</td>
-                      <td className="px-6 py-4 text-right tabular-nums text-[#3B6FD4]">{b.imported_count}</td>
-                      <td className="px-6 py-4 text-right">
+                    <tr key={b.id}>
+                      <td className="num">{b.filename}</td>
+                      <td className="text-subtle">{b.year_label || '-'}</td>
+                      <td className="text-subtle num">{b.imported_at}</td>
+                      <td className="ts-r tabular-nums">{b.row_count}</td>
+                      <td className="ts-r tabular-nums text-fg">{b.imported_count}</td>
+                      <td className="ts-r">
                         <button
                           onClick={() => deleteImportBatch(b.id)}
-                          className="px-3 py-1 bg-[#E5484D]/10 hover:bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30 text-xs rounded-lg transition-colors"
+                          className="ts-btn ts-ghost ts-xs !text-bad"
                         >
                           Delete Batch
                         </button>
@@ -439,7 +429,7 @@ export default function Admin() {
                   ))}
                   {importBatches.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-[#A8AEC4]">
+                      <td colSpan={6} className="text-center text-faint">
                         No import batches found.
                       </td>
                     </tr>
@@ -450,42 +440,42 @@ export default function Admin() {
           </div>
 
           {/* Review Queue */}
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden">
-            <div className="p-6 border-b border-[#E4E8F2]">
-              <h3 className="text-base font-semibold text-[#141B34]">Data Review Queue</h3>
-              <p className="text-xs text-[#7A839E] mt-0.5">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="pb-4">
+              <h3 className="m-0 text-[15px] font-medium text-fg">Data Review Queue</h3>
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Rows flagged for missing, ambiguous, or unmapped data during excel ingestion.
               </p>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] text-[#7A839E] text-xs uppercase font-semibold border-b border-[#E4E8F2]">
-                    <th className="px-6 py-3.5">Sale Date</th>
-                    <th className="px-6 py-3.5">Company</th>
-                    <th className="px-6 py-3.5">Product Description</th>
-                    <th className="px-6 py-3.5">Flag Reason</th>
-                    <th className="px-6 py-3.5 text-right">Actions</th>
+                  <tr>
+                    <th>Sale Date</th>
+                    <th>Company</th>
+                    <th>Product Description</th>
+                    <th>Flag Reason</th>
+                    <th className="ts-r">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-sm text-[#141B34]">
+                <tbody>
                   {reviewRows.map((r) => (
-                    <tr key={r.id} className="hover:bg-[#F7F8FC]/50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-xs text-[#7A839E]">{r.sale_date || '-'}</td>
-                      <td className="px-6 py-4 font-semibold">{r.company_name || '-'}</td>
-                      <td className="px-6 py-4 text-[#7A839E] text-xs">{r.product_description || '-'}</td>
-                      <td className="px-6 py-4 text-[#E8A33D] text-xs font-medium">{r.review_reason}</td>
-                      <td className="px-6 py-4 text-right space-x-2">
+                    <tr key={r.id}>
+                      <td className="num text-subtle">{r.sale_date || '-'}</td>
+                      <td>{r.company_name || '-'}</td>
+                      <td className="text-subtle">{r.product_description || '-'}</td>
+                      <td className="text-warn font-medium">{r.review_reason}</td>
+                      <td className="ts-r gap-2">
                         <button
                           onClick={() => dismissReview(r.id)}
-                          className="px-3 py-1 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#141B34] border border-[#E4E8F2] text-xs rounded-lg transition-colors"
+                          className="ts-btn ts-ghost ts-xs"
                         >
                           Dismiss
                         </button>
                         <button
                           onClick={() => deleteReview(r.id)}
-                          className="px-3 py-1 bg-[#E5484D]/10 hover:bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30 text-xs rounded-lg transition-colors"
+                          className="ts-btn ts-ghost ts-xs !text-bad"
                         >
                           Delete
                         </button>
@@ -494,7 +484,7 @@ export default function Admin() {
                   ))}
                   {reviewRows.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-[#A8AEC4]">
+                      <td colSpan={5} className="text-center text-faint">
                         Review queue is empty. All data is clean!
                       </td>
                     </tr>
@@ -508,9 +498,9 @@ export default function Admin() {
 
       {/* TAB 3: CONFIGURATION */}
       {tab === 'config' && (
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-6 max-w-2xl">
-          <h2 className="text-lg font-semibold text-[#141B34] mb-4 pb-3 border-b border-[#E4E8F2] flex items-center space-x-2">
-            <svg className="w-5 h-5 text-[#3B6FD4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="ts-card ts-white ts-tbl max-w-2xl">
+          <h2 className="m-0 text-[15px] font-medium text-fg mb-4 pb-3 border-dashed border-line2 flex items-center gap-2 border-b">
+            <svg className="w-5 h-5 text-fg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -519,36 +509,36 @@ export default function Admin() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">
+              <label className="ts-lbl">
                 Default Quotation Tax Rate (%)
               </label>
               <input
                 type="number"
                 value={taxPercent}
                 onChange={(e) => setTaxPercent(Number(e.target.value))}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2.5 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
+                className="ts-fi"
               />
-              <p className="text-xs text-[#A8AEC4] mt-1">Default GST tax percentage applied to newly generated quotations.</p>
+              <p className="text-[13px] text-faint mt-1">Default GST tax percentage applied to newly generated quotations.</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#7A839E] mb-1.5">
+              <label className="ts-lbl">
                 Lapsed-Purchases Window (Months)
               </label>
               <input
                 type="number"
                 value={lapseMonths}
                 onChange={(e) => setLapseMonths(Number(e.target.value))}
-                className="w-full bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg px-3.5 py-2.5 text-sm text-[#141B34] focus:outline-none focus:border-[#3B6FD4] transition-colors"
+                className="ts-fi"
               />
-              <p className="text-xs text-[#A8AEC4] mt-1">Inactivity timeframe used to flag customers under At Risk / Inactive health states.</p>
+              <p className="text-[13px] text-faint mt-1">Inactivity timeframe used to flag customers under At Risk / Inactive health states.</p>
             </div>
 
             <div className="pt-2">
               <button
                 onClick={saveConfig}
                 disabled={savingConfig}
-                className="px-5 py-2.5 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold rounded-lg text-sm transition-colors shadow-sm disabled:opacity-50"
+                className="ts-btn ts-dark"
               >
                 {savingConfig ? 'Saving...' : 'Save Configuration'}
               </button>

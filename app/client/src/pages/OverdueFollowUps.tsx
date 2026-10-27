@@ -96,45 +96,45 @@ export default function OverdueFollowUps() {
   const getPriorityBadgeClass = (priority: string) => {
     switch (priority) {
       case 'URGENT':
-        return 'bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/40 font-bold';
+        return 'ts-tone-bad';
       case 'HIGH':
-        return 'bg-[#E8A33D]/20 text-[#E8A33D] border border-[#E8A33D]/40 font-semibold';
+        return 'ts-tone-warn';
       case 'NORMAL':
-        return 'bg-[#F7F8FC] text-[#6B78D6] border border-[#D4DAEA]';
+        return '';
       case 'LOW':
       default:
-        return 'bg-[#F7F8FC] text-[#7A839E] border border-[#E4E8F2]';
+        return '';
     }
   };
 
   return (
-    <div className="p-4 space-y-4 max-w-[1600px] mx-auto">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E4E8F2] p-4 rounded-xl">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-[#141B34] tracking-tight">Overdue Follow-Ups</h1>
-            <span className="bg-[#E5484D]/10 text-[#E5484D] text-xs font-semibold px-2.5 py-0.5 rounded-full border border-[#E5484D]/30">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="ts-title">Overdue Follow-Ups</h1>
+            <span className="ts-st ts-tone-bad">
               Immediate Attention
             </span>
           </div>
-          <p className="text-xs text-[#7A839E] mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Pending sales follow-ups that have passed their scheduled execution date.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={loadData}
-            className="btn small bg-[#F7F8FC] text-[#141B34] border-[#E4E8F2] hover:bg-[#E4E8F2] transition-colors"
+            className="ts-btn ts-ghost ts-xs"
           >
-            🔄 Refresh
+            Refresh
           </button>
           <button
-            className="btn small bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold transition-colors px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs"
+            className="ts-btn ts-dark ts-xs"
             onClick={handleExportExcel}
           >
-            📥 Export Excel
+            Export Excel
           </button>
         </div>
       </div>
@@ -142,23 +142,23 @@ export default function OverdueFollowUps() {
       {error && <ErrorState message={error} onRetry={loadData} />}
 
       {/* KPI Toolbar Card */}
-      <div className="bg-[#FFFFFF] border border-[#E5484D]/40 p-4 rounded-xl flex items-center justify-between flex-wrap gap-3">
+      <div className="ts-card flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#E5484D]/10 border border-[#E5484D]/30 flex items-center justify-center text-lg font-bold text-[#E5484D]">
+          <div className="w-12 h-12 rounded-[14px] bg-badbg text-bad grid place-items-center text-[20px] font-medium num shrink-0">
             {followUps.length}
           </div>
           <div>
-            <div className="text-xs font-bold text-[#141B34]">Overdue Follow-ups Require Sales Action</div>
-            <div className="text-[11px] text-[#7A839E]">
+            <div className="text-[15px] font-medium text-fg">Overdue follow-ups need sales action</div>
+            <div className="text-[13px] text-subtle mt-0.5">
               Sorted by priority, days overdue, and opportunity value.
             </div>
           </div>
         </div>
 
-        <div className="w-full sm:w-auto">
+        <div className="w-full sm:w-72">
           <input
             type="text"
-            className="bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] px-3 py-1.5 rounded-lg text-xs w-full sm:w-72 outline-none focus:border-[#3B6FD4]"
+            className="ts-fi"
             placeholder="Search customer, quotation, engineer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -176,67 +176,67 @@ export default function OverdueFollowUps() {
           onAction={search ? () => setSearch('') : undefined}
         />
       ) : (
-        <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse">
+        <div className="ts-card ts-white ts-tbl overflow-hidden">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
-                <tr className="border-b border-[#E4E8F2] bg-[#F7F8FC]/80 text-[#7A839E] uppercase text-[10px] tracking-wider font-semibold">
-                  <th className="p-3">Customer</th>
-                  <th className="p-3">Quotation No</th>
-                  <th className="p-3">Engineer</th>
-                  <th className="p-3">Branch</th>
-                  <th className="p-3">Due Date</th>
-                  <th className="p-3 text-right">Days Overdue</th>
-                  <th className="p-3 text-right">Value (₹)</th>
-                  <th className="p-3 text-center">Priority</th>
-                  <th className="p-3">Notes / Last Activity</th>
-                  <th className="p-3 text-center">Actions</th>
+                <tr>
+                  <th>Customer</th>
+                  <th>Quotation no</th>
+                  <th>Engineer</th>
+                  <th>Branch</th>
+                  <th>Due date</th>
+                  <th className="ts-r">Days overdue</th>
+                  <th className="ts-r">Value (₹)</th>
+                  <th className="text-center">Priority</th>
+                  <th>Notes / last activity</th>
+                  <th className="text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E4E8F2]/50">
+              <tbody>
                 {followUps.map((f) => (
-                  <tr key={f.id} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                    <td className="p-3 font-bold text-[#141B34] max-w-[180px] truncate" title={f.customer_name || ''}>
+                  <tr key={f.id}>
+                    <td className="max-w-[180px] truncate" title={f.customer_name || ''}>
                       {f.customer_name || 'N/A'}
                     </td>
-                    <td className="p-3 font-bold font-mono">
+                    <td className="num">
                       {f.quotation_id ? (
-                        <Link to={`/quotations/${f.quotation_id}`} className="text-[#3B6FD4] hover:underline">
+                        <Link to={`/quotations/${f.quotation_id}`} className="text-fg hover:underline">
                           {f.quotation_number}
                         </Link>
                       ) : (
                         '-'
                       )}
                     </td>
-                    <td className="p-3 text-[#7A839E]">{f.engineer_name || 'Unassigned'}</td>
-                    <td className="p-3 text-[#7A839E]">{f.branch_name || 'Main'}</td>
-                    <td className="p-3 text-[#7A839E]">{formatDate(f.follow_up_date)}</td>
-                    <td className="p-3 text-right">
-                      <span className="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-[#E5484D]/15 text-[#E5484D] border border-[#E5484D]/30 inline-block">
+                    <td className="text-subtle">{f.engineer_name || 'Unassigned'}</td>
+                    <td className="text-subtle">{f.branch_name || 'Main'}</td>
+                    <td className="text-subtle">{formatDate(f.follow_up_date)}</td>
+                    <td className="ts-r">
+                      <span className="ts-st ts-tone-bad num">
                         {f.days_overdue} days overdue
                       </span>
                     </td>
-                    <td className="p-3 text-right font-bold text-[#141B34] font-mono">
+                    <td className="ts-r num">
                       {formatCurrency(f.net_subtotal)}
                     </td>
-                    <td className="p-3 text-center">
-                      <span className={`px-2 py-0.5 rounded text-[10px] ${getPriorityBadgeClass(f.priority)}`}>
+                    <td className="text-center">
+                      <span className={`ts-st ${getPriorityBadgeClass(f.priority)}`}>
                         {f.priority}
                       </span>
                     </td>
-                    <td className="p-3 text-[#7A839E] max-w-[220px] truncate" title={f.notes || ''}>
+                    <td className="text-subtle max-w-[220px] truncate" title={f.notes || ''}>
                       {f.notes || 'No notes added'}
                     </td>
-                    <td className="p-3 text-center">
+                    <td className="text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
-                          className="btn tiny bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold text-[11px] px-2.5 py-1 rounded-md"
+                          className="ts-btn ts-dark ts-xs"
                           onClick={() => openActionModal('complete', f)}
                         >
                           Complete
                         </button>
                         <button
-                          className="btn tiny bg-[#F7F8FC] text-[#141B34] border border-[#E4E8F2] hover:bg-[#E4E8F2] text-[11px] font-semibold px-2 py-1 rounded-md"
+                          className="ts-btn ts-ghost ts-xs"
                           onClick={() => openActionModal('reschedule', f)}
                         >
                           Reschedule
@@ -253,42 +253,42 @@ export default function OverdueFollowUps() {
 
       {/* Action Modal */}
       {activeModal.open && activeModal.item && (
-        <div className="fixed inset-0 bg-[#141B34]/40 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] p-5 rounded-xl max-w-md w-full shadow-lift space-y-4">
-            <div className="flex justify-between items-start border-b border-[#E4E8F2] pb-3">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-[2px]">
+          <div className="ts-modal max-w-md w-full flex flex-col gap-4">
+            <div className="flex justify-between items-start gap-3">
               <div>
-                <h3 className="text-base font-bold text-[#141B34]">
+                <h3 className="m-0 text-[15px] font-medium text-fg">
                   {activeModal.type === 'complete' ? 'Complete Follow-Up' : 'Reschedule Follow-Up'}
                 </h3>
-                <p className="text-xs text-[#7A839E] mt-0.5">
+                <p className="ts-muted m-0 mt-1.5 text-[14px]">
                   {activeModal.item.customer_name} — {activeModal.item.quotation_number}
                 </p>
               </div>
               <button
                 onClick={() => setActiveModal({ open: false, type: 'complete' })}
-                className="text-[#7A839E] hover:text-[#141B34] font-bold text-lg"
+                className="ts-btn ts-ghost ts-xs !px-2.5" aria-label="Close"
               >
                 ×
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="flex flex-col gap-3">
               {activeModal.type === 'reschedule' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[#7A839E] font-medium mb-1">New Date</label>
+                    <label className="ts-lbl">New Date</label>
                     <input
                       type="date"
-                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
+                      className="ts-fi"
                       value={newDate}
                       onChange={(e) => setNewDate(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="block text-[#7A839E] font-medium mb-1">Time</label>
+                    <label className="ts-lbl">Time</label>
                     <input
                       type="time"
-                      className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2 rounded-lg outline-none focus:border-[#3B6FD4]"
+                      className="ts-fi"
                       value={newTime}
                       onChange={(e) => setNewTime(e.target.value)}
                     />
@@ -297,12 +297,12 @@ export default function OverdueFollowUps() {
               )}
 
               <div>
-                <label className="block text-[#7A839E] font-medium mb-1">
+                <label className="ts-lbl">
                   {activeModal.type === 'complete' ? 'Completion Notes & Outcome' : 'Reschedule Reason & Notes'}
                 </label>
                 <textarea
                   rows={3}
-                  className="w-full bg-[#F4F6FC] border border-[#E4E8F2] text-[#141B34] p-2.5 rounded-lg outline-none focus:border-[#3B6FD4]"
+                  className="ts-fi"
                   placeholder="Record customer feedback, interaction outcome, or next steps..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -310,16 +310,16 @@ export default function OverdueFollowUps() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E4E8F2]">
+            <div className="flex justify-end gap-2.5 pt-1">
               <button
-                className="btn small bg-[#F7F8FC] text-[#141B34] border border-[#E4E8F2] hover:bg-[#E4E8F2] px-4 py-2 text-xs font-semibold rounded-lg"
+                className="ts-btn ts-ghost ts-xs"
                 onClick={() => setActiveModal({ open: false, type: 'complete' })}
                 disabled={submitting}
               >
                 Cancel
               </button>
               <button
-                className="btn small bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] font-semibold px-4 py-2 text-xs rounded-lg"
+                className="ts-btn ts-dark ts-xs"
                 onClick={handleActionSubmit}
                 disabled={submitting}
               >

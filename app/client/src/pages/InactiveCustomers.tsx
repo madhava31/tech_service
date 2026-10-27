@@ -28,8 +28,8 @@ export default function InactiveCustomers() {
     setPage(1);
   }, [search]);
 
-  if (error) return <div className="error">{error}</div>;
-  if (!data) return <p className="muted loading-text">Loading…</p>;
+  if (error) return <div className="ts-warnbox">{error}</div>;
+  if (!data) return <p className="text-subtle ts-empty">Loading…</p>;
 
   const filtered = search
     ? data.customers.filter((c) => c.company_name.toLowerCase().includes(search.toLowerCase()))
@@ -40,18 +40,20 @@ export default function InactiveCustomers() {
   const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
-    <div className="w-full px-4 tablet-lg:px-6 pt-2">
-      <h2>Inactive Customers</h2>
-      <p className="page-subtitle">Customers with no purchases in the last {data.months} months.</p>
-
-      <div className="inactive-summary">
-        <div className="inactive-summary-count">
-          {data.count} Inactive Customer{data.count === 1 ? '' : 's'}
-        </div>
-        <div className="inactive-summary-hint">No purchases in the last {data.months} months.</div>
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 !block">
+      <h1 className="ts-title">Inactive Customers</h1>
+      <p className="ts-muted m-0 mt-1.5 text-[14px]">Customers with no purchases in the last {data.months} months.</p>
       </div>
 
-      <div className="mb-3">
+      <div className="ts-card ts-kpi-sm flex flex-wrap items-baseline justify-between gap-2">
+        <div className="text-[22px] font-medium text-fg num tracking-[-.02em]">
+          {data.count} Inactive Customer{data.count === 1 ? '' : 's'}
+        </div>
+        <div className="text-[13px] text-subtle">No purchases in the last {data.months} months.</div>
+      </div>
+
+      <div>
         <ExpandableSearch
           value={search}
           onChange={setSearch}
@@ -61,15 +63,15 @@ export default function InactiveCustomers() {
         />
       </div>
 
-      <div className="card">
-        <div className="table-scroll">
-          <table className="data-table">
+      <div className="ts-card ts-tbl">
+        <div className="ts-tblwrap">
+          <table>
             <thead>
               <tr>
                 <th>Company</th>
                 <th>Last Purchase</th>
-                <th className="text-right">Months Inactive</th>
-                <th className="text-right">Historical Revenue</th>
+                <th className="ts-r">Months Inactive</th>
+                <th className="ts-r">Historical Revenue</th>
               </tr>
             </thead>
             <tbody>
@@ -77,13 +79,13 @@ export default function InactiveCustomers() {
                 <tr key={c.company_name}>
                   <td>{c.company_name}</td>
                   <td>{formatDate(c.last_purchase)}</td>
-                  <td className="text-right">{c.months_inactive} months</td>
-                  <td className="text-right">{formatCurrency(c.total_revenue)}</td>
+                  <td className="ts-r">{c.months_inactive} months</td>
+                  <td className="ts-r">{formatCurrency(c.total_revenue)}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="muted">
+                  <td colSpan={4} className="text-subtle">
                     No inactive customers found.
                   </td>
                 </tr>

@@ -71,30 +71,30 @@ function formatDate(d: string | null | undefined) {
 function TrendBadge({ trend }: { trend: string }) {
   if (trend === 'INCREASING') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4] rounded-md text-[11px] font-semibold">
-        <TrendingUp className="w-3 h-3 text-[#2FBF71]" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-goodbg text-good border border-goodbg rounded-md text-[12.5px] font-medium">
+        <TrendingUp className="w-3 h-3 text-good" />
         Increasing
       </span>
     );
   }
   if (trend === 'DECREASING') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5] rounded-md text-[11px] font-semibold">
-        <TrendingDown className="w-3 h-3 text-[#E5484D]" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-badbg text-bad border border-badbg rounded-md text-[12.5px] font-medium">
+        <TrendingDown className="w-3 h-3 text-bad" />
         Decreasing
       </span>
     );
   }
   if (trend === 'STABLE') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4] rounded-md text-[11px] font-semibold">
-        <Minus className="w-3 h-3 text-[#3B6FD4]" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-tile text-fg border border-line2 rounded-md text-[12.5px] font-medium">
+        <Minus className="w-3 h-3 text-fg" />
         Stable
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#F7F8FC] text-[#7A839E] border border-[#E4E8F2] rounded-md text-[11px] font-medium">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface text-subtle border border-line2 rounded-md text-[12.5px] font-medium">
       No Recent Demand
     </span>
   );
@@ -103,7 +103,7 @@ function TrendBadge({ trend }: { trend: string }) {
 function RecommendationBadge({ recommendation }: { recommendation: string }) {
   if (recommendation === 'RESTOCK_NOW' || recommendation === 'OUT_OF_STOCK') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5] rounded-md text-[11.5px] font-semibold">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-badbg text-bad border border-badbg rounded-md text-[12.5px] font-medium">
         <AlertTriangle className="w-3.5 h-3.5" />
         Restock Now
       </span>
@@ -111,7 +111,7 @@ function RecommendationBadge({ recommendation }: { recommendation: string }) {
   }
   if (recommendation === 'RESTOCK_SOON') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6] rounded-md text-[11.5px] font-semibold">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-warnbg text-warn border border-warnbg rounded-md text-[12.5px] font-medium">
         <Zap className="w-3.5 h-3.5" />
         Restock Soon
       </span>
@@ -119,14 +119,14 @@ function RecommendationBadge({ recommendation }: { recommendation: string }) {
   }
   if (recommendation === 'MONITOR') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4] rounded-md text-[11.5px] font-medium">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-tile text-fg border border-line2 rounded-md text-[12.5px] font-medium">
         <Clock className="w-3.5 h-3.5" />
         Monitor
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4] rounded-md text-[11.5px] font-medium">
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-goodbg text-good border border-goodbg rounded-md text-[12.5px] font-medium">
       <CheckCircle2 className="w-3.5 h-3.5" />
       Sufficient Stock
     </span>
@@ -136,34 +136,34 @@ function RecommendationBadge({ recommendation }: { recommendation: string }) {
 function StockStatusBadge({ status }: { status: string }) {
   if (status === 'out_of_stock' || status === 'OUT OF STOCK') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5] rounded text-[11px] font-semibold">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-badbg text-bad border border-badbg rounded text-[12.5px] font-medium">
         Out of Stock
       </span>
     );
   }
   if (status === 'critical' || status === 'CRITICAL') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6] rounded text-[11px] font-semibold">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-warnbg text-warn border border-warnbg rounded text-[12.5px] font-medium">
         Critical
       </span>
     );
   }
   if (status === 'low_stock' || status === 'LOW') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#E1E8F6] text-[#CA8A04] border border-[#D8E2F4] rounded text-[11px] font-medium">
+      <span className="ts-st ts-tone-warn">
         Low Stock
       </span>
     );
   }
   if (status === 'OVERSTOCKED') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#DEE3F5] text-[#6B78D6] border border-[#D1D9F2] rounded text-[11px] font-semibold">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-tile text-fg border border-line2 rounded text-[12.5px] font-medium">
         Overstocked
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4] rounded text-[11px] font-medium">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-goodbg text-good border border-goodbg rounded text-[12.5px] font-medium">
       Healthy
     </span>
   );
@@ -264,26 +264,26 @@ export default function StockIntelligence() {
 
   if (loading && !data) {
     return (
-      <div className="p-8 max-w-[1400px] mx-auto text-center space-y-4 text-[#7A839E]">
-        <div className="animate-spin w-8 h-8 border-2 border-[#3B6FD4] border-t-transparent rounded-full mx-auto" />
+      <div className="p-8 max-w-[1400px] mx-auto text-center space-y-4 text-subtle">
+        <div className="animate-spin w-8 h-8 border-2 border-fg border-t-transparent rounded-full mx-auto" />
         <p className="text-sm font-medium">Analyzing stock velocity & replenishment models...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-[1400px] mx-auto space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E4E8F2] pb-5">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-[#141B34]">Stock Intelligence</h1>
-            <span className="px-2.5 py-0.5 bg-[#E0F5EB] text-[#3B6FD4] border border-[#D6F2E4] rounded-md text-xs font-semibold flex items-center gap-1">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="ts-title">Stock Intelligence</h1>
+            <span className="ts-st ts-tone-good inline-flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" />
               Automated Analysis
             </span>
           </div>
-          <p className="text-xs text-[#7A839E] mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Real-time demand trends, stock coverage, and automatic replenishment recommendations calculated from live transactions.
           </p>
         </div>
@@ -291,16 +291,16 @@ export default function StockIntelligence() {
         {/* Global Controls */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Warehouse Selector */}
-          <div className="flex items-center gap-2 bg-[#FFFFFF] border border-[#E4E8F2] px-3 py-1.5 rounded-lg">
-            <WarehouseIcon className="w-4 h-4 text-[#7A839E]" />
+          <div className="flex items-center gap-2 bg-surface2 px-4 h-10 rounded-full shadow-card">
+            <WarehouseIcon className="w-4 h-4 text-subtle" />
             <select
               value={selectedWarehouseId}
               onChange={(e) => setSelectedWarehouseId(e.target.value)}
-              className="bg-transparent text-xs text-[#141B34] focus:outline-none cursor-pointer"
+              className="bg-transparent !border-0 !p-0 !h-auto !shadow-none text-[13.5px] text-fg focus:outline-none cursor-pointer"
             >
-              <option value="" className="bg-[#FFFFFF] text-[#141B34]">All Warehouses</option>
+              <option value="" className="bg-surface2 text-fg">All Warehouses</option>
               {data?.warehouses?.map((w) => (
-                <option key={w.id} value={w.id} className="bg-[#FFFFFF] text-[#141B34]">
+                <option key={w.id} value={w.id} className="bg-surface2 text-fg">
                   {w.name} ({w.code})
                 </option>
               ))}
@@ -308,41 +308,41 @@ export default function StockIntelligence() {
           </div>
 
           {/* Date Range Selector */}
-          <div className="flex items-center gap-2 bg-[#FFFFFF] border border-[#E4E8F2] px-3 py-1.5 rounded-lg">
-            <Calendar className="w-4 h-4 text-[#7A839E]" />
+          <div className="flex items-center gap-2 bg-surface2 px-4 h-10 rounded-full shadow-card">
+            <Calendar className="w-4 h-4 text-subtle" />
             <select
               value={dateRangePreset}
               onChange={(e) => setDateRangePreset(e.target.value)}
-              className="bg-transparent text-xs text-[#141B34] focus:outline-none cursor-pointer"
+              className="bg-transparent !border-0 !p-0 !h-auto !shadow-none text-[13.5px] text-fg focus:outline-none cursor-pointer"
             >
-              <option value="30" className="bg-[#FFFFFF] text-[#141B34]">Last 30 Days</option>
-              <option value="60" className="bg-[#FFFFFF] text-[#141B34]">Last 60 Days</option>
-              <option value="90" className="bg-[#FFFFFF] text-[#141B34]">Last 90 Days</option>
-              <option value="180" className="bg-[#FFFFFF] text-[#141B34]">Last 6 Months (180d)</option>
-              <option value="365" className="bg-[#FFFFFF] text-[#141B34]">This Year (365d)</option>
-              <option value="custom" className="bg-[#FFFFFF] text-[#141B34]">Custom Date Range</option>
+              <option value="30" className="bg-surface2 text-fg">Last 30 Days</option>
+              <option value="60" className="bg-surface2 text-fg">Last 60 Days</option>
+              <option value="90" className="bg-surface2 text-fg">Last 90 Days</option>
+              <option value="180" className="bg-surface2 text-fg">Last 6 Months (180d)</option>
+              <option value="365" className="bg-surface2 text-fg">This Year (365d)</option>
+              <option value="custom" className="bg-surface2 text-fg">Custom Date Range</option>
             </select>
           </div>
 
           {dateRangePreset === 'custom' && (
-            <div className="flex items-center gap-2 bg-[#FFFFFF] border border-[#E4E8F2] p-1.5 rounded-lg">
+            <div className="flex items-center gap-2 bg-surface2 border border-line2 p-1.5 rounded-lg">
               <input
                 type="date"
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
-                className="bg-[#F4F6FC] text-xs text-[#141B34] border border-[#E4E8F2] rounded px-2 py-1 focus:outline-none"
+                className="bg-surface text-xs text-fg border border-line2 rounded px-2 py-1 focus:outline-none"
               />
-              <span className="text-xs text-[#7A839E]">to</span>
+              <span className="text-xs text-subtle">to</span>
               <input
                 type="date"
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
-                className="bg-[#F4F6FC] text-xs text-[#141B34] border border-[#E4E8F2] rounded px-2 py-1 focus:outline-none"
+                className="bg-surface text-xs text-fg border border-line2 rounded px-2 py-1 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleApplyCustomDates}
-                className="px-2.5 py-1 bg-[#E0F5EB] hover:bg-[#DCF4E8] text-[#3B6FD4] border border-[#D6F2E4] rounded text-xs font-semibold"
+                className="ts-btn ts-xs bg-goodbg text-good"
               >
                 Apply
               </button>
@@ -352,7 +352,7 @@ export default function StockIntelligence() {
           <button
             type="button"
             onClick={fetchIntelligence}
-            className="p-2 bg-[#FFFFFF] hover:bg-[#F7F8FC] text-[#7A839E] hover:text-[#141B34] border border-[#E4E8F2] rounded-lg transition-colors"
+            className="p-2 bg-surface2 hover:bg-surface text-subtle hover:text-fg border border-line2 rounded-lg transition-colors"
             title="Refresh Analysis"
           >
             <RotateCcw className="w-4 h-4" />
@@ -361,14 +361,14 @@ export default function StockIntelligence() {
       </div>
 
       {error && (
-        <div className="p-4 bg-[#F7E0E0] border border-[#F4D4D5] rounded-xl text-xs text-[#E5484D] flex items-center justify-between">
+        <div className="ts-warnbox">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={fetchIntelligence}
-            className="px-3 py-1 bg-[#F4D4D5] hover:bg-[#B42D31] text-[#141B34] rounded-md font-medium text-[11px]"
+            className="ts-btn ts-danger ts-xs"
           >
             Retry
           </button>
@@ -377,70 +377,66 @@ export default function StockIntelligence() {
 
       {/* KPI Section */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#7A839E]">
+        <div className="ts-card ts-kpi-sm space-y-1">
+          <div className="flex items-center justify-between text-[13.5px] text-subtle">
             <span>Total Tracked</span>
-            <Boxes className="w-4 h-4 text-[#7A839E]" />
+            <Boxes className="w-4 h-4 text-subtle" />
           </div>
-          <p className="text-xl font-bold font-mono text-[#141B34]">{data?.summary.totalProducts ?? 0}</p>
-          <p className="text-[11px] text-[#A8AEC4]">{data?.summary.totalOnHand ?? 0} total units on hand</p>
+          <p className="ts-val num text-fg !mt-1.5">{data?.summary.totalProducts ?? 0}</p>
+          <p className="text-[12.5px] text-faint">{data?.summary.totalOnHand ?? 0} total units on hand</p>
         </div>
 
-        <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#7A839E]">
+        <div className="ts-card ts-kpi-sm space-y-1">
+          <div className="flex items-center justify-between text-[13.5px] text-subtle">
             <span>With Stock</span>
-            <PackageCheck className="w-4 h-4 text-[#2FBF71]" />
+            <PackageCheck className="w-4 h-4 text-good" />
           </div>
-          <p className="text-xl font-bold font-mono text-[#2FBF71]">{data?.summary.withStock ?? 0}</p>
-          <p className="text-[11px] text-[#A8AEC4]">{data?.summary.totalAvailable ?? 0} units available</p>
+          <p className="ts-val num text-good !mt-1.5">{data?.summary.withStock ?? 0}</p>
+          <p className="text-[12.5px] text-faint">{data?.summary.totalAvailable ?? 0} units available</p>
         </div>
 
-        <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#7A839E]">
+        <div className="ts-card ts-kpi-sm space-y-1">
+          <div className="flex items-center justify-between text-[13.5px] text-subtle">
             <span>Low Stock</span>
-            <AlertTriangle className="w-4 h-4 text-[#CA8A04]" />
+            <AlertTriangle className="w-4 h-4 text-warn" />
           </div>
-          <p className="text-xl font-bold font-mono text-[#CA8A04]">{data?.summary.lowStock ?? 0}</p>
-          <p className="text-[11px] text-[#A8AEC4]">Approaching reorder point</p>
+          <p className="ts-val num text-warn !mt-1.5">{data?.summary.lowStock ?? 0}</p>
+          <p className="text-[12.5px] text-faint">Approaching reorder point</p>
         </div>
 
-        <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#7A839E]">
+        <div className="ts-card ts-kpi-sm space-y-1">
+          <div className="flex items-center justify-between text-[13.5px] text-subtle">
             <span>Critical Stock</span>
-            <Zap className="w-4 h-4 text-[#E8A33D]" />
+            <Zap className="w-4 h-4 text-warn" />
           </div>
-          <p className="text-xl font-bold font-mono text-[#E8A33D]">{data?.summary.criticalStock ?? 0}</p>
-          <p className="text-[11px] text-[#A8AEC4]">Below critical threshold</p>
+          <p className="ts-val num text-warn !mt-1.5">{data?.summary.criticalStock ?? 0}</p>
+          <p className="text-[12.5px] text-faint">Below critical threshold</p>
         </div>
 
-        <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#7A839E]">
+        <div className="ts-card ts-kpi-sm space-y-1">
+          <div className="flex items-center justify-between text-[13.5px] text-subtle">
             <span>Out of Stock</span>
-            <PackageX className="w-4 h-4 text-[#E5484D]" />
+            <PackageX className="w-4 h-4 text-bad" />
           </div>
-          <p className="text-xl font-bold font-mono text-[#E5484D]">{data?.summary.outOfStock ?? 0}</p>
-          <p className="text-[11px] text-[#A8AEC4]">Zero available inventory</p>
+          <p className="ts-val num text-bad !mt-1.5">{data?.summary.outOfStock ?? 0}</p>
+          <p className="text-[12.5px] text-faint">Zero available inventory</p>
         </div>
 
-        <div className="p-4 bg-[#FFFFFF] border border-[#D6F2E4] shadow-[inset_0_1px_0_#3B6FD4] rounded-xl space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#3B6FD4]">
-            <span className="font-semibold">Needs Restock</span>
-            <Sparkles className="w-4 h-4 text-[#3B6FD4]" />
+        <div className="ts-card ts-charcoal ts-kpi-sm space-y-1">
+          <div className="flex items-center justify-between text-[13.5px] opacity-70">
+            <span>Needs Restock</span>
+            <Sparkles className="w-4 h-4" />
           </div>
-          <p className="text-xl font-bold font-mono text-[#3B6FD4]">{data?.summary.needsRestock ?? 0}</p>
-          <p className="text-[11px] text-[#7A839E]">Action recommended</p>
+          <p className="ts-val num !mt-1.5">{data?.summary.needsRestock ?? 0}</p>
+          <p className="text-[12.5px] opacity-60">Action recommended</p>
         </div>
       </div>
 
       {/* Navigation Section Tabs */}
-      <div className="flex items-center gap-1 border-b border-[#E4E8F2] overflow-x-auto pb-px">
+      <div className="ts-tabs">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === 'overview'
-              ? 'bg-[#FFFFFF] text-[#3B6FD4] border-t border-l border-r border-[#E4E8F2] border-b-transparent shadow-sm'
-              : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC]'
-          }`}
+          className={`ts-tab ${activeTab === 'overview' ? 'ts-on' : ''}`}
         >
           <BarChart3 className="w-4 h-4" />
           <span>Overview</span>
@@ -448,92 +444,68 @@ export default function StockIntelligence() {
 
         <button
           onClick={() => setActiveTab('demand')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === 'demand'
-              ? 'bg-[#FFFFFF] text-[#3B6FD4] border-t border-l border-r border-[#E4E8F2] border-b-transparent shadow-sm'
-              : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC]'
-          }`}
+          className={`ts-tab ${activeTab === 'demand' ? 'ts-on' : ''}`}
         >
           <TrendingUp className="w-4 h-4" />
           <span>Demand Analysis</span>
-          <span className="px-1.5 py-0.2 bg-[#F4F6FC] text-[#7A839E] text-[10px] rounded border border-[#E4E8F2]">
+          <em>
             {data?.demand?.length ?? 0}
-          </span>
+          </em>
         </button>
 
         <button
           onClick={() => setActiveTab('velocity')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === 'velocity'
-              ? 'bg-[#FFFFFF] text-[#3B6FD4] border-t border-l border-r border-[#E4E8F2] border-b-transparent shadow-sm'
-              : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC]'
-          }`}
+          className={`ts-tab ${activeTab === 'velocity' ? 'ts-on' : ''}`}
         >
           <VelocityIcon className="w-4 h-4" />
           <span>Sales Velocity</span>
-          <span className="px-1.5 py-0.2 bg-[#F4F6FC] text-[#7A839E] text-[10px] rounded border border-[#E4E8F2]">
+          <em>
             {data?.velocity?.length ?? 0}
-          </span>
+          </em>
         </button>
 
         <button
           onClick={() => setActiveTab('coverage')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === 'coverage'
-              ? 'bg-[#FFFFFF] text-[#3B6FD4] border-t border-l border-r border-[#E4E8F2] border-b-transparent shadow-sm'
-              : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC]'
-          }`}
+          className={`ts-tab ${activeTab === 'coverage' ? 'ts-on' : ''}`}
         >
           <Clock className="w-4 h-4" />
           <span>Stock Coverage</span>
-          <span className="px-1.5 py-0.2 bg-[#F4F6FC] text-[#7A839E] text-[10px] rounded border border-[#E4E8F2]">
+          <em>
             {data?.coverage?.length ?? 0}
-          </span>
+          </em>
         </button>
 
         <button
           onClick={() => setActiveTab('recommendations')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === 'recommendations'
-              ? 'bg-[#FFFFFF] text-[#3B6FD4] border-t border-l border-r border-[#E4E8F2] border-b-transparent shadow-sm'
-              : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC]'
-          }`}
+          className={`ts-tab ${activeTab === 'recommendations' ? 'ts-on' : ''}`}
         >
-          <Zap className="w-4 h-4 text-[#E8A33D]" />
+          <Zap className="w-4 h-4 text-warn" />
           <span>Restock Recommendations</span>
-          <span className="px-1.5 py-0.2 bg-[#F7EFE0] text-[#E8A33D] font-mono text-[10px] rounded border border-[#F4E9D6]">
+          <em>
             {data?.recommendations?.length ?? 0}
-          </span>
+          </em>
         </button>
 
         <button
           onClick={() => setActiveTab('incoming')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === 'incoming'
-              ? 'bg-[#FFFFFF] text-[#3B6FD4] border-t border-l border-r border-[#E4E8F2] border-b-transparent shadow-sm'
-              : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC]'
-          }`}
+          className={`ts-tab ${activeTab === 'incoming' ? 'ts-on' : ''}`}
         >
-          <Layers className="w-4 h-4 text-[#3B6FD4]" />
+          <Layers className="w-4 h-4 text-fg" />
           <span>Incoming Impact</span>
-          <span className="px-1.5 py-0.2 bg-[#F4F6FC] text-[#7A839E] text-[10px] rounded border border-[#E4E8F2]">
+          <em>
             {data?.incomingImpact?.length ?? 0}
-          </span>
+          </em>
         </button>
 
         <button
           onClick={() => setActiveTab('overstock')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === 'overstock'
-              ? 'bg-[#FFFFFF] text-[#3B6FD4] border-t border-l border-r border-[#E4E8F2] border-b-transparent shadow-sm'
-              : 'text-[#7A839E] hover:text-[#141B34] hover:bg-[#F4F6FC]'
-          }`}
+          className={`ts-tab ${activeTab === 'overstock' ? 'ts-on' : ''}`}
         >
-          <ShieldAlert className="w-4 h-4 text-[#6B78D6]" />
+          <ShieldAlert className="w-4 h-4 text-fg" />
           <span>Overstock Detection</span>
-          <span className="px-1.5 py-0.2 bg-[#F4F6FC] text-[#7A839E] text-[10px] rounded border border-[#E4E8F2]">
+          <em>
             {data?.overstock?.length ?? 0}
-          </span>
+          </em>
         </button>
       </div>
 
@@ -541,56 +513,56 @@ export default function StockIntelligence() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Stock Health Breakdown Filter Strip */}
-          <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl flex flex-wrap items-center justify-between gap-4">
+          <div className="ts-card flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#141B34] uppercase tracking-wider">
-                Stock Health Breakdown:
+              <span className="text-[14.5px] font-medium text-fg">
+                Stock health
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setStatusFilter(statusFilter === 'healthy' ? 'all' : 'healthy')}
                 className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                  statusFilter === 'healthy'
-                    ? 'bg-[#E0F5EA] text-[#2FBF71] border-[#D6F2E4]'
-                    : 'bg-[#F4F6FC] text-[#7A839E] border-[#E4E8F2] hover:text-[#141B34]'
-                }`}
+ statusFilter === 'healthy'
+ ? 'bg-goodbg text-good border-goodbg'
+ : 'bg-surface text-subtle border-line2 hover:text-fg'
+ }`}
               >
                 Healthy ({data?.health.healthy ?? 0})
               </button>
               <button
                 onClick={() => setStatusFilter(statusFilter === 'low_stock' ? 'all' : 'low_stock')}
                 className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                  statusFilter === 'low_stock'
-                    ? 'bg-[#E1E8F6] text-[#CA8A04] border-[#D8E2F4]'
-                    : 'bg-[#F4F6FC] text-[#7A839E] border-[#E4E8F2] hover:text-[#141B34]'
-                }`}
+ statusFilter === 'low_stock'
+ ? 'bg-warnbg text-warn border-warnbg'
+ : 'bg-surface text-subtle border-line2 hover:text-fg'
+ }`}
               >
                 Low Stock ({data?.health.low ?? 0})
               </button>
               <button
                 onClick={() => setStatusFilter(statusFilter === 'critical' ? 'all' : 'critical')}
                 className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                  statusFilter === 'critical'
-                    ? 'bg-[#F7EFE0] text-[#E8A33D] border-[#F4E9D6]'
-                    : 'bg-[#F4F6FC] text-[#7A839E] border-[#E4E8F2] hover:text-[#141B34]'
-                }`}
+ statusFilter === 'critical'
+ ? 'bg-warnbg text-warn border-warnbg'
+ : 'bg-surface text-subtle border-line2 hover:text-fg'
+ }`}
               >
                 Critical ({data?.health.critical ?? 0})
               </button>
               <button
                 onClick={() => setStatusFilter(statusFilter === 'out_of_stock' ? 'all' : 'out_of_stock')}
                 className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                  statusFilter === 'out_of_stock'
-                    ? 'bg-[#F7E0E0] text-[#E5484D] border-[#F4D4D5]'
-                    : 'bg-[#F4F6FC] text-[#7A839E] border-[#E4E8F2] hover:text-[#141B34]'
-                }`}
+ statusFilter === 'out_of_stock'
+ ? 'bg-badbg text-bad border-badbg'
+ : 'bg-surface text-subtle border-line2 hover:text-fg'
+ }`}
               >
                 Out of Stock ({data?.health.outOfStock ?? 0})
               </button>
               <Link
                 to="/inventory/stock"
-                className="px-3 py-1.5 rounded-lg border border-[#E4E8F2] bg-[#F7F8FC] text-xs font-medium text-[#7A839E] hover:text-[#141B34] flex items-center gap-1"
+                className="ts-btn ts-ghost ts-xs"
               >
                 <span>View Stock Ledger</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -601,22 +573,22 @@ export default function StockIntelligence() {
           {/* Filter & Search Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#7A839E]" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
               <input
                 type="text"
                 placeholder="Search part number or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#FFFFFF] border border-[#E4E8F2] rounded-lg pl-9 pr-4 py-2 text-xs text-[#141B34] placeholder-[#A8AEC4] focus:outline-none focus:border-[#3B6FD4]"
+                className="ts-fi !pl-10 !rounded-full !bg-tile !border-transparent"
               />
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto">
-              <span className="text-xs text-[#7A839E] shrink-0">Recommendation:</span>
+              <span className="text-xs text-subtle shrink-0">Recommendation:</span>
               <select
                 value={recommendationFilter}
                 onChange={(e) => setRecommendationFilter(e.target.value)}
-                className="bg-[#FFFFFF] border border-[#E4E8F2] text-xs text-[#141B34] px-3 py-2 rounded-lg focus:outline-none cursor-pointer"
+                className="bg-surface2 border border-line2 text-xs text-fg px-3 py-2 rounded-lg focus:outline-none cursor-pointer"
               >
                 <option value="all">All Recommendations</option>
                 <option value="needs_restock">Restock Required (Now / Soon)</option>
@@ -629,29 +601,29 @@ export default function StockIntelligence() {
           </div>
 
           {/* Primary ERP Intelligence Table */}
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
-                    <th className="py-3 px-4">Part No / Description</th>
-                    <th className="py-3 px-3 text-right">Available</th>
-                    <th className="py-3 px-3 text-right">Reserved</th>
-                    <th className="py-3 px-3 text-right">Incoming</th>
-                    <th className="py-3 px-3 text-right">Units Sold</th>
-                    <th className="py-3 px-3 text-right">Monthly Use</th>
-                    <th className="py-3 px-3 text-right">Days Stock</th>
-                    <th className="py-3 px-3 text-center">Trend</th>
-                    <th className="py-3 px-3 text-center">Status</th>
-                    <th className="py-3 px-3 text-center">Recommendation</th>
-                    <th className="py-3 px-3 text-right">Suggested Restock</th>
-                    <th className="py-3 px-4 text-center">Actions & Links</th>
+                  <tr>
+                    <th>Part No / Description</th>
+                    <th className="ts-r">Available</th>
+                    <th className="ts-r">Reserved</th>
+                    <th className="ts-r">Incoming</th>
+                    <th className="ts-r">Units Sold</th>
+                    <th className="ts-r">Monthly Use</th>
+                    <th className="ts-r">Days Stock</th>
+                    <th className="text-center">Trend</th>
+                    <th className="text-center">Status</th>
+                    <th className="text-center">Recommendation</th>
+                    <th className="ts-r">Suggested Restock</th>
+                    <th className="text-center">Actions & Links</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-xs text-[#141B34]">
+                <tbody>
                   {paginatedProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="py-12 text-center text-[#7A839E]">
+                      <td colSpan={12} className="text-center text-subtle">
                         No product intelligence data matches your filter criteria.
                       </td>
                     </tr>
@@ -660,79 +632,79 @@ export default function StockIntelligence() {
                       <tr
                         key={p.productId}
                         onClick={() => setSelectedProduct(p)}
-                        className="hover:bg-[#F7F8FC]/60 transition-colors cursor-pointer"
+                        className="hover:bg-surface/60 transition-colors cursor-pointer"
                       >
-                        <td className="py-3 px-4">
+                        <td>
                           <div className="space-y-0.5">
-                            <span className="font-mono font-bold text-[#141B34]">{p.partNo}</span>
-                            <p className="text-[11.5px] text-[#7A839E] line-clamp-1">{p.description}</p>
+                            <span className="num font-medium text-fg">{p.partNo}</span>
+                            <p className="text-[12.5px] text-subtle line-clamp-1">{p.description}</p>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {p.available} {p.unit}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {p.reserved > 0 ? (
-                            <span className="text-[#E8A33D] font-semibold">{p.reserved}</span>
+                            <span className="text-warn font-medium">{p.reserved}</span>
                           ) : (
                             '0'
                           )}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           {p.incoming > 0 ? `+${p.incoming}` : '0'}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {p.unitsSoldRecent}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {p.monthlyConsumption} /mo
                         </td>
-                        <td className="py-3 px-3 text-right font-mono">
+                        <td className="ts-r num">
                           {p.daysOfStockRemaining !== null ? (
                             <span
-                              className={`font-semibold ${
-                                p.daysOfStockRemaining <= 7
-                                  ? 'text-[#E5484D]'
-                                  : p.daysOfStockRemaining <= 15
-                                  ? 'text-[#E8A33D]'
-                                  : 'text-[#2FBF71]'
-                              }`}
+                              className={`font-medium ${
+ p.daysOfStockRemaining <= 7
+ ? 'text-bad'
+ : p.daysOfStockRemaining <= 15
+ ? 'text-warn'
+ : 'text-good'
+ }`}
                             >
                               {p.daysOfStockRemaining}d
                             </span>
                           ) : (
-                            <span className="text-[#A8AEC4]">No demand</span>
+                            <span className="text-faint">No demand</span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <TrendBadge trend={p.demandTrend} />
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <StockStatusBadge status={p.stockStatus} />
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <RecommendationBadge recommendation={p.recommendation} />
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold">
+                        <td className="ts-r num">
                           {p.suggestedRestockQty > 0 ? (
-                            <span className="text-[#3B6FD4]">+{p.suggestedRestockQty}</span>
+                            <span className="text-fg">+{p.suggestedRestockQty}</span>
                           ) : (
-                            <span className="text-[#A8AEC4]">0</span>
+                            <span className="text-faint">0</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1.5 flex-wrap">
                             <button
                               type="button"
                               onClick={() => setSelectedProduct(p)}
-                              className="px-2 py-1 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#141B34] rounded text-[11px] font-medium"
+                              className="px-2 py-1 bg-surface hover:bg-tile text-fg rounded text-[12.5px] font-medium"
                               title="View full intelligence analysis"
                             >
                               Details
                             </button>
                             <Link
                               to={`/inventory/stock?productId=${p.productId}`}
-                              className="px-2 py-1 bg-[#F4F6FC] hover:bg-[#F7F8FC] text-[#3B6FD4] border border-[#D9DFF4] rounded text-[11px] font-medium flex items-center gap-0.5"
+                              className="ts-btn ts-ghost ts-xs"
                               title="View stock ledger entries"
                             >
                               <span>Stock</span>
@@ -740,7 +712,7 @@ export default function StockIntelligence() {
                             </Link>
                             <Link
                               to={`/sale-reports?productId=${p.productId}`}
-                              className="px-2 py-1 bg-[#F4F6FC] hover:bg-[#F7F8FC] text-[#7A839E] border border-[#E4E8F2] rounded text-[11px] font-medium flex items-center gap-0.5"
+                              className="ts-btn ts-ghost ts-xs"
                               title="View sales reports for this product"
                             >
                               <span>Sales</span>
@@ -750,7 +722,7 @@ export default function StockIntelligence() {
                               <button
                                 type="button"
                                 onClick={() => navigate(`/inventory/stock-inward?productId=${p.productId}`)}
-                                className="px-2 py-1 bg-[#E0F5EB] hover:bg-[#DCF4E8] text-[#3B6FD4] border border-[#D6F2E4] rounded text-[11px] font-semibold flex items-center gap-0.5"
+                                className="ts-btn ts-xs bg-goodbg text-good"
                               >
                                 <span>Restock</span>
                                 <ArrowRight className="w-3 h-3" />
@@ -767,7 +739,7 @@ export default function StockIntelligence() {
 
             {/* Pagination Footer */}
             {filteredProducts.length > 0 && (
-              <div className="p-4 border-t border-[#E4E8F2] bg-[#F4F6FC]">
+              <div className="p-4 border-t border-line2 bg-surface">
                 <Pagination
                   page={currentPage}
                   totalPages={totalPages}
@@ -779,20 +751,20 @@ export default function StockIntelligence() {
 
           {/* Sales Impact Section: Recent Confirmed Sale Reports */}
           {data?.recentSales && data.recentSales.length > 0 && (
-            <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E4E8F2] pb-3">
+            <div className="ts-card ts-white ts-tbl space-y-4">
+              <div className="flex items-center justify-between border-b border-line2 pb-3">
                 <div>
-                  <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#3B6FD4]" />
+                  <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-fg" />
                     Recent Sales Impact (Confirmed Sale Reports)
                   </h3>
-                  <p className="text-xs text-[#7A839E] mt-0.5">
+                  <p className="ts-muted m-0 mt-1.5 text-[14px]">
                     Physical stock dispatches automatically recorded by recent confirmed Sale Reports.
                   </p>
                 </div>
                 <Link
                   to="/sale-reports"
-                  className="text-xs font-semibold text-[#3B6FD4] hover:underline flex items-center gap-1"
+                  className="text-xs font-medium text-fg hover:underline flex items-center gap-1"
                 >
                   <span>View All Sale Reports</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -804,23 +776,23 @@ export default function StockIntelligence() {
                   <Link
                     key={s.id}
                     to={`/sale-reports/${s.id}`}
-                    className="p-3.5 bg-[#F4F6FC] border border-[#E4E8F2] hover:border-[#D6F2E4] rounded-lg space-y-2 transition-all group"
+                    className="p-3.5 bg-surface border border-line2 hover:border-goodbg rounded-lg space-y-2 transition-all group"
                   >
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-mono font-bold text-[#3B6FD4] group-hover:underline">
+                      <span className="num font-medium text-fg group-hover:underline">
                         #{s.report_number}
                       </span>
-                      <span className="text-[#7A839E]">{formatDate(s.sale_date)}</span>
+                      <span className="text-subtle">{formatDate(s.sale_date)}</span>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-[#141B34] line-clamp-1">{s.company_name}</p>
-                      <p className="text-[11px] text-[#7A839E]">{s.warehouse_name || 'Warehouse'}</p>
+                      <p className="text-xs font-medium text-fg line-clamp-1">{s.company_name}</p>
+                      <p className="text-[12.5px] text-subtle">{s.warehouse_name || 'Warehouse'}</p>
                     </div>
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E4E8F2]">
-                      <span className="text-[#7A839E]">
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-line2">
+                      <span className="text-subtle">
                         {s.product_count} line items ({s.total_quantity} units)
                       </span>
-                      <span className="font-mono font-bold text-[#141B34]">
+                      <span className="num font-medium text-fg">
                         {formatCurrency(s.total_amount)}
                       </span>
                     </div>
@@ -835,86 +807,86 @@ export default function StockIntelligence() {
       {/* TAB 2: DEMAND ANALYSIS */}
       {activeTab === 'demand' && (
         <div className="space-y-4">
-          <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl flex items-center justify-between">
+          <div className="ts-card flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#3B6FD4]" />
+              <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-fg" />
                 Product Demand Analysis
               </h3>
-              <p className="text-xs text-[#7A839E] mt-0.5">
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Evaluation of product popularity, total units sold, customer reach, and revenue contribution.
               </p>
             </div>
-            <span className="text-xs font-mono text-[#3B6FD4] bg-[#E0F5EB] px-3 py-1 rounded-lg border border-[#D6F2E4]">
+            <span className="text-xs num text-fg bg-goodbg px-3 py-1 rounded-lg border border-goodbg">
               {data?.demand?.length ?? 0} Products Analyzed
             </span>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
-                    <th className="py-3 px-4">Part No / Description</th>
-                    <th className="py-3 px-3 text-right">Units Sold</th>
-                    <th className="py-3 px-3 text-right">Sales Count</th>
-                    <th className="py-3 px-3 text-right">Customers</th>
-                    <th className="py-3 px-3 text-right">Total Revenue</th>
-                    <th className="py-3 px-3 text-right">Avg Selling Price</th>
-                    <th className="py-3 px-3 text-center">First / Last Sale</th>
-                    <th className="py-3 px-3 text-center">Demand Classification</th>
-                    <th className="py-3 px-4 text-center">Cross-Module Links</th>
+                  <tr>
+                    <th>Part No / Description</th>
+                    <th className="ts-r">Units Sold</th>
+                    <th className="ts-r">Sales Count</th>
+                    <th className="ts-r">Customers</th>
+                    <th className="ts-r">Total Revenue</th>
+                    <th className="ts-r">Avg Selling Price</th>
+                    <th className="text-center">First / Last Sale</th>
+                    <th className="text-center">Demand Classification</th>
+                    <th className="text-center">Cross-Module Links</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-xs text-[#141B34]">
+                <tbody>
                   {!data?.demand || data.demand.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-[#7A839E]">
+                      <td colSpan={9} className="text-center text-subtle">
                         No demand data recorded in the selected period.
                       </td>
                     </tr>
                   ) : (
                     data.demand.map((d) => (
-                      <tr key={d.productId} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-bold text-[#141B34]">{d.partNo}</span>
-                          <p className="text-[11.5px] text-[#7A839E] line-clamp-1">{d.description}</p>
+                      <tr key={d.productId}>
+                        <td>
+                          <span className="num font-medium text-fg">{d.partNo}</span>
+                          <p className="text-[12.5px] text-subtle line-clamp-1">{d.description}</p>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           {d.unitsSold}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {d.salesCount}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           {d.customerCount}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {formatCurrency(d.revenue)}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {formatCurrency(d.avgSellingPrice)}
                         </td>
-                        <td className="py-3 px-3 text-center text-[11px] text-[#7A839E]">
+                        <td className="text-center text-[11px] text-subtle">
                           <div>{formatDate(d.lastSaleDate)}</div>
-                          <div className="text-[10px] text-[#A8AEC4]">First: {formatDate(d.firstSaleDate)}</div>
+                          <div className="text-[12px] text-faint">First: {formatDate(d.firstSaleDate)}</div>
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <span
-                            className={`px-2.5 py-0.5 rounded text-[11px] font-semibold ${
-                              d.demandClassification === 'HIGH DEMAND'
-                                ? 'bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4]'
-                                : d.demandClassification === 'MEDIUM DEMAND'
-                                ? 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
-                                : d.demandClassification === 'LOW DEMAND'
-                                ? 'bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6]'
-                                : 'bg-[#F4F6FC] text-[#7A839E] border border-[#E4E8F2]'
-                            }`}
+                            className={`px-2.5 py-0.5 rounded text-[11px] font-medium ${
+ d.demandClassification === 'HIGH DEMAND'
+ ? 'bg-goodbg text-good border border-goodbg'
+ : d.demandClassification === 'MEDIUM DEMAND'
+ ? 'bg-tile text-fg border border-line2'
+ : d.demandClassification === 'LOW DEMAND'
+ ? 'bg-warnbg text-warn border border-warnbg'
+ : 'bg-surface text-subtle border border-line2'
+ }`}
                           >
                             {d.demandClassification}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
@@ -922,19 +894,19 @@ export default function StockIntelligence() {
                                 const found = data.products.find((p) => p.productId === d.productId);
                                 if (found) setSelectedProduct(found);
                               }}
-                              className="text-[11px] font-semibold text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] font-medium text-fg hover:underline"
                             >
                               View Product Intelligence →
                             </button>
                             <Link
                               to={`/inventory/stock?productId=${d.productId}`}
-                              className="text-[11px] text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] text-fg hover:underline"
                             >
                               View Stock →
                             </Link>
                             <Link
                               to={`/sale-reports?productId=${d.productId}`}
-                              className="text-[11px] text-[#7A839E] hover:underline"
+                              className="text-[12.5px] text-subtle hover:underline"
                             >
                               View Sales →
                             </Link>
@@ -953,85 +925,85 @@ export default function StockIntelligence() {
       {/* TAB 3: SALES VELOCITY */}
       {activeTab === 'velocity' && (
         <div className="space-y-4">
-          <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl flex items-center justify-between">
+          <div className="ts-card flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
-                <VelocityIcon className="w-4 h-4 text-[#3B6FD4]" />
+              <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
+                <VelocityIcon className="w-4 h-4 text-fg" />
                 Sales Velocity & Run Rate Analysis
               </h3>
-              <p className="text-xs text-[#7A839E] mt-0.5">
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Daily, weekly, and monthly run rates calculated from confirmed sales transactions.
               </p>
             </div>
-            <span className="text-xs font-mono text-[#3B6FD4] bg-[#E0F5EB] px-3 py-1 rounded-lg border border-[#D6F2E4]">
+            <span className="text-xs num text-fg bg-goodbg px-3 py-1 rounded-lg border border-goodbg">
               {data?.velocity?.length ?? 0} Products Analyzed
             </span>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
-                    <th className="py-3 px-4">Part No / Description</th>
-                    <th className="py-3 px-3 text-right">Available Stock</th>
-                    <th className="py-3 px-3 text-right">30-Day Sales</th>
-                    <th className="py-3 px-3 text-right">Daily Velocity</th>
-                    <th className="py-3 px-3 text-right">Weekly Run Rate</th>
-                    <th className="py-3 px-3 text-right">Monthly Consumption</th>
-                    <th className="py-3 px-3 text-center">Trend</th>
-                    <th className="py-3 px-3 text-center">Velocity Classification</th>
-                    <th className="py-3 px-4 text-center">Cross-Module Links</th>
+                  <tr>
+                    <th>Part No / Description</th>
+                    <th className="ts-r">Available Stock</th>
+                    <th className="ts-r">30-Day Sales</th>
+                    <th className="ts-r">Daily Velocity</th>
+                    <th className="ts-r">Weekly Run Rate</th>
+                    <th className="ts-r">Monthly Consumption</th>
+                    <th className="text-center">Trend</th>
+                    <th className="text-center">Velocity Classification</th>
+                    <th className="text-center">Cross-Module Links</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-xs text-[#141B34]">
+                <tbody>
                   {!data?.velocity || data.velocity.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-[#7A839E]">
+                      <td colSpan={9} className="text-center text-subtle">
                         No sales velocity data recorded in the selected period.
                       </td>
                     </tr>
                   ) : (
                     data.velocity.map((v) => (
-                      <tr key={v.productId} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-bold text-[#141B34]">{v.partNo}</span>
-                          <p className="text-[11.5px] text-[#7A839E] line-clamp-1">{v.description}</p>
+                      <tr key={v.productId}>
+                        <td>
+                          <span className="num font-medium text-fg">{v.partNo}</span>
+                          <p className="text-[12.5px] text-subtle line-clamp-1">{v.description}</p>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {v.currentAvailableStock}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#3B6FD4] font-bold">
+                        <td className="ts-r num text-fg">
                           {v.unitsSold30Day}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#2FBF71] font-semibold">
+                        <td className="ts-r num text-good">
                           {v.dailyVelocity} /day
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           {v.weeklyVelocity} /wk
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {v.monthlyVelocity} /mo
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <TrendBadge trend={v.trend} />
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <span
-                            className={`px-2.5 py-0.5 rounded text-[11px] font-semibold ${
-                              v.velocityStatus === 'FAST_MOVING'
-                                ? 'bg-[#E0F5EA] text-[#2FBF71] border border-[#D6F2E4]'
-                                : v.velocityStatus === 'MODERATE_MOVING'
-                                ? 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
-                                : v.velocityStatus === 'SLOW_MOVING'
-                                ? 'bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6]'
-                                : 'bg-[#F4F6FC] text-[#7A839E] border border-[#E4E8F2]'
-                            }`}
+                            className={`px-2.5 py-0.5 rounded text-[11px] font-medium ${
+ v.velocityStatus === 'FAST_MOVING'
+ ? 'bg-goodbg text-good border border-goodbg'
+ : v.velocityStatus === 'MODERATE_MOVING'
+ ? 'bg-tile text-fg border border-line2'
+ : v.velocityStatus === 'SLOW_MOVING'
+ ? 'bg-warnbg text-warn border border-warnbg'
+ : 'bg-surface text-subtle border border-line2'
+ }`}
                           >
                             {v.velocityStatus.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
@@ -1039,19 +1011,19 @@ export default function StockIntelligence() {
                                 const found = data.products.find((p) => p.productId === v.productId);
                                 if (found) setSelectedProduct(found);
                               }}
-                              className="text-[11px] font-semibold text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] font-medium text-fg hover:underline"
                             >
                               View Product Intelligence →
                             </button>
                             <Link
                               to={`/inventory/stock?productId=${v.productId}`}
-                              className="text-[11px] text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] text-fg hover:underline"
                             >
                               View Stock →
                             </Link>
                             <Link
                               to={`/sale-reports?productId=${v.productId}`}
-                              className="text-[11px] text-[#7A839E] hover:underline"
+                              className="text-[12.5px] text-subtle hover:underline"
                             >
                               View Sales →
                             </Link>
@@ -1070,87 +1042,87 @@ export default function StockIntelligence() {
       {/* TAB 4: STOCK COVERAGE */}
       {activeTab === 'coverage' && (
         <div className="space-y-4">
-          <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl flex items-center justify-between">
+          <div className="ts-card flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
-                <Clock className="w-4 h-4 text-[#3B6FD4]" />
+              <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
+                <Clock className="w-4 h-4 text-fg" />
                 Stock Coverage Analysis (Days of Inventory)
               </h3>
-              <p className="text-xs text-[#7A839E] mt-0.5">
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Projected days remaining before stockout based on available inventory and current daily sales velocity.
               </p>
             </div>
-            <span className="text-xs font-mono text-[#3B6FD4] bg-[#E0F5EB] px-3 py-1 rounded-lg border border-[#D6F2E4]">
+            <span className="text-xs num text-fg bg-goodbg px-3 py-1 rounded-lg border border-goodbg">
               {data?.coverage?.length ?? 0} Products Tracked
             </span>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
-                    <th className="py-3 px-4">Part No / Description</th>
-                    <th className="py-3 px-3 text-right">On Hand</th>
-                    <th className="py-3 px-3 text-right">Reserved</th>
-                    <th className="py-3 px-3 text-right">Available Stock</th>
-                    <th className="py-3 px-3 text-right">Incoming</th>
-                    <th className="py-3 px-3 text-right">Daily Velocity</th>
-                    <th className="py-3 px-3 text-right">Days of Stock</th>
-                    <th className="py-3 px-3 text-center">Coverage Status</th>
-                    <th className="py-3 px-4 text-center">Cross-Module Links</th>
+                  <tr>
+                    <th>Part No / Description</th>
+                    <th className="ts-r">On Hand</th>
+                    <th className="ts-r">Reserved</th>
+                    <th className="ts-r">Available Stock</th>
+                    <th className="ts-r">Incoming</th>
+                    <th className="ts-r">Daily Velocity</th>
+                    <th className="ts-r">Days of Stock</th>
+                    <th className="text-center">Coverage Status</th>
+                    <th className="text-center">Cross-Module Links</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-xs text-[#141B34]">
+                <tbody>
                   {!data?.coverage || data.coverage.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-[#7A839E]">
+                      <td colSpan={9} className="text-center text-subtle">
                         No stock coverage data available.
                       </td>
                     </tr>
                   ) : (
                     data.coverage.map((c) => (
-                      <tr key={c.productId} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-bold text-[#141B34]">{c.partNo}</span>
-                          <p className="text-[11.5px] text-[#7A839E] line-clamp-1">{c.description}</p>
+                      <tr key={c.productId}>
+                        <td>
+                          <span className="num font-medium text-fg">{c.partNo}</span>
+                          <p className="text-[12.5px] text-subtle line-clamp-1">{c.description}</p>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {c.onHand}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#E8A33D]">
+                        <td className="ts-r num text-warn">
                           {c.reserved > 0 ? c.reserved : '0'}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {c.availableStock}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           {c.incoming > 0 ? `+${c.incoming}` : '0'}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {c.dailyVelocity} /day
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold">
+                        <td className="ts-r num">
                           {c.coverageDays !== null ? (
                             <span
                               className={
                                 c.coverageDays <= 7
-                                  ? 'text-[#E5484D]'
+                                  ? 'text-bad'
                                   : c.coverageDays <= 14
-                                  ? 'text-[#E8A33D]'
-                                  : 'text-[#2FBF71]'
+                                  ? 'text-warn'
+                                  : 'text-good'
                               }
                             >
                               {c.coverageDays} days
                             </span>
                           ) : (
-                            <span className="text-[#A8AEC4]">No demand</span>
+                            <span className="text-faint">No demand</span>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <StockStatusBadge status={c.coverageStatus} />
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
@@ -1158,19 +1130,19 @@ export default function StockIntelligence() {
                                 const found = data.products.find((p) => p.productId === c.productId);
                                 if (found) setSelectedProduct(found);
                               }}
-                              className="text-[11px] font-semibold text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] font-medium text-fg hover:underline"
                             >
                               View Product Intelligence →
                             </button>
                             <Link
                               to={`/inventory/stock?productId=${c.productId}`}
-                              className="text-[11px] text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] text-fg hover:underline"
                             >
                               View Stock →
                             </Link>
                             <Link
                               to={`/sale-reports?productId=${c.productId}`}
-                              className="text-[11px] text-[#7A839E] hover:underline"
+                              className="text-[12.5px] text-subtle hover:underline"
                             >
                               View Sales →
                             </Link>
@@ -1189,94 +1161,94 @@ export default function StockIntelligence() {
       {/* TAB 5: RESTOCK RECOMMENDATIONS */}
       {activeTab === 'recommendations' && (
         <div className="space-y-4">
-          <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl flex items-center justify-between">
+          <div className="ts-card flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
-                <Zap className="w-4 h-4 text-[#E8A33D]" />
+              <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
+                <Zap className="w-4 h-4 text-warn" />
                 Automated Restock Recommendations
               </h3>
-              <p className="text-xs text-[#7A839E] mt-0.5">
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Replenishment suggestion based on reorder points, lead time (14d), safety stock, and live reservation reserves.
               </p>
             </div>
-            <span className="text-xs font-mono text-[#E8A33D] bg-[#F7EFE0] px-3 py-1 rounded-lg border border-[#F4E9D6]">
+            <span className="text-xs num text-warn bg-warnbg px-3 py-1 rounded-lg border border-warnbg">
               {data?.recommendations?.length ?? 0} Recommendations Available
             </span>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
-                    <th className="py-3 px-4">Part No / Description</th>
-                    <th className="py-3 px-3 text-right">Available Stock</th>
-                    <th className="py-3 px-3 text-right">Reserved</th>
-                    <th className="py-3 px-3 text-right">Incoming</th>
-                    <th className="py-3 px-3 text-right">Daily Velocity</th>
-                    <th className="py-3 px-3 text-right">Reorder Point</th>
-                    <th className="py-3 px-3 text-right">Recommended Restock</th>
-                    <th className="py-3 px-3 text-center">Priority</th>
-                    <th className="py-3 px-3">Reason / Recommendation</th>
-                    <th className="py-3 px-4 text-center">Action & Links</th>
+                  <tr>
+                    <th>Part No / Description</th>
+                    <th className="ts-r">Available Stock</th>
+                    <th className="ts-r">Reserved</th>
+                    <th className="ts-r">Incoming</th>
+                    <th className="ts-r">Daily Velocity</th>
+                    <th className="ts-r">Reorder Point</th>
+                    <th className="ts-r">Recommended Restock</th>
+                    <th className="text-center">Priority</th>
+                    <th>Reason / Recommendation</th>
+                    <th className="text-center">Action & Links</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-xs text-[#141B34]">
+                <tbody>
                   {!data?.recommendations || data.recommendations.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-[#7A839E]">
+                      <td colSpan={10} className="text-center text-subtle">
                         All products have sufficient stock. No replenishment required at this time.
                       </td>
                     </tr>
                   ) : (
                     data.recommendations.map((r) => (
-                      <tr key={r.productId} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-bold text-[#141B34]">{r.partNo}</span>
-                          <p className="text-[11.5px] text-[#7A839E] line-clamp-1">{r.description}</p>
+                      <tr key={r.productId}>
+                        <td>
+                          <span className="num font-medium text-fg">{r.partNo}</span>
+                          <p className="text-[12.5px] text-subtle line-clamp-1">{r.description}</p>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {r.available}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#E8A33D]">
+                        <td className="ts-r num text-warn">
                           {r.reserved > 0 ? r.reserved : '0'}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           {r.incoming > 0 ? `+${r.incoming}` : '0'}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {r.dailyVelocity} /day
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#E8A33D]">
+                        <td className="ts-r num text-warn">
                           {r.reorderPoint}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           +{r.recommendedQty}
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10.5px] font-bold ${
-                              r.priority === 'URGENT'
-                                ? 'bg-[#F7E0E0] text-[#E5484D] border border-[#F4D4D5]'
-                                : r.priority === 'HIGH'
-                                ? 'bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6]'
-                                : r.priority === 'MEDIUM'
-                                ? 'bg-[#E1E6F6] text-[#3B6FD4] border border-[#D9DFF4]'
-                                : 'bg-[#F4F6FC] text-[#7A839E] border border-[#E4E8F2]'
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[10.5px] font-medium ${
+ r.priority === 'URGENT'
+ ? 'bg-badbg text-bad border border-badbg'
+ : r.priority === 'HIGH'
+ ? 'bg-warnbg text-warn border border-warnbg'
+ : r.priority === 'MEDIUM'
+ ? 'bg-tile text-fg border border-line2'
+ : 'bg-surface text-subtle border border-line2'
+ }`}
                           >
                             {r.priority}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-[11.5px] text-[#7A839E] max-w-xs">
+                        <td className="text-[11.5px] text-subtle max-w-xs">
                           {r.reason}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="text-center">
                           <div className="flex flex-col items-center justify-center gap-1">
                             <button
                               type="button"
                               onClick={() => navigate(`/inventory/stock-inward?productId=${r.productId}`)}
-                              className="px-2.5 py-1 bg-[#E0F5EB] hover:bg-[#DCF4E8] text-[#3B6FD4] border border-[#D6F2E4] rounded text-[11px] font-semibold flex items-center gap-1"
+                              className="ts-btn ts-xs bg-goodbg text-good"
                             >
                               <span>Restock Now</span>
                               <ArrowRight className="w-3 h-3" />
@@ -1288,19 +1260,19 @@ export default function StockIntelligence() {
                                   const found = data.products.find((p) => p.productId === r.productId);
                                   if (found) setSelectedProduct(found);
                                 }}
-                                className="text-[10.5px] text-[#3B6FD4] hover:underline"
+                                className="text-[10.5px] text-fg hover:underline"
                               >
                                 View Product Intelligence →
                               </button>
                               <Link
                                 to={`/inventory/stock?productId=${r.productId}`}
-                                className="text-[10.5px] text-[#3B6FD4] hover:underline"
+                                className="text-[10.5px] text-fg hover:underline"
                               >
                                 View Stock →
                               </Link>
                               <Link
                                 to={`/sale-reports?productId=${r.productId}`}
-                                className="text-[10.5px] text-[#7A839E] hover:underline"
+                                className="text-[10.5px] text-subtle hover:underline"
                               >
                                 View Sales →
                               </Link>
@@ -1320,65 +1292,65 @@ export default function StockIntelligence() {
       {/* TAB 6: INCOMING STOCK IMPACT */}
       {activeTab === 'incoming' && (
         <div className="space-y-4">
-          <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl flex items-center justify-between">
+          <div className="ts-card flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#3B6FD4]" />
+              <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
+                <Layers className="w-4 h-4 text-fg" />
                 Incoming Stock Impact Analysis
               </h3>
-              <p className="text-xs text-[#7A839E] mt-0.5">
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Evaluation of draft and pending Stock Inwards on inventory coverage days.
               </p>
             </div>
-            <span className="text-xs font-mono text-[#3B6FD4] bg-[#E1E6F6] px-3 py-1 rounded-lg border border-[#D9DFF4]">
+            <span className="text-xs num text-fg bg-tile px-3 py-1 rounded-lg border border-line2">
               {data?.incomingImpact?.length ?? 0} Products With Pending Deliveries
             </span>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
-                    <th className="py-3 px-4">Part No / Description</th>
-                    <th className="py-3 px-3 text-right">Available Stock</th>
-                    <th className="py-3 px-3 text-right">Incoming Units</th>
-                    <th className="py-3 px-3 text-right">Current Coverage</th>
-                    <th className="py-3 px-3 text-right">Projected Coverage</th>
-                    <th className="py-3 px-3">Impact Statement</th>
-                    <th className="py-3 px-4 text-center">Cross-Module Links</th>
+                  <tr>
+                    <th>Part No / Description</th>
+                    <th className="ts-r">Available Stock</th>
+                    <th className="ts-r">Incoming Units</th>
+                    <th className="ts-r">Current Coverage</th>
+                    <th className="ts-r">Projected Coverage</th>
+                    <th>Impact Statement</th>
+                    <th className="text-center">Cross-Module Links</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-xs text-[#141B34]">
+                <tbody>
                   {!data?.incomingImpact || data.incomingImpact.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-[#7A839E]">
+                      <td colSpan={7} className="text-center text-subtle">
                         No pending incoming stock receipts recorded.
                       </td>
                     </tr>
                   ) : (
                     data.incomingImpact.map((inc) => (
-                      <tr key={inc.productId} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-bold text-[#141B34]">{inc.partNo}</span>
-                          <p className="text-[11.5px] text-[#7A839E] line-clamp-1">{inc.description}</p>
+                      <tr key={inc.productId}>
+                        <td>
+                          <span className="num font-medium text-fg">{inc.partNo}</span>
+                          <p className="text-[12.5px] text-subtle line-clamp-1">{inc.description}</p>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#141B34]">
+                        <td className="ts-r num text-fg">
                           {inc.available}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#3B6FD4]">
+                        <td className="ts-r num text-fg">
                           +{inc.incoming}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {inc.currentCoverageDays !== null ? `${inc.currentCoverageDays}d` : 'No demand'}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#2FBF71]">
+                        <td className="ts-r num text-good">
                           {inc.projectedCoverageDays !== null ? `${inc.projectedCoverageDays}d` : 'No demand'}
                         </td>
-                        <td className="py-3 px-3 text-[11.5px] text-[#141B34]">
+                        <td className="text-[11.5px] text-fg">
                           {inc.impact}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
@@ -1386,19 +1358,19 @@ export default function StockIntelligence() {
                                 const found = data.products.find((p) => p.productId === inc.productId);
                                 if (found) setSelectedProduct(found);
                               }}
-                              className="text-[11px] font-semibold text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] font-medium text-fg hover:underline"
                             >
                               View Product Intelligence →
                             </button>
                             <Link
                               to={`/inventory/stock?productId=${inc.productId}`}
-                              className="text-[11px] text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] text-fg hover:underline"
                             >
                               View Stock →
                             </Link>
                             <Link
                               to={`/sale-reports?productId=${inc.productId}`}
-                              className="text-[11px] text-[#7A839E] hover:underline"
+                              className="text-[12.5px] text-subtle hover:underline"
                             >
                               View Sales →
                             </Link>
@@ -1417,73 +1389,73 @@ export default function StockIntelligence() {
       {/* TAB 7: OVERSTOCK DETECTION */}
       {activeTab === 'overstock' && (
         <div className="space-y-4">
-          <div className="p-4 bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl flex items-center justify-between">
+          <div className="ts-card flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#141B34] flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-[#6B78D6]" />
+              <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-fg" />
                 Overstock & Slow-Moving Stock Detection
               </h3>
-              <p className="text-xs text-[#7A839E] mt-0.5">
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Identification of products with excessive inventory coverage (&gt;180 days) or dormant sales velocity.
               </p>
             </div>
-            <span className="text-xs font-mono text-[#6B78D6] bg-[#DEE3F5] px-3 py-1 rounded-lg border border-[#D1D9F2]">
+            <span className="text-xs num text-fg bg-tile px-3 py-1 rounded-lg border border-line2">
               {data?.overstock?.length ?? 0} Overstocked Products Identified
             </span>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl overflow-hidden shadow-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="ts-card ts-white ts-tbl overflow-hidden">
+            <div className="ts-tblwrap">
+              <table>
                 <thead>
-                  <tr className="bg-[#F4F6FC] border-b border-[#E4E8F2] text-[11px] font-semibold text-[#7A839E] uppercase tracking-wider">
-                    <th className="py-3 px-4">Part No / Description</th>
-                    <th className="py-3 px-3 text-right">Available Stock</th>
-                    <th className="py-3 px-3 text-right">Daily Velocity</th>
-                    <th className="py-3 px-3 text-right">Coverage Days</th>
-                    <th className="py-3 px-3 text-center">Overstock Classification</th>
-                    <th className="py-3 px-3">Reason & Strategy</th>
-                    <th className="py-3 px-4 text-center">Cross-Module Links</th>
+                  <tr>
+                    <th>Part No / Description</th>
+                    <th className="ts-r">Available Stock</th>
+                    <th className="ts-r">Daily Velocity</th>
+                    <th className="ts-r">Coverage Days</th>
+                    <th className="text-center">Overstock Classification</th>
+                    <th>Reason & Strategy</th>
+                    <th className="text-center">Cross-Module Links</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4E8F2] text-xs text-[#141B34]">
+                <tbody>
                   {!data?.overstock || data.overstock.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-[#7A839E]">
+                      <td colSpan={7} className="text-center text-subtle">
                         No overstocked or dormant inventory detected.
                       </td>
                     </tr>
                   ) : (
                     data.overstock.map((o) => (
-                      <tr key={o.productId} className="hover:bg-[#F7F8FC]/60 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-bold text-[#141B34]">{o.partNo}</span>
-                          <p className="text-[11.5px] text-[#7A839E] line-clamp-1">{o.description}</p>
+                      <tr key={o.productId}>
+                        <td>
+                          <span className="num font-medium text-fg">{o.partNo}</span>
+                          <p className="text-[12.5px] text-subtle line-clamp-1">{o.description}</p>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-[#6B78D6]">
+                        <td className="ts-r num text-fg">
                           {o.availableStock}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-[#7A839E]">
+                        <td className="ts-r num text-subtle">
                           {o.dailyVelocity} /day
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-semibold text-[#6B78D6]">
+                        <td className="ts-r num text-fg">
                           {o.coverageDays !== null ? `${o.coverageDays} days` : 'Dormant'}
                         </td>
-                        <td className="py-3 px-3 text-center">
+                        <td className="text-center">
                           <span
-                            className={`px-2.5 py-0.5 rounded text-[11px] font-semibold ${
-                              o.overstockType === 'POTENTIAL_OVERSTOCK'
-                                ? 'bg-[#DEE3F5] text-[#6B78D6] border border-[#D1D9F2]'
-                                : 'bg-[#F7EFE0] text-[#E8A33D] border border-[#F4E9D6]'
-                            }`}
+                            className={`px-2.5 py-0.5 rounded text-[11px] font-medium ${
+ o.overstockType === 'POTENTIAL_OVERSTOCK'
+ ? 'bg-tile text-fg border border-line2'
+ : 'bg-warnbg text-warn border border-warnbg'
+ }`}
                           >
                             {o.overstockType.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-[11.5px] text-[#7A839E] max-w-sm">
+                        <td className="text-[11.5px] text-subtle max-w-sm">
                           {o.reason}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
@@ -1491,19 +1463,19 @@ export default function StockIntelligence() {
                                 const found = data.products.find((p) => p.productId === o.productId);
                                 if (found) setSelectedProduct(found);
                               }}
-                              className="text-[11px] font-semibold text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] font-medium text-fg hover:underline"
                             >
                               View Product Intelligence →
                             </button>
                             <Link
                               to={`/inventory/stock?productId=${o.productId}`}
-                              className="text-[11px] text-[#3B6FD4] hover:underline"
+                              className="text-[12.5px] text-fg hover:underline"
                             >
                               View Stock →
                             </Link>
                             <Link
                               to={`/sale-reports?productId=${o.productId}`}
-                              className="text-[11px] text-[#7A839E] hover:underline"
+                              className="text-[12.5px] text-subtle hover:underline"
                             >
                               View Sales →
                             </Link>
@@ -1521,90 +1493,90 @@ export default function StockIntelligence() {
 
       {/* Product Detail Modal / Drawer */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#141B34]/40 backdrop-blur-sm">
-          <div className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-xl max-w-2xl w-full p-6 space-y-6 max-h-[90vh] overflow-y-auto shadow-lift">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-card ts-white ts-tbl max-w-2xl w-full space-y-6 max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-[#E4E8F2] pb-4">
+            <div className="flex items-start justify-between border-b border-line2 pb-4">
               <div>
-                <span className="text-xs font-mono font-bold text-[#3B6FD4]">{selectedProduct.partNo}</span>
-                <h2 className="text-lg font-bold text-[#141B34]">{selectedProduct.description}</h2>
-                <p className="text-xs text-[#7A839E]">Product Intelligence Breakdown & Replenishment Rules</p>
+                <span className="text-xs num font-medium text-fg">{selectedProduct.partNo}</span>
+                <h2 className="m-0 text-[15px] font-medium text-fg">{selectedProduct.description}</h2>
+                <p className="text-xs text-subtle">Product Intelligence Breakdown & Replenishment Rules</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedProduct(null)}
-                className="p-1 text-[#7A839E] hover:text-[#141B34] rounded-lg hover:bg-[#F7F8FC]"
+                className="p-1 text-subtle hover:text-fg rounded-lg hover:bg-surface"
               >
                 ✕
               </button>
             </div>
 
             {/* Explanation Alert Box */}
-            <div className="p-4 bg-[#F7F8FC] border border-[#D6F2E4] rounded-xl space-y-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#3B6FD4]">
+            <div className="p-4 bg-surface border border-goodbg rounded-xl space-y-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-fg">
                 <Info className="w-4 h-4" />
                 <span>WHY THIS PRODUCT NEEDS ATTENTION</span>
               </div>
-              <p className="text-xs text-[#141B34] leading-relaxed">
+              <p className="text-xs text-fg leading-relaxed">
                 {selectedProduct.explanation}
               </p>
             </div>
 
             {/* Stock Snapshot Grid */}
             <div className="grid grid-cols-4 gap-3">
-              <div className="p-3 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg space-y-1">
-                <span className="text-[11px] text-[#7A839E]">On Hand</span>
-                <p className="text-base font-bold font-mono text-[#141B34]">{selectedProduct.onHand} {selectedProduct.unit}</p>
+              <div className="bg-tile rounded-[14px] p-3.5 space-y-1">
+                <span className="text-[12.5px] text-subtle">On Hand</span>
+                <p className="text-base font-medium num text-fg">{selectedProduct.onHand} {selectedProduct.unit}</p>
               </div>
-              <div className="p-3 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg space-y-1">
-                <span className="text-[11px] text-[#7A839E]">Reserved</span>
-                <p className="text-base font-bold font-mono text-[#E8A33D]">{selectedProduct.reserved} {selectedProduct.unit}</p>
+              <div className="bg-tile rounded-[14px] p-3.5 space-y-1">
+                <span className="text-[12.5px] text-subtle">Reserved</span>
+                <p className="text-base font-medium num text-warn">{selectedProduct.reserved} {selectedProduct.unit}</p>
               </div>
-              <div className="p-3 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg space-y-1">
-                <span className="text-[11px] text-[#7A839E]">Available</span>
-                <p className="text-base font-bold font-mono text-[#2FBF71]">{selectedProduct.available} {selectedProduct.unit}</p>
+              <div className="bg-tile rounded-[14px] p-3.5 space-y-1">
+                <span className="text-[12.5px] text-subtle">Available</span>
+                <p className="text-base font-medium num text-good">{selectedProduct.available} {selectedProduct.unit}</p>
               </div>
-              <div className="p-3 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg space-y-1">
-                <span className="text-[11px] text-[#7A839E]">Incoming</span>
-                <p className="text-base font-bold font-mono text-[#3B6FD4]">+{selectedProduct.incoming} {selectedProduct.unit}</p>
+              <div className="bg-tile rounded-[14px] p-3.5 space-y-1">
+                <span className="text-[12.5px] text-subtle">Incoming</span>
+                <p className="text-base font-medium num text-fg">+{selectedProduct.incoming} {selectedProduct.unit}</p>
               </div>
             </div>
 
             {/* Demand & Velocity Metrics */}
-            <div className="grid grid-cols-2 gap-4 border-t border-b border-[#E4E8F2] py-4 text-xs space-y-2 sm:space-y-0">
+            <div className="grid grid-cols-2 gap-4 border-t border-b border-line2 py-4 text-xs space-y-2 sm:space-y-0">
               <div className="space-y-2">
-                <h4 className="font-semibold text-[#141B34]">Sales Velocity</h4>
-                <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                  <span className="text-[#7A839E]">Daily Velocity:</span>
-                  <span className="font-mono font-bold text-[#141B34]">{selectedProduct.dailyVelocity} units/day</span>
+                <h4 className="font-medium text-fg">Sales Velocity</h4>
+                <div className="flex justify-between py-1 border-b border-line2">
+                  <span className="text-subtle">Daily Velocity:</span>
+                  <span className="num font-medium text-fg">{selectedProduct.dailyVelocity} units/day</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                  <span className="text-[#7A839E]">Monthly Consumption:</span>
-                  <span className="font-mono font-bold text-[#141B34]">{selectedProduct.monthlyConsumption} units/mo</span>
+                <div className="flex justify-between py-1 border-b border-line2">
+                  <span className="text-subtle">Monthly Consumption:</span>
+                  <span className="num font-medium text-fg">{selectedProduct.monthlyConsumption} units/mo</span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-[#7A839E]">Units Sold ({dateRangePreset}d):</span>
-                  <span className="font-mono font-bold text-[#141B34]">{selectedProduct.unitsSoldRecent} units</span>
+                  <span className="text-subtle">Units Sold ({dateRangePreset}d):</span>
+                  <span className="num font-medium text-fg">{selectedProduct.unitsSoldRecent} units</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-semibold text-[#141B34]">Coverage & Recommendation</h4>
-                <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                  <span className="text-[#7A839E]">Days Stock Remaining:</span>
-                  <span className="font-mono font-bold text-[#E8A33D]">
+                <h4 className="font-medium text-fg">Coverage & Recommendation</h4>
+                <div className="flex justify-between py-1 border-b border-line2">
+                  <span className="text-subtle">Days Stock Remaining:</span>
+                  <span className="num font-medium text-warn">
                     {selectedProduct.daysOfStockRemaining !== null ? `${selectedProduct.daysOfStockRemaining} days` : 'No demand'}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[#E4E8F2]/50">
-                  <span className="text-[#7A839E]">Coverage with Incoming:</span>
-                  <span className="font-mono font-bold text-[#3B6FD4]">
+                <div className="flex justify-between py-1 border-b border-line2">
+                  <span className="text-subtle">Coverage with Incoming:</span>
+                  <span className="num font-medium text-fg">
                     {selectedProduct.projectedDaysWithIncoming !== null ? `${selectedProduct.projectedDaysWithIncoming} days` : 'No demand'}
                   </span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-[#7A839E]">Suggested Reorder:</span>
-                  <span className="font-mono font-bold text-[#3B6FD4]">
+                  <span className="text-subtle">Suggested Reorder:</span>
+                  <span className="num font-medium text-fg">
                     {selectedProduct.suggestedRestockQty > 0 ? `+${selectedProduct.suggestedRestockQty} units` : '0'}
                   </span>
                 </div>
@@ -1612,13 +1584,13 @@ export default function StockIntelligence() {
             </div>
 
             {/* Cross-Module Quick Links in Modal */}
-            <div className="flex items-center justify-between p-3 bg-[#F4F6FC] border border-[#E4E8F2] rounded-lg">
-              <span className="text-xs text-[#7A839E]">Quick Cross-Module Navigation:</span>
+            <div className="flex items-center justify-between p-3 bg-surface border border-line2 rounded-lg">
+              <span className="text-xs text-subtle">Quick Cross-Module Navigation:</span>
               <div className="flex items-center gap-2">
                 <Link
                   to={`/inventory/stock?productId=${selectedProduct.productId}`}
                   onClick={() => setSelectedProduct(null)}
-                  className="px-2.5 py-1 bg-[#FFFFFF] hover:bg-[#F7F8FC] text-[#3B6FD4] border border-[#D9DFF4] rounded text-xs font-medium flex items-center gap-1"
+                  className="ts-btn ts-ghost ts-xs"
                 >
                   <span>View Stock Ledger</span>
                   <ExternalLink className="w-3 h-3" />
@@ -1626,7 +1598,7 @@ export default function StockIntelligence() {
                 <Link
                   to={`/sale-reports?productId=${selectedProduct.productId}`}
                   onClick={() => setSelectedProduct(null)}
-                  className="px-2.5 py-1 bg-[#FFFFFF] hover:bg-[#F7F8FC] text-[#7A839E] border border-[#E4E8F2] rounded text-xs font-medium flex items-center gap-1"
+                  className="ts-btn ts-ghost ts-xs"
                 >
                   <span>View Sale Reports</span>
                   <ExternalLink className="w-3 h-3" />
@@ -1639,7 +1611,7 @@ export default function StockIntelligence() {
               <button
                 type="button"
                 onClick={() => setSelectedProduct(null)}
-                className="px-4 py-2 bg-[#F4F6FC] border border-[#E4E8F2] hover:bg-[#F7F8FC] text-xs text-[#7A839E] rounded-lg font-medium"
+                className="ts-btn ts-ghost ts-xs"
               >
                 Close
               </button>
@@ -1651,7 +1623,7 @@ export default function StockIntelligence() {
                   setSelectedProduct(null);
                   navigate(`/inventory/stock-inward?productId=${pId}`);
                 }}
-                className="px-4 py-2 bg-[#3B6FD4] hover:bg-[#2F5CB8] text-[#F4F6FC] rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-card shadow-[#3B6FD4]/10"
+                className="ts-btn ts-dark ts-xs"
               >
                 <span>Restock Product Now</span>
                 <ArrowRight className="w-4 h-4" />

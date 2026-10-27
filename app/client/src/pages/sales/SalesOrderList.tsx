@@ -37,50 +37,50 @@ export default function SalesOrderList() {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return 'badge success';
+        return 'ts-st ts-tone-good';
       case 'PARTIALLY_DISPATCHED':
-        return 'badge warning';
+        return 'ts-st ts-tone-warn';
       case 'READY_TO_DISPATCH':
-        return 'badge info';
+        return 'ts-st';
       case 'PI_CREATED':
-        return 'badge secondary';
+        return 'ts-st';
       case 'PO_CREATED':
-        return 'badge info';
+        return 'ts-st';
       case 'QUOTATION_DRAFT':
-        return 'badge muted';
+        return 'ts-st';
       default:
-        return 'badge secondary';
+        return 'ts-st';
     }
   };
 
   return (
-    <div className="page-container">
-      <div className="flex-between mb-2">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <h1 className="page-title">Sales Orders</h1>
-          <p className="muted text-sm">Monitor order fulfillment, purchase order linkage, performa invoices, and partial dispatches.</p>
+          <h1 className="ts-title">Sales Orders</h1>
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">Monitor order fulfillment, purchase order linkage, performa invoices, and partial dispatches.</p>
         </div>
-        <div className="flex-gap">
-          <Link to="/sales" className="btn secondary">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/sales" className="ts-btn ts-ghost">
             ← Control Center
           </Link>
-          <Link to="/quotations/new" className="btn primary">
+          <Link to="/quotations/new" className="ts-btn ts-dark">
             + Create Order / Quotation
           </Link>
         </div>
       </div>
 
       {/* FILTER BAR */}
-      <div className="card mb-3 p-2">
-        <div className="flex-gap">
+      <div className="ts-card">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             type="text"
-            className="input-field"
+            className="ts-fi !pl-4 !rounded-full !bg-tile !border-transparent sm:flex-1"
             placeholder="Search PO #, Quotation #, PI #, Company, Ref..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select className="input-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select className="ts-fi ts-sel sm:!w-56" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All Operational Statuses</option>
             <option value="PO_CREATED">PO Created</option>
             <option value="PI_CREATED">PI Created</option>
@@ -88,7 +88,7 @@ export default function SalesOrderList() {
             <option value="PARTIALLY_DISPATCHED">Partially Dispatched</option>
             <option value="COMPLETED">Completed</option>
           </select>
-          <button className="btn secondary" onClick={() => { setSearch(''); setStatusFilter(''); }}>
+          <button className="ts-btn ts-ghost ts-xs self-start sm:self-auto" onClick={() => { setSearch(''); setStatusFilter(''); }}>
             Reset Filters
           </button>
         </div>
@@ -96,20 +96,20 @@ export default function SalesOrderList() {
 
       {/* TABLE */}
       {loading ? (
-        <p className="loading-text">Loading orders...</p>
+        <p className="ts-empty">Loading orders...</p>
       ) : error ? (
-        <div className="error-banner">
+        <div className="ts-warnbox">
           <p>{error}</p>
-          <button className="btn secondary text-sm" onClick={loadOrders}>Retry</button>
+          <button className="ts-btn ts-ghost ts-xs" onClick={loadOrders}>Retry</button>
         </div>
       ) : orders.length === 0 ? (
-        <div className="empty-state">
-          <p className="muted">No sales orders found matching filters.</p>
+        <div className="ts-empty">
+          <p className="text-subtle">No sales orders found matching filters.</p>
         </div>
       ) : (
-        <div className="card">
-          <div className="table-responsive">
-            <table className="data-table">
+        <div className="ts-card ts-tbl">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
                 <tr>
                   <th>PO Number</th>
@@ -117,9 +117,9 @@ export default function SalesOrderList() {
                   <th>Quotation Ref</th>
                   <th>PI Ref</th>
                   <th>Status</th>
-                  <th className="text-right">Ordered Units</th>
-                  <th className="text-right">Dispatched</th>
-                  <th className="text-right">Total Amount</th>
+                  <th className="ts-r">Ordered Units</th>
+                  <th className="ts-r">Dispatched</th>
+                  <th className="ts-r">Total Amount</th>
                   <th className="text-center">Action</th>
                 </tr>
               </thead>
@@ -127,28 +127,28 @@ export default function SalesOrderList() {
                 {orders.map((o) => (
                   <tr key={o.id}>
                     <td className="font-medium">
-                      <Link to={`/sales/orders/${o.id}`} className="accent-link">
+                      <Link to={`/sales/orders/${o.id}`} className="text-fg hover:underline">
                         {o.po_number}
                       </Link>
-                      {o.client_po_ref && <div className="text-xs muted">Ref: {o.client_po_ref}</div>}
+                      {o.client_po_ref && <div className="text-[13px] text-subtle">Ref: {o.client_po_ref}</div>}
                     </td>
                     <td>
-                      <Link to={`/companies/${o.company_id}`} className="muted-link">
+                      <Link to={`/companies/${o.company_id}`} className="text-subtle hover:text-fg">
                         {o.company_name}
                       </Link>
                     </td>
                     <td>
-                      <Link to={`/quotations/${o.quotation_id}`} className="muted-link text-xs">
+                      <Link to={`/quotations/${o.quotation_id}`} className="text-subtle hover:text-fg text-[13px]">
                         {o.quotation_number}
                       </Link>
                     </td>
                     <td>
                       {o.pi_id ? (
-                        <Link to={`/performa-invoices`} className="muted-link text-xs">
+                        <Link to={`/performa-invoices`} className="text-subtle hover:text-fg text-[13px]">
                           {o.pi_number}
                         </Link>
                       ) : (
-                        <span className="text-xs muted">—</span>
+                        <span className="text-[13px] text-subtle">—</span>
                       )}
                     </td>
                     <td>
@@ -156,15 +156,15 @@ export default function SalesOrderList() {
                         {o.derivedStatus.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="text-right font-mono">{o.totalOrdered}</td>
-                    <td className="text-right font-mono">
-                      <span className={o.totalDispatched > 0 ? 'accent font-bold' : 'muted'}>
+                    <td className="ts-r num">{o.totalOrdered}</td>
+                    <td className="ts-r num">
+                      <span className={o.totalDispatched > 0 ? 'text-fg font-medium' : 'text-subtle'}>
                         {o.totalDispatched} / {o.totalOrdered}
                       </span>
                     </td>
-                    <td className="text-right font-bold">₹{o.total_amount.toLocaleString('en-IN')}</td>
+                    <td className="ts-r">₹{o.total_amount.toLocaleString('en-IN')}</td>
                     <td className="text-center">
-                      <Link to={`/sales/orders/${o.id}`} className="btn secondary text-xs">
+                      <Link to={`/sales/orders/${o.id}`} className="ts-btn ts-ghost ts-xs">
                         View Detail
                       </Link>
                     </td>
@@ -173,7 +173,7 @@ export default function SalesOrderList() {
               </tbody>
             </table>
           </div>
-          <div className="flex-between p-2 muted text-xs border-top">
+          <div className="flex items-center justify-between gap-3 flex-wrap p-2 text-subtle text-[13px] border-t border-line2">
             <span>Showing {orders.length} of {total} orders</span>
           </div>
         </div>

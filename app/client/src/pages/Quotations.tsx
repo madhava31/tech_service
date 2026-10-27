@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, Quotation, QuotationPageResponse } from '../api';
 import { queryClient } from '../lib/queryClient';
-import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, RefreshCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, RefreshCw, Download, Plus } from 'lucide-react';
+import { Seg } from '../components/ds/Seg';
+import { fmtDay } from '../components/ds/format';
 
 const PAGE_SIZE = 25;
 
@@ -31,12 +33,12 @@ function getDateRange(filter: DateFilter): { start: string; end: string } | null
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  draft: '#7A839E',
-  sent: '#6B78D6',
-  accepted: '#3B6FD4',
-  rejected: '#E5484D',
-  po_created: '#6B78D6',
-  pi_created: '#6B78D6',
+  draft: 'rgb(var(--muted))',
+  sent: 'rgb(var(--fg))',
+  accepted: 'rgb(var(--good))',
+  rejected: 'rgb(var(--bad))',
+  po_created: 'rgb(var(--fg))',
+  pi_created: 'rgb(var(--fg))',
 };
 
 export default function Quotations() {
@@ -327,412 +329,162 @@ export default function Quotations() {
     );
   };
 
+  const STAGES = [
+    { name: 'All', key: '' },
+    { name: 'Draft', key: 'draft' },
+    { name: 'Sent', key: 'sent' },
+    { name: 'Accepted', key: 'accepted' },
+    { name: 'Rejected', key: 'rejected' },
+  ];
+  const cols = isSelectionMode ? 7 : 6;
+  const money = (v: number) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 bg-[#F4F6FC] text-[#141B34] min-h-screen">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="margin-0 text-[34px] font-medium tracking-[-.02em] leading-[1.05]">
-            Quotations
-          </h1>
-          <p className="margin-0 text-[13.5px] text-[#7A839E]">
-            Every quotation with its stage, value and follow-up position.
-          </p>
+    <div className="ts-page-pad">
+      <div className="ts-phead">
+        <div style={{ minWidth: 0 }}>
+          <div className="ts-crumb" style={{ fontSize: 13, color: 'rgb(var(--muted))', marginBottom: 6 }}>Sales</div>
+          <h1>Quotations</h1>
+          <p className="ts-muted" style={{ margin: '6px 0 0', fontSize: 14 }}>Every quotation with its stage, value and follow-up position.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/quotations/new"
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#D9E2F4] text-[#3B6FD4] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#E3EAF7] transition-colors no-underline"
-          >
-            + New quotation
-          </Link>
-          <a
-            href={api.export.quotationsUrl(statusFilter ? { status: statusFilter } : undefined)}
-            download
-            className="h-[34px] px-3.5 rounded-[9px] bg-transparent border border-[#E4E8F2] text-[#2FBF71] font-medium text-[12.5px] flex items-center justify-center hover:bg-[#F7F8FC] transition-colors no-underline cursor-pointer"
-          >
-            Export Excel
+        <span className="ts-grow" />
+      </div>
+
+      <div className="ts-toolbar">
+        <div className="max-w-full overflow-x-auto no-scrollbar rounded-full">
+          <Seg
+            label="Filter by stage"
+            value={statusFilter || 'all'}
+            options={STAGES.map((st) => ({ value: st.key || 'all', label: st.name, count: stageCounts[st.name] || 0 }))}
+            onChange={(v) => setStatusFilter(v === 'all' ? '' : v)}
+          />
+        </div>
+        <div className="ts-end">
+          <a className="ts-btn ts-ghost" href={api.export.quotationsUrl(statusFilter ? { status: statusFilter } : undefined)} download>
+            <Download /> Export to Excel
           </a>
           {!isSelectionMode ? (
-            <button
-              type="button"
-              onClick={() => setIsSelectionMode(true)}
-              className="h-[34px] px-3.5 rounded-[9px] font-medium text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border bg-transparent border-[#E4E8F2] text-[#E5484D] hover:bg-[#FCEBEC]"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Select to Delete</span>
+            <button type="button" className="ts-btn ts-ghost" onClick={() => setIsSelectionMode(true)}>
+              <Trash2 /> Select to delete
             </button>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={handleBulkDelete}
-                disabled={isBulkDeleting}
-                className={`h-[34px] px-3.5 rounded-[9px] font-medium text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
-                  selectedIds.length > 0
-                    ? 'bg-[#E5484D] text-white border-[#E5484D] hover:bg-[#D93D42]'
-                    : 'bg-transparent border-[#E4E8F2] text-[#E5484D] hover:bg-[#FCEBEC]'
-                }`}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>
-                  {isBulkDeleting
-                    ? 'Deleting...'
-                    : selectedIds.length > 0
-                    ? `Delete Selected (${selectedIds.length})`
-                    : 'Delete Selected'}
-                </span>
+              <button type="button" className={`ts-btn ${selectedIds.length ? 'ts-danger' : 'ts-ghost'}`} onClick={handleBulkDelete} disabled={isBulkDeleting}>
+                <Trash2 /> {isBulkDeleting ? 'Deleting…' : selectedIds.length ? `Delete ${selectedIds.length} selected` : 'Delete selected'}
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSelectionMode(false);
-                  setSelectedIds([]);
-                }}
-                className="h-[34px] px-3 rounded-[9px] font-medium text-[12.5px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] hover:bg-[#E4E8F2] transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
+              <button type="button" className="ts-btn ts-ghost" onClick={() => { setIsSelectionMode(false); setSelectedIds([]); }}>Cancel</button>
             </>
           )}
+          <Link className="ts-btn ts-dark" to="/quotations/new"><Plus /> New quotation</Link>
         </div>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-[10px] border border-[#F4D6D7] bg-[#F8E4E4] text-[#E5484D] text-[12.5px] flex items-center justify-between">
-          <span>{error}</span>
-          <button
-            type="button"
-            onClick={() => fetchPage(1, true)}
-            className="inline-flex items-center gap-1 font-semibold underline cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Retry
-          </button>
-        </div>
+        <div className="ts-warnbox"><span>{error}</span>
+          <button type="button" className="ts-btn" onClick={() => fetchPage(1, true)}><RefreshCw /> Retry</button></div>
       )}
 
-      {/* Main Table Container Card */}
-      <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-[16px_18px_12px] flex flex-col gap-4 shadow-card">
-        
-        {/* Stage Filter Chips & Expandable Search Toggle */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-[#EEF1F9] pb-3.5">
-          {/* Status Stage Chips */}
-          <div className="flex gap-2 flex-wrap items-center">
-            {[
-              { name: 'All', key: '' },
-              { name: 'Draft', key: 'draft' },
-              { name: 'Sent', key: 'sent' },
-              { name: 'Accepted', key: 'accepted' },
-              { name: 'Rejected', key: 'rejected' },
-            ].map((chip) => {
-              const active = statusFilter === chip.key;
-              const count = stageCounts[chip.name] || 0;
-              return (
-                <button
-                  key={chip.name}
-                  type="button"
-                  onClick={() => setStatusFilter(chip.key)}
-                  className={`inline-flex items-center gap-2 h-[32px] px-3 rounded-[8px] text-[12px] cursor-pointer transition-colors border ${
-                    active
-                      ? 'bg-[#F7F8FC] border-[#D9E2F4] text-[#3B6FD4] font-semibold'
-                      : 'bg-transparent border-[#E4E8F2] text-[#7A839E] hover:border-[#D4DAEA]'
-                  }`}
-                >
-                  <span>{chip.name}</span>
-                  <span className="text-[#A8AEC4] text-[11px]">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Search Trigger Button & Summary Stats */}
-          <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              aria-expanded={isSearchOpen}
-              aria-controls="quotation-search-panel"
-              aria-label={isSearchOpen ? 'Hide search options' : 'Show search options'}
-              className={`inline-flex items-center gap-2 h-[32px] px-3.5 rounded-[8px] text-[12px] font-semibold cursor-pointer transition-all border ${
-                isSearchOpen || hasSearchFilters
-                  ? 'bg-[#F7F8FC] border-[#3B6FD4] text-[#3B6FD4] shadow-xs'
-                  : 'bg-[#F4F6FC] border-[#E4E8F2] text-[#141B34] hover:border-[#D4DAEA]'
-              }`}
-            >
-              <Search className="w-3.5 h-3.5 text-[#3B6FD4]" />
-              <span>Search & Filter</span>
-              {hasSearchFilters && (
-                <span className="w-2 h-2 rounded-full bg-[#3B6FD4] animate-pulse" />
-              )}
-              {isSearchOpen ? (
-                <ChevronUp className="w-3.5 h-3.5 ml-0.5 text-[#3B6FD4]" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-[#7A839E]" />
-              )}
-            </button>
-
-            {hasAnyActiveFilters && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-[8px] bg-[#F7F8FC] border border-[#E4E8F2] text-[#7A839E] text-[12px] hover:text-[#141B34] hover:border-[#D4DAEA] cursor-pointer transition-colors"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset All</span>
-              </button>
-            )}
-
-            <span className="text-[11.5px] text-[#A8AEC4] ml-1">
-              Showing {rows.length} of {total}
-            </span>
-          </div>
+      <section className="ts-card ts-white ts-tcard ts-tbl" style={{ ['--i' as string]: 0 }}>
+        <div className="ts-tbar">
+          <label className="ts-search">
+            <Search className="size-4" />
+            <input value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} placeholder="Search quotation number" aria-label="Search quotation number" />
+          </label>
+          <label className="ts-search">
+            <Search className="size-4" />
+            <input value={searchCompany} onChange={(e) => setSearchCompany(e.target.value)} placeholder="Search customer" aria-label="Search customer" />
+          </label>
+          <button
+            type="button"
+            className="ts-btn ts-ghost ts-xs"
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            aria-expanded={isSearchOpen}
+            aria-controls="quotation-search-panel"
+          >
+            <Filter /> More filters
+            {(dateFilter !== 'all' || minAmount !== '' || maxAmount !== '') && <span className="w-1.5 h-1.5 rounded-full bg-ink" />}
+            {isSearchOpen ? <ChevronUp /> : <ChevronDown />}
+          </button>
+          {hasAnyActiveFilters && (
+            <button type="button" className="ts-btn ts-ghost ts-xs" onClick={resetFilters}><RotateCcw /> Reset</button>
+          )}
+          <span className="ts-showing ts-muted">Showing {rows.length} of {total}</span>
         </div>
 
-        {/* EXPANDED POP-DOWN SEARCH PANEL */}
         {isSearchOpen && (
-          <div
-            id="quotation-search-panel"
-            className="bg-[#F4F6FC] border border-[#E4E8F2] rounded-[12px] p-4 transition-all duration-200 animate-in fade-in slide-in-from-top-2 shadow-lift"
-          >
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#EEF1F9]">
-              <div className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#7A839E]">
-                <Filter className="w-3.5 h-3.5 text-[#3B6FD4]" />
-                <span>Advanced Quotation Search</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(false)}
-                className="text-[#A8AEC4] hover:text-[#141B34] p-1 rounded-md transition-colors"
-                aria-label="Close search panel"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          <div id="quotation-search-panel" className="ts-filters">
+            <div className="ts-fld">
+              <label htmlFor="qf-date">Time period</label>
+              <select id="qf-date" className="ts-fi" value={dateFilter} onChange={(e) => setDateFilter(e.target.value as DateFilter)}>
+                <option value="all">All dates</option>
+                <option value="today">Today</option>
+                <option value="week">This week</option>
+                <option value="month">This month</option>
+              </select>
             </div>
-
-            {/* Filter Inputs Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {/* 1. Search Quotation Number */}
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
-                  Quotation No.
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. TSQOT2627/1"
-                  value={searchNumber}
-                  onChange={(e) => setSearchNumber(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] transition-colors"
-                />
-              </div>
-
-              {/* 2. Search Customer Company */}
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
-                  Customer / Company
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Basil"
-                  value={searchCompany}
-                  onChange={(e) => setSearchCompany(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] transition-colors"
-                />
-              </div>
-
-              {/* 3. Date Range */}
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
-                  Time Period
-                </label>
-                <select
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value as DateFilter)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] cursor-pointer transition-colors"
-                >
-                  <option value="all">All Dates</option>
-                  <option value="today">Today</option>
-                  <option value="week">This Week</option>
-                  <option value="month">This Month</option>
-                </select>
-              </div>
-
-              {/* 4. Min Amount */}
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
-                  Min Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Min ₹"
-                  value={minAmount}
-                  onChange={(e) => setMinAmount(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] tabular-nums transition-colors"
-                />
-              </div>
-
-              {/* 5. Max Amount */}
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#A8AEC4] mb-1.5">
-                  Max Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Max ₹"
-                  value={maxAmount}
-                  onChange={(e) => setMaxAmount(e.target.value)}
-                  className="w-full h-[34px] px-3 rounded-[8px] bg-[#FFFFFF] border border-[#E4E8F2] text-[#141B34] text-[12.5px] outline-none focus:border-[#3B6FD4] placeholder-[#A8AEC4] tabular-nums transition-colors"
-                />
-              </div>
+            <div className="ts-fld">
+              <label htmlFor="qf-min">Min amount (₹)</label>
+              <input id="qf-min" className="ts-fi ts-r" type="number" placeholder="0" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} />
             </div>
-
-            {/* Panel Footer / Clear Action */}
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#EEF1F9]">
-              <span className="text-[11.5px] text-[#7A839E]">
-                {total} matching quotations
-              </span>
-              {hasSearchFilters && (
-                <button
-                  type="button"
-                  onClick={clearSearchPanelFilters}
-                  className="px-3 py-1 bg-[#F7F8FC] hover:bg-[#E4E8F2] text-[#E5484D] border border-[#E5484D]/30 text-xs font-semibold rounded-lg transition-colors inline-flex items-center space-x-1"
-                >
-                  <X className="w-3 h-3" />
-                  <span>Clear Search Filters</span>
-                </button>
-              )}
+            <div className="ts-fld">
+              <label htmlFor="qf-max">Max amount (₹)</label>
+              <input id="qf-max" className="ts-fi ts-r" type="number" placeholder="Any" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} />
+            </div>
+            <div className="ts-fld" style={{ justifyContent: 'flex-end' }}>
+              <span className="ts-muted" style={{ fontSize: 13, paddingBottom: 12 }}>{total} matching</span>
+            </div>
+            <div className="ts-fld" style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+              {hasSearchFilters && <button type="button" className="ts-btn ts-ghost ts-xs" onClick={clearSearchPanelFilters}><X /> Clear filters</button>}
             </div>
           </div>
         )}
 
-        {/* Quotations Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-[12.5px]">
+        <div className="ts-tblwrap">
+          <table>
             <thead>
-              <tr className="border-b border-[#EEF1F9]">
+              <tr>
                 {isSelectionMode && (
-                  <th className="w-10 text-center p-[8px_10px]">
-                    <input
-                      type="checkbox"
-                      checked={isAllRowsSelected}
-                      onChange={toggleSelectAll}
-                      title="Select all currently loaded quotations"
-                      className="w-4 h-4 accent-[#3B6FD4] rounded cursor-pointer align-middle"
-                    />
+                  <th style={{ width: 40 }}>
+                    <input type="checkbox" className="ts-chk" checked={isAllRowsSelected} onChange={toggleSelectAll} aria-label="Select all loaded quotations" />
                   </th>
                 )}
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                  QUOTATION
-                </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                  CUSTOMER
-                </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                  DATE
-                </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                  AMOUNT
-                </th>
-                <th className="text-left p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                  STAGE
-                </th>
-                <th className="text-right p-[8px_10px] font-normal text-[11px] tracking-[.08em] text-[#A8AEC4] uppercase">
-                  ACTION
-                </th>
+                <th>Number</th>
+                <th>Company</th>
+                <th>Date</th>
+                <th className="ts-r">Value</th>
+                <th>Status</th>
+                <th className="ts-r">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {/* SKELETON LOADING ROWS (Initial Viewport) */}
               {initialLoading ? (
                 Array.from({ length: 6 }).map((_, idx) => (
-                  <tr key={`skeleton-${idx}`} className="border-b border-[#F7F8FC] animate-pulse">
-                    {isSelectionMode && (
-                      <td className="p-[11px_10px] w-10 text-center">
-                        <div className="w-4 h-4 bg-[#E4E8F2] rounded mx-auto" />
-                      </td>
-                    )}
-                    <td className="p-[11px_10px]">
-                      <div className="h-4 w-28 bg-[#E4E8F2] rounded" />
-                    </td>
-                    <td className="p-[11px_10px]">
-                      <div className="h-4 w-40 bg-[#EEF1F9] rounded" />
-                    </td>
-                    <td className="p-[11px_10px]">
-                      <div className="h-4 w-20 bg-[#EEF1F9] rounded" />
-                    </td>
-                    <td className="p-[11px_10px] text-right">
-                      <div className="h-4 w-24 bg-[#E4E8F2] rounded ml-auto" />
-                    </td>
-                    <td className="p-[11px_10px]">
-                      <div className="h-4 w-16 bg-[#EEF1F9] rounded" />
-                    </td>
-                    <td className="p-[11px_10px] text-right">
-                      <div className="h-4 w-12 bg-[#EEF1F9] rounded ml-auto" />
-                    </td>
+                  <tr key={`sk-${idx}`}>
+                    {Array.from({ length: cols }).map((__, c) => (
+                      <td key={c}><span className="ts-skel" style={{ display: 'block', height: 14, width: c === 1 ? 160 : 80 }} /></td>
+                    ))}
                   </tr>
                 ))
               ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={isSelectionMode ? 7 : 6} className="text-center py-10 text-[#7A839E] text-[13px]">
-                    No quotations found matching your search criteria.
-                  </td>
-                </tr>
+                <tr><td colSpan={cols} className="ts-empty">{hasAnyActiveFilters ? 'No quotations match these filters.' : 'No quotations yet. Create one with New quotation.'}</td></tr>
               ) : (
-                rows.map((q) => {
-                  const color = STAGE_COLORS[q.status] || '#7A839E';
+                rows.map((q, idx) => {
                   const isSelected = selectedIds.includes(q.id);
                   return (
-                    <tr
-                      key={q.id}
-                      className={`border-b border-[#F7F8FC] hover:bg-[#F7F8FC] transition-colors ${
-                        isSelectionMode && isSelected ? 'bg-[#F0F4FD]' : ''
-                      }`}
-                    >
+                    <tr key={q.id} className={isSelectionMode && isSelected ? 'ts-picked' : ''} style={{ ['--r' as string]: Math.min(idx, 20) }}>
                       {isSelectionMode && (
-                        <td className="p-[11px_10px] w-10 text-center">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleSelectRow(q.id)}
-                            title={`Select quotation ${q.number}`}
-                            className="w-4 h-4 accent-[#3B6FD4] rounded cursor-pointer align-middle"
-                          />
-                        </td>
+                        <td><input type="checkbox" className="ts-chk" checked={isSelected} onChange={() => toggleSelectRow(q.id)} aria-label={`Select quotation ${q.number}`} /></td>
                       )}
-                      <td className="p-[11px_10px]">
-                        <Link
-                          to={`/quotations/${q.id}`}
-                          className="text-[#3B6FD4] hover:underline font-medium"
-                        >
-                          {q.number}
-                        </Link>
-                      </td>
-                      <td className="p-[11px_10px] text-[#141B34]">{q.company_name || '—'}</td>
-                      <td className="p-[11px_10px] text-[#7A839E]">{q.date}</td>
-                      <td className="p-[11px_10px] text-right font-medium text-[#141B34]">
-                        ₹{Number(q.total || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                      </td>
-                      <td className="p-[11px_10px]">
-                        <span className="inline-flex items-center gap-1.5 capitalize" style={{ color }}>
-                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-                          {q.status}
-                        </span>
-                      </td>
-                      <td className="p-[11px_10px] text-right">
-                        <div className="flex items-center justify-end gap-2.5">
-                          <Link
-                            to={`/quotations/${q.id}`}
-                            className="text-[12px] font-semibold text-[#3B6FD4] hover:underline"
-                          >
-                            View →
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(q.id, q.number, q.status)}
-                            disabled={deletingId === q.id}
-                            className="p-1.5 rounded-lg text-[#C8323A] hover:bg-[#FCEBEC] transition-colors cursor-pointer"
-                            title={`Delete Quotation ${q.number}`}
-                          >
-                            <Trash2 className="size-3.5" />
+                      <td><Link to={`/quotations/${q.id}`} className="ts-lnk" style={{ color: 'inherit', fontWeight: 500 }}>{q.number}</Link></td>
+                      <td>{q.company_name || '—'}</td>
+                      <td className="ts-muted">{fmtDay(q.date)}</td>
+                      <td className="ts-r num">{money(q.total)}</td>
+                      <td><span className={`ts-st ts-${q.status}`}>{String(q.status || '').replace(/_/g, ' ')}</span></td>
+                      <td className="ts-r">
+                        <div className="ts-racts">
+                          <Link to={`/quotations/${q.id}`} className="ts-btn ts-ghost ts-xs">View</Link>
+                          <button type="button" className="ts-iconx" onClick={() => handleDelete(q.id, q.number, q.status)} disabled={deletingId === q.id} aria-label={`Delete quotation ${q.number}`} title="Delete">
+                            {deletingId === q.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                           </button>
                         </div>
                       </td>
@@ -744,46 +496,16 @@ export default function Quotations() {
           </table>
         </div>
 
-        {/* PROGRESSIVE LOADING SENTINEL & FOOTER */}
         <div className="flex flex-col items-center justify-center pt-3 pb-1 gap-2.5">
-          {/* Intersection Observer Sentinel */}
           <div ref={sentinelRef} className="h-1 w-full" aria-hidden="true" />
-
-          {loadingMore && (
-            <div className="inline-flex items-center gap-2 text-xs text-[#3B6FD4] py-2">
-              <Loader2 className="w-4 h-4 animate-spin text-[#3B6FD4]" />
-              <span>Loading additional quotations...</span>
-            </div>
-          )}
-
+          {loadingMore && <div className="inline-flex items-center gap-2 text-[13px] text-subtle py-2"><Loader2 className="size-4 animate-spin" /> Loading more quotations…</div>}
           {loadMoreError && (
-            <div className="inline-flex items-center gap-2 text-xs text-[#E5484D] bg-[#FCEBEC] px-3 py-1.5 rounded-lg border border-[#F2C4C6]">
-              <span>{loadMoreError}</span>
-              <button
-                type="button"
-                onClick={handleLoadMore}
-                className="underline font-semibold cursor-pointer"
-              >
-                Retry
-              </button>
-            </div>
+            <div className="ts-warnbox" style={{ margin: 0 }}><span>{loadMoreError}</span><button type="button" className="ts-btn" onClick={handleLoadMore}>Retry</button></div>
           )}
-
           {!initialLoading && hasMore && !loadingMore && !loadMoreError && (
-            <button
-              type="button"
-              onClick={handleLoadMore}
-              className="h-[32px] px-4 rounded-[8px] bg-[#F7F8FC] hover:bg-[#EEF1F9] text-[#3B6FD4] border border-[#D9E2F4] text-xs font-semibold cursor-pointer transition-colors"
-            >
-              Load More ({rows.length} of {total})
-            </button>
+            <button type="button" className="ts-btn ts-ghost ts-xs" onClick={handleLoadMore}>Load more ({rows.length} of {total})</button>
           )}
-
-          {!initialLoading && !hasMore && rows.length > 0 && (
-            <span className="text-[11.5px] text-[#A8AEC4]">
-              Showing all {total} quotations
-            </span>
-          )}
+          {!initialLoading && !hasMore && rows.length > 0 && <span className="text-[12.5px] text-faint">Showing all {total} quotations</span>}
         </div>
       </section>
     </div>
