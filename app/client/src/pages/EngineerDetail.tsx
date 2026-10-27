@@ -69,15 +69,15 @@ export default function EngineerDetail() {
   const pct = performance?.achievement_pct || 0;
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header */}
-      <div className="pb-4 border-b border-line2">
+      <div className="ts-phead !mb-2 block">
         <div className="flex items-center gap-2 mb-1">
           <Link to="/sales/engineers" className="text-xs text-subtle hover:text-fg">
             ← Sales Engineers
           </Link>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="ts-phead !mb-2 justify-between">
           <div>
             <h1 className="ts-title">{engineer.name}</h1>
             <p className="text-xs text-subtle font-mono mt-0.5">Code: {engineer.code} | Email: {engineer.email || '—'} | Phone: {engineer.phone || '—'}</p>
@@ -94,10 +94,10 @@ export default function EngineerDetail() {
       </div>
 
       {/* Target Progress Card */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line2 pb-4">
+      <div className="ts-card ts-white ts-tbl space-y-4">
+        <div className="ts-phead !mb-2 justify-between">
           <div>
-            <h2 className="text-base font-semibold text-fg">Annual Target Progress ({fiscalYear})</h2>
+            <h2 className="m-0 text-[15px] font-medium text-fg">Annual Target Progress ({fiscalYear})</h2>
             <p className="text-xs text-subtle">Confirmed sales achievement vs allocated annual sales target.</p>
           </div>
           <span className="text-xl font-bold text-fg">{pct.toFixed(1)}% Achieved</span>
@@ -158,8 +158,8 @@ export default function EngineerDetail() {
       </div>
 
       {/* Target Management Form */}
-      <div className="bg-surface2 border border-line2 rounded-xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-fg mb-4 pb-2 border-b border-line2">
+      <div className="ts-card ts-white ts-tbl mb-6">
+        <h2 className="m-0 text-[15px] font-medium text-fg mb-4 pb-2 border-dashed border-line2 border-b">
           Update Sales Target for {fiscalYear}
         </h2>
         <form onSubmit={handleSaveTarget} className="flex flex-col sm:flex-row items-end gap-4">
@@ -174,13 +174,13 @@ export default function EngineerDetail() {
               step="50000"
               value={targetInput}
               onChange={(e) => setTargetInput(e.target.value)}
-              className="w-full bg-surface border border-line2 rounded-lg px-3.5 py-2 text-sm text-fg focus:outline-none focus:border-fg font-mono"
+              className="ts-fi"
             />
           </div>
           <button
             type="submit"
             disabled={savingTarget}
-            className="px-5 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-sm transition-colors cursor-pointer"
+            className="ts-btn ts-dark"
           >
             {savingTarget ? 'Saving...' : 'Save Target'}
           </button>
@@ -205,8 +205,8 @@ function EngineerFollowUpSection({ engineerId }: { engineerId: number }) {
   if (!fuPerf) return <div className="text-xs text-faint">Loading follow-up workload...</div>;
 
   return (
-    <div className="bg-surface2 border border-line2 rounded-xl p-6 space-y-4">
-      <h2 className="text-base font-semibold text-fg pb-2 border-b border-line2">
+    <div className="ts-card ts-white ts-tbl space-y-4">
+      <h2 className="m-0 text-[15px] font-medium text-fg pb-2 border-dashed border-line2 border-b">
         Follow-Up Performance & Opportunity Workload
       </h2>
 
@@ -239,21 +239,21 @@ function EngineerFollowUpSection({ engineerId }: { engineerId: number }) {
 
       <div className="pt-2">
         <h3 className="text-xs font-semibold text-subtle uppercase mb-2">Assigned Follow-ups</h3>
-        <div className="overflow-x-auto">
+        <div className="ts-tblwrap">
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-line2 text-subtle">
-                <th className="p-2">Date</th>
-                <th className="p-2">Customer</th>
-                <th className="p-2">Quotation</th>
-                <th className="p-2 text-center">Priority</th>
-                <th className="p-2">Status</th>
-                <th className="p-2">Notes</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Quotation</th>
+                <th className="text-center">Priority</th>
+                <th>Status</th>
+                <th>Notes</th>
               </tr>
             </thead>
             <tbody>
               {fuPerf.follow_ups?.map((f: any) => (
-                <tr key={f.id} className="border-b border-line2">
+                <tr key={f.id}>
                   <td className="p-2 text-fg">{f.follow_up_date}</td>
                   <td className="p-2 text-subtle">{f.customer_name || 'N/A'}</td>
                   <td className="p-2 font-bold text-fg">

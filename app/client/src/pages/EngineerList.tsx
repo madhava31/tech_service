@@ -252,12 +252,12 @@ export default function EngineerList() {
   performance?.engineers.forEach((p) => perfMap.set(p.engineer_id, p));
 
   return (
-    <div className="w-full max-w-7xl space-y-6 px-4 tablet-lg:px-6 pt-2">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-line2">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
           <h1 className="ts-title">Sales Engineers & Target Management</h1>
-          <p className="text-sm text-subtle mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Track sales team attribution, annual target achievements, and revenue performance.
           </p>
         </div>
@@ -265,7 +265,7 @@ export default function EngineerList() {
           <select
             value={fiscalYear}
             onChange={(e) => setFiscalYear(e.target.value)}
-            className="h-9 bg-surface2 border border-line2 rounded-lg px-2.5 text-xs font-medium text-fg focus:outline-none focus:border-fg cursor-pointer"
+            className="ts-fi ts-sel"
           >
             <option value="2026-27">FY 2026-27</option>
             <option value="2025-26">FY 2025-26</option>
@@ -280,7 +280,7 @@ export default function EngineerList() {
               setParsingError('');
               setImportResult(null);
             }}
-            className="h-9 px-3 bg-surface2 hover:bg-surface text-fg border border-fg/30 rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+            className="ts-btn ts-ghost ts-xs"
           >
             <Upload className="w-4 h-4" />
             <span>Import</span>
@@ -290,7 +290,7 @@ export default function EngineerList() {
           <a
             href={api.export.engineersPerformanceUrl(fiscalYear)}
             download
-            className="h-9 px-3 bg-surface2 hover:bg-tile text-good border border-line2 rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+            className="ts-btn ts-ghost ts-xs"
           >
             <Download className="w-4 h-4" />
             <span>Export Excel</span>
@@ -302,7 +302,7 @@ export default function EngineerList() {
               <button
                 onClick={handleBulkDelete}
                 disabled={selectedIds.length === 0 || isDeleting}
-                className="h-9 px-3 bg-bad hover:bg-bad disabled:opacity-50 text-onink rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors shadow-sm cursor-pointer"
+                className="ts-btn ts-danger ts-xs"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Delete Selected ({selectedIds.length})</span>
@@ -312,7 +312,7 @@ export default function EngineerList() {
                   setIsSelectionMode(false);
                   setSelectedIds([]);
                 }}
-                className="h-9 px-2.5 bg-surface hover:bg-tile text-subtle border border-line2 rounded-lg text-xs font-semibold inline-flex items-center space-x-1 transition-colors cursor-pointer"
+                className="ts-btn ts-ghost ts-xs"
               >
                 <X className="w-4 h-4" />
                 <span>Cancel</span>
@@ -321,7 +321,7 @@ export default function EngineerList() {
           ) : (
             <button
               onClick={() => setIsSelectionMode(true)}
-              className="h-9 px-3 bg-surface2 hover:bg-surface text-bad border border-line2 rounded-lg text-xs font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="ts-btn ts-ghost ts-xs text-bad"
               title="Select Engineers to Delete"
             >
               <Trash2 className="w-4 h-4" />
@@ -332,7 +332,7 @@ export default function EngineerList() {
           {/* Add Engineer Primary CTA */}
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-9 px-3.5 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors shadow-sm inline-flex items-center space-x-1.5 cursor-pointer shrink-0"
+            className="ts-btn ts-dark ts-xs"
           >
             <Plus className="w-4 h-4" />
             <span>Add Sales Engineer</span>
@@ -341,7 +341,7 @@ export default function EngineerList() {
       </div>
 
       {error && (
-        <div className="p-4 bg-bad/10 border border-bad/30 rounded-xl text-bad text-sm">
+        <div className="ts-warnbox">
           {error}
         </div>
       )}
@@ -349,26 +349,26 @@ export default function EngineerList() {
       {/* Overview Cards */}
       {performance && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-surface2 border border-line2 rounded-xl p-4">
-            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Sales Engineers</span>
-            <span className="text-2xl font-bold text-fg mt-1 block">{performance.summary.total_engineers}</span>
+          <div className="ts-card ts-white ts-tbl">
+            <span className="text-[13.5px] text-subtle block">Sales Engineers</span>
+            <span className="ts-val num block text-fg">{performance.summary.total_engineers}</span>
           </div>
-          <div className="bg-surface2 border border-line2 rounded-xl p-4">
-            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Total Target ({fiscalYear})</span>
-            <span className="text-2xl font-bold text-fg mt-1 block font-mono">
+          <div className="ts-card ts-white ts-tbl">
+            <span className="text-[13.5px] text-subtle block">Total Target ({fiscalYear})</span>
+            <span className="ts-val num block text-fg">
               ₹{performance.summary.total_target.toLocaleString('en-IN')}
             </span>
           </div>
-          <div className="bg-surface2 border border-line2 rounded-xl p-4">
-            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Total Quoted</span>
-            <span className="text-2xl font-bold text-fg mt-1 block font-mono">
+          <div className="ts-card ts-white ts-tbl">
+            <span className="text-[13.5px] text-subtle block">Total Quoted</span>
+            <span className="ts-val num block text-fg">
               ₹{performance.summary.total_quoted.toLocaleString('en-IN')}
             </span>
           </div>
-          <div className="bg-surface2 border border-line2 rounded-xl p-4">
-            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Confirmed Sales</span>
+          <div className="ts-card ts-white ts-tbl">
+            <span className="text-[13.5px] text-subtle block">Confirmed Sales</span>
             {performance.summary.confirmed_sales_available ? (
-              <span className="text-2xl font-bold text-good mt-1 block font-mono">
+              <span className="ts-val num block text-good">
                 ₹{performance.summary.total_confirmed.toLocaleString('en-IN')}
               </span>
             ) : (
@@ -377,10 +377,10 @@ export default function EngineerList() {
               </span>
             )}
           </div>
-          <div className="bg-surface2 border border-line2 rounded-xl p-4">
-            <span className="text-xs text-subtle uppercase tracking-wider block font-medium">Overall Achievement</span>
+          <div className="ts-card ts-white ts-tbl">
+            <span className="text-[13.5px] text-subtle block">Overall Achievement</span>
             {performance.summary.confirmed_sales_available ? (
-              <span className="text-2xl font-bold text-fg mt-1 block">
+              <span className="ts-val num block text-fg">
                 {performance.summary.overall_achievement_pct.toFixed(1)}%
               </span>
             ) : (
@@ -393,10 +393,10 @@ export default function EngineerList() {
       )}
 
       {/* Engineer Table */}
-      <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-surface text-xs font-semibold text-subtle uppercase tracking-wider border-b border-line2">
+      <div className="ts-card ts-white ts-tbl overflow-hidden">
+        <div className="ts-tblwrap">
+          <table>
+            <thead>
               <tr>
                 {isSelectionMode && (
                   <th className="px-4 py-3 w-10 text-center">
@@ -408,17 +408,17 @@ export default function EngineerList() {
                     />
                   </th>
                 )}
-                <th className="px-4 py-3">Code / Name</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3 text-right">FY Target (₹)</th>
-                <th className="px-4 py-3 text-right">Quoted (₹)</th>
-                <th className="px-4 py-3 text-right">Confirmed Sales (₹)</th>
-                <th className="px-4 py-3 text-right">Achievement %</th>
-                <th className="px-4 py-3 text-center">Status</th>
-                <th className="px-4 py-3 text-center">Actions</th>
+                <th>Code / Name</th>
+                <th>Contact</th>
+                <th className="ts-r">FY Target (₹)</th>
+                <th className="ts-r">Quoted (₹)</th>
+                <th className="ts-r">Confirmed Sales (₹)</th>
+                <th className="ts-r">Achievement %</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line2 text-fg">
+            <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={isSelectionMode ? 9 : 8} className="px-4 py-8 text-center text-subtle text-xs">
@@ -440,20 +440,20 @@ export default function EngineerList() {
                   const pct = perf?.achievement_pct || 0;
                   const confirmedAvailable = performance?.summary.confirmed_sales_available ?? false;
 
-                  let statusBadge = 'bg-subtle/10 text-subtle border-line2';
-                  let statusLabel = 'NO TARGET';
+                  let statusBadge = '';
+                  let statusLabel = 'No target';
 
                   if (!confirmedAvailable) {
-                    statusLabel = 'NOT TRACKED';
+                    statusLabel = 'Not tracked';
                   } else if (perf?.status === 'EXCEEDED') {
-                    statusBadge = 'bg-good/10 text-good border-good/30';
-                    statusLabel = 'EXCEEDED';
+                    statusBadge = 'ts-tone-good';
+                    statusLabel = 'Exceeded';
                   } else if (perf?.status === 'ON_TRACK') {
-                    statusBadge = 'bg-ink/10 text-fg border-fg/30';
-                    statusLabel = 'ON TRACK';
+                    statusBadge = 'ts-tone-good';
+                    statusLabel = 'On track';
                   } else if (perf?.status === 'BEHIND') {
-                    statusBadge = 'bg-bad/10 text-bad border-bad/30';
-                    statusLabel = 'BEHIND';
+                    statusBadge = 'ts-tone-bad';
+                    statusLabel = 'Behind';
                   }
 
                   const isSelected = selectedIds.includes(eng.id);
@@ -510,7 +510,7 @@ export default function EngineerList() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}`} title={!confirmedAvailable ? "Confirmed sales come from the Sale Reports feature, which isn't available yet." : undefined}>
+                        <span className={`ts-st ${statusBadge}`} title={!confirmedAvailable ? "Confirmed sales come from the Sale Reports feature, which isn't available yet." : undefined}>
                           {statusLabel}
                         </span>
                       </td>
@@ -521,7 +521,7 @@ export default function EngineerList() {
                               setTargetModalEngineer(eng);
                               setTargetAmountInput(targetVal > 0 ? targetVal : '');
                             }}
-                            className="px-2.5 py-1 bg-surface hover:bg-tile text-fg border border-line2 rounded text-xs transition-colors cursor-pointer"
+                            className="ts-btn ts-ghost ts-xs"
                           >
                             Set Target
                           </button>
@@ -548,9 +548,9 @@ export default function EngineerList() {
       {/* Add Engineer Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
-          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
+          <div className="ts-card ts-white ts-tbl w-full max-w-md space-y-4">
             <div className="flex justify-between items-center border-b border-line2 pb-3">
-              <h3 className="text-lg font-bold text-fg">Add Sales Engineer</h3>
+              <h3 className="m-0 text-[15px] font-medium text-fg">Add Sales Engineer</h3>
               <button onClick={() => setShowAddModal(false)} className="text-subtle hover:text-fg">✕</button>
             </div>
             <form onSubmit={handleCreateEngineer} className="space-y-4">
@@ -562,7 +562,7 @@ export default function EngineerList() {
                   placeholder="ENG-005"
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
               <div>
@@ -573,7 +573,7 @@ export default function EngineerList() {
                   placeholder="Vijay Kumar"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
               <div>
@@ -583,7 +583,7 @@ export default function EngineerList() {
                   placeholder="vijay@technicon.in"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
               <div>
@@ -593,21 +593,21 @@ export default function EngineerList() {
                   placeholder="+91 98765 43210"
                   value={newPhone}
                   onChange={(e) => setNewPhone(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs"
+                  className="ts-btn ts-ghost ts-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEngineer}
-                  className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg text-xs"
+                  className="ts-btn ts-dark ts-xs"
                 >
                   {savingEngineer ? 'Saving...' : 'Create Engineer'}
                 </button>
@@ -620,9 +620,9 @@ export default function EngineerList() {
       {/* Target Set Modal */}
       {targetModalEngineer && (
         <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
-          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
+          <div className="ts-card ts-white ts-tbl w-full max-w-md space-y-4">
             <div className="flex justify-between items-center border-b border-line2 pb-3">
-              <h3 className="text-lg font-bold text-fg">Set Annual Target for {targetModalEngineer.name}</h3>
+              <h3 className="m-0 text-[15px] font-medium text-fg">Set Annual Target for {targetModalEngineer.name}</h3>
               <button onClick={() => setTargetModalEngineer(null)} className="text-subtle hover:text-fg">✕</button>
             </div>
             <form onSubmit={handleSetTarget} className="space-y-4">
@@ -632,7 +632,7 @@ export default function EngineerList() {
                   type="text"
                   disabled
                   value={fiscalYear}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-subtle"
+                  className="ts-fi"
                 />
               </div>
               <div>
@@ -645,21 +645,21 @@ export default function EngineerList() {
                   placeholder="5000000"
                   value={targetAmountInput}
                   onChange={(e) => setTargetAmountInput(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg font-mono"
+                  className="ts-fi"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setTargetModalEngineer(null)}
-                  className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs"
+                  className="ts-btn ts-ghost ts-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingTarget}
-                  className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg text-xs"
+                  className="ts-btn ts-dark ts-xs"
                 >
                   {savingTarget ? 'Saving Target...' : 'Save Target'}
                 </button>
@@ -672,10 +672,10 @@ export default function EngineerList() {
       {/* Import Modal */}
       {showImportModal && (
         <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
-          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-xl space-y-4 shadow-card max-h-[90vh] overflow-y-auto">
+          <div className="ts-card ts-white ts-tbl w-full max-w-xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-line2 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-fg">Import Sales Engineers</h3>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Import Sales Engineers</h3>
                 <p className="text-xs text-subtle">Upload an Excel (.xlsx / .xls) or CSV file with sales engineers</p>
               </div>
               <button onClick={() => setShowImportModal(false)} className="text-subtle hover:text-fg">✕</button>
@@ -688,7 +688,7 @@ export default function EngineerList() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-ink text-onink text-xs font-semibold rounded-lg hover:bg-ink/85 transition-colors cursor-pointer"
+                  className="ts-btn ts-dark ts-xs"
                 >
                   Select File
                 </button>
@@ -719,7 +719,7 @@ export default function EngineerList() {
             </div>
 
             {parsingError && (
-              <div className="p-3 bg-bad/10 border border-bad/30 rounded-lg text-bad text-xs">
+              <div className="ts-warnbox">
                 {parsingError}
               </div>
             )}
@@ -732,15 +732,15 @@ export default function EngineerList() {
                 </div>
                 <div className="max-h-48 overflow-y-auto border border-line2 rounded-lg">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-surface text-subtle font-semibold uppercase sticky top-0 border-b border-line2">
+                    <thead>
                       <tr>
-                        <th className="p-2">Code</th>
-                        <th className="p-2">Name</th>
-                        <th className="p-2">Email</th>
-                        <th className="p-2">Phone</th>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-line2 text-fg">
+                    <tbody>
                       {parsedRows.slice(0, 10).map((r, i) => (
                         <tr key={i}>
                           <td className="p-2 font-mono">{r.code || r['Code'] || r['Employee Code'] || '—'}</td>
@@ -793,7 +793,7 @@ export default function EngineerList() {
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs font-semibold"
+                className="ts-btn ts-ghost ts-xs"
               >
                 {importResult ? 'Close' : 'Cancel'}
               </button>
@@ -802,7 +802,7 @@ export default function EngineerList() {
                   type="button"
                   disabled={parsedRows.length === 0 || importing}
                   onClick={handleImportSubmit}
-                  className="px-4 py-2 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+                  className="ts-btn ts-dark ts-xs"
                 >
                   {importing ? 'Importing...' : `Import ${parsedRows.length} Engineers`}
                 </button>

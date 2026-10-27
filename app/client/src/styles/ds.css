@@ -406,3 +406,5 @@ select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-
 .ts-st.ts-tone-warn{background:rgb(var(--warn-bg)); color:rgb(var(--warn))} .ts-st.ts-tone-warn::before{background:rgb(var(--warn))}
 .ts-st.ts-tone-bad{background:rgb(var(--bad-bg)); color:rgb(var(--bad))} .ts-st.ts-tone-bad::before{background:rgb(var(--bad))}
 .ts-tbl th { font-weight: 400 !important; text-transform: none !important; letter-spacing: normal !important; color: rgb(var(--muted)) !important; background: none !important; }
+/* Header action groups must wrap instead of pushing the page wider on phones */
+.ts-phead > div { min-width: 0; max-width: 100%; flex-shrink: 1; }
