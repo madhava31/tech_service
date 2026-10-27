@@ -443,3 +443,12 @@ select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-
 .ts-tab:hover{color:rgb(var(--fg))}
 .ts-tab.ts-on{color:rgb(var(--fg)); background:rgb(var(--surface-2)); box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .ts-tab em{font-style:normal; font-size:11px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:rgb(var(--line-rgb) / .13); display:grid; place-items:center}
+
+/* ---- Login / setup ---- */
+.ts-auth{background:rgb(var(--bg))}
+.ts-auth .ts-charcoal .ts-brand-name,.ts-auth .ts-charcoal .ts-brand-name b,.ts-auth .ts-charcoal .ts-tagline{color:inherit}
+.ts-auth .ts-charcoal .ts-brand-name{opacity:.7}.ts-auth .ts-charcoal .ts-brand-name b{opacity:1}
+.ts-auth-line{stroke-dasharray:900; stroke-dashoffset:900; animation:tsDraw 1.6s var(--out) .3s forwards}
+@keyframes tsDraw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.ts-auth-line{animation:none; stroke-dashoffset:0}}
+.ts-auth .ts-charcoal .ts-logo .t{fill:currentColor}

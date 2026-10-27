@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../auth';
+import { BrandMark } from '../components/layout/BrandMark';
 
 export default function Setup() {
   const { setup } = useAuth();
@@ -25,34 +26,30 @@ export default function Setup() {
   }
 
   return (
-    <div className="auth-screen">
-      <form className="card auth-card" onSubmit={submit}>
-        <div className="brand auth-brand">
-          <div className="brand-mark">TS</div>
-          <div className="brand-text-dark">
-            TECHNICON
-            <span>SERVICES</span>
-          </div>
+    <div className="ts-auth min-h-screen grid place-items-center px-4 py-10 text-fg antialiased">
+      <form className="ts-card w-full max-w-[420px] !p-7 flex flex-col gap-5" onSubmit={submit}>
+        <BrandMark />
+        <div className="flex flex-col gap-1.5">
+          <h2 className="m-0 text-[26px] font-medium tracking-[-.02em]">Create the admin account</h2>
+          <p className="ts-muted m-0 text-[14px]">
+            No accounts exist yet. Set up the first admin account to start using the app.
+          </p>
         </div>
-        <h2 style={{ marginBottom: 4 }}>Create the admin account</h2>
-        <p className="muted" style={{ marginBottom: 18 }}>
-          No accounts exist yet. Set up the first admin account to start using the app.
-        </p>
-        {error && <div className="error">{error}</div>}
-        <div className="field">
-          <label>Username</label>
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoFocus />
-        </div>
-        <div className="field">
-          <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        <div className="field">
-          <label>Confirm Password</label>
-          <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-        </div>
-        <button className="btn" type="submit" disabled={busy} style={{ width: '100%' }}>
-          {busy ? 'Creating…' : 'Create Admin Account'}
+        {error && <div className="ts-warnbox">{error}</div>}
+        <label className="flex flex-col">
+          <span className="ts-lbl">Username</span>
+          <input className="ts-fi" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus />
+        </label>
+        <label className="flex flex-col">
+          <span className="ts-lbl">Password</span>
+          <input className="ts-fi" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </label>
+        <label className="flex flex-col">
+          <span className="ts-lbl">Confirm password</span>
+          <input className="ts-fi" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        </label>
+        <button className="ts-btn ts-dark w-full justify-center !py-3" type="submit" disabled={busy}>
+          {busy ? 'Creating…' : 'Create admin account'}
         </button>
       </form>
     </div>
