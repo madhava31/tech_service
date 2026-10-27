@@ -28,18 +28,18 @@ export default function SalesOrderDetail() {
 
   if (loading) {
     return (
-      <div className="page-container">
-        <p className="loading-text">Loading order details…</p>
+      <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+        <p className="ts-empty">Loading order details…</p>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="page-container">
-        <div className="error-banner">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+        <div className="ts-warnbox">
           <p>{error || 'Order not found'}</p>
-          <Link to="/sales/orders" className="btn secondary text-sm mt-2">
+          <Link to="/sales/orders" className="ts-btn ts-ghost text-sm mt-2">
             Back to Orders
           </Link>
         </div>
@@ -52,115 +52,115 @@ export default function SalesOrderDetail() {
   const getStockBadge = (status: string) => {
     switch (status) {
       case 'IN_STOCK':
-        return <span className="badge success">IN STOCK</span>;
+        return <span className="ts-st ts-tone-good">IN STOCK</span>;
       case 'PARTIALLY_AVAILABLE':
-        return <span className="badge warning">PARTIALLY AVAILABLE</span>;
+        return <span className="ts-st ts-tone-warn">PARTIALLY AVAILABLE</span>;
       case 'OUT_OF_STOCK':
-        return <span className="badge danger">OUT OF STOCK</span>;
+        return <span className="ts-st ts-tone-bad">OUT OF STOCK</span>;
       default:
-        return <span className="badge secondary">{status}</span>;
+        return <span className="ts-st">{status}</span>;
     }
   };
 
   return (
-    <div className="page-container">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* PAGE HEADER */}
-      <div className="flex-between mb-3">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <div className="flex-gap align-center">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="ts-title">{order.po_number || `Order #${order.id}`}</h1>
-            <span className="badge info font-medium">{order.derivedStatus.replace(/_/g, ' ')}</span>
+            <span className="ts-st  font-medium">{order.derivedStatus.replace(/_/g, ' ')}</span>
           </div>
-          <p className="muted text-sm mt-1">
-            Customer: <Link to={`/companies/${order.company_id}`} className="accent-link">{order.company_name}</Link> | Date: {order.po_date}
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
+            Customer: <Link to={`/companies/${order.company_id}`} className="text-fg hover:underline">{order.company_name}</Link> | Date: {order.po_date}
           </p>
         </div>
-        <div className="flex-gap">
-          <Link to="/sales/orders" className="btn secondary">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/sales/orders" className="ts-btn ts-ghost">
             ← Orders List
           </Link>
           {!relatedDocuments.performaInvoice && relatedDocuments.purchaseOrder && (
-            <Link to="/performa-invoices" className="btn primary">
+            <Link to="/performa-invoices" className="ts-btn ts-dark">
               + Create PI
             </Link>
           )}
-          <Link to="/sale-reports/new" className="btn accent">
+          <Link to="/sale-reports/new" className="ts-btn ts-ghost accent">
             + Create Sale Report / Dispatch
           </Link>
         </div>
       </div>
 
       {/* DOCUMENT RELATIONSHIPS & WORKFLOW CARD */}
-      <div className="card mb-3">
-        <h2 className="card-title mb-2">Linked Document Lifecycle</h2>
-        <div className="grid-4 gap-2">
+      <div className="ts-card ts-tbl mb-3">
+        <h2 className="m-0 text-[15px] font-medium text-fg mb-2">Linked Document Lifecycle</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {/* QUOTATION */}
-          <div className="p-2 border rounded bg-secondary-dark">
-            <div className="text-xs muted font-mono">STEP 1: QUOTATION</div>
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <div className="text-[13px] text-subtle">Step 1 · Quotation</div>
             {relatedDocuments.quotation ? (
               <div className="mt-1">
-                <Link to={`/quotations/${relatedDocuments.quotation.id}`} className="font-bold accent-link">
+                <Link to={`/quotations/${relatedDocuments.quotation.id}`} className="font-medium text-fg hover:underline">
                   {relatedDocuments.quotation.number}
                 </Link>
-                <div className="text-xs muted">Status: {relatedDocuments.quotation.status}</div>
-                <div className="text-xs mt-1 font-mono">₹{relatedDocuments.quotation.total.toLocaleString('en-IN')}</div>
+                <div className="text-[13px] text-subtle">Status: {relatedDocuments.quotation.status}</div>
+                <div className="text-[13px] mt-1 num">₹{relatedDocuments.quotation.total.toLocaleString('en-IN')}</div>
               </div>
             ) : (
-              <div className="text-xs muted mt-1">Not Linked</div>
+              <div className="text-[13px] text-subtle mt-1">Not Linked</div>
             )}
           </div>
 
           {/* PO */}
-          <div className="p-2 border rounded bg-secondary-dark">
-            <div className="text-xs muted font-mono">STEP 2: PURCHASE ORDER</div>
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <div className="text-[13px] text-subtle">Step 2 · Purchase order</div>
             {relatedDocuments.purchaseOrder ? (
               <div className="mt-1">
-                <Link to={`/purchase-orders/${relatedDocuments.purchaseOrder.id}`} className="font-bold accent-link">
+                <Link to={`/purchase-orders/${relatedDocuments.purchaseOrder.id}`} className="font-medium text-fg hover:underline">
                   {relatedDocuments.purchaseOrder.number}
                 </Link>
-                <div className="text-xs muted">Date: {relatedDocuments.purchaseOrder.date}</div>
+                <div className="text-[13px] text-subtle">Date: {relatedDocuments.purchaseOrder.date}</div>
                 {relatedDocuments.purchaseOrder.clientRef && (
-                  <div className="text-xs muted">Ref: {relatedDocuments.purchaseOrder.clientRef}</div>
+                  <div className="text-[13px] text-subtle">Ref: {relatedDocuments.purchaseOrder.clientRef}</div>
                 )}
               </div>
             ) : (
-              <div className="text-xs warning mt-1">Awaiting PO Creation</div>
+              <div className="text-[13px] text-warn mt-1">Awaiting PO Creation</div>
             )}
           </div>
 
           {/* PI */}
-          <div className="p-2 border rounded bg-secondary-dark">
-            <div className="text-xs muted font-mono">STEP 3: PERFORMA INVOICE</div>
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <div className="text-[13px] text-subtle">Step 3 · Performa invoice</div>
             {relatedDocuments.performaInvoice ? (
               <div className="mt-1">
-                <Link to={`/performa-invoices`} className="font-bold accent-link">
+                <Link to={`/performa-invoices`} className="font-medium text-fg hover:underline">
                   {relatedDocuments.performaInvoice.number}
                 </Link>
-                <div className="text-xs muted">Status: {relatedDocuments.performaInvoice.status}</div>
+                <div className="text-[13px] text-subtle">Status: {relatedDocuments.performaInvoice.status}</div>
               </div>
             ) : (
-              <div className="text-xs warning mt-1">Pending Performa Invoice</div>
+              <div className="text-[13px] text-warn mt-1">Pending Performa Invoice</div>
             )}
           </div>
 
           {/* SALE REPORT */}
-          <div className="p-2 border rounded bg-secondary-dark">
-            <div className="text-xs muted font-mono">STEP 4: DISPATCH / SALE REPORT</div>
+          <div className="bg-tile rounded-[14px] p-3.5">
+            <div className="text-[13px] text-subtle">Step 4 · Dispatch / sale report</div>
             {relatedDocuments.saleReports.length > 0 ? (
               <div className="mt-1 flex-col gap-1">
                 {relatedDocuments.saleReports.map((sr) => (
-                  <div key={sr.id} className="text-xs">
-                    <Link to={`/sale-reports/${sr.id}`} className="font-bold accent-link">
+                  <div key={sr.id} className="text-[13px]">
+                    <Link to={`/sale-reports/${sr.id}`} className="font-medium text-fg hover:underline">
                       {sr.number}
                     </Link>{' '}
-                    <span className={sr.status === 'CONFIRMED' ? 'badge success text-xs' : 'badge warning text-xs'}>
+                    <span className={sr.status === 'CONFIRMED' ? 'ts-st ts-tone-good' : 'ts-st ts-tone-warn'}>
                       {sr.status}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-xs muted mt-1">No Dispatches Yet</div>
+              <div className="text-[13px] text-subtle mt-1">No Dispatches Yet</div>
             )}
           </div>
         </div>
@@ -168,21 +168,21 @@ export default function SalesOrderDetail() {
 
       {/* STOCK CONSTRAINT ALERT IF SHORTAGE EXISTS */}
       {order.hasStockConstraint && (
-        <div className="card border-warning mb-3 p-3">
-          <div className="flex-between">
+        <div className="ts-card !bg-warnbg">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <h3 className="font-bold warning flex-gap align-center">
-                <span>⚠️ Stock Constraint Detected</span>
+              <h3 className="m-0 text-[15px] font-medium text-warn flex items-center gap-2 flex-wrap">
+                <span>Stock constraint detected</span>
               </h3>
-              <p className="text-sm muted mt-1">
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">
                 Available inventory is insufficient to fulfill total remaining order line items. Total Shortage: {order.totalShortage} units.
               </p>
             </div>
-            <div className="flex-gap">
-              <Link to="/inventory/stock" className="btn secondary text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link to="/inventory/stock" className="ts-btn ts-ghost ts-xs">
                 View Stock
               </Link>
-              <Link to="/inventory/operations/restock-queue" className="btn warning text-xs">
+              <Link to="/inventory/operations/restock-queue" className="ts-btn ts-ghost ts-xs">
                 View Restock Queue
               </Link>
             </div>
@@ -191,34 +191,34 @@ export default function SalesOrderDetail() {
       )}
 
       {/* LINE ITEMS & DISPATCH AVAILABILITY TABLE */}
-      <div className="card mb-3">
-        <h2 className="card-title mb-2">Order Line Items & Inventory Availability</h2>
-        <div className="table-responsive">
-          <table className="data-table">
+      <div className="ts-card ts-tbl mb-3">
+        <h2 className="m-0 text-[15px] font-medium text-fg mb-2">Order Line Items & Inventory Availability</h2>
+        <div className="ts-tblwrap">
+          <table>
             <thead>
               <tr>
                 <th>Part Number</th>
                 <th>Description</th>
-                <th className="text-right">Ordered Qty</th>
-                <th className="text-right">Dispatched</th>
-                <th className="text-right">Remaining</th>
-                <th className="text-right">On Hand</th>
-                <th className="text-right">Reserved</th>
-                <th className="text-right">Available</th>
+                <th className="ts-r">Ordered Qty</th>
+                <th className="ts-r">Dispatched</th>
+                <th className="ts-r">Remaining</th>
+                <th className="ts-r">On Hand</th>
+                <th className="ts-r">Reserved</th>
+                <th className="ts-r">Available</th>
                 <th className="text-center">Stock Status</th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td className="font-mono font-medium">{it.part_no || 'N/A'}</td>
+                  <td className="num font-medium">{it.part_no || 'N/A'}</td>
                   <td>{it.description}</td>
-                  <td className="text-right font-mono font-bold">{it.qty}</td>
-                  <td className="text-right font-mono accent">{it.dispatchedQty}</td>
-                  <td className="text-right font-mono">{it.remainingQty}</td>
-                  <td className="text-right font-mono muted">{it.onHand}</td>
-                  <td className="text-right font-mono muted">{it.reserved}</td>
-                  <td className="text-right font-mono font-medium">{it.available}</td>
+                  <td className="ts-r num">{it.qty}</td>
+                  <td className="ts-r num text-fg">{it.dispatchedQty}</td>
+                  <td className="ts-r num">{it.remainingQty}</td>
+                  <td className="ts-r num text-subtle">{it.onHand}</td>
+                  <td className="ts-r num text-subtle">{it.reserved}</td>
+                  <td className="ts-r num font-medium">{it.available}</td>
                   <td className="text-center">{getStockBadge(it.stockStatus)}</td>
                 </tr>
               ))}
@@ -228,13 +228,13 @@ export default function SalesOrderDetail() {
       </div>
 
       {/* ORDER TIMELINE */}
-      <div className="card">
-        <h2 className="card-title mb-2">Document & Fulfillment Timeline</h2>
-        <div className="timeline-list pl-2 border-left mt-2">
+      <div className="ts-card ts-tbl">
+        <h2 className="m-0 text-[15px] font-medium text-fg mb-2">Document & Fulfillment Timeline</h2>
+        <div className="flex flex-col mt-1">
           {timeline.map((event, idx) => (
-            <div key={idx} className="timeline-item mb-2 pl-3 relative">
-              <div className="font-medium text-sm">{event.title}</div>
-              <div className="text-xs muted">{event.timestamp}</div>
+            <div key={idx} className="flex items-baseline justify-between gap-3 flex-wrap py-2.5 border-b border-dashed border-line2 last:border-0">
+              <div className="font-medium text-[13.5px]">{event.title}</div>
+              <div className="text-[13px] text-subtle">{event.timestamp}</div>
             </div>
           ))}
         </div>

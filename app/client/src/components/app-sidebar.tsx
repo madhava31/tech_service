@@ -114,7 +114,7 @@ const SYSTEM_NAV: NavItemDef[] = [
 const ITEM_BASE =
   'w-full flex items-center gap-2.5 px-2.5 h-9 rounded-[8px] text-[13px] font-semibold no-underline transition-colors duration-150';
 const ITEM_ACTIVE = 'bg-ink text-onink shadow-[inset_3px_0_0_#6FA2FF]';
-const ITEM_IDLE = 'text-[#B6C3D8] hover:bg-ink hover:text-onink';
+const ITEM_IDLE = 'text-subtle hover:bg-ink hover:text-onink';
 
 function CollapsibleNavItem({
   item,
@@ -187,13 +187,13 @@ function CollapsibleNavItem({
         </span>
         <ChevronRightIcon
           className={`size-3.5 shrink-0 transition-transform duration-200 ${expanded ? 'rotate-90' : ''} ${
-            isGroupActive ? 'text-onink/75' : 'text-[#B3BBD0]'
+            isGroupActive ? 'text-onink/75' : 'text-faint'
           }`}
         />
       </button>
 
       {expanded && (
-        <div className="flex flex-col gap-px pl-3 ml-[19px] border-l border-[#E1E7F3] mt-1 mb-1">
+        <div className="flex flex-col gap-px pl-3 ml-[19px] border-l border-line2 mt-1 mb-1">
           {item.children.map((child) => {
             const active = isChildActive(child);
             const targetPath = child.isDetailPattern && active ? currentPath : (child.isDetailPattern ? '/sale-reports' : child.path);
@@ -211,7 +211,7 @@ function CollapsibleNavItem({
               >
                 <span
                   aria-hidden="true"
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-ink' : 'bg-[#5A729F]'}`}
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-ink' : 'bg-faint'}`}
                 />
                 <span className="truncate">{child.label}</span>
               </Link>
@@ -236,7 +236,7 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
 
   const renderNavGroup = (title: string, items: NavItemDef[]) => (
     <nav aria-label={title} className="flex flex-col gap-px">
-      <div className="text-[10px] tracking-[.13em] text-[#A3ABC2] px-2.5 pt-1 pb-1 uppercase font-bold">
+      <div className="text-[10px] tracking-[.13em] text-faint px-2.5 pt-1 pb-1 uppercase font-bold">
         {title}
       </div>
       {items.map((item) => {

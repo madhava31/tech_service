@@ -195,7 +195,7 @@ export default function SearchableSelect({
             </div>
           )}
           {filtered.length === 0 && showCustom && (
-            <div className="py-2 px-3 text-[11px] text-subtle bg-[#FAFAFC] border-b border-line2">
+            <div className="py-2 px-3 text-[11px] text-subtle bg-tile border-b border-line2">
               No existing record found. Click above or press Enter to create and use this custom item.
             </div>
           )}

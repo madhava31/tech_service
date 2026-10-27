@@ -110,7 +110,7 @@ export default function BusinessHealth() {
           role="status"
           className={`fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-[12px] shadow-lg border flex items-start gap-3 transition-all ${
             toast.type === 'success'
-              ? 'bg-goodbg border-[#BFEAD3] text-[#1E8A52]'
+              ? 'bg-goodbg border-goodbg text-good'
               : 'bg-badbg border-badbg text-bad'
           }`}
         >
@@ -181,7 +181,7 @@ export default function BusinessHealth() {
 
       {/* Reset State Notice Banner */}
       {businessHealth?.isReset && (
-        <div className="p-3.5 rounded-[12px] bg-[#FFF8EB] border border-warnbg text-warn text-[12.5px] flex items-center justify-between gap-4">
+        <div className="p-3.5 rounded-[12px] bg-warnbg border border-warnbg text-warn text-[12.5px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-semibold shrink-0">Notice:</span>
             <span>Business Health page data has been reset. All other system records (companies, products, quotations, reports) remain completely untouched.</span>
@@ -190,7 +190,7 @@ export default function BusinessHealth() {
             type="button"
             onClick={handleRestore}
             disabled={actionLoading}
-            className="px-3 py-1 rounded-[7px] bg-surface2 border border-[#E8D7BE] text-warn font-medium text-[11.5px] hover:bg-warnbg cursor-pointer shrink-0 transition-colors"
+            className="px-3 py-1 rounded-[7px] bg-surface2 border border-warnbg text-warn font-medium text-[11.5px] hover:bg-warnbg cursor-pointer shrink-0 transition-colors"
           >
             Restore Live Data
           </button>

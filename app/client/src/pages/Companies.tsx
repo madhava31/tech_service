@@ -228,7 +228,7 @@ export default function Companies() {
             feedback.type === 'success'
               ? 'border-goodbg bg-goodbg text-good'
               : feedback.type === 'warning'
-              ? 'border-warnbg bg-[#FFF8EB] text-warn'
+              ? 'border-warnbg bg-warnbg text-warn'
               : 'border-badbg bg-badbg text-bad'
           }`}
         >
@@ -379,7 +379,7 @@ export default function Companies() {
 
         {/* Selection Info Bar when Selection Mode is Active */}
         {isSelectionMode && (
-          <div className="flex items-center justify-between p-2.5 px-3.5 bg-[#FFF5F5] border border-badbg rounded-xl text-xs text-bad animate-in fade-in duration-150">
+          <div className="flex items-center justify-between p-2.5 px-3.5 bg-badbg border border-badbg rounded-xl text-xs text-bad animate-in fade-in duration-150">
             <div className="flex items-center gap-2">
               <span className="font-bold">
                 {selectedIds.length} of {filteredCompanies.length} company account(s) selected
@@ -453,7 +453,7 @@ export default function Companies() {
                     }}
                     className={`border-b transition-colors ${
                       isSelected
-                        ? 'bg-badbg border-[#FCE2E2]'
+                        ? 'bg-badbg border-badbg'
                         : 'border-line hover:bg-surface'
                     } ${isSelectionMode ? 'cursor-pointer' : ''}`}
                   >

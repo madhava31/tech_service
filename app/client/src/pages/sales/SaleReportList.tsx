@@ -311,7 +311,7 @@ export default function SaleReportList() {
               className={`inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
                 isFilterOpen || hasActiveFilters
                   ? 'bg-tile border-fg text-fg shadow-[0_2px_8px_rgba(47,111,237,0.12)]'
-                  : 'bg-surface2 border-line2 text-subtle hover:text-fg hover:border-[#B9CCEE]'
+                  : 'bg-surface2 border-line2 text-subtle hover:text-fg hover:border-line2'
               }`}
             >
               <Filter className="w-4 h-4 text-fg" />
@@ -448,7 +448,7 @@ export default function SaleReportList() {
                 <tr>
                   <td colSpan={10} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center justify-center max-w-sm mx-auto text-center">
-                      <Boxes className="w-10 h-10 text-[#CBD3E6] mb-3" />
+                      <Boxes className="w-10 h-10 text-faint mb-3" />
                       <p className="text-base font-semibold text-fg">No Sale Reports Found</p>
                       <p className="text-xs text-subtle mt-1 mb-4">
                         {hasActiveFilters
@@ -572,7 +572,7 @@ export default function SaleReportList() {
 
       {/* Quick Confirm Modal */}
       {confirmingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
           <div className="ts-modal max-w-md w-full space-y-4">
             <div className="flex items-center gap-3 text-good">
               <div className="p-2 bg-goodbg border border-goodbg rounded-lg">

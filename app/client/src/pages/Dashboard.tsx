@@ -133,7 +133,7 @@ const ACTIVITY_META: Record<ActivityType, { icon: ComponentType; to: (id: number
 // Widget Error Boundary Fallback Component
 function WidgetErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="p-4 rounded-lg bg-badbg border border-[#F2C4C6] text-bad flex items-center justify-between gap-3 text-xs font-semibold">
+    <div className="p-4 rounded-lg bg-badbg border border-badbg text-bad flex items-center justify-between gap-3 text-xs font-semibold">
       <span>{message}</span>
       <Button size="sm" variant="destructive" onClick={onRetry} className="h-7 text-xs gap-1 bg-bad hover:bg-bad">
         <RefreshCwIcon className="size-3" /> Retry

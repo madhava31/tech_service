@@ -288,7 +288,7 @@ export default function Reports() {
           role="status"
           className={`fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-[12px] shadow-lift border flex items-start gap-3 ${
             toast.type === 'success'
-              ? 'bg-goodbg border-[#BFEAD3] text-[#1E8A52]'
+              ? 'bg-goodbg border-goodbg text-good'
               : 'bg-badbg border-badbg text-bad'
           }`}
         >
@@ -717,7 +717,7 @@ export default function Reports() {
 
           {trendsData && (
             <div className="flex flex-col gap-6">
-              <div className="rounded-[12px] border border-line2 bg-[#F8FAFE] p-4">
+              <div className="rounded-[12px] border border-line2 bg-tile p-4">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <div>
                     <h3 className="margin-0 text-[16px] font-bold text-fg">Company product trend</h3>

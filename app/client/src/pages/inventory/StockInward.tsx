@@ -887,7 +887,7 @@ export default function StockInward() {
                         Supports <strong className="text-fg">.xlsx</strong> and <strong className="text-fg">.xls</strong> files (Maximum safe file size: 5MB, up to 2,000 rows).
                       </p>
                     </div>
-                    <label className="cursor-pointer px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold text-xs rounded-lg transition-colors shadow-card shadow-[#3B6FD4]/10">
+                    <label className="cursor-pointer px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold text-xs rounded-lg transition-colors shadow-card">
                       {excelBusy ? 'Analyzing Workbook...' : 'Browse File'}
                       <input
                         type="file"
@@ -1122,7 +1122,7 @@ export default function StockInward() {
                       <div className="max-h-36 overflow-y-auto">
                         <table className="w-full text-left text-xs border-collapse">
                           <thead>
-                            <tr className="text-bad border-b border-badbg bg-[#F6DEDF]">
+                            <tr className="text-bad border-b border-badbg bg-badbg">
                               <th>Row #</th>
                               <th>Part No</th>
                               <th className="ts-r">Quantity</th>
@@ -1232,7 +1232,7 @@ export default function StockInward() {
                       type="button"
                       disabled={excelBusy || excelPreview.validItems.length === 0}
                       onClick={handleExcelConfirm}
-                      className="px-5 py-2.5 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-bold text-xs rounded-lg transition-colors shadow-card shadow-[#3B6FD4]/10"
+                      className="px-5 py-2.5 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-bold text-xs rounded-lg transition-colors shadow-card"
                     >
                       {excelBusy
                         ? 'Confirming Receipt...'

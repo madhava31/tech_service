@@ -500,7 +500,7 @@ export default function SaleReportNew() {
 
       {/* Stock Availability Warning Banner */}
       {stockValidationErrors.length > 0 && (
-        <div className="p-4 bg-[#F7EEE0] border border-[#F4E9D5] rounded-xl flex items-start gap-3 text-sm text-warn">
+        <div className="ts-warnbox !bg-warnbg !text-warn flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold">Stock Warning: Insufficient Available Stock</p>
@@ -783,7 +783,7 @@ export default function SaleReportNew() {
                           <span className="text-[11px] text-subtle line-clamp-1">{p.description}</span>
                         </div>
                         <span className={`text-[11px] px-2 py-0.5 rounded font-mono ${
-                          avail > 0 ? 'bg-[#E1F5EB] text-good' : 'bg-badbg text-bad'
+                          avail > 0 ? 'bg-goodbg text-good' : 'bg-badbg text-bad'
                         }`}>
                           Avail: {avail}
                         </span>
@@ -847,7 +847,7 @@ export default function SaleReportNew() {
                     <tr
                       key={it.id}
                       className={`hover:bg-surface transition-colors ${
-                        !it.selected ? 'opacity-45 bg-[#E9EDF7]' : ''
+                        !it.selected ? 'opacity-45 bg-tile' : ''
                       }`}
                     >
                       {sourceMode === 'INTERNAL_DOCUMENT' && (
@@ -888,8 +888,8 @@ export default function SaleReportNew() {
                             availableStock === 0
                               ? 'bg-badbg text-bad border border-badbg'
                               : isOverStock
-                              ? 'bg-[#F7EEE0] text-warn border border-[#F4E9D5]'
-                              : 'bg-[#E2F6EC] text-good border border-[#D9F3E6]'
+                              ? 'bg-warnbg text-warn border border-warnbg'
+                              : 'bg-goodbg text-good border border-goodbg'
                           }`}
                         >
                           Avail: {availableStock}

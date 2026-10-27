@@ -220,9 +220,9 @@ export function AppHeader({
       } else if (item.type === 'draft_quotations') {
         icon = <FileTextIcon className="size-4 text-fg" />;
       } else if (item.type === 'purchase_orders_not_invoiced') {
-        icon = <ShoppingCartIcon className="size-4 text-[#9333EA]" />;
-        iconBg = 'bg-[#F3E8FF]';
-        badgeBg = 'bg-[#F3E8FF] text-[#9333EA]';
+        icon = <ShoppingCartIcon className="size-4 text-fg" />;
+        iconBg = 'bg-tile';
+        badgeBg = 'bg-tile text-fg';
       } else if (item.type === 'flagged_sales') {
         icon = <ShieldAlertIcon className="size-4 text-bad" />;
         iconBg = 'bg-badbg';

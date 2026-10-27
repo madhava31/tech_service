@@ -193,7 +193,7 @@ export default function SaleReportDetail() {
                 type="button"
                 onClick={handleCancel}
                 disabled={actionLoading}
-                className="px-3.5 py-2 bg-[#F7E1E2] hover:bg-badbg text-bad border border-badbg rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                className="ts-btn ts-ghost !text-bad disabled:opacity-50"
               >
                 Cancel Draft
               </button>
@@ -223,11 +223,11 @@ export default function SaleReportDetail() {
 
       {/* Confirmation Banner */}
       {report.status === 'CONFIRMED' && (
-        <div className="p-4 bg-[#E3F6ED] border border-[#D9F3E6] rounded-xl flex items-start gap-3.5 text-sm text-good">
+        <div className="ts-okbox flex items-start gap-3.5">
           <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-good" />
           <div className="space-y-1">
             <p className="font-semibold text-fg">Stock Outward Completed & Audited</p>
-            <p className="text-xs text-[#66CF98]">
+            <p className="text-[13px] text-good opacity-80">
               This Sale Report was confirmed on {formatDateTime(report.confirmed_at)} by {report.confirmed_by_username || 'Staff'}.
               Physical stock has been deducted from <strong>{report.warehouse_name} ({report.warehouse_code})</strong>.
             </p>
@@ -237,7 +237,7 @@ export default function SaleReportDetail() {
 
       {/* Draft Staged Banner */}
       {report.status === 'DRAFT' && (
-        <div className="p-4 bg-warnbg border border-[#F5EAD8] rounded-xl flex items-start gap-3.5 text-sm text-warn">
+        <div className="ts-warnbox !bg-warnbg !text-warn flex items-start gap-3.5">
           <Clock className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold text-fg">Staged Draft Sale Report</p>
@@ -499,7 +499,7 @@ export default function SaleReportDetail() {
 
       {/* Confirmation Modal */}
       {confirmModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
           <div className="ts-modal max-w-md w-full space-y-4">
             <div className="flex items-center gap-3 text-good">
               <div className="p-2 bg-goodbg border border-goodbg rounded-lg">
