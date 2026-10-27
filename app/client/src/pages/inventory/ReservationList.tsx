@@ -37,32 +37,26 @@ function formatDate(d: string | null | undefined) {
 function StatusBadge({ status }: { status: string }) {
   if (status === 'ACTIVE') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-warnbg text-warn border border-warnbg rounded-md text-[11.5px] font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-warn" />
-        Active (Reserved)
+      <span className="ts-st ts-tone-warn">Active (Reserved)
       </span>
     );
   }
   if (status === 'FULFILLED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-goodbg text-good border border-goodbg rounded-md text-[11.5px] font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-good" />
-        Fulfilled (Dispatched)
+      <span className="ts-st ts-tone-good">Fulfilled (Dispatched)
       </span>
     );
   }
   if (status === 'RELEASED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-tile text-fg border border-line2 rounded-md text-[11.5px] font-medium">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-tile text-fg border border-line2 rounded-md text-[12.5px] font-medium">
         <span className="w-1.5 h-1.5 rounded-full bg-ink" />
         Released
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-badbg text-bad border border-badbg rounded-md text-[11.5px] font-medium">
-      <span className="w-1.5 h-1.5 rounded-full bg-bad" />
-      Cancelled
+    <span className="ts-st ts-tone-bad">Cancelled
     </span>
   );
 }
@@ -301,17 +295,17 @@ export default function ReservationList() {
     Boolean(referenceTypeFilter);
 
   return (
-    <div className="p-6 max-w-[1440px] mx-auto space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="ts-title">Stock Reservations</h1>
-            <span className="px-2.5 py-0.5 bg-surface2 text-warn border border-warnbg rounded-full text-xs font-mono">
+            <span className="ts-st ts-tone-warn num">
               Commitment Engine
             </span>
           </div>
-          <p className="text-sm text-subtle mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Commit inventory to sales without physically deducting on-hand warehouse stock
           </p>
         </div>
@@ -319,7 +313,7 @@ export default function ReservationList() {
         <button
           type="button"
           onClick={() => setIsCreateOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-onink font-semibold text-sm rounded-lg hover:bg-ink/85 transition-colors shadow-sm cursor-pointer"
+          className="ts-btn ts-dark"
         >
           <Plus className="w-4 h-4" />
           <span>Create Reservation</span>
@@ -328,43 +322,43 @@ export default function ReservationList() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-subtle font-medium">Total Tracked</span>
-          <span className="text-2xl font-bold text-fg mt-2 font-mono">{kpi.totalCount}</span>
+        <div className="ts-card flex flex-col justify-between">
+          <span className="text-[13.5px] text-subtle">Total Tracked</span>
+          <span className="ts-val num block text-fg">{kpi.totalCount}</span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-warn font-medium">Active (Committed)</span>
+            <span className="text-[13.5px] text-warn">Active (Committed)</span>
             <span className="w-2 h-2 rounded-full bg-warn" />
           </div>
-          <span className="text-2xl font-bold text-warn mt-2 font-mono">{kpi.activeCount}</span>
+          <span className="ts-val num block text-warn">{kpi.activeCount}</span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-fg font-medium">Active Reserved Units</span>
-          <span className="text-2xl font-bold text-fg mt-2 font-mono">{kpi.totalReservedQty}</span>
+        <div className="ts-card flex flex-col justify-between">
+          <span className="text-[13.5px] text-fg">Active Reserved Units</span>
+          <span className="ts-val num block text-fg">{kpi.totalReservedQty}</span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-good font-medium">Fulfilled (Dispatched)</span>
+            <span className="text-[13.5px] text-good">Fulfilled (Dispatched)</span>
             <span className="w-2 h-2 rounded-full bg-good" />
           </div>
-          <span className="text-2xl font-bold text-good mt-2 font-mono">{kpi.fulfilledCount}</span>
+          <span className="ts-val num block text-good">{kpi.fulfilledCount}</span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-fg font-medium">Released / Cancelled</span>
+            <span className="text-[13.5px] text-fg">Released / Cancelled</span>
             <span className="w-2 h-2 rounded-full bg-ink" />
           </div>
-          <span className="text-2xl font-bold text-fg mt-2 font-mono">{kpi.releasedCount}</span>
+          <span className="ts-val num block text-fg">{kpi.releasedCount}</span>
         </div>
       </div>
 
       {/* Expandable Search & Filter Bar */}
-      <div className="bg-surface border border-line2 rounded-xl p-3.5 space-y-3">
+      <div className="ts-card space-y-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
@@ -376,7 +370,7 @@ export default function ReservationList() {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg placeholder-faint focus:outline-none focus:border-fg transition-colors"
+              className="ts-fi !pl-10 !rounded-full !bg-tile !border-transparent"
             />
           </div>
 
@@ -385,10 +379,10 @@ export default function ReservationList() {
               type="button"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
-                isFilterOpen || hasActiveFilters
-                  ? 'bg-surface border-fg text-fg'
-                  : 'bg-tile border-line2 text-subtle hover:text-fg'
-              }`}
+ isFilterOpen || hasActiveFilters
+ ? 'bg-surface border-fg text-fg'
+ : 'bg-tile border-line2 text-subtle hover:text-fg'
+ }`}
             >
               <Filter className="w-4 h-4 text-fg" />
               <span>Filters</span>
@@ -399,7 +393,7 @@ export default function ReservationList() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-subtle hover:text-fg hover:border-line2 transition-colors"
+                className="ts-btn ts-ghost"
                 title="Reset filters"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -413,14 +407,14 @@ export default function ReservationList() {
         {isFilterOpen && (
           <div className="pt-3 border-t border-line2 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">Status</label>
+              <label className="ts-lbl">Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">All Statuses</option>
                 <option value="ACTIVE">Active (Reserved)</option>
@@ -431,14 +425,14 @@ export default function ReservationList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">Warehouse</label>
+              <label className="ts-lbl">Warehouse</label>
               <select
                 value={warehouseFilter}
                 onChange={(e) => {
                   setWarehouseFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">All Warehouses</option>
                 {warehouses.map((w) => (
@@ -450,14 +444,14 @@ export default function ReservationList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">Reference Type</label>
+              <label className="ts-lbl">Reference Type</label>
               <select
                 value={referenceTypeFilter}
                 onChange={(e) => {
                   setReferenceTypeFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">All References</option>
                 <option value="QUOTATION">Quotation</option>
@@ -471,41 +465,41 @@ export default function ReservationList() {
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 bg-badbg border border-badbg rounded-xl flex items-center gap-3 text-sm text-bad">
+        <div className="ts-warnbox">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Reservations Table */}
-      <div className="bg-surface border border-line2 rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-subtle">
-            <thead className="bg-tile border-b border-line2 text-xs text-subtle uppercase tracking-wider font-semibold">
+      <div className="ts-card ts-white ts-tbl ts-tcard">
+        <div className="ts-tblwrap">
+          <table>
+            <thead>
               <tr>
-                <th className="px-4 py-3.5">Res #</th>
-                <th className="px-4 py-3.5">Product</th>
-                <th className="px-4 py-3.5">Warehouse</th>
-                <th className="px-4 py-3.5 text-right">Qty</th>
-                <th className="px-4 py-3.5">Reference</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5">Reserved By / Date</th>
-                <th className="px-4 py-3.5 text-right">Actions</th>
+                <th>Res #</th>
+                <th>Product</th>
+                <th>Warehouse</th>
+                <th className="ts-r">Qty</th>
+                <th>Reference</th>
+                <th>Status</th>
+                <th>Reserved By / Date</th>
+                <th className="ts-r">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-faint">
+                  <td colSpan={8} className="text-center text-faint">
                     Loading stock reservations...
                   </td>
                 </tr>
               ) : reservations.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
+                  <td colSpan={8} className="text-center">
                     <div className="flex flex-col items-center justify-center max-w-sm mx-auto text-center">
-                      <Lock className="w-10 h-10 text-[#CBD3E6] mb-3" />
-                      <p className="text-base font-semibold text-fg">No Stock Reservations Found</p>
+                      <Lock className="w-10 h-10 text-faint mb-3" />
+                      <p className="text-base font-medium text-fg">No Stock Reservations Found</p>
                       <p className="text-xs text-subtle mt-1 mb-4">
                         {hasActiveFilters
                           ? 'Try adjusting your search or filters to see more results.'
@@ -515,7 +509,7 @@ export default function ReservationList() {
                         <button
                           type="button"
                           onClick={handleResetFilters}
-                          className="px-3.5 py-1.5 bg-surface border border-line2 rounded-lg text-xs text-fg hover:bg-tile"
+                          className="ts-btn ts-ghost ts-xs"
                         >
                           Clear Filters
                         </button>
@@ -523,7 +517,7 @@ export default function ReservationList() {
                         <button
                           type="button"
                           onClick={() => setIsCreateOpen(true)}
-                          className="px-4 py-2 bg-ink text-onink font-semibold text-xs rounded-lg hover:bg-ink/85"
+                          className="ts-btn ts-dark ts-xs"
                         >
                           Create Reservation
                         </button>
@@ -538,7 +532,7 @@ export default function ReservationList() {
                     className="hover:bg-surface transition-colors cursor-pointer"
                     onClick={() => navigate(`/inventory/reservations/${r.id}`)}
                   >
-                    <td className="px-4 py-3.5 font-mono font-semibold text-fg whitespace-nowrap">
+                    <td className="num text-fg whitespace-nowrap">
                       <Link
                         to={`/inventory/reservations/${r.id}`}
                         className="hover:text-fg transition-colors"
@@ -547,11 +541,11 @@ export default function ReservationList() {
                         #RES-{r.id}
                       </Link>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td>
                       <Link
                         to={`/inventory/stock/${r.product_id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="font-mono font-semibold text-fg hover:text-fg transition-colors block"
+                        className="num font-medium text-fg hover:text-fg transition-colors block"
                       >
                         {r.part_no}
                       </Link>
@@ -559,34 +553,34 @@ export default function ReservationList() {
                         {r.product_description}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap text-xs">
+                    <td className="whitespace-nowrap">
                       <span className="text-fg">{r.warehouse_name}</span>
-                      <span className="text-[11px] text-faint ml-1 font-mono">({r.warehouse_code})</span>
+                      <span className="text-[12.5px] text-faint ml-1 num">({r.warehouse_code})</span>
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-warn whitespace-nowrap text-base">
+                    <td className="ts-r num text-warn text-base whitespace-nowrap">
                       {r.quantity}
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap text-xs">
-                      <span className="text-fg font-mono">{r.reference_type || 'MANUAL'}</span>
+                    <td className="whitespace-nowrap">
+                      <span className="text-fg num">{r.reference_type || 'MANUAL'}</span>
                       {r.reference_id && (
-                        <span className="text-[11px] text-faint block font-mono">ID: {r.reference_id}</span>
+                        <span className="text-[12.5px] text-faint block num">ID: {r.reference_id}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap">
+                    <td className="whitespace-nowrap">
                       <StatusBadge status={r.status} />
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap text-xs">
+                    <td className="whitespace-nowrap">
                       <span className="text-fg block">{r.reserved_by_username || 'Staff'}</span>
-                      <span className="text-faint text-[11px]">{formatDate(r.created_at)}</span>
+                      <span className="text-faint text-[12.5px]">{formatDate(r.created_at)}</span>
                     </td>
-                    <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <td className="ts-r whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="inline-flex items-center gap-2">
                         {r.status === 'ACTIVE' && (
                           <>
                             <button
                               type="button"
                               onClick={() => setReleasingId(r.id)}
-                              className="px-2.5 py-1 bg-tile hover:bg-[#DBE1F5] text-fg border border-line2 rounded text-xs font-medium transition-colors"
+                              className="ts-btn ts-ghost ts-xs"
                               title="Release Reservation (Decreases reserved stock, leaves on-hand unchanged)"
                             >
                               Release
@@ -594,7 +588,7 @@ export default function ReservationList() {
                             <button
                               type="button"
                               onClick={() => setFulfillingId(r.id)}
-                              className="px-2.5 py-1 bg-goodbg hover:bg-[#DAF3E7] text-good border border-goodbg rounded text-xs font-medium transition-colors"
+                              className="ts-btn ts-xs bg-goodbg text-good"
                               title="Fulfill Reservation (Deducts physical on-hand stock and logs STOCK_OUT)"
                             >
                               Fulfill
@@ -603,7 +597,7 @@ export default function ReservationList() {
                         )}
                         <Link
                           to={`/inventory/reservations/${r.id}`}
-                          className="px-2.5 py-1 bg-surface hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
+                          className="ts-btn ts-ghost ts-xs"
                         >
                           View
                         </Link>
@@ -618,7 +612,7 @@ export default function ReservationList() {
 
         {/* Pagination */}
         {total > PAGE_SIZE && (
-          <div className="p-4 border-t border-line2 flex justify-between items-center bg-tile">
+          <div className="pt-4 mt-2 border-t border-line flex flex-wrap gap-3 justify-between items-center">
             <span className="text-xs text-subtle">
               Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, total)} of {total} reservations
             </span>
@@ -629,17 +623,17 @@ export default function ReservationList() {
 
       {/* Create Reservation Modal */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-surface border border-line2 rounded-xl max-w-lg w-full p-6 shadow-lift space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-modal max-w-lg w-full space-y-4">
             <div className="flex items-center justify-between border-b border-line2 pb-3">
               <div className="flex items-center gap-2.5 text-warn">
                 <Lock className="w-5 h-5" />
-                <h3 className="text-base font-bold text-fg">Create Stock Reservation</h3>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Create Stock Reservation</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(false)}
-                className="text-faint hover:text-fg text-xs font-mono"
+                className="text-faint hover:text-fg text-xs num"
               >
                 ✕ Close
               </button>
@@ -647,18 +641,18 @@ export default function ReservationList() {
 
             <form onSubmit={handleCreateReservation} className="space-y-4 text-xs">
               {modalError && (
-                <div className="p-3 bg-badbg border border-badbg rounded-lg text-xs text-bad flex items-center gap-2">
+                <div className="ts-warnbox">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{modalError}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-medium text-subtle mb-1">Warehouse *</label>
+                <label className="ts-lbl">Warehouse *</label>
                 <select
                   value={createWarehouseId}
                   onChange={(e) => setCreateWarehouseId(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                   required
                 >
                   <option value="">Select Warehouse</option>
@@ -671,11 +665,11 @@ export default function ReservationList() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-subtle mb-1">Product *</label>
+                <label className="ts-lbl">Product *</label>
                 <select
                   value={createProductId}
                   onChange={(e) => setCreateProductId(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                   required
                 >
                   <option value="">Select Product from Catalogue</option>
@@ -689,7 +683,7 @@ export default function ReservationList() {
 
               {/* Real-time Stock Snapshot Banner */}
               {selectedStockSnapshot && (
-                <div className="p-3 bg-tile border border-line2 rounded-lg flex items-center justify-between font-mono">
+                <div className="bg-tile rounded-[14px] p-3.5 flex items-center justify-between num">
                   <span className="text-subtle">Current Stock:</span>
                   <div className="flex items-center gap-3">
                     <span className="text-fg">On-Hand: <strong>{selectedStockSnapshot.onHand}</strong></span>
@@ -701,7 +695,7 @@ export default function ReservationList() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-subtle mb-1">Quantity *</label>
+                  <label className="ts-lbl">Quantity *</label>
                   <input
                     type="number"
                     min="1"
@@ -709,17 +703,17 @@ export default function ReservationList() {
                     placeholder="e.g. 10"
                     value={createQuantity}
                     onChange={(e) => setCreateQuantity(e.target.value ? Number(e.target.value) : '')}
-                    className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg font-mono focus:outline-none focus:border-fg"
+                    className="ts-fi"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-subtle mb-1">Reference Type</label>
+                  <label className="ts-lbl">Reference Type</label>
                   <select
                     value={createRefType}
                     onChange={(e) => setCreateRefType(e.target.value)}
-                    className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                    className="ts-fi"
                   >
                     <option value="MANUAL">MANUAL (General Hold)</option>
                     <option value="QUOTATION">QUOTATION</option>
@@ -729,24 +723,24 @@ export default function ReservationList() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-subtle mb-1">Reference ID / Document # (Optional)</label>
+                <label className="ts-lbl">Reference ID / Document # (Optional)</label>
                 <input
                   type="text"
                   placeholder="e.g. QTN-2026-001"
                   value={createRefId}
                   onChange={(e) => setCreateRefId(e.target.value)}
-                  className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg font-mono focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-subtle mb-1">Notes (Optional)</label>
+                <label className="ts-lbl">Notes (Optional)</label>
                 <textarea
                   rows={2}
                   placeholder="Reason or customer commitment details..."
                   value={createNotes}
                   onChange={(e) => setCreateNotes(e.target.value)}
-                  className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
 
@@ -755,14 +749,14 @@ export default function ReservationList() {
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
                   disabled={submitting}
-                  className="px-4 py-2 bg-surface border border-line2 text-fg hover:text-fg rounded-lg text-sm font-medium transition-colors"
+                  className="ts-btn ts-ghost"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-ink text-onink hover:bg-ink/85 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                  className="ts-btn ts-dark"
                 >
                   {submitting ? 'Creating...' : 'Reserve Stock'}
                 </button>
@@ -774,15 +768,15 @@ export default function ReservationList() {
 
       {/* Release Confirmation Modal */}
       {releasingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-surface border border-line2 rounded-xl max-w-md w-full p-6 shadow-lift space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-modal max-w-md w-full space-y-4">
             <div className="flex items-center gap-3 text-fg">
-              <div className="p-2 bg-tile border border-line2 rounded-lg">
+              <div className="bg-tile rounded-[14px] p-3.5">
                 <RotateCcw className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-fg">Release Stock Reservation</h3>
-                <p className="text-xs text-subtle font-mono">#RES-{releasingId}</p>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Release Stock Reservation</h3>
+                <p className="text-xs text-subtle num">#RES-{releasingId}</p>
               </div>
             </div>
 
@@ -792,7 +786,7 @@ export default function ReservationList() {
             </p>
 
             {modalError && (
-              <div className="p-3 bg-badbg border border-badbg rounded-lg text-xs text-bad">
+              <div className="ts-warnbox">
                 {modalError}
               </div>
             )}
@@ -805,7 +799,7 @@ export default function ReservationList() {
                   setModalError('');
                 }}
                 disabled={submitting}
-                className="px-4 py-2 bg-surface border border-line2 text-fg hover:text-fg rounded-lg text-sm font-medium transition-colors"
+                className="ts-btn ts-ghost"
               >
                 Cancel
               </button>
@@ -813,7 +807,7 @@ export default function ReservationList() {
                 type="button"
                 onClick={handleRelease}
                 disabled={submitting}
-                className="px-4 py-2 bg-ink text-onink hover:bg-ink rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                className="ts-btn ts-dark"
               >
                 {submitting ? 'Releasing...' : 'Yes, Release Reservation'}
               </button>
@@ -824,15 +818,15 @@ export default function ReservationList() {
 
       {/* Fulfill Confirmation Modal */}
       {fulfillingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-surface border border-line2 rounded-xl max-w-md w-full p-6 shadow-lift space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-modal max-w-md w-full space-y-4">
             <div className="flex items-center gap-3 text-good">
               <div className="p-2 bg-goodbg border border-goodbg rounded-lg">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-fg">Fulfill Stock Reservation</h3>
-                <p className="text-xs text-subtle font-mono">#RES-{fulfillingId}</p>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Fulfill Stock Reservation</h3>
+                <p className="text-xs text-subtle num">#RES-{fulfillingId}</p>
               </div>
             </div>
 
@@ -842,7 +836,7 @@ export default function ReservationList() {
             </p>
 
             {modalError && (
-              <div className="p-3 bg-badbg border border-badbg rounded-lg text-xs text-bad">
+              <div className="ts-warnbox">
                 {modalError}
               </div>
             )}
@@ -855,7 +849,7 @@ export default function ReservationList() {
                   setModalError('');
                 }}
                 disabled={submitting}
-                className="px-4 py-2 bg-surface border border-line2 text-fg hover:text-fg rounded-lg text-sm font-medium transition-colors"
+                className="ts-btn ts-ghost"
               >
                 Cancel
               </button>
@@ -863,7 +857,7 @@ export default function ReservationList() {
                 type="button"
                 onClick={handleFulfill}
                 disabled={submitting}
-                className="px-4 py-2 bg-ink text-onink hover:bg-ink/85 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                className="ts-btn ts-dark"
               >
                 {submitting ? 'Fulfilling...' : 'Yes, Fulfill & Deduct Stock'}
               </button>

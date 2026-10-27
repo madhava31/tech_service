@@ -435,3 +435,11 @@ select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-
 .ts-kpi-sm{padding:16px 18px !important; min-width:0}
 .ts-kpi-sm .ts-val{font-size:22px; margin-top:6px}
 @media (prefers-reduced-motion:reduce){.ts-kcol{animation:none}}
+
+/* ---- Scrollable pill tabs (same values as .ts-seg) ---- */
+.ts-tabs{display:flex; gap:2px; padding:4px; border-radius:999px; background:rgb(var(--tile)); overflow-x:auto; scrollbar-width:none; max-width:100%; width:max-content}
+.ts-tabs::-webkit-scrollbar{display:none}
+.ts-tab{display:flex; align-items:center; gap:7px; padding:7px 15px; border-radius:999px; font-size:13.5px; color:rgb(var(--muted)); white-space:nowrap; flex-shrink:0; background:none; border:0; cursor:pointer; font-family:inherit; transition:color .25s, background .3s, box-shadow .3s}
+.ts-tab:hover{color:rgb(var(--fg))}
+.ts-tab.ts-on{color:rgb(var(--fg)); background:rgb(var(--surface-2)); box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.ts-tab em{font-style:normal; font-size:11px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:rgb(var(--line-rgb) / .13); display:grid; place-items:center}

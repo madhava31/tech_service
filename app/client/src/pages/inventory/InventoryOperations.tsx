@@ -232,17 +232,17 @@ export default function InventoryOperations() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line2 pb-5">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="ts-title">Inventory Operations</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tile text-fg border border-line2">
+            <span className="ts-headtag">
               Control Center
             </span>
           </div>
-          <p className="text-sm text-subtle mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Operational control center for stock monitoring, adjustments, returns, transfers, and reservation management.
           </p>
         </div>
@@ -254,7 +254,7 @@ export default function InventoryOperations() {
               setSelectedWarehouseId(e.target.value ? Number(e.target.value) : '');
               setPage(1);
             }}
-            className="px-3 py-2 bg-surface2 border border-line2 rounded-lg text-sm text-fg focus:border-fg focus:outline-none"
+            className="ts-fi ts-sel"
           >
             <option value="">All Warehouses</option>
             {warehouses.map((w) => (
@@ -266,7 +266,7 @@ export default function InventoryOperations() {
 
           <button
             onClick={() => setShowAdjustmentModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface2 border border-line2 text-fg hover:bg-surface rounded-lg text-sm font-medium transition-colors"
+            className="ts-btn ts-ghost"
           >
             <Sliders className="w-4 h-4 text-fg" />
             + Stock Adjustment
@@ -274,7 +274,7 @@ export default function InventoryOperations() {
 
           <button
             onClick={() => setShowReturnModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface2 border border-line2 text-fg hover:bg-surface rounded-lg text-sm font-medium transition-colors"
+            className="ts-btn ts-ghost"
           >
             <RotateCcw className="w-4 h-4 text-fg" />
             + Stock Return
@@ -282,7 +282,7 @@ export default function InventoryOperations() {
 
           <button
             onClick={() => setShowTransferModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-ink text-onink hover:bg-ink/85 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+            className="ts-btn ts-dark"
           >
             <ArrowRightLeft className="w-4 h-4" />
             + Warehouse Transfer
@@ -291,58 +291,58 @@ export default function InventoryOperations() {
       </div>
 
       {/* Top Operational KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Stock Items</div>
-          <div className="text-xl font-bold text-fg mt-1">{overview?.totalStockItems ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">{overview?.totalTrackedProducts ?? 0} tracked</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Stock Items</div>
+          <div className="ts-val num text-fg truncate">{overview?.totalStockItems ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">{overview?.totalTrackedProducts ?? 0} tracked</div>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Available Stock</div>
-          <div className="text-xl font-bold text-good mt-1">{overview?.totalAvailable ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">On-hand: {overview?.totalOnHand ?? 0}</div>
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Available Stock</div>
+          <div className="ts-val num text-good truncate">{overview?.totalAvailable ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">On-hand: {overview?.totalOnHand ?? 0}</div>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Low Stock</div>
-          <div className="text-xl font-bold text-warn mt-1">{overview?.lowStockCount ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">Below threshold</div>
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Low Stock</div>
+          <div className="ts-val num text-warn truncate">{overview?.lowStockCount ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">Below threshold</div>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Critical Stock</div>
-          <div className="text-xl font-bold text-bad mt-1">{overview?.criticalStockCount ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">Urgent restock</div>
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Critical Stock</div>
+          <div className="ts-val num text-bad truncate">{overview?.criticalStockCount ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">Urgent restock</div>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Out of Stock</div>
-          <div className="text-xl font-bold text-bad mt-1">{overview?.outOfStockCount ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">0 Available</div>
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Out of Stock</div>
+          <div className="ts-val num text-bad truncate">{overview?.outOfStockCount ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">0 Available</div>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Incoming Stock</div>
-          <div className="text-xl font-bold text-fg mt-1">{overview?.incomingStockQuantity ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">Inbound receipts</div>
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Incoming Stock</div>
+          <div className="ts-val num text-fg truncate">{overview?.incomingStockQuantity ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">Inbound receipts</div>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Reserved Stock</div>
-          <div className="text-xl font-bold text-[#9333EA] mt-1">{overview?.totalReserved ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">Allocated units</div>
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Reserved Stock</div>
+          <div className="ts-val num text-fg truncate">{overview?.totalReserved ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">Allocated units</div>
         </div>
 
-        <div className="bg-surface2 border border-line2 rounded-xl p-3.5">
-          <div className="text-xs text-subtle font-medium">Pending Res.</div>
-          <div className="text-xl font-bold text-[#DB2777] mt-1">{overview?.pendingReservationsCount ?? '—'}</div>
-          <div className="text-[11px] text-faint mt-0.5">{overview?.pendingReservationsUnits ?? 0} units</div>
+        <div className="ts-card ts-kpi-sm">
+          <div className="text-[13.5px] text-subtle">Pending Res.</div>
+          <div className="ts-val num text-fg truncate">{overview?.pendingReservationsCount ?? '—'}</div>
+          <div className="text-[12.5px] text-faint mt-0.5">{overview?.pendingReservationsUnits ?? 0} units</div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1 border-b border-line2 overflow-x-auto no-scrollbar">
+      <div className="ts-tabs">
         {[
           { key: 'overview', label: 'Overview', icon: Boxes },
           { key: 'alerts', label: 'Stock Alerts', icon: ShieldAlert, count: overview?.criticalStockCount },
@@ -361,18 +361,12 @@ export default function InventoryOperations() {
             <button
               key={tab.key}
               onClick={() => handleTabChange(tab.key as TabType)}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                isActive
-                  ? 'border-fg text-fg bg-surface/40'
-                  : 'border-transparent text-subtle hover:text-fg hover:bg-surface2'
-              }`}
+              className={`ts-tab ${isActive ? 'ts-on' : ''}`}
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
               {!!tab.count && tab.count > 0 && (
-                <span className="px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-bad/20 text-bad border border-bad/30">
-                  {tab.count}
-                </span>
+                <em>{tab.count}</em>
               )}
             </button>
           );
@@ -381,12 +375,12 @@ export default function InventoryOperations() {
 
       {/* Main Content Area */}
       {loading ? (
-        <div className="p-12 text-center text-subtle bg-surface2 rounded-xl border border-line2">
+        <div className="ts-card ts-empty">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto text-fg mb-2" />
           Loading inventory operations data...
         </div>
       ) : error ? (
-        <div className="p-6 text-center text-bad bg-badbg rounded-xl border border-badbg">
+        <div className="ts-warnbox">
           {error}
         </div>
       ) : (
@@ -396,9 +390,9 @@ export default function InventoryOperations() {
             <div className="space-y-6">
               {/* Critical Alerts Banner */}
               {alerts.length > 0 && (
-                <div className="bg-surface2 border border-line2 rounded-xl p-4">
+                <div className="ts-card ts-white ts-tbl">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-bold text-fg flex items-center gap-2">
+                    <h2 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
                       <ShieldAlert className="w-4 h-4 text-bad" />
                       Active Operational Alerts
                     </h2>
@@ -414,12 +408,12 @@ export default function InventoryOperations() {
                       <div
                         key={al.id}
                         className={`p-3 rounded-lg border text-xs flex items-center justify-between gap-3 ${
-                          al.severity === 'CRITICAL'
-                            ? 'bg-badbg/60 border-badbg text-bad'
-                            : al.severity === 'WARNING'
-                            ? 'bg-warnbg/60 border-warnbg text-warn'
-                            : 'bg-tile/60 border-line2 text-fg'
-                        }`}
+ al.severity === 'CRITICAL'
+ ? 'bg-badbg/60 border-badbg text-bad'
+ : al.severity === 'WARNING'
+ ? 'bg-warnbg/60 border-warnbg text-warn'
+ : 'bg-tile/60 border-line2 text-fg'
+ }`}
                       >
                         <div className="flex items-center gap-2.5">
                           {al.severity === 'CRITICAL' ? (
@@ -428,14 +422,14 @@ export default function InventoryOperations() {
                             <AlertTriangle className="w-4 h-4 shrink-0" />
                           )}
                           <div>
-                            <span className="font-bold">{al.partNumber}</span> — {al.description} ({al.warehouseName})
-                            <div className="text-[11px] opacity-80 mt-0.5">
+                            <span className="font-medium">{al.partNumber}</span> — {al.description} ({al.warehouseName})
+                            <div className="text-[12.5px] opacity-80 mt-0.5">
                               On Hand: {al.onHand} | Available: {al.available} | Threshold: {al.threshold}
                             </div>
                           </div>
                         </div>
                         <div className="shrink-0 text-right">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface">
+                          <span className="px-2 py-0.5 rounded text-[12px] font-medium bg-surface">
                             {al.recommendedAction}
                           </span>
                         </div>
@@ -448,9 +442,9 @@ export default function InventoryOperations() {
               {/* Grid: Critical Stock + Out of Stock Summary Tables */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Critical Stock */}
-                <div className="bg-surface2 border border-line2 rounded-xl p-4 space-y-3">
+                <div className="ts-card ts-white ts-tbl space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-fg flex items-center gap-2">
+                    <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-warn" />
                       Critical Threshold Items
                     </h3>
@@ -461,16 +455,16 @@ export default function InventoryOperations() {
                   {criticalItems.length === 0 ? (
                     <p className="text-xs text-faint py-4 text-center">No critical stock items</p>
                   ) : (
-                    <div className="divide-y divide-line2">
+                    <div>
                       {criticalItems.slice(0, 5).map((item) => (
                         <div key={item.productId} className="py-2.5 flex items-center justify-between text-xs">
                           <div>
-                            <div className="font-semibold text-fg">{item.partNo}</div>
-                            <div className="text-[11px] text-subtle truncate max-w-[200px]">{item.description}</div>
+                            <div className="font-medium text-fg">{item.partNo}</div>
+                            <div className="text-[12.5px] text-subtle truncate max-w-[200px]">{item.description}</div>
                           </div>
                           <div className="text-right">
-                            <div className="font-semibold text-warn">Available: {item.availableQuantity}</div>
-                            <div className="text-[10px] text-faint">Crit. Threshold: {item.criticalStockThreshold}</div>
+                            <div className="font-medium text-warn">Available: {item.availableQuantity}</div>
+                            <div className="text-[12px] text-faint">Crit. Threshold: {item.criticalStockThreshold}</div>
                           </div>
                         </div>
                       ))}
@@ -479,9 +473,9 @@ export default function InventoryOperations() {
                 </div>
 
                 {/* Out of Stock */}
-                <div className="bg-surface2 border border-line2 rounded-xl p-4 space-y-3">
+                <div className="ts-card ts-white ts-tbl space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-fg flex items-center gap-2">
+                    <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
                       <PackageX className="w-4 h-4 text-bad" />
                       Out of Stock Items
                     </h3>
@@ -492,20 +486,20 @@ export default function InventoryOperations() {
                   {oosItems.length === 0 ? (
                     <p className="text-xs text-faint py-4 text-center">No out of stock items</p>
                   ) : (
-                    <div className="divide-y divide-line2">
+                    <div>
                       {oosItems.slice(0, 5).map((item) => (
                         <div key={item.productId} className="py-2.5 flex items-center justify-between text-xs">
                           <div>
-                            <div className="font-semibold text-fg">{item.partNo}</div>
-                            <div className="text-[11px] text-subtle truncate max-w-[200px]">{item.description}</div>
+                            <div className="font-medium text-fg">{item.partNo}</div>
+                            <div className="text-[12.5px] text-subtle truncate max-w-[200px]">{item.description}</div>
                           </div>
                           <div className="text-right">
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                item.incomingQuantity > 0
-                                  ? 'bg-tile text-fg border border-line2'
-                                  : 'bg-badbg text-bad border border-badbg'
-                              }`}
+                              className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+ item.incomingQuantity > 0
+ ? 'bg-tile text-fg border border-line2'
+ : 'bg-badbg text-bad border border-badbg'
+ }`}
                             >
                               {item.incomingQuantity > 0 ? `INCOMING (${item.incomingQuantity})` : 'NO INCOMING STOCK'}
                             </span>
@@ -521,49 +515,49 @@ export default function InventoryOperations() {
 
           {/* TAB 2: ALERTS */}
           {activeTab === 'alerts' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {alerts.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No active stock alerts detected.</div>
+                <div className="ts-empty">No active stock alerts detected.</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Severity</th>
-                      <th className="py-3 px-4">Alert Type</th>
-                      <th className="py-3 px-4">Part Number & Product</th>
-                      <th className="py-3 px-4">Warehouse</th>
-                      <th className="py-3 px-4 text-right">On Hand</th>
-                      <th className="py-3 px-4 text-right">Reserved</th>
-                      <th className="py-3 px-4 text-right">Available</th>
-                      <th className="py-3 px-4">Recommended Action</th>
+                    <tr>
+                      <th>Severity</th>
+                      <th>Alert Type</th>
+                      <th>Part Number & Product</th>
+                      <th>Warehouse</th>
+                      <th className="ts-r">On Hand</th>
+                      <th className="ts-r">Reserved</th>
+                      <th className="ts-r">Available</th>
+                      <th>Recommended Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {alerts.map((al) => (
-                      <tr key={al.id} className="hover:bg-surface/50">
-                        <td className="py-3 px-4">
+                      <tr key={al.id}>
+                        <td>
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              al.severity === 'CRITICAL'
-                                ? 'bg-badbg text-bad border border-badbg'
-                                : al.severity === 'WARNING'
-                                ? 'bg-warnbg text-warn border border-warnbg'
-                                : 'bg-tile text-fg border border-line2'
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+ al.severity === 'CRITICAL'
+ ? 'bg-badbg text-bad border border-badbg'
+ : al.severity === 'WARNING'
+ ? 'bg-warnbg text-warn border border-warnbg'
+ : 'bg-tile text-fg border border-line2'
+ }`}
                           >
                             {al.severity}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-semibold text-fg">{al.alertType}</td>
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-fg">{al.partNumber}</div>
-                          <div className="text-[11px] text-subtle">{al.description}</div>
+                        <td className="text-fg">{al.alertType}</td>
+                        <td>
+                          <div className="font-medium text-fg">{al.partNumber}</div>
+                          <div className="text-[12.5px] text-subtle">{al.description}</div>
                         </td>
-                        <td className="py-3 px-4 text-subtle">{al.warehouseName}</td>
-                        <td className="py-3 px-4 text-right font-medium text-fg">{al.onHand}</td>
-                        <td className="py-3 px-4 text-right text-[#9333EA]">{al.reserved}</td>
-                        <td className="py-3 px-4 text-right font-bold text-good">{al.available}</td>
-                        <td className="py-3 px-4 text-fg font-medium">{al.recommendedAction}</td>
+                        <td className="text-subtle">{al.warehouseName}</td>
+                        <td className="ts-r font-medium text-fg">{al.onHand}</td>
+                        <td className="ts-r text-fg">{al.reserved}</td>
+                        <td className="ts-r text-good">{al.available}</td>
+                        <td className="text-fg font-medium">{al.recommendedAction}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -574,37 +568,37 @@ export default function InventoryOperations() {
 
           {/* TAB 3: CRITICAL STOCK */}
           {activeTab === 'critical' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {criticalItems.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No critical stock items</div>
+                <div className="ts-empty">No critical stock items</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Part Number</th>
-                      <th className="py-3 px-4">Description</th>
-                      <th className="py-3 px-4 text-right">On Hand</th>
-                      <th className="py-3 px-4 text-right">Reserved</th>
-                      <th className="py-3 px-4 text-right">Available</th>
-                      <th className="py-3 px-4 text-right">Critical Threshold</th>
-                      <th className="py-3 px-4 text-right">Incoming</th>
-                      <th className="py-3 px-4 text-center">Actions</th>
+                    <tr>
+                      <th>Part Number</th>
+                      <th>Description</th>
+                      <th className="ts-r">On Hand</th>
+                      <th className="ts-r">Reserved</th>
+                      <th className="ts-r">Available</th>
+                      <th className="ts-r">Critical Threshold</th>
+                      <th className="ts-r">Incoming</th>
+                      <th className="text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {criticalItems.map((item) => (
-                      <tr key={item.productId} className="hover:bg-surface/50">
-                        <td className="py-3 px-4 font-bold text-fg">{item.partNo}</td>
-                        <td className="py-3 px-4 text-subtle">{item.description}</td>
-                        <td className="py-3 px-4 text-right font-medium text-fg">{item.onHandQuantity}</td>
-                        <td className="py-3 px-4 text-right text-[#9333EA]">{item.reservedQuantity}</td>
-                        <td className="py-3 px-4 text-right font-bold text-warn">{item.availableQuantity}</td>
-                        <td className="py-3 px-4 text-right text-subtle">{item.criticalStockThreshold}</td>
-                        <td className="py-3 px-4 text-right text-fg">{item.incomingQuantity}</td>
-                        <td className="py-3 px-4 text-center">
+                      <tr key={item.productId}>
+                        <td className="text-fg">{item.partNo}</td>
+                        <td className="text-subtle">{item.description}</td>
+                        <td className="ts-r font-medium text-fg">{item.onHandQuantity}</td>
+                        <td className="ts-r text-fg">{item.reservedQuantity}</td>
+                        <td className="ts-r text-warn">{item.availableQuantity}</td>
+                        <td className="ts-r text-subtle">{item.criticalStockThreshold}</td>
+                        <td className="ts-r text-fg">{item.incomingQuantity}</td>
+                        <td className="text-center">
                           <Link
                             to={`/inventory/stock/${item.productId}`}
-                            className="text-fg hover:underline text-xs font-semibold"
+                            className="text-fg hover:underline text-xs font-medium"
                           >
                             View Stock
                           </Link>
@@ -619,44 +613,44 @@ export default function InventoryOperations() {
 
           {/* TAB 4: OUT OF STOCK */}
           {activeTab === 'out-of-stock' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {oosItems.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No out of stock items</div>
+                <div className="ts-empty">No out of stock items</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Part Number</th>
-                      <th className="py-3 px-4">Description</th>
-                      <th className="py-3 px-4 text-right">On Hand</th>
-                      <th className="py-3 px-4 text-right">Reserved</th>
-                      <th className="py-3 px-4 text-right">Available</th>
-                      <th className="py-3 px-4">Incoming Status</th>
-                      <th className="py-3 px-4">Last Stock In</th>
-                      <th className="py-3 px-4">Last Stock Out</th>
+                    <tr>
+                      <th>Part Number</th>
+                      <th>Description</th>
+                      <th className="ts-r">On Hand</th>
+                      <th className="ts-r">Reserved</th>
+                      <th className="ts-r">Available</th>
+                      <th>Incoming Status</th>
+                      <th>Last Stock In</th>
+                      <th>Last Stock Out</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {oosItems.map((item) => (
-                      <tr key={item.productId} className="hover:bg-surface/50">
-                        <td className="py-3 px-4 font-bold text-bad">{item.partNo}</td>
-                        <td className="py-3 px-4 text-subtle">{item.description}</td>
-                        <td className="py-3 px-4 text-right text-fg">{item.onHandQuantity}</td>
-                        <td className="py-3 px-4 text-right text-[#9333EA]">{item.reservedQuantity}</td>
-                        <td className="py-3 px-4 text-right font-bold text-bad">{item.availableQuantity}</td>
-                        <td className="py-3 px-4">
+                      <tr key={item.productId}>
+                        <td className="text-bad">{item.partNo}</td>
+                        <td className="text-subtle">{item.description}</td>
+                        <td className="ts-r text-fg">{item.onHandQuantity}</td>
+                        <td className="ts-r text-fg">{item.reservedQuantity}</td>
+                        <td className="ts-r text-bad">{item.availableQuantity}</td>
+                        <td>
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                              item.incomingStatus === 'INCOMING'
-                                ? 'bg-tile text-fg border border-line2'
-                                : 'bg-badbg text-bad border border-badbg'
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+ item.incomingStatus === 'INCOMING'
+ ? 'bg-tile text-fg border border-line2'
+ : 'bg-badbg text-bad border border-badbg'
+ }`}
                           >
                             {item.incomingStatus} {item.incomingQuantity > 0 ? `(${item.incomingQuantity})` : ''}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-subtle">{formatDate(item.lastStockIn)}</td>
-                        <td className="py-3 px-4 text-subtle">{formatDate(item.lastStockOut)}</td>
+                        <td className="text-subtle">{formatDate(item.lastStockIn)}</td>
+                        <td className="text-subtle">{formatDate(item.lastStockOut)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -667,52 +661,52 @@ export default function InventoryOperations() {
 
           {/* TAB 5: RESTOCK QUEUE */}
           {activeTab === 'restock-queue' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {restockQueue.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No items requiring restock</div>
+                <div className="ts-empty">No items requiring restock</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Priority</th>
-                      <th className="py-3 px-4">Part Number & Product</th>
-                      <th className="py-3 px-4 text-right">Available</th>
-                      <th className="py-3 px-4 text-right">Reorder Point</th>
-                      <th className="py-3 px-4 text-right">Safety Stock</th>
-                      <th className="py-3 px-4 text-right">Incoming</th>
-                      <th className="py-3 px-4 text-right">Suggested Restock Qty</th>
-                      <th className="py-3 px-4">Reason</th>
-                      <th className="py-3 px-4">Status</th>
+                    <tr>
+                      <th>Priority</th>
+                      <th>Part Number & Product</th>
+                      <th className="ts-r">Available</th>
+                      <th className="ts-r">Reorder Point</th>
+                      <th className="ts-r">Safety Stock</th>
+                      <th className="ts-r">Incoming</th>
+                      <th className="ts-r">Suggested Restock Qty</th>
+                      <th>Reason</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {restockQueue.map((item) => (
-                      <tr key={item.productId} className="hover:bg-surface/50">
-                        <td className="py-3 px-4">
+                      <tr key={item.productId}>
+                        <td>
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              item.priority === 'CRITICAL'
-                                ? 'bg-badbg text-bad border border-badbg'
-                                : item.priority === 'HIGH'
-                                ? 'bg-warnbg text-warn border border-warnbg'
-                                : 'bg-tile text-fg border border-line2'
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+ item.priority === 'CRITICAL'
+ ? 'bg-badbg text-bad border border-badbg'
+ : item.priority === 'HIGH'
+ ? 'bg-warnbg text-warn border border-warnbg'
+ : 'bg-tile text-fg border border-line2'
+ }`}
                           >
                             {item.priority}
                           </span>
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-fg">{item.partNumber}</div>
-                          <div className="text-[11px] text-subtle">{item.description}</div>
+                        <td>
+                          <div className="font-medium text-fg">{item.partNumber}</div>
+                          <div className="text-[12.5px] text-subtle">{item.description}</div>
                         </td>
-                        <td className="py-3 px-4 text-right font-bold text-warn">{item.available}</td>
-                        <td className="py-3 px-4 text-right text-subtle">{item.reorderPoint}</td>
-                        <td className="py-3 px-4 text-right text-subtle">{item.safetyStock}</td>
-                        <td className="py-3 px-4 text-right text-fg">{item.incoming}</td>
-                        <td className="py-3 px-4 text-right font-bold text-fg">{item.suggestedRestockQuantity}</td>
-                        <td className="py-3 px-4 text-subtle">{item.reason}</td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface text-fg border border-line2">
+                        <td className="ts-r text-warn">{item.available}</td>
+                        <td className="ts-r text-subtle">{item.reorderPoint}</td>
+                        <td className="ts-r text-subtle">{item.safetyStock}</td>
+                        <td className="ts-r text-fg">{item.incoming}</td>
+                        <td className="ts-r text-fg">{item.suggestedRestockQuantity}</td>
+                        <td className="text-subtle">{item.reason}</td>
+                        <td>
+                          <span className="px-2 py-0.5 rounded text-[12px] font-medium bg-surface text-fg border border-line2">
                             {item.status}
                           </span>
                         </td>
@@ -726,40 +720,40 @@ export default function InventoryOperations() {
 
           {/* TAB 6: INCOMING STOCK */}
           {activeTab === 'incoming' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {incomingItems.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No incoming stock records found</div>
+                <div className="ts-empty">No incoming stock records found</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Receipt Ref</th>
-                      <th className="py-3 px-4">Part Number</th>
-                      <th className="py-3 px-4">Description</th>
-                      <th className="py-3 px-4">Warehouse</th>
-                      <th className="py-3 px-4 text-right">Incoming Qty</th>
-                      <th className="py-3 px-4 text-right">Current Available</th>
-                      <th className="py-3 px-4">Source</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4">Created At</th>
+                    <tr>
+                      <th>Receipt Ref</th>
+                      <th>Part Number</th>
+                      <th>Description</th>
+                      <th>Warehouse</th>
+                      <th className="ts-r">Incoming Qty</th>
+                      <th className="ts-r">Current Available</th>
+                      <th>Source</th>
+                      <th>Status</th>
+                      <th>Created At</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {incomingItems.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-surface/50">
-                        <td className="py-3 px-4 font-bold text-fg">{item.receiptNumber}</td>
-                        <td className="py-3 px-4 font-semibold text-fg">{item.partNumber}</td>
-                        <td className="py-3 px-4 text-subtle">{item.description}</td>
-                        <td className="py-3 px-4 text-subtle">{item.warehouseName}</td>
-                        <td className="py-3 px-4 text-right font-bold text-fg">{item.incomingQuantity}</td>
-                        <td className="py-3 px-4 text-right text-good">{item.available}</td>
-                        <td className="py-3 px-4 text-subtle">{item.source}</td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-tile text-fg border border-line2">
+                      <tr key={idx}>
+                        <td className="text-fg">{item.receiptNumber}</td>
+                        <td className="text-fg">{item.partNumber}</td>
+                        <td className="text-subtle">{item.description}</td>
+                        <td className="text-subtle">{item.warehouseName}</td>
+                        <td className="ts-r text-fg">{item.incomingQuantity}</td>
+                        <td className="ts-r text-good">{item.available}</td>
+                        <td className="text-subtle">{item.source}</td>
+                        <td>
+                          <span className="px-2 py-0.5 rounded text-[12px] font-medium bg-tile text-fg border border-line2">
                             {item.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-subtle">{formatDate(item.createdAt)}</td>
+                        <td className="text-subtle">{formatDate(item.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -770,44 +764,44 @@ export default function InventoryOperations() {
 
           {/* TAB 7: PENDING RESERVATIONS */}
           {activeTab === 'pending-reservations' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {pendingReservations.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No active stock reservations found</div>
+                <div className="ts-empty">No active stock reservations found</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Reservation ID</th>
-                      <th className="py-3 px-4">Part Number</th>
-                      <th className="py-3 px-4">Description</th>
-                      <th className="py-3 px-4">Warehouse</th>
-                      <th className="py-3 px-4 text-right">Reserved Qty</th>
-                      <th className="py-3 px-4">Reference</th>
-                      <th className="py-3 px-4">Created At</th>
-                      <th className="py-3 px-4 text-center">Actions</th>
+                    <tr>
+                      <th>Reservation ID</th>
+                      <th>Part Number</th>
+                      <th>Description</th>
+                      <th>Warehouse</th>
+                      <th className="ts-r">Reserved Qty</th>
+                      <th>Reference</th>
+                      <th>Created At</th>
+                      <th className="text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {pendingReservations.map((resItem) => (
-                      <tr key={resItem.id} className="hover:bg-surface/50">
-                        <td className="py-3 px-4 font-bold text-[#9333EA]">RES-{resItem.id}</td>
-                        <td className="py-3 px-4 font-semibold text-fg">{resItem.part_no}</td>
-                        <td className="py-3 px-4 text-subtle">{resItem.product_description}</td>
-                        <td className="py-3 px-4 text-subtle">{resItem.warehouse_name}</td>
-                        <td className="py-3 px-4 text-right font-bold text-[#9333EA]">{resItem.quantity}</td>
-                        <td className="py-3 px-4 text-subtle">{resItem.reference_type || '—'} {resItem.reference_id || ''}</td>
-                        <td className="py-3 px-4 text-subtle">{formatDate(resItem.created_at)}</td>
-                        <td className="py-3 px-4 text-center">
+                      <tr key={resItem.id}>
+                        <td className="text-fg">RES-{resItem.id}</td>
+                        <td className="text-fg">{resItem.part_no}</td>
+                        <td className="text-subtle">{resItem.product_description}</td>
+                        <td className="text-subtle">{resItem.warehouse_name}</td>
+                        <td className="ts-r text-fg">{resItem.quantity}</td>
+                        <td className="text-subtle">{resItem.reference_type || '—'} {resItem.reference_id || ''}</td>
+                        <td className="text-subtle">{formatDate(resItem.created_at)}</td>
+                        <td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => handleReleaseReservation(resItem.id)}
-                              className="px-2.5 py-1 bg-surface2 border border-badbg text-bad hover:bg-badbg rounded text-[11px] font-medium"
+                              className="ts-btn ts-ghost ts-xs text-bad"
                             >
                               Release
                             </button>
                             <button
                               onClick={() => handleFulfillReservation(resItem.id)}
-                              className="px-2.5 py-1 bg-goodbg border border-goodbg text-good hover:bg-goodbg rounded text-[11px] font-semibold"
+                              className="ts-btn ts-xs bg-goodbg text-good"
                             >
                               Fulfill
                             </button>
@@ -823,50 +817,50 @@ export default function InventoryOperations() {
 
           {/* TAB 8: RECENT MOVEMENTS */}
           {activeTab === 'movements' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {movements.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No inventory movements found</div>
+                <div className="ts-empty">No inventory movements found</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Date/Time</th>
-                      <th className="py-3 px-4">Type</th>
-                      <th className="py-3 px-4">Part Number</th>
-                      <th className="py-3 px-4">Product Description</th>
-                      <th className="py-3 px-4">Warehouse</th>
-                      <th className="py-3 px-4 text-right">Quantity</th>
-                      <th className="py-3 px-4 text-right">Before</th>
-                      <th className="py-3 px-4 text-right">After</th>
-                      <th className="py-3 px-4">Reason / Reference</th>
+                    <tr>
+                      <th>Date/Time</th>
+                      <th>Type</th>
+                      <th>Part Number</th>
+                      <th>Product Description</th>
+                      <th>Warehouse</th>
+                      <th className="ts-r">Quantity</th>
+                      <th className="ts-r">Before</th>
+                      <th className="ts-r">After</th>
+                      <th>Reason / Reference</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {movements.map((m) => (
-                      <tr key={m.id} className="hover:bg-surface/50">
-                        <td className="py-3 px-4 text-subtle">{formatDate(m.created_at)}</td>
-                        <td className="py-3 px-4">
+                      <tr key={m.id}>
+                        <td className="text-subtle">{formatDate(m.created_at)}</td>
+                        <td>
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              m.movement_type === 'STOCK_IN'
-                                ? 'bg-goodbg text-good border border-goodbg'
-                                : m.movement_type === 'STOCK_OUT'
-                                ? 'bg-badbg text-bad border border-badbg'
-                                : m.movement_type === 'TRANSFER_IN' || m.movement_type === 'TRANSFER_OUT'
-                                ? 'bg-tile text-fg border border-line2'
-                                : 'bg-warnbg text-warn border border-warnbg'
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+ m.movement_type === 'STOCK_IN'
+ ? 'bg-goodbg text-good border border-goodbg'
+ : m.movement_type === 'STOCK_OUT'
+ ? 'bg-badbg text-bad border border-badbg'
+ : m.movement_type === 'TRANSFER_IN' || m.movement_type === 'TRANSFER_OUT'
+ ? 'bg-tile text-fg border border-line2'
+ : 'bg-warnbg text-warn border border-warnbg'
+ }`}
                           >
                             {m.movement_type}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-bold text-fg">{m.part_no}</td>
-                        <td className="py-3 px-4 text-subtle">{m.product_description}</td>
-                        <td className="py-3 px-4 text-subtle">{m.warehouse_name}</td>
-                        <td className="py-3 px-4 text-right font-bold text-fg">{m.quantity}</td>
-                        <td className="py-3 px-4 text-right text-subtle">{m.before_on_hand}</td>
-                        <td className="py-3 px-4 text-right font-medium text-good">{m.after_on_hand}</td>
-                        <td className="py-3 px-4 text-subtle">{m.reason || m.reference_id || '—'}</td>
+                        <td className="text-fg">{m.part_no}</td>
+                        <td className="text-subtle">{m.product_description}</td>
+                        <td className="text-subtle">{m.warehouse_name}</td>
+                        <td className="ts-r text-fg">{m.quantity}</td>
+                        <td className="ts-r text-subtle">{m.before_on_hand}</td>
+                        <td className="ts-r font-medium text-good">{m.after_on_hand}</td>
+                        <td className="text-subtle">{m.reason || m.reference_id || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -877,47 +871,47 @@ export default function InventoryOperations() {
 
           {/* TAB 9: TRANSFERS */}
           {activeTab === 'transfers' && (
-            <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
+            <div className="ts-card ts-white ts-tbl overflow-hidden">
               {transfers.length === 0 ? (
-                <div className="p-8 text-center text-subtle text-sm">No warehouse transfers recorded</div>
+                <div className="ts-empty">No warehouse transfers recorded</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Transfer Ref</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Source Warehouse</th>
-                      <th className="py-3 px-4">Destination Warehouse</th>
-                      <th className="py-3 px-4">Part Number</th>
-                      <th className="py-3 px-4 text-right">Quantity</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4">Created By</th>
-                      <th className="py-3 px-4 text-center">Action</th>
+                    <tr>
+                      <th>Transfer Ref</th>
+                      <th>Date</th>
+                      <th>Source Warehouse</th>
+                      <th>Destination Warehouse</th>
+                      <th>Part Number</th>
+                      <th className="ts-r">Quantity</th>
+                      <th>Status</th>
+                      <th>Created By</th>
+                      <th className="text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {transfers.map((t) => (
-                      <tr key={t.id} className="hover:bg-surface/50">
-                        <td className="py-3 px-4 font-bold text-fg">
+                      <tr key={t.id}>
+                        <td className="text-fg">
                           <Link to={`/inventory/operations/transfers/${t.id}`} className="hover:underline">
                             {t.transferNumber}
                           </Link>
                         </td>
-                        <td className="py-3 px-4 text-subtle">{formatDate(t.createdAt)}</td>
-                        <td className="py-3 px-4 font-medium text-bad">{t.sourceWarehouseName}</td>
-                        <td className="py-3 px-4 font-medium text-good">{t.destinationWarehouseName}</td>
-                        <td className="py-3 px-4 font-bold text-fg">{t.partNumber}</td>
-                        <td className="py-3 px-4 text-right font-bold text-fg">{t.quantity}</td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-goodbg text-good border border-goodbg">
+                        <td className="text-subtle">{formatDate(t.createdAt)}</td>
+                        <td className="font-medium text-bad">{t.sourceWarehouseName}</td>
+                        <td className="font-medium text-good">{t.destinationWarehouseName}</td>
+                        <td className="text-fg">{t.partNumber}</td>
+                        <td className="ts-r text-fg">{t.quantity}</td>
+                        <td>
+                          <span className="px-2 py-0.5 rounded text-[12px] font-medium bg-goodbg text-good border border-goodbg">
                             {t.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-subtle">{t.createdBy}</td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="text-subtle">{t.createdBy}</td>
+                        <td className="text-center">
                           <Link
                             to={`/inventory/operations/transfers/${t.id}`}
-                            className="text-fg hover:underline text-xs font-semibold"
+                            className="text-fg hover:underline text-xs font-medium"
                           >
                             Details
                           </Link>
@@ -935,58 +929,58 @@ export default function InventoryOperations() {
             <div className="space-y-4">
               {auditSummary && (
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
-                  <div className="bg-surface2 border border-line2 rounded-xl p-3">
-                    <div className="text-[11px] text-subtle">Total Events</div>
-                    <div className="text-lg font-bold text-fg">{auditSummary.totalMovements}</div>
+                  <div className="ts-card ts-white ts-tbl">
+                    <div className="text-[12.5px] text-subtle">Total Events</div>
+                    <div className="text-lg font-medium text-fg">{auditSummary.totalMovements}</div>
                   </div>
-                  <div className="bg-surface2 border border-line2 rounded-xl p-3">
-                    <div className="text-[11px] text-subtle">Stock In Units</div>
-                    <div className="text-lg font-bold text-good">{auditSummary.stockInUnits}</div>
+                  <div className="ts-card ts-white ts-tbl">
+                    <div className="text-[12.5px] text-subtle">Stock In Units</div>
+                    <div className="text-lg font-medium text-good">{auditSummary.stockInUnits}</div>
                   </div>
-                  <div className="bg-surface2 border border-line2 rounded-xl p-3">
-                    <div className="text-[11px] text-subtle">Stock Out Units</div>
-                    <div className="text-lg font-bold text-bad">{auditSummary.stockOutUnits}</div>
+                  <div className="ts-card ts-white ts-tbl">
+                    <div className="text-[12.5px] text-subtle">Stock Out Units</div>
+                    <div className="text-lg font-medium text-bad">{auditSummary.stockOutUnits}</div>
                   </div>
-                  <div className="bg-surface2 border border-line2 rounded-xl p-3">
-                    <div className="text-[11px] text-subtle">Return Units</div>
-                    <div className="text-lg font-bold text-fg">{auditSummary.returnUnits}</div>
+                  <div className="ts-card ts-white ts-tbl">
+                    <div className="text-[12.5px] text-subtle">Return Units</div>
+                    <div className="text-lg font-medium text-fg">{auditSummary.returnUnits}</div>
                   </div>
-                  <div className="bg-surface2 border border-line2 rounded-xl p-3">
-                    <div className="text-[11px] text-subtle">Adjustments</div>
-                    <div className="text-lg font-bold text-warn">{auditSummary.adjustmentUnits}</div>
+                  <div className="ts-card ts-white ts-tbl">
+                    <div className="text-[12.5px] text-subtle">Adjustments</div>
+                    <div className="text-lg font-medium text-warn">{auditSummary.adjustmentUnits}</div>
                   </div>
-                  <div className="bg-surface2 border border-line2 rounded-xl p-3">
-                    <div className="text-[11px] text-subtle">Transfers</div>
-                    <div className="text-lg font-bold text-[#9333EA]">{auditSummary.transferUnits}</div>
+                  <div className="ts-card ts-white ts-tbl">
+                    <div className="text-[12.5px] text-subtle">Transfers</div>
+                    <div className="text-lg font-medium text-fg">{auditSummary.transferUnits}</div>
                   </div>
                 </div>
               )}
 
-              <div className="bg-surface2 border border-line2 rounded-xl overflow-hidden">
-                <table className="w-full text-left border-collapse">
+              <div className="ts-card ts-white ts-tbl overflow-hidden">
+                <table>
                   <thead>
-                    <tr className="bg-surface border-b border-line2 text-[11px] font-semibold text-subtle uppercase tracking-wider">
-                      <th className="py-3 px-4">Timestamp</th>
-                      <th className="py-3 px-4">Type</th>
-                      <th className="py-3 px-4">Part Number</th>
-                      <th className="py-3 px-4">Warehouse</th>
-                      <th className="py-3 px-4 text-right">Quantity</th>
-                      <th className="py-3 px-4 text-right">Before</th>
-                      <th className="py-3 px-4 text-right">After</th>
-                      <th className="py-3 px-4">Reference / Reason</th>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Type</th>
+                      <th>Part Number</th>
+                      <th>Warehouse</th>
+                      <th className="ts-r">Quantity</th>
+                      <th className="ts-r">Before</th>
+                      <th className="ts-r">After</th>
+                      <th>Reference / Reason</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line2 text-xs">
+                  <tbody>
                     {auditMovements.map((m) => (
-                      <tr key={m.id} className="hover:bg-surface/50">
-                        <td className="py-3 px-4 text-subtle">{formatDate(m.created_at)}</td>
-                        <td className="py-3 px-4 font-bold text-fg">{m.movement_type}</td>
-                        <td className="py-3 px-4 font-bold text-fg">{m.part_no}</td>
-                        <td className="py-3 px-4 text-subtle">{m.warehouse_name}</td>
-                        <td className="py-3 px-4 text-right font-bold text-fg">{m.quantity}</td>
-                        <td className="py-3 px-4 text-right text-subtle">{m.before_on_hand}</td>
-                        <td className="py-3 px-4 text-right font-semibold text-good">{m.after_on_hand}</td>
-                        <td className="py-3 px-4 text-subtle">{m.reason || m.reference_id || '—'}</td>
+                      <tr key={m.id}>
+                        <td className="text-subtle">{formatDate(m.created_at)}</td>
+                        <td className="text-fg">{m.movement_type}</td>
+                        <td className="text-fg">{m.part_no}</td>
+                        <td className="text-subtle">{m.warehouse_name}</td>
+                        <td className="ts-r text-fg">{m.quantity}</td>
+                        <td className="ts-r text-subtle">{m.before_on_hand}</td>
+                        <td className="ts-r text-good">{m.after_on_hand}</td>
+                        <td className="text-subtle">{m.reason || m.reference_id || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1122,10 +1116,10 @@ function StockAdjustmentModal({
   const projectedAvailable = Math.max(0, projectedOnHand - currentReserved);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
-      <div className="bg-surface2 border border-line2 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lift">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+      <div className="ts-card ts-white ts-tbl max-w-lg w-full space-y-4">
         <div className="flex items-center justify-between border-b border-line2 pb-3">
-          <h3 className="text-lg font-bold text-fg flex items-center gap-2">
+          <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
             <Sliders className="w-5 h-5 text-fg" />
             Stock Adjustment
           </h3>
@@ -1134,15 +1128,15 @@ function StockAdjustmentModal({
           </button>
         </div>
 
-        {error && <div className="p-3 bg-badbg border border-badbg text-bad text-xs rounded-lg">{error}</div>}
+        {error && <div className="ts-warnbox">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-subtle font-medium mb-1">Warehouse</label>
+            <label className="ts-lbl">Warehouse</label>
             <select
               value={warehouseId}
               onChange={(e) => setWarehouseId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -1153,11 +1147,11 @@ function StockAdjustmentModal({
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Product</label>
+            <label className="ts-lbl">Product</label>
             <select
               value={productId}
               onChange={(e) => setProductId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -1169,11 +1163,11 @@ function StockAdjustmentModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-subtle font-medium mb-1">Adjustment Direction</label>
+              <label className="ts-lbl">Adjustment Direction</label>
               <select
                 value={direction}
                 onChange={(e) => setDirection(e.target.value as 'INCREASE' | 'DECREASE')}
-                className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg font-semibold"
+                className="ts-fi"
               >
                 <option value="INCREASE">INCREASE (+)</option>
                 <option value="DECREASE">DECREASE (-)</option>
@@ -1181,35 +1175,35 @@ function StockAdjustmentModal({
             </div>
 
             <div>
-              <label className="block text-subtle font-medium mb-1">Quantity</label>
+              <label className="ts-lbl">Quantity</label>
               <input
                 type="number"
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="e.g. 10"
-                className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg font-bold"
+                className="ts-fi"
                 required
               />
             </div>
           </div>
 
           {/* Stock Impact Preview */}
-          <div className="p-3 bg-surface border border-line2 rounded-lg space-y-1">
-            <div className="text-[11px] font-bold text-fg uppercase tracking-wider mb-1">Stock Impact Calculation</div>
+          <div className="bg-tile rounded-[14px] p-3.5 space-y-1">
+            <div className="text-[12.5px] font-medium text-fg mb-1">Stock Impact Calculation</div>
             <div className="flex justify-between text-subtle">
               <span>Current On Hand:</span>
-              <span className="font-semibold text-fg">{currentOnHand}</span>
+              <span className="font-medium text-fg">{currentOnHand}</span>
             </div>
             <div className="flex justify-between text-subtle">
               <span>Reserved Quantity:</span>
-              <span className="font-semibold text-[#9333EA]">{currentReserved}</span>
+              <span className="font-medium text-fg">{currentReserved}</span>
             </div>
             <div className="flex justify-between text-subtle">
               <span>Current Available:</span>
-              <span className="font-semibold text-good">{currentAvailable}</span>
+              <span className="font-medium text-good">{currentAvailable}</span>
             </div>
-            <div className="flex justify-between font-bold border-t border-line2 pt-1 mt-1 text-fg">
+            <div className="flex justify-between font-medium border-t border-line2 pt-1 mt-1 text-fg">
               <span>Projected Available:</span>
               <span className={projectedOnHand < currentReserved ? 'text-bad' : 'text-fg'}>
                 {projectedAvailable}
@@ -1218,24 +1212,24 @@ function StockAdjustmentModal({
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Reason</label>
+            <label className="ts-lbl">Reason</label>
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
               required
             />
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Notes / Audit Ref</label>
+            <label className="ts-lbl">Notes / Audit Ref</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Additional comments..."
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             />
           </div>
 
@@ -1243,14 +1237,14 @@ function StockAdjustmentModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-surface2 border border-line2 text-subtle hover:text-fg rounded-lg font-medium"
+              className="ts-btn ts-ghost"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg hover:bg-ink/85 disabled:opacity-50"
+              className="ts-btn ts-dark"
             >
               {submitting ? 'Applying...' : 'Confirm Adjustment'}
             </button>
@@ -1313,10 +1307,10 @@ function StockReturnModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
-      <div className="bg-surface2 border border-line2 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lift">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+      <div className="ts-card ts-white ts-tbl max-w-lg w-full space-y-4">
         <div className="flex items-center justify-between border-b border-line2 pb-3">
-          <h3 className="text-lg font-bold text-fg flex items-center gap-2">
+          <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
             <RotateCcw className="w-5 h-5 text-fg" />
             Record Stock Return
           </h3>
@@ -1325,15 +1319,15 @@ function StockReturnModal({
           </button>
         </div>
 
-        {error && <div className="p-3 bg-badbg border border-badbg text-bad text-xs rounded-lg">{error}</div>}
+        {error && <div className="ts-warnbox">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-subtle font-medium mb-1">Destination Warehouse</label>
+            <label className="ts-lbl">Destination Warehouse</label>
             <select
               value={warehouseId}
               onChange={(e) => setWarehouseId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -1344,11 +1338,11 @@ function StockReturnModal({
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Returned Product</label>
+            <label className="ts-lbl">Returned Product</label>
             <select
               value={productId}
               onChange={(e) => setProductId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -1359,25 +1353,25 @@ function StockReturnModal({
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Returned Quantity</label>
+            <label className="ts-lbl">Returned Quantity</label>
             <input
               type="number"
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="e.g. 5"
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg font-bold text-sm"
+              className="ts-fi"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-subtle font-medium mb-1">Reference Type</label>
+              <label className="ts-lbl">Reference Type</label>
               <select
                 value={referenceType}
                 onChange={(e) => setReferenceType(e.target.value)}
-                className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+                className="ts-fi"
               >
                 <option value="SALE_REPORT">Sale Report</option>
                 <option value="INVOICE">Invoice</option>
@@ -1387,36 +1381,36 @@ function StockReturnModal({
             </div>
 
             <div>
-              <label className="block text-subtle font-medium mb-1">Reference ID / Number</label>
+              <label className="ts-lbl">Reference ID / Number</label>
               <input
                 type="text"
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
                 placeholder="e.g. SR-2026-001"
-                className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+                className="ts-fi"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Reason for Return</label>
+            <label className="ts-lbl">Reason for Return</label>
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
               required
             />
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Notes</label>
+            <label className="ts-lbl">Notes</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Inspection notes or details..."
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             />
           </div>
 
@@ -1424,14 +1418,14 @@ function StockReturnModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-surface2 border border-line2 text-subtle hover:text-fg rounded-lg font-medium"
+              className="ts-btn ts-ghost"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg hover:bg-ink disabled:opacity-50"
+              className="ts-btn ts-dark"
             >
               {submitting ? 'Recording...' : 'Confirm Return'}
             </button>
@@ -1531,10 +1525,10 @@ function WarehouseTransferModal({
   const destProjectedOnHand = destCurrentOnHand + qtyNum;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
-      <div className="bg-surface2 border border-line2 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-lift">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+      <div className="ts-card ts-white ts-tbl max-w-lg w-full space-y-4">
         <div className="flex items-center justify-between border-b border-line2 pb-3">
-          <h3 className="text-lg font-bold text-fg flex items-center gap-2">
+          <h3 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2">
             <ArrowRightLeft className="w-5 h-5 text-fg" />
             Warehouse Transfer
           </h3>
@@ -1543,16 +1537,16 @@ function WarehouseTransferModal({
           </button>
         </div>
 
-        {error && <div className="p-3 bg-badbg border border-badbg text-bad text-xs rounded-lg">{error}</div>}
+        {error && <div className="ts-warnbox">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-subtle font-medium mb-1">Source Warehouse</label>
+              <label className="ts-lbl">Source Warehouse</label>
               <select
                 value={sourceWarehouseId}
                 onChange={(e) => setSourceWarehouseId(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-bad font-semibold"
+                className="ts-fi"
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -1563,11 +1557,11 @@ function WarehouseTransferModal({
             </div>
 
             <div>
-              <label className="block text-subtle font-medium mb-1">Destination Warehouse</label>
+              <label className="ts-lbl">Destination Warehouse</label>
               <select
                 value={destinationWarehouseId}
                 onChange={(e) => setDestinationWarehouseId(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-good font-semibold"
+                className="ts-fi"
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -1579,11 +1573,11 @@ function WarehouseTransferModal({
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Product</label>
+            <label className="ts-lbl">Product</label>
             <select
               value={productId}
               onChange={(e) => setProductId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -1594,60 +1588,60 @@ function WarehouseTransferModal({
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Transfer Quantity</label>
+            <label className="ts-lbl">Transfer Quantity</label>
             <input
               type="number"
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="e.g. 20"
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg font-bold text-sm"
+              className="ts-fi"
               required
             />
           </div>
 
           {/* Pre-Impact Preview */}
-          <div className="p-3 bg-surface border border-line2 rounded-lg space-y-1">
-            <div className="text-[11px] font-bold text-fg uppercase tracking-wider mb-1">Transfer Pre-Impact Check</div>
+          <div className="bg-tile rounded-[14px] p-3.5 space-y-1">
+            <div className="text-[12.5px] font-medium text-fg mb-1">Transfer Pre-Impact Check</div>
             <div className="flex justify-between text-subtle">
               <span>Source Available Stock:</span>
-              <span className="font-semibold text-fg">{srcCurrentAvailable}</span>
+              <span className="font-medium text-fg">{srcCurrentAvailable}</span>
             </div>
             <div className="flex justify-between text-subtle">
               <span>Source Reserved Stock (Untouched):</span>
-              <span className="font-semibold text-[#9333EA]">{srcStock?.reservedQuantity || 0}</span>
+              <span className="font-medium text-fg">{srcStock?.reservedQuantity || 0}</span>
             </div>
             <div className="flex justify-between text-subtle">
               <span>Projected Source Available:</span>
-              <span className={srcProjectedAvailable < 0 ? 'text-bad font-bold' : 'text-good font-semibold'}>
+              <span className={srcProjectedAvailable < 0 ? 'text-bad font-medium' : 'text-good font-medium'}>
                 {srcProjectedAvailable}
               </span>
             </div>
             <div className="flex justify-between text-subtle border-t border-line2 pt-1 mt-1">
               <span>Projected Dest On-Hand:</span>
-              <span className="font-semibold text-fg">{destProjectedOnHand}</span>
+              <span className="font-medium text-fg">{destProjectedOnHand}</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Transfer Reference</label>
+            <label className="ts-lbl">Transfer Reference</label>
             <input
               type="text"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder="e.g. TRF-REQ-882"
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             />
           </div>
 
           <div>
-            <label className="block text-subtle font-medium mb-1">Notes</label>
+            <label className="ts-lbl">Notes</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Internal notes or dispatch details..."
-              className="w-full px-3 py-2 bg-surface border border-line2 rounded-lg text-fg"
+              className="ts-fi"
             />
           </div>
 
@@ -1655,14 +1649,14 @@ function WarehouseTransferModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-surface2 border border-line2 text-subtle hover:text-fg rounded-lg font-medium"
+              className="ts-btn ts-ghost"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg hover:bg-ink/85 disabled:opacity-50"
+              className="ts-btn ts-dark"
             >
               {submitting ? 'Transferring...' : 'Execute Transfer'}
             </button>
