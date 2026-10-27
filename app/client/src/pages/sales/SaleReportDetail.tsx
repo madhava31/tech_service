@@ -146,7 +146,7 @@ export default function SaleReportDetail() {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Sale Reports</span>
         </Link>
-        <div className="p-4 bg-badbg border border-badbg rounded-xl text-sm text-bad flex items-center gap-3">
+        <div className="ts-warnbox">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error || 'Sale Report not found'}</span>
         </div>
@@ -155,9 +155,9 @@ export default function SaleReportDetail() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Top Navigation & Status Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex items-center gap-3">
           <Link
             to="/sale-reports"
@@ -172,7 +172,7 @@ export default function SaleReportDetail() {
               </h1>
               <StatusBadge status={report.status} />
             </div>
-            <p className="text-xs text-subtle mt-0.5">
+            <p className="ts-muted m-0 mt-1.5 text-[14px]">
               Created on {formatDate(report.sale_date)} by {report.created_by_username || 'Staff'}
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function SaleReportDetail() {
             <>
               <Link
                 to={`/sale-reports/${report.id}/edit`}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-surface hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-medium transition-colors"
+                className="ts-btn ts-ghost ts-xs"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Edit Draft</span>
@@ -201,7 +201,7 @@ export default function SaleReportDetail() {
                 type="button"
                 onClick={() => setConfirmModalOpen(true)}
                 disabled={actionLoading}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink text-onink hover:bg-ink/85 rounded-lg text-xs font-semibold transition-colors shadow-sm disabled:opacity-50"
+                className="ts-btn ts-dark ts-xs"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Confirm & Stock OUT</span>
@@ -212,7 +212,7 @@ export default function SaleReportDetail() {
           {report.status === 'CONFIRMED' && (
             <Link
               to="/inventory/stock"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-surface hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-medium transition-colors"
+              className="ts-btn ts-ghost ts-xs"
             >
               <Boxes className="w-3.5 h-3.5" />
               <span>View Inventory Ledger</span>
@@ -251,7 +251,7 @@ export default function SaleReportDetail() {
       {/* Metadata Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Customer Information */}
-        <div className="bg-surface border border-line2 rounded-xl p-4 space-y-3">
+        <div className="ts-card space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-subtle uppercase tracking-wider">
             <Building2 className="w-4 h-4 text-fg" />
             <span>Customer Details</span>
@@ -270,7 +270,7 @@ export default function SaleReportDetail() {
               <p className="text-base font-bold text-fg">{report.company_name_snapshot}</p>
             )}
             {report.phone_number_snapshot && (
-              <p className="text-xs text-subtle mt-1">Phone: {report.phone_number_snapshot}</p>
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">Phone: {report.phone_number_snapshot}</p>
             )}
             {report.company_address && (
               <p className="text-xs text-faint mt-1">{report.company_address}</p>
@@ -282,7 +282,7 @@ export default function SaleReportDetail() {
         </div>
 
         {/* Transaction Information */}
-        <div className="bg-surface border border-line2 rounded-xl p-4 space-y-3">
+        <div className="ts-card space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-subtle uppercase tracking-wider">
             <FileText className="w-4 h-4 text-fg" />
             <span>Transaction Info</span>
@@ -325,7 +325,7 @@ export default function SaleReportDetail() {
         </div>
 
         {/* Warehouse & Dispatch Details */}
-        <div className="bg-surface border border-line2 rounded-xl p-4 space-y-3">
+        <div className="ts-card space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-subtle uppercase tracking-wider">
             <WarehouseIcon className="w-4 h-4 text-fg" />
             <span>Dispatch Warehouse</span>
@@ -362,11 +362,11 @@ export default function SaleReportDetail() {
       </div>
 
       {/* Line Items Table */}
-      <div className="bg-surface border border-line2 rounded-xl overflow-hidden shadow-sm">
+      <div className="ts-card ts-white ts-tbl ts-tcard">
         <div className="px-5 py-3.5 bg-tile border-b border-line2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Boxes className="w-4 h-4 text-fg" />
-            <h2 className="text-sm font-bold text-fg">Sold Line Items</h2>
+            <h2 className="m-0 text-[15px] font-medium text-fg">Sold Line Items</h2>
             <span className="text-xs text-subtle">({report.items.length} items)</span>
           </div>
           <span className="text-xs font-mono text-subtle">
@@ -374,20 +374,20 @@ export default function SaleReportDetail() {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="ts-tblwrap">
           <table className="w-full text-left text-xs text-subtle">
-            <thead className="bg-tile border-b border-line2 text-subtle uppercase tracking-wider font-semibold">
+            <thead>
               <tr>
-                <th className="px-4 py-3">#</th>
-                <th className="px-4 py-3">Part Number</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">HSN Code</th>
-                <th className="px-4 py-3 text-right">Quantity</th>
-                <th className="px-4 py-3 text-right">Unit Price</th>
-                <th className="px-4 py-3 text-right">Total Price</th>
+                <th>#</th>
+                <th>Part Number</th>
+                <th>Description</th>
+                <th>HSN Code</th>
+                <th className="ts-r">Quantity</th>
+                <th className="ts-r">Unit Price</th>
+                <th className="ts-r">Total Price</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody>
               {report.items.map((it, idx) => (
                 <tr key={it.id} className="hover:bg-surface transition-colors">
                   <td className="px-4 py-3 text-faint font-mono">{idx + 1}</td>
@@ -441,11 +441,11 @@ export default function SaleReportDetail() {
       </div>
 
       {/* Inventory Impact & Audit Section */}
-      <div className="bg-surface border border-line2 rounded-xl p-5 space-y-4">
+      <div className="ts-card space-y-4">
         <div className="flex items-center justify-between border-b border-line2 pb-3">
           <div className="flex items-center gap-2">
             <TrendingDown className="w-4 h-4 text-fg" />
-            <h2 className="text-sm font-bold text-fg">Physical Inventory Stock Impact</h2>
+            <h2 className="m-0 text-[15px] font-medium text-fg">Physical Inventory Stock Impact</h2>
           </div>
           <span className="text-xs font-mono text-subtle">
             {report.warehouse_name} ({report.warehouse_code})
@@ -500,13 +500,13 @@ export default function SaleReportDetail() {
       {/* Confirmation Modal */}
       {confirmModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-surface border border-line2 rounded-xl max-w-md w-full p-6 shadow-lift space-y-4">
+          <div className="ts-modal max-w-md w-full space-y-4">
             <div className="flex items-center gap-3 text-good">
               <div className="p-2 bg-goodbg border border-goodbg rounded-lg">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-fg">Confirm Sale Report</h3>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Confirm Sale Report</h3>
                 <p className="text-xs text-subtle font-mono">{report.report_number}</p>
               </div>
             </div>
@@ -539,7 +539,7 @@ export default function SaleReportDetail() {
             </p>
 
             {error && (
-              <div className="p-3 bg-badbg border border-badbg rounded-lg text-xs text-bad">
+              <div className="ts-warnbox">
                 {error}
               </div>
             )}
@@ -549,7 +549,7 @@ export default function SaleReportDetail() {
                 type="button"
                 onClick={() => setConfirmModalOpen(false)}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-surface border border-line2 text-fg hover:text-fg rounded-lg text-xs font-medium transition-colors"
+                className="ts-btn ts-ghost ts-xs"
               >
                 Cancel
               </button>
@@ -557,7 +557,7 @@ export default function SaleReportDetail() {
                 type="button"
                 onClick={handleConfirm}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-ink text-onink hover:bg-ink/85 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                className="ts-btn ts-dark ts-xs"
               >
                 {actionLoading ? 'Deducting Stock...' : 'Confirm & Stock OUT'}
               </button>

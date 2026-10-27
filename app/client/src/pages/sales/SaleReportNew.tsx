@@ -1,3 +1,4 @@
+import { Seg } from '../../components/ds/Seg';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -442,13 +443,13 @@ export default function SaleReportNew() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="ts-phead !mb-2 justify-between">
         <div className="flex items-center gap-3">
           <Link
             to="/sale-reports"
-            className="p-2 bg-surface border border-line2 text-subtle hover:text-fg rounded-lg transition-colors"
+            className="ts-iconbtn" aria-label="Back to sale reports"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -456,7 +457,7 @@ export default function SaleReportNew() {
             <h1 className="ts-title ts-title-sm">
               {isEditing ? `Edit Draft Sale Report` : 'Create New Sale Report'}
             </h1>
-            <p className="text-xs text-subtle mt-0.5">
+            <p className="ts-muted m-0 mt-1.5 text-[14px]">
               Select an internal document or manually record external customer sale
             </p>
           </div>
@@ -465,7 +466,7 @@ export default function SaleReportNew() {
         <div className="flex items-center gap-2.5">
           <Link
             to="/sale-reports"
-            className="px-3.5 py-2 bg-surface border border-line2 text-subtle hover:text-fg rounded-lg text-xs font-medium transition-colors"
+            className="ts-btn ts-ghost ts-xs"
           >
             Cancel
           </Link>
@@ -473,7 +474,7 @@ export default function SaleReportNew() {
             type="button"
             onClick={() => handleSubmit(false)}
             disabled={submitting}
-            className="px-4 py-2 bg-tile border border-line2 text-fg hover:bg-tile rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+            className="ts-btn ts-ghost ts-xs"
           >
             Save as Draft
           </button>
@@ -481,7 +482,7 @@ export default function SaleReportNew() {
             type="button"
             onClick={() => handleSubmit(true)}
             disabled={submitting}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink text-onink hover:bg-ink/85 rounded-lg text-xs font-semibold transition-colors shadow-sm disabled:opacity-50"
+            className="ts-btn ts-dark ts-xs"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Confirm & Stock OUT</span>
@@ -491,7 +492,7 @@ export default function SaleReportNew() {
 
       {/* Error Alert */}
       {error && (
-        <div className="p-4 bg-badbg border border-badbg rounded-xl flex items-center gap-3 text-sm text-bad">
+        <div className="ts-warnbox">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -515,45 +516,26 @@ export default function SaleReportNew() {
         </div>
       )}
 
-      {/* Source Choice Tabs */}
+      {/* Source choice */}
       {!isEditing && (
-        <div className="grid grid-cols-2 gap-3 p-1.5 bg-surface border border-line2 rounded-xl">
-          <button
-            type="button"
-            onClick={() => {
-              setSourceMode('INTERNAL_DOCUMENT');
-              setLineItems([]);
-            }}
-            className={`flex items-center justify-center gap-2.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
-              sourceMode === 'INTERNAL_DOCUMENT'
-                ? 'bg-tile text-fg shadow-sm border border-line2'
-                : 'text-subtle hover:text-fg'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>CASE 1 — From Existing Quotation / PO / PI</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setSourceMode('DIRECT_EXTERNAL');
-              setLineItems([]);
-            }}
-            className={`flex items-center justify-center gap-2.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
-              sourceMode === 'DIRECT_EXTERNAL'
-                ? 'bg-tile text-fg shadow-sm border border-line2'
-                : 'text-subtle hover:text-fg'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>CASE 2 — Direct External PO / PI</span>
-          </button>
+        <div className="ts-card ts-white" style={{ padding: 12 }}>
+          <div className="max-w-full overflow-x-auto no-scrollbar rounded-full">
+            <Seg
+              label="Sale report source"
+              value={sourceMode}
+              options={[
+                { value: 'INTERNAL_DOCUMENT', label: 'Case 1 · From quotation, PO or PI' },
+                { value: 'DIRECT_EXTERNAL', label: 'Case 2 · Direct external PO or PI' },
+              ]}
+              onChange={(v) => { setSourceMode(v as typeof sourceMode); setLineItems([]); }}
+            />
+          </div>
         </div>
       )}
 
       {/* Top Document Details Card */}
-      <div className="bg-surface border border-line2 rounded-xl p-5 space-y-4">
-        <h2 className="text-sm font-bold text-fg flex items-center gap-2 border-b border-line2 pb-3">
+      <div className="ts-card space-y-4">
+        <h2 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2 border-dashed border-line2 pb-3 border-b">
           <Building2 className="w-4 h-4 text-fg" />
           <span>Sale Report Header Information</span>
         </h2>
@@ -562,7 +544,7 @@ export default function SaleReportNew() {
         {sourceMode === 'INTERNAL_DOCUMENT' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-line2">
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">
+              <label className="ts-lbl">
                 1. Filter by Company (Optional)
               </label>
               <select
@@ -578,7 +560,7 @@ export default function SaleReportNew() {
                     }
                   }
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">All Companies</option>
                 {companies.map((c) => (
@@ -590,7 +572,7 @@ export default function SaleReportNew() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">
+              <label className="ts-lbl">
                 2. Source Document Type
               </label>
               <select
@@ -600,7 +582,7 @@ export default function SaleReportNew() {
                   setSelectedDocId('');
                   setLineItems([]);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="quotation">Quotation (QTN)</option>
                 <option value="po">Purchase Order (PO)</option>
@@ -609,13 +591,13 @@ export default function SaleReportNew() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">
+              <label className="ts-lbl">
                 3. Select Source Document
               </label>
               <select
                 value={selectedDocId}
                 onChange={(e) => handleSelectDocument(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">Choose eligible document...</option>
                 {availableDocs.map((doc: any) => (
@@ -632,7 +614,7 @@ export default function SaleReportNew() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Company Name */}
           <div className="relative">
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               Company Name <span className="text-bad">*</span>
             </label>
             <input
@@ -641,7 +623,7 @@ export default function SaleReportNew() {
               value={companyName}
               onChange={(e) => handleCompanyInput(e.target.value)}
               disabled={sourceMode === 'INTERNAL_DOCUMENT' && Boolean(selectedDocId)}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg disabled:opacity-60"
+              className="ts-fi"
             />
             {showCompanySuggestions && companySuggestions.length > 0 && (
               <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface border border-line2 rounded-lg shadow-card overflow-hidden max-h-48 overflow-y-auto">
@@ -662,7 +644,7 @@ export default function SaleReportNew() {
 
           {/* Invoice Number */}
           <div>
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               Invoice Number
             </label>
             <input
@@ -670,26 +652,26 @@ export default function SaleReportNew() {
               placeholder="e.g. INV-2026-001 or External Ref"
               value={invoiceNumber}
               onChange={(e) => setInvoiceNumber(e.target.value)}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+              className="ts-fi"
             />
           </div>
 
           {/* Sale Date */}
           <div>
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               Sale Date <span className="text-bad">*</span>
             </label>
             <input
               type="date"
               value={saleDate}
               onChange={(e) => setSaleDate(e.target.value)}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+              className="ts-fi"
             />
           </div>
 
           {/* Phone Number */}
           <div>
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               Phone Number
             </label>
             <input
@@ -697,19 +679,19 @@ export default function SaleReportNew() {
               placeholder="Customer contact phone"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+              className="ts-fi"
             />
           </div>
 
           {/* Warehouse Selection */}
           <div>
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               Warehouse for Stock OUT <span className="text-bad">*</span>
             </label>
             <select
               value={selectedWarehouseId}
               onChange={(e) => setSelectedWarehouseId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+              className="ts-fi"
             >
               <option value="">Select Warehouse...</option>
               {warehouses.map((w) => (
@@ -722,7 +704,7 @@ export default function SaleReportNew() {
 
           {/* External Source Reference */}
           <div>
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               Source Reference / PO Ref
             </label>
             <input
@@ -730,13 +712,13 @@ export default function SaleReportNew() {
               placeholder="Customer PO #, email note, etc."
               value={sourceReference}
               onChange={(e) => setSourceReference(e.target.value)}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+              className="ts-fi"
             />
           </div>
 
           {/* Tax Percent */}
           <div>
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               GST / Tax Percent (%)
             </label>
             <input
@@ -745,13 +727,13 @@ export default function SaleReportNew() {
               max="100"
               value={taxPercent}
               onChange={(e) => setTaxPercent(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+              className="ts-fi"
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-medium text-subtle mb-1.5">
+            <label className="ts-lbl">
               Notes / Dispatch Remarks
             </label>
             <input
@@ -759,18 +741,18 @@ export default function SaleReportNew() {
               placeholder="Optional remarks"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-xs text-fg focus:outline-none focus:border-fg"
+              className="ts-fi"
             />
           </div>
         </div>
       </div>
 
       {/* Line Items Card */}
-      <div className="bg-surface border border-line2 rounded-xl p-5 space-y-4">
+      <div className="ts-card space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line2 pb-3">
           <div className="flex items-center gap-2">
             <Boxes className="w-4 h-4 text-fg" />
-            <h2 className="text-sm font-bold text-fg">Products & Quantities for Stock OUT</h2>
+            <h2 className="m-0 text-[15px] font-medium text-fg">Products & Quantities for Stock OUT</h2>
             <span className="text-xs text-subtle">({activeItems.length} items included)</span>
           </div>
 
@@ -782,7 +764,7 @@ export default function SaleReportNew() {
                 placeholder="Search catalogue by part # or name to add..."
                 value={productSearchQuery}
                 onChange={(e) => handleProductSearch(e.target.value)}
-                className="w-full px-3 py-1.5 bg-tile border border-line2 rounded-lg text-xs text-fg placeholder-faint focus:outline-none focus:border-fg"
+                className="ts-fi"
               />
               {showProductDropdown && filteredProducts.length > 0 && (
                 <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface border border-line2 rounded-lg shadow-card overflow-hidden max-h-60 overflow-y-auto">
@@ -815,29 +797,29 @@ export default function SaleReportNew() {
         </div>
 
         {/* Items Table */}
-        <div className="overflow-x-auto">
+        <div className="ts-tblwrap">
           <table className="w-full text-left text-xs text-subtle">
-            <thead className="bg-tile border-b border-line2 text-subtle uppercase tracking-wider font-semibold">
+            <thead>
               <tr>
-                {sourceMode === 'INTERNAL_DOCUMENT' && <th className="px-3 py-3 w-10 text-center">Include</th>}
-                <th className="px-3 py-3">Part Number</th>
-                <th className="px-3 py-3">Description</th>
-                <th className="px-3 py-3">HSN</th>
+                {sourceMode === 'INTERNAL_DOCUMENT' && <th className="text-center">Include</th>}
+                <th>Part Number</th>
+                <th>Description</th>
+                <th>HSN</th>
                 {sourceMode === 'INTERNAL_DOCUMENT' && (
                   <>
-                    <th className="px-3 py-3 text-right">Quote Qty</th>
-                    <th className="px-3 py-3 text-right">Already Sold</th>
-                    <th className="px-3 py-3 text-right">Remaining</th>
+                    <th className="ts-r">Quote Qty</th>
+                    <th className="ts-r">Already Sold</th>
+                    <th className="ts-r">Remaining</th>
                   </>
                 )}
-                <th className="px-3 py-3 text-center">Warehouse Stock</th>
-                <th className="px-3 py-3 w-28 text-right">Sale Qty</th>
-                <th className="px-3 py-3 w-28 text-right">Price (₹)</th>
-                <th className="px-3 py-3 text-right">Total (₹)</th>
-                {sourceMode === 'DIRECT_EXTERNAL' && <th className="px-3 py-3 w-10"></th>}
+                <th className="text-center">Warehouse Stock</th>
+                <th className="ts-r">Sale Qty</th>
+                <th className="ts-r">Price (₹)</th>
+                <th className="ts-r">Total (₹)</th>
+                {sourceMode === 'DIRECT_EXTERNAL' && <th></th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody>
               {loadingDoc ? (
                 <tr>
                   <td colSpan={11} className="px-3 py-8 text-center text-subtle">

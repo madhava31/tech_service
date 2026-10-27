@@ -44,24 +44,18 @@ function formatDate(d: string | null | undefined) {
 function StatusBadge({ status }: { status: string }) {
   if (status === 'CONFIRMED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-goodbg text-good border border-goodbg rounded-md text-[11.5px] font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-good" />
-        Confirmed
+      <span className="ts-st ts-tone-good">Confirmed
       </span>
     );
   }
   if (status === 'DRAFT') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-warnbg text-warn border border-warnbg rounded-md text-[11.5px] font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-warn" />
-        Draft (Staged)
+      <span className="ts-st ts-tone-warn">Draft (Staged)
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-badbg text-bad border border-badbg rounded-md text-[11.5px] font-medium">
-      <span className="w-1.5 h-1.5 rounded-full bg-bad" />
-      Cancelled
+    <span className="ts-st ts-tone-bad">Cancelled
     </span>
   );
 }
@@ -210,17 +204,17 @@ export default function SaleReportList() {
     datePreset !== 'all';
 
   return (
-    <div className="p-6 max-w-[1440px] mx-auto space-y-6">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="ts-title">Sale Reports</h1>
-            <span className="px-2.5 py-0.5 bg-surface2 text-subtle border border-line2 rounded-full text-xs font-mono">
+            <span className="ts-headtag">
               Stock OUT
             </span>
           </div>
-          <p className="text-sm text-subtle mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Controlled physical stock deduction and sales dispatch ledger
           </p>
         </div>
@@ -228,7 +222,7 @@ export default function SaleReportList() {
         <div className="flex items-center gap-3">
           <Link
             to="/sale-reports/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-onink font-semibold text-sm rounded-lg hover:bg-ink/85 transition-colors shadow-sm"
+            className="ts-btn ts-dark"
           >
             <Plus className="w-4 h-4" />
             <span>New Sale Report</span>
@@ -238,60 +232,60 @@ export default function SaleReportList() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-subtle font-medium">Total Reports</span>
-          <span className="text-2xl font-bold text-fg mt-2 font-mono">
+        <div className="ts-card flex flex-col justify-between">
+          <span className="text-[13.5px] text-subtle">Total Reports</span>
+          <span className="ts-val num text-fg">
             {kpi.totalReports}
           </span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-warn font-medium">Draft (Staged)</span>
+            <span className="text-[13.5px] text-warn">Draft (Staged)</span>
             <span className="w-2 h-2 rounded-full bg-warn" />
           </div>
-          <span className="text-2xl font-bold text-warn mt-2 font-mono">
+          <span className="ts-val num text-warn">
             {kpi.draftCount}
           </span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-good font-medium">Confirmed Sales</span>
+            <span className="text-[13.5px] text-good">Confirmed Sales</span>
             <span className="w-2 h-2 rounded-full bg-good" />
           </div>
-          <span className="text-2xl font-bold text-good mt-2 font-mono">
+          <span className="ts-val num text-good">
             {kpi.confirmedCount}
           </span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
+        <div className="ts-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-bad font-medium">Cancelled</span>
+            <span className="text-[13.5px] text-bad">Cancelled</span>
             <span className="w-2 h-2 rounded-full bg-bad" />
           </div>
-          <span className="text-2xl font-bold text-bad mt-2 font-mono">
+          <span className="ts-val num text-bad">
             {kpi.cancelledCount}
           </span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-subtle font-medium">Today's Sales</span>
-          <span className="text-2xl font-bold text-fg mt-2 font-mono">
+        <div className="ts-card flex flex-col justify-between">
+          <span className="text-[13.5px] text-subtle">Today's Sales</span>
+          <span className="ts-val num text-fg">
             {kpi.todaySalesCount}
           </span>
         </div>
 
-        <div className="bg-surface border border-line2 rounded-xl p-4 flex flex-col justify-between">
-          <span className="text-xs text-fg font-medium">Confirmed Value</span>
-          <span className="text-lg sm:text-xl font-bold text-fg mt-2 font-mono truncate" title={formatINR(kpi.confirmedTotalValue)}>
+        <div className="ts-card flex flex-col justify-between">
+          <span className="text-[13.5px] text-fg">Confirmed Value</span>
+          <span className="ts-val num truncate" title={formatINR(kpi.confirmedTotalValue)}>
             {formatINR(kpi.confirmedTotalValue)}
           </span>
         </div>
       </div>
 
       {/* Expandable Search & Filter Bar */}
-      <div className="bg-surface border border-line2 rounded-xl p-3.5 space-y-3">
+      <div className="ts-card space-y-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Expanding Search Input */}
           <div className="relative flex-1 w-full">
@@ -304,7 +298,7 @@ export default function SaleReportList() {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg placeholder-faint focus:outline-none focus:border-fg transition-colors"
+              className="ts-fi !pl-10 !rounded-full !bg-tile !border-transparent"
             />
           </div>
 
@@ -332,7 +326,7 @@ export default function SaleReportList() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-subtle hover:text-fg hover:border-line2 transition-colors"
+                className="ts-btn ts-ghost"
                 title="Reset all filters"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -346,14 +340,14 @@ export default function SaleReportList() {
         {isFilterOpen && (
           <div id="sale-report-filters" className="pt-4 border-t border-line2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-1 duration-150">
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">Status</label>
+              <label className="ts-lbl">Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">All Statuses</option>
                 <option value="DRAFT">Draft (Staged)</option>
@@ -363,14 +357,14 @@ export default function SaleReportList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">Warehouse</label>
+              <label className="ts-lbl">Warehouse</label>
               <select
                 value={warehouseFilter}
                 onChange={(e) => {
                   setWarehouseFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">All Warehouses</option>
                 {warehouses.map((w) => (
@@ -382,14 +376,14 @@ export default function SaleReportList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">Source Type</label>
+              <label className="ts-lbl">Source Type</label>
               <select
                 value={sourceFilter}
                 onChange={(e) => {
                   setSourceFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="">All Sources</option>
                 <option value="INTERNAL_DOCUMENT">Internal (Quote/PO/PI)</option>
@@ -398,14 +392,14 @@ export default function SaleReportList() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-subtle mb-1.5">Date Range</label>
+              <label className="ts-lbl">Date Range</label>
               <select
                 value={datePreset}
                 onChange={(e) => {
                   setDatePreset(e.target.value as any);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 bg-tile border border-line2 rounded-lg text-sm text-fg focus:outline-none focus:border-fg"
+                className="ts-fi"
               >
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -419,31 +413,31 @@ export default function SaleReportList() {
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 bg-badbg border border-badbg rounded-xl flex items-center gap-3 text-sm text-bad">
+        <div className="ts-warnbox">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Reports Table */}
-      <div className="bg-surface border border-line2 rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-subtle">
-            <thead className="bg-tile border-b border-line2 text-xs text-subtle uppercase tracking-wider font-semibold">
+      <div className="ts-card ts-white ts-tbl ts-tcard">
+        <div className="ts-tblwrap">
+          <table>
+            <thead>
               <tr>
-                <th className="px-4 py-3.5">Report #</th>
-                <th className="px-4 py-3.5">Date</th>
-                <th className="px-4 py-3.5">Company</th>
-                <th className="px-4 py-3.5">Invoice #</th>
-                <th className="px-4 py-3.5">Source</th>
-                <th className="px-4 py-3.5">Warehouse</th>
-                <th className="px-4 py-3.5 text-right">Items / Qty</th>
-                <th className="px-4 py-3.5 text-right">Total Amount</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5 text-right">Actions</th>
+                <th>Report #</th>
+                <th>Date</th>
+                <th>Company</th>
+                <th>Invoice #</th>
+                <th>Source</th>
+                <th>Warehouse</th>
+                <th className="ts-r">Items / Qty</th>
+                <th className="ts-r">Total Amount</th>
+                <th>Status</th>
+                <th className="ts-r">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={10} className="px-4 py-12 text-center text-faint">
@@ -465,14 +459,14 @@ export default function SaleReportList() {
                         <button
                           type="button"
                           onClick={handleResetFilters}
-                          className="px-3.5 py-1.5 bg-surface border border-line2 rounded-lg text-xs text-fg hover:bg-tile"
+                          className="ts-btn ts-ghost ts-xs"
                         >
                           Clear Filters
                         </button>
                       ) : (
                         <Link
                           to="/sale-reports/new"
-                          className="px-4 py-2 bg-ink text-onink font-semibold text-xs rounded-lg hover:bg-ink/85"
+                          className="ts-btn ts-dark ts-xs"
                         >
                           Create Sale Report
                         </Link>
@@ -540,7 +534,7 @@ export default function SaleReportList() {
                           <button
                             type="button"
                             onClick={() => setConfirmingId(report.id)}
-                            className="px-2.5 py-1 bg-goodbg hover:bg-[#DAF3E7] text-good border border-goodbg rounded text-xs font-medium transition-colors"
+                            className="ts-btn ts-xs bg-goodbg text-good"
                             title="Confirm Sale Report & Deduct Physical Stock"
                           >
                             Confirm
@@ -548,7 +542,7 @@ export default function SaleReportList() {
                         )}
                         <Link
                           to={`/sale-reports/${report.id}`}
-                          className="px-2.5 py-1 bg-surface hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
+                          className="ts-btn ts-ghost ts-xs"
                         >
                           View
                         </Link>
@@ -563,7 +557,7 @@ export default function SaleReportList() {
 
         {/* Pagination */}
         {total > PAGE_SIZE && (
-          <div className="p-4 border-t border-line2 flex justify-between items-center bg-tile">
+          <div className="pt-4 mt-2 border-t border-line flex flex-wrap gap-3 justify-between items-center">
             <span className="text-xs text-subtle">
               Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, total)} of {total} reports
             </span>
@@ -579,13 +573,13 @@ export default function SaleReportList() {
       {/* Quick Confirm Modal */}
       {confirmingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-surface border border-line2 rounded-xl max-w-md w-full p-6 shadow-lift space-y-4">
+          <div className="ts-modal max-w-md w-full space-y-4">
             <div className="flex items-center gap-3 text-good">
               <div className="p-2 bg-goodbg border border-goodbg rounded-lg">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-fg">Confirm Sale Report</h3>
+                <h3 className="m-0 text-[15px] font-medium text-fg">Confirm Sale Report</h3>
                 <p className="text-xs text-subtle">Execute physical stock deduction</p>
               </div>
             </div>
@@ -596,7 +590,7 @@ export default function SaleReportList() {
             </p>
 
             {confirmError && (
-              <div className="p-3 bg-badbg border border-badbg rounded-lg text-xs text-bad">
+              <div className="ts-warnbox">
                 {confirmError}
               </div>
             )}
@@ -609,7 +603,7 @@ export default function SaleReportList() {
                   setConfirmError('');
                 }}
                 disabled={confirmSubmitting}
-                className="px-4 py-2 bg-surface border border-line2 text-fg hover:text-fg rounded-lg text-sm font-medium transition-colors"
+                className="ts-btn ts-ghost"
               >
                 Cancel
               </button>
@@ -617,7 +611,7 @@ export default function SaleReportList() {
                 type="button"
                 onClick={handleQuickConfirm}
                 disabled={confirmSubmitting}
-                className="px-4 py-2 bg-ink text-onink hover:bg-ink/85 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                className="ts-btn ts-dark"
               >
                 {confirmSubmitting ? 'Confirming...' : 'Yes, Confirm & Deduct Stock'}
               </button>

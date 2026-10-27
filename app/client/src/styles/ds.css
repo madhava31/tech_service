@@ -399,3 +399,10 @@ select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-
 .ts-title-sm { font-size: 28px; }
 .ts-title.font-mono { font-family: var(--font); }
 @media (max-width: 760px) { .ts-title, .page-title { font-size: 30px; } .ts-title-sm { font-size: 24px; } }
+.ts-lbl { display: block; font-size: 11.5px; letter-spacing: .07em; text-transform: uppercase; color: rgb(var(--muted)); font-weight: 500; margin-bottom: 7px; }
+.ts-modal { background: rgb(var(--surface-2)); color: rgb(var(--fg)); border-radius: 22px; padding: 24px; box-shadow: var(--shadow), 0 0 0 1px rgb(var(--line-rgb) / .07), 0 30px 60px -24px rgba(0,0,0,.35); animation: panelIn .35s var(--spring) both; }
+.ts-st.ts-confirmed::before{background:rgb(var(--good))}
+.ts-st.ts-tone-good{background:rgb(var(--good-bg)); color:rgb(var(--good))} .ts-st.ts-tone-good::before{background:rgb(var(--good))}
+.ts-st.ts-tone-warn{background:rgb(var(--warn-bg)); color:rgb(var(--warn))} .ts-st.ts-tone-warn::before{background:rgb(var(--warn))}
+.ts-st.ts-tone-bad{background:rgb(var(--bad-bg)); color:rgb(var(--bad))} .ts-st.ts-tone-bad::before{background:rgb(var(--bad))}
+.ts-tbl th { font-weight: 400 !important; text-transform: none !important; letter-spacing: normal !important; color: rgb(var(--muted)) !important; background: none !important; }
