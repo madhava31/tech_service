@@ -374,7 +374,7 @@ textarea.ts-fi{resize:vertical; min-height:100px; line-height:1.5}
 .ts-qmeta div{display:flex; justify-content:space-between; gap:12px} .ts-qmeta span{opacity:.6; flex:none}
 .ts-qmeta b{font-weight:500; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
 @media (max-width:1100px){ .ts-qgrid{grid-template-columns:minmax(0,1fr)} .ts-qside{position:static} }
-.ts-headtag{font-size:12px; padding:5px 11px; border-radius:999px; border:1px dashed rgb(var(--line-rgb) / .13); color:rgb(var(--muted))}
+.ts-headtag{white-space:nowrap; font-size:12px; padding:5px 11px; border-radius:999px; border:1px dashed rgb(var(--line-rgb) / .13); color:rgb(var(--muted))}
 @keyframes pop{0%{transform:scale(.9); opacity:.2} 60%{transform:scale(1.03)} 100%{transform:scale(1); opacity:1}}
 .ts-chips button{border:0; cursor:pointer; font-family:inherit}
 .ts-qline .searchable-select input, .ts-qline .searchable-select button{background-color:rgb(var(--surface-2))}

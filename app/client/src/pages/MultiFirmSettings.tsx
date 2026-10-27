@@ -103,19 +103,19 @@ export default function MultiFirmSettings() {
   }
 
   return (
-    <div className="w-full max-w-6xl space-y-6 px-4 tablet-lg:px-6 pt-2">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line2">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
           <h1 className="ts-title">Multi-Firm & Branch Setup</h1>
-          <p className="text-sm text-subtle mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Manage legal entities, operational branches, and branch-specific document print settings.
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setShowFirmModal(true)}
-            className="px-4 py-2 bg-surface2 hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            className="ts-btn ts-ghost ts-xs"
           >
             + Add Legal Firm
           </button>
@@ -124,7 +124,7 @@ export default function MultiFirmSettings() {
               if (firms.length > 0) setSelectedFirmId(firms[0].id);
               setShowBranchModal(true);
             }}
-            className="px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors shadow-sm cursor-pointer"
+            className="ts-btn ts-dark ts-xs"
           >
             + Add Branch
           </button>
@@ -132,7 +132,7 @@ export default function MultiFirmSettings() {
       </div>
 
       {error && (
-        <div className="p-4 bg-bad/10 border border-bad/30 rounded-xl text-bad text-sm">
+        <div className="ts-warnbox">
           {error}
         </div>
       )}
@@ -140,32 +140,32 @@ export default function MultiFirmSettings() {
       {/* Firms List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="p-6 text-center text-subtle text-xs bg-surface2 rounded-xl border border-line2">
+          <div className="ts-card ts-empty">
             Loading firm entities...
           </div>
         ) : firms.length === 0 ? (
-          <div className="p-6 text-center text-subtle text-xs bg-surface2 rounded-xl border border-line2">
+          <div className="ts-card ts-empty">
             No firms configured. Click "Add Legal Firm" to start.
           </div>
         ) : (
           firms.map((firm) => {
             const firmBranches = branches.filter((b) => b.firm_id === firm.id);
             return (
-              <div key={firm.id} className="bg-surface2 border border-line2 rounded-xl p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line2 pb-3">
+              <div key={firm.id} className="ts-card ts-white ts-tbl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-dashed border-line2 pb-3">
                   <div>
-                    <div className="flex items-center space-x-2">
-                      <h2 className="text-lg font-bold text-fg">{firm.name}</h2>
-                      <span className="px-2 py-0.5 bg-surface text-fg border border-line2 font-mono text-xs rounded font-bold">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="m-0 text-[15px] font-medium text-fg">{firm.name}</h2>
+                      <span className="ts-st num">
                         {firm.code}
                       </span>
                       {firm.is_default === 1 && (
-                        <span className="px-2 py-0.5 bg-good/10 text-good border border-good/30 text-[10px] rounded font-semibold">
+                        <span className="ts-st ts-tone-good">
                           DEFAULT HQ
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-subtle mt-0.5">
+                    <p className="ts-muted m-0 mt-1.5 text-[14px]">
                       Legal: {firm.legal_name || '—'} | GSTIN: {firm.gstin || '—'} | PAN: {firm.pan || '—'}
                     </p>
                   </div>
@@ -174,7 +174,7 @@ export default function MultiFirmSettings() {
                       setSelectedFirmId(firm.id);
                       setShowBranchModal(true);
                     }}
-                    className="px-3 py-1.5 bg-surface hover:bg-tile text-fg border border-line2 rounded text-xs font-semibold cursor-pointer"
+                    className="ts-btn ts-ghost ts-xs"
                   >
                     + Add Branch to {firm.code}
                   </button>
@@ -182,33 +182,33 @@ export default function MultiFirmSettings() {
 
                 {/* Branches List */}
                 <div className="space-y-2">
-                  <h3 className="text-xs uppercase font-semibold text-subtle tracking-wider">
+                  <h3 className="text-[13px] font-medium text-subtle">
                     Branches ({firmBranches.length})
                   </h3>
                   {firmBranches.length === 0 ? (
-                    <p className="text-xs text-subtle">No branches created under this firm.</p>
+                    <p className="text-[13px] text-subtle">No branches created under this firm.</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {firmBranches.map((b) => (
-                        <div key={b.id} className="bg-surface border border-line2 rounded-lg p-4 space-y-2">
+                        <div key={b.id} className="bg-tile rounded-[14px] p-3.5 space-y-2">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-bold text-fg text-sm">{b.name}</span>
-                              <span className="text-xs font-mono text-fg bg-surface2 px-1.5 py-0.5 rounded border border-line2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-fg text-sm">{b.name}</span>
+                              <span className="ts-st num">
                                 {b.code}
                               </span>
                               {b.is_default === 1 && (
-                                <span className="text-[10px] text-good font-mono">DEFAULT</span>
+                                <span className="text-[12px] text-good num">DEFAULT</span>
                               )}
                             </div>
                             <Link
                               to={`/settings/multi-firm/branches/${b.id}/documents`}
-                              className="text-xs text-fg hover:underline font-semibold"
+                              className="text-[13px] text-fg hover:underline font-medium"
                             >
                               Print Settings →
                             </Link>
                           </div>
-                          <div className="text-xs text-subtle space-y-0.5">
+                          <div className="text-[13px] text-subtle space-y-0.5">
                             <div>Address: {b.address || '—'}, {b.city || '—'} {b.state || '—'}</div>
                             <div>Contact: {b.phone || '—'} | {b.email || '—'}</div>
                           </div>
@@ -225,79 +225,79 @@ export default function MultiFirmSettings() {
 
       {/* Add Firm Modal */}
       {showFirmModal && (
-        <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
-          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
-            <div className="flex justify-between items-center border-b border-line2 pb-3">
-              <h3 className="text-lg font-bold text-fg">Add Legal Firm Entity</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-card ts-white ts-tbl w-full max-w-md space-y-4">
+            <div className="flex justify-between items-center gap-3">
+              <h3 className="m-0 text-[15px] font-medium text-fg">Add Legal Firm Entity</h3>
               <button onClick={() => setShowFirmModal(false)} className="text-subtle hover:text-fg">✕</button>
             </div>
             <form onSubmit={handleCreateFirm} className="space-y-4">
               <div>
-                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Firm Name *</label>
+                <label className="ts-lbl">Firm Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="TECHNICON SERVICES"
                   value={firmName}
                   onChange={(e) => setFirmName(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Firm Code *</label>
+                <label className="ts-lbl">Firm Code *</label>
                 <input
                   type="text"
                   required
                   placeholder="TECH-HQ"
                   value={firmCode}
                   onChange={(e) => setFirmCode(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg uppercase font-mono"
+                  className="ts-fi"
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Legal Registered Name</label>
+                <label className="ts-lbl">Legal Registered Name</label>
                 <input
                   type="text"
                   placeholder="Technicon Services Pvt. Ltd."
                   value={legalName}
                   onChange={(e) => setLegalName(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">GSTIN</label>
+                  <label className="ts-lbl">GSTIN</label>
                   <input
                     type="text"
                     placeholder="36AAAAA0000A1Z5"
                     value={gstin}
                     onChange={(e) => setGstin(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg uppercase font-mono"
+                    className="ts-fi"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">PAN</label>
+                  <label className="ts-lbl">PAN</label>
                   <input
                     type="text"
                     placeholder="AAAAA0000A"
                     value={pan}
                     onChange={(e) => setPan(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg uppercase font-mono"
+                    className="ts-fi"
                   />
                 </div>
               </div>
-              <div className="flex justify-end space-x-3 pt-2">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowFirmModal(false)}
-                  className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs"
+                  className="ts-btn ts-ghost ts-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingFirm}
-                  className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg text-xs"
+                  className="ts-btn ts-dark ts-xs"
                 >
                   {savingFirm ? 'Saving...' : 'Create Firm'}
                 </button>
@@ -309,20 +309,20 @@ export default function MultiFirmSettings() {
 
       {/* Add Branch Modal */}
       {showBranchModal && (
-        <div className="fixed inset-0 z-50 bg-ink/40 flex items-center justify-center p-4">
-          <div className="bg-surface2 border border-line2 rounded-xl p-6 w-full max-w-md space-y-4 shadow-card">
-            <div className="flex justify-between items-center border-b border-line2 pb-3">
-              <h3 className="text-lg font-bold text-fg">Add Branch</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div className="ts-card ts-white ts-tbl w-full max-w-md space-y-4">
+            <div className="flex justify-between items-center gap-3">
+              <h3 className="m-0 text-[15px] font-medium text-fg">Add Branch</h3>
               <button onClick={() => setShowBranchModal(false)} className="text-subtle hover:text-fg">✕</button>
             </div>
             <form onSubmit={handleCreateBranch} className="space-y-4">
               <div>
-                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Select Legal Firm *</label>
+                <label className="ts-lbl">Select Legal Firm *</label>
                 <select
                   required
                   value={selectedFirmId}
                   onChange={(e) => setSelectedFirmId(Number(e.target.value))}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 >
                   {firms.map((f) => (
                     <option key={f.id} value={f.id}>{f.name} ({f.code})</option>
@@ -331,94 +331,94 @@ export default function MultiFirmSettings() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">Branch Name *</label>
+                  <label className="ts-lbl">Branch Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="Bangalore Office"
                     value={branchName}
                     onChange={(e) => setBranchName(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                    className="ts-fi"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">Branch Code *</label>
+                  <label className="ts-lbl">Branch Code *</label>
                   <input
                     type="text"
                     required
                     placeholder="BLR-BRANCH"
                     value={branchCode}
                     onChange={(e) => setBranchCode(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg uppercase font-mono"
+                    className="ts-fi"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs uppercase font-semibold text-subtle mb-1">Address</label>
+                <label className="ts-lbl">Address</label>
                 <input
                   type="text"
                   placeholder="123 Industrial Suburb, Peenya"
                   value={branchAddress}
                   onChange={(e) => setBranchAddress(e.target.value)}
-                  className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="ts-fi"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">City</label>
+                  <label className="ts-lbl">City</label>
                   <input
                     type="text"
                     placeholder="Bengaluru"
                     value={branchCity}
                     onChange={(e) => setBranchCity(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                    className="ts-fi"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">State</label>
+                  <label className="ts-lbl">State</label>
                   <input
                     type="text"
                     placeholder="Karnataka"
                     value={branchState}
                     onChange={(e) => setBranchState(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                    className="ts-fi"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">Phone</label>
+                  <label className="ts-lbl">Phone</label>
                   <input
                     type="text"
                     placeholder="+91 80 1234 5678"
                     value={branchPhone}
                     onChange={(e) => setBranchPhone(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                    className="ts-fi"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase font-semibold text-subtle mb-1">Email</label>
+                  <label className="ts-lbl">Email</label>
                   <input
                     type="email"
                     placeholder="blr@technicon.in"
                     value={branchEmail}
                     onChange={(e) => setBranchEmail(e.target.value)}
-                    className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                    className="ts-fi"
                   />
                 </div>
               </div>
-              <div className="flex justify-end space-x-3 pt-2">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowBranchModal(false)}
-                  className="px-4 py-2 bg-surface text-subtle border border-line2 rounded-lg text-xs"
+                  className="ts-btn ts-ghost ts-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingBranch}
-                  className="px-4 py-2 bg-ink text-onink font-semibold rounded-lg text-xs"
+                  className="ts-btn ts-dark ts-xs"
                 >
                   {savingBranch ? 'Saving...' : 'Create Branch'}
                 </button>
