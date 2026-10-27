@@ -408,3 +408,30 @@ select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-
 .ts-tbl th { font-weight: 400 !important; text-transform: none !important; letter-spacing: normal !important; color: rgb(var(--muted)) !important; background: none !important; }
 /* Header action groups must wrap instead of pushing the page wider on phones */
 .ts-phead > div { min-width: 0; max-width: 100%; flex-shrink: 1; }
+
+/* ---- Pipeline kanban (from prototype .kcol/.kcard/.tag/.kprog) ---- */
+.ts-kboard{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(280px,1fr); gap:12px; overflow-x:auto; padding-bottom:8px; align-items:start; scrollbar-width:thin}
+.ts-kcol{background:rgb(var(--tile)); border-radius:20px; padding:8px; min-width:0; transition:background .25s, box-shadow .25s; animation:rise .7s var(--out) both; animation-delay:calc(var(--i,0) * 60ms + 120ms)}
+.ts-kcol header{display:flex; align-items:center; gap:8px; padding:8px 10px 12px; font-size:14.5px; font-weight:500; color:rgb(var(--fg))}
+.ts-kcol header i{width:8px; height:8px; border-radius:50%; background:rgb(var(--muted)); flex-shrink:0}
+.ts-kcol header i.won{background:rgb(var(--good))}
+.ts-kcol header span{color:rgb(var(--muted)); font-weight:400; font-size:13px}
+.ts-kcol header b{margin-left:auto; font-weight:400; font-size:13px; color:rgb(var(--muted))}
+.ts-kcards{display:flex; flex-direction:column; gap:8px; min-height:40px; max-height:calc(100vh - 240px); overflow-y:auto; scrollbar-width:thin}
+.ts-kcard{background:rgb(var(--surface-2)); border-radius:15px; padding:13px 14px; box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgb(var(--line-rgb) / .07); transition:opacity .25s, transform .25s var(--spring), box-shadow .25s}
+.ts-kcard:hover{transform:translateY(-2px); box-shadow:0 10px 20px -12px rgba(0,0,0,.25), 0 0 0 1px rgb(var(--line-rgb) / .13)}
+.ts-kc-top{display:flex; justify-content:space-between; align-items:center; gap:8px}
+.ts-kcard h5{margin:10px 0 10px; font-size:14.5px; font-weight:400; line-height:1.35; color:rgb(var(--fg)); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.ts-ktag{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:rgb(var(--muted)); background:rgb(var(--tile)); padding:3px 9px; border-radius:7px; white-space:nowrap}
+.ts-ktag::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor}
+.ts-ktag-good{color:rgb(var(--good)); background:rgb(var(--good-bg))}
+.ts-ktag-warn{color:rgb(var(--warn)); background:rgb(var(--warn-bg))}
+.ts-ktag-bad{color:rgb(var(--bad)); background:rgb(var(--bad-bg))}
+.ts-ktag-ink{color:rgb(var(--on-ink)); background:rgb(var(--ink))}
+.ts-kmeta{display:flex; justify-content:space-between; gap:10px; font-size:12px; color:rgb(var(--muted))}
+.ts-knext{margin-top:10px; padding:9px 10px; border-radius:10px; background:rgb(var(--tile)); font-size:12px; color:rgb(var(--muted))}
+.ts-kfoot{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px dashed rgb(var(--line-rgb) / .13)}
+.ts-kempty{font-size:12.5px; color:rgb(var(--faint)); text-align:center; padding:28px 0; border:1px dashed rgb(var(--line-rgb) / .13); border-radius:15px}
+.ts-kpi-sm{padding:16px 18px !important; min-width:0}
+.ts-kpi-sm .ts-val{font-size:22px; margin-top:6px}
+@media (prefers-reduced-motion:reduce){.ts-kcol{animation:none}}
