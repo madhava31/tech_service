@@ -199,7 +199,7 @@ export function RevenueLineChart({
         <path d={areaD} fill="url(#revenueCleanGrad)" className="revenue-area-fill" />
 
         {/* Deep Green Curve Line */}
-        <path d={pathD} fill="none" stroke="#3B6FD4" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
+        <path d={pathD} pathLength={1000} fill="none" stroke="#3B6FD4" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
 
         {/* Data Nodes */}
         {points.map((pt, i) => (

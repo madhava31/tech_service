@@ -491,7 +491,7 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
               </CardHeader>
               <CardContent className="p-5 pt-0">
                 <HorizontalBarChart
-                  data={summary.topCompanies.map((c) => ({ label: c.name, sublabel: `${c.invoices} invoices`, value: c.revenue }))}
+                  data={summary.topCompanies.map((c) => ({ label: c.name, sublabel: `${c.invoices} ${c.invoices === 1 ? 'invoice' : 'invoices'}`, value: c.revenue }))}
                   color="#059669"
                 />
               </CardContent>
