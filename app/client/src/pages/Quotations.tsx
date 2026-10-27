@@ -33,12 +33,12 @@ function getDateRange(filter: DateFilter): { start: string; end: string } | null
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  draft: '#7A839E',
-  sent: '#6B78D6',
-  accepted: '#3B6FD4',
-  rejected: '#E5484D',
-  po_created: '#6B78D6',
-  pi_created: '#6B78D6',
+  draft: 'rgb(var(--muted))',
+  sent: 'rgb(var(--fg))',
+  accepted: 'rgb(var(--good))',
+  rejected: 'rgb(var(--bad))',
+  po_created: 'rgb(var(--fg))',
+  pi_created: 'rgb(var(--fg))',
 };
 
 export default function Quotations() {

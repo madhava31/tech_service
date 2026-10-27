@@ -24,16 +24,16 @@ function formatDate(d: string | null | undefined) {
 
 function MovementTypeBadge({ type }: { type: InventoryMovementType }) {
   const styles: Record<InventoryMovementType, { bg: string; text: string; label: string }> = {
-    STOCK_IN: { bg: '#DFF5EA', text: '#2FBF71', label: 'Stock In' },
-    STOCK_OUT: { bg: '#DEE4F5', text: '#6D9BE8', label: 'Stock Out' },
-    RETURN: { bg: '#E6DBF5', text: '#9333EA', label: 'Return' },
-    ADJUSTMENT: { bg: '#F6EDDD', text: '#E8A33D', label: 'Adjustment' },
-    TRANSFER_IN: { bg: '#DFE5F6', text: '#14A8A0', label: 'Transfer In' },
-    TRANSFER_OUT: { bg: '#F7EEDF', text: '#E07B39', label: 'Transfer Out' },
-    OPENING_STOCK: { bg: '#EEF1F9', text: '#7A839E', label: 'Opening Stock' },
+    STOCK_IN: { bg: 'rgb(var(--good-bg))', text: 'rgb(var(--good))', label: 'Stock In' },
+    STOCK_OUT: { bg: 'rgb(var(--tile))', text: 'rgb(var(--muted))', label: 'Stock Out' },
+    RETURN: { bg: 'rgb(var(--tile))', text: 'rgb(var(--fg))', label: 'Return' },
+    ADJUSTMENT: { bg: 'rgb(var(--warn-bg))', text: 'rgb(var(--warn))', label: 'Adjustment' },
+    TRANSFER_IN: { bg: 'rgb(var(--tile))', text: 'rgb(var(--fg))', label: 'Transfer In' },
+    TRANSFER_OUT: { bg: 'rgb(var(--warn-bg))', text: 'rgb(var(--warn))', label: 'Transfer Out' },
+    OPENING_STOCK: { bg: 'rgb(var(--tile))', text: 'rgb(var(--muted))', label: 'Opening Stock' },
   };
 
-  const current = styles[type] || { bg: '#EEF1F9', text: '#7A839E', label: type };
+  const current = styles[type] || { bg: 'rgb(var(--tile))', text: 'rgb(var(--muted))', label: type };
 
   return (
     <span

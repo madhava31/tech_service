@@ -332,7 +332,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                             onClick={() => handleSelectResult(item)}
                             className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                               isSelected
-                                ? 'bg-surface border-fg shadow-[inset_2px_0_0_#3B6FD4]'
+                                ? 'bg-surface border-fg shadow-[inset_2px_0_0_rgb(var(--fg))]'
                                 : 'bg-surface/80 border-line2 hover:bg-surface/80 hover:border-line2'
                             }`}
                           >

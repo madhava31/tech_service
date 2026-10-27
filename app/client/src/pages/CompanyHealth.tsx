@@ -23,12 +23,12 @@ function relativeDays(days: number | null) {
 }
 
 const STATUS_COLORS: Record<CustomerHealthStatus, string> = {
-  new: '#3B6FD4',
-  strong: '#3B6FD4',
-  active: '#3B6FD4',
-  at_risk: '#E8A33D',
-  inactive: '#E5484D',
-  no_history: '#A8AEC4',
+  new: 'rgb(var(--good))',
+  strong: 'rgb(var(--good))',
+  active: 'rgb(var(--good))',
+  at_risk: 'rgb(var(--warn))',
+  inactive: 'rgb(var(--bad))',
+  no_history: 'rgb(var(--faint))',
 };
 
 const DESCRIPTION: Record<CustomerHealthStatus, string> = {
@@ -65,7 +65,7 @@ export default function CompanyHealth() {
     fetchData();
   }, [id]);
 
-  const color = data ? STATUS_COLORS[data.health.status] || '#7A839E' : '#7A839E';
+  const color = data ? STATUS_COLORS[data.health.status] || 'rgb(var(--muted))' : 'rgb(var(--muted))';
 
   return (
     <div className="ts-page-pad flex flex-col gap-4 pb-6">

@@ -113,7 +113,7 @@ const SYSTEM_NAV: NavItemDef[] = [
 
 const ITEM_BASE =
   'w-full flex items-center gap-2.5 px-2.5 h-9 rounded-[8px] text-[13px] font-semibold no-underline transition-colors duration-150';
-const ITEM_ACTIVE = 'bg-ink text-onink shadow-[inset_3px_0_0_#6FA2FF]';
+const ITEM_ACTIVE = 'bg-ink text-onink shadow-[inset_3px_0_0_rgb(var(--fg))]';
 const ITEM_IDLE = 'text-subtle hover:bg-ink hover:text-onink';
 
 function CollapsibleNavItem({

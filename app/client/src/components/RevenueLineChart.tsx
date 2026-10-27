@@ -79,21 +79,21 @@ export function RevenueLineChart({
       >
         <defs>
           <linearGradient id="limeRevenueGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3B6FD4" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#3B6FD4" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="rgb(var(--fg))" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="rgb(var(--fg))" stopOpacity="0.0" />
           </linearGradient>
         </defs>
 
         {/* Minimal Dark Gridlines */}
-        <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="#E4E8F2" strokeDasharray="3 3" />
-        <line x1={padding.left} y1={padding.top + innerHeight / 2} x2={width - padding.right} y2={padding.top + innerHeight / 2} stroke="#E4E8F2" strokeDasharray="3 3" />
-        <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#E4E8F2" />
+        <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="rgb(var(--line-rgb) / .13)" strokeDasharray="3 3" />
+        <line x1={padding.left} y1={padding.top + innerHeight / 2} x2={width - padding.right} y2={padding.top + innerHeight / 2} stroke="rgb(var(--line-rgb) / .13)" strokeDasharray="3 3" />
+        <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="rgb(var(--line-rgb) / .13)" />
 
         {/* Area Gradient Fill */}
         <path d={areaD} fill="url(#limeRevenueGrad)" className="revenue-area-fill" />
 
         {/* Lime Primary Line */}
-        <path d={pathD} fill="none" stroke="#3B6FD4" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
+        <path d={pathD} fill="none" stroke="rgb(var(--fg))" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
 
         {/* Data Nodes */}
         {points.map((pt, i) => (
@@ -102,8 +102,8 @@ export function RevenueLineChart({
             cx={pt.x}
             cy={pt.y}
             r={hoverIndex === i ? 6 : 3.5}
-            fill={hoverIndex === i ? '#3B6FD4' : '#FFFFFF'}
-            stroke="#3B6FD4"
+            fill={hoverIndex === i ? 'rgb(var(--fg))' : 'rgb(var(--surface-2))'}
+            stroke="rgb(var(--fg))"
             strokeWidth={hoverIndex === i ? 2.5 : 2}
             className="transition-all duration-150"
           />
@@ -117,12 +117,12 @@ export function RevenueLineChart({
               y1={padding.top}
               x2={activePoint.x}
               y2={height - padding.bottom}
-              stroke="#3B6FD4"
+              stroke="rgb(var(--fg))"
               strokeDasharray="4 4"
               strokeWidth="1.5"
               opacity="0.6"
             />
-            <circle cx={activePoint.x} cy={activePoint.y} r={7} fill="#3B6FD4" stroke="#F4F6FC" strokeWidth="2.5" />
+            <circle cx={activePoint.x} cy={activePoint.y} r={7} fill="rgb(var(--fg))" stroke="rgb(var(--surface-2))" strokeWidth="2.5" />
           </g>
         )}
       </svg>

@@ -4,10 +4,10 @@ import { queryClient } from '../lib/queryClient';
 import { RotateCcw, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 function componentTone(score: number | null): string {
-  if (score == null) return '#7A839E';
-  if (score >= 70) return '#3B6FD4';
-  if (score >= 40) return '#E8A33D';
-  return '#E5484D';
+  if (score == null) return 'rgb(var(--muted))';
+  if (score >= 70) return 'rgb(var(--good))';
+  if (score >= 40) return 'rgb(var(--warn))';
+  return 'rgb(var(--bad))';
 }
 
 export default function BusinessHealth() {
@@ -224,13 +224,13 @@ export default function BusinessHealth() {
               {/* Circular SVG Donut Gauge */}
               <div className="relative grid place-items-center w-[168px] h-[168px] shrink-0">
                 <svg viewBox="0 0 200 200" role="img" aria-label={`Overall business health score ${overallScore} out of 100`} className="w-[168px] h-[168px] -rotate-90">
-                  <circle cx="100" cy="100" r="78" fill="none" stroke="#F7F8FC" strokeWidth="14" />
+                  <circle cx="100" cy="100" r="78" fill="none" stroke="rgb(var(--line-rgb) / .13)" strokeWidth="14" />
                   <circle
                     cx="100"
                     cy="100"
                     r="78"
                     fill="none"
-                    stroke="#3B6FD4"
+                    stroke="rgb(var(--fg))"
                     strokeWidth="14"
                     strokeLinecap="round"
                     strokeDasharray="490"

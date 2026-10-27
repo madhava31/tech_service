@@ -36,12 +36,12 @@ const STATUS_LABELS: Record<CustomerHealthStatus, string> = {
 };
 
 const STATUS_COLORS: Record<CustomerHealthStatus, string> = {
-  new: '#3B6FD4',
-  strong: '#3B6FD4',
-  active: '#3B6FD4',
-  at_risk: '#E8A33D',
-  inactive: '#E5484D',
-  no_history: '#A8AEC4',
+  new: 'rgb(var(--good))',
+  strong: 'rgb(var(--good))',
+  active: 'rgb(var(--good))',
+  at_risk: 'rgb(var(--warn))',
+  inactive: 'rgb(var(--bad))',
+  no_history: 'rgb(var(--faint))',
 };
 
 export default function CustomerHealthOverview() {
@@ -213,7 +213,7 @@ export default function CustomerHealthOverview() {
               </thead>
               <tbody>
                 {paged.map((c) => {
-                  const color = STATUS_COLORS[c.status] || '#7A839E';
+                  const color = STATUS_COLORS[c.status] || 'rgb(var(--muted))';
                   return (
                     <tr key={c.company_id} >
                       <td className="p-[11px_10px] font-medium text-fg">{c.company_name}</td>

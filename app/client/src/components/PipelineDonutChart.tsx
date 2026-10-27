@@ -7,10 +7,10 @@ function formatCurrency(n: number) {
 
 // Authentic quotation stage color palette
 const STAGE_COLORS: Record<string, string> = {
-  draft: '#7A839E',
-  sent: '#6B78D6',
-  accepted: '#3B6FD4',
-  rejected: '#E5484D',
+  draft: 'rgb(var(--muted))',
+  sent: 'rgb(var(--fg))',
+  accepted: 'rgb(var(--fg))',
+  rejected: 'rgb(var(--bad))',
 };
 
 export function PipelineDonutChart({
@@ -44,7 +44,7 @@ export function PipelineDonutChart({
     accumulatedAngle += strokeDasharray;
     return {
       ...s,
-      color: STAGE_COLORS[s.key] || '#6B78D6',
+      color: STAGE_COLORS[s.key] || 'rgb(var(--fg))',
       strokeDasharray: `${strokeDasharray} ${circumference}`,
       strokeDashoffset,
     };
@@ -58,7 +58,7 @@ export function PipelineDonutChart({
       {/* SVG Donut Ring */}
       <div className="relative size-44 flex items-center justify-center shrink-0">
         <svg viewBox="0 0 160 160" className="size-full -rotate-90 overflow-visible">
-          <circle cx="80" cy="80" r={radius} fill="none" stroke="#E4E8F2" strokeWidth={strokeWidth} />
+          <circle cx="80" cy="80" r={radius} fill="none" stroke="rgb(var(--line-rgb) / .13)" strokeWidth={strokeWidth} />
           {segments.map((seg) => (
             <circle
               key={seg.key}
@@ -92,7 +92,7 @@ export function PipelineDonutChart({
       {/* Stage Breakdown & Progress Bars */}
       <div className="flex-1 space-y-2.5 w-full">
         {stages.map((stage) => {
-          const color = STAGE_COLORS[stage.key] || '#6B78D6';
+          const color = STAGE_COLORS[stage.key] || 'rgb(var(--fg))';
           const metric = useCountForSegments ? stage.count : stage.value;
           const percent = Math.min(100, Math.max(3, (metric / denominator) * 100));
           return (

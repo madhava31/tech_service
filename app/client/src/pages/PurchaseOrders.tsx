@@ -38,11 +38,11 @@ function matchesDate(dateStr: string | null | undefined, range: { start: string;
 }
 
 const PO_STATUS_TONES: Record<string, string> = {
-  active: '#E8A33D',
-  'in production': '#E8A33D',
-  dispatched: '#6B78D6',
-  delivered: '#3B6FD4',
-  completed: '#3B6FD4',
+  active: 'rgb(var(--warn))',
+  'in production': 'rgb(var(--warn))',
+  dispatched: 'rgb(var(--fg))',
+  delivered: 'rgb(var(--good))',
+  completed: 'rgb(var(--good))',
 };
 
 export default function PurchaseOrders() {
@@ -211,7 +211,7 @@ export default function PurchaseOrders() {
             </thead>
             <tbody>
               {paged.map((po) => {
-                const tone = PO_STATUS_TONES[po.status.toLowerCase()] || '#3B6FD4';
+                const tone = PO_STATUS_TONES[po.status.toLowerCase()] || 'rgb(var(--good))';
                 return (
                   <tr key={po.id} >
                     <td className="p-[11px_10px] font-medium text-fg">{po.number}</td>

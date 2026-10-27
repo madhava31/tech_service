@@ -19,10 +19,10 @@ const TREND_LABELS: Record<ProductTrendDirection, string> = {
 };
 
 const TREND_COLORS: Record<ProductTrendDirection, string> = {
-  growing: '#3B6FD4',
-  declining: '#E5484D',
-  stable: '#E8A33D',
-  no_data: '#A8AEC4',
+  growing: 'rgb(var(--good))',
+  declining: 'rgb(var(--bad))',
+  stable: 'rgb(var(--warn))',
+  no_data: 'rgb(var(--faint))',
 };
 
 const TREND_FILTERS: ProductTrendDirection[] = ['growing', 'declining', 'stable', 'no_data'];
@@ -219,7 +219,7 @@ export default function ProductIntelligenceOverview() {
               </thead>
               <tbody>
                 {paged.map((p) => {
-                  const tone = TREND_COLORS[p.trendDirection] || '#7A839E';
+                  const tone = TREND_COLORS[p.trendDirection] || 'rgb(var(--muted))';
                   return (
                     <tr key={p.id} >
                       <td className="p-[11px_10px]">

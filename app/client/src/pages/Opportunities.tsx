@@ -14,9 +14,9 @@ const TYPE_LABELS: Record<OpportunityType, string> = {
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  high: '#E5484D',
-  medium: '#E8A33D',
-  low: '#3B6FD4',
+  high: 'rgb(var(--bad))',
+  medium: 'rgb(var(--warn))',
+  low: 'rgb(var(--muted))',
 };
 
 function formatCurrency(n: number) {
@@ -241,7 +241,7 @@ export default function Opportunities() {
             {paged.map((o, i) => {
               const link = opportunityLink(o);
               const evidence = evidenceSummary(o);
-              const priorityColor = PRIORITY_COLORS[o.priority] || '#3B6FD4';
+              const priorityColor = PRIORITY_COLORS[o.priority] || 'rgb(var(--muted))';
               return (
                 <article
                   key={i}

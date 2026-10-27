@@ -244,7 +244,7 @@ export default function Reports() {
 
     const buckets = new Map<string, Map<string, number>>();
     const productTotals = new Map<string, number>();
-    const colors = ['#2F6FED', '#39A0ED', '#6577C8', '#2FBF71', '#D28A26', '#C75C5C'];
+    const colors = ['rgb(var(--fg))', 'rgb(var(--muted))', 'rgb(var(--faint))', 'rgb(var(--good))', 'rgb(var(--warn))', 'rgb(var(--bad))'];
 
     for (const row of trendHistory) {
       if (!row.sale_date || !row.product_description) continue;

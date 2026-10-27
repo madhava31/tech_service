@@ -1,6 +1,6 @@
 import { useState, useRef, MouseEvent } from 'react';
 
-const PALETTE = ['#2FBF71', '#6D9BE8', '#2563EB', '#D2561F'];
+const PALETTE = ['rgb(var(--good))', 'rgb(var(--muted))', 'rgb(var(--fg))', 'rgb(var(--warn))'];
 
 function defaultFormat(n: number) {
   return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -185,21 +185,21 @@ export function RevenueLineChart({
       >
         <defs>
           <linearGradient id="revenueCleanGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3B6FD4" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="#3B6FD4" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="rgb(var(--fg))" stopOpacity="0.20" />
+            <stop offset="100%" stopColor="rgb(var(--fg))" stopOpacity="0.0" />
           </linearGradient>
         </defs>
 
         {/* Clean Subtle Gridlines */}
-        <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="#2C3454" strokeDasharray="3 3" />
-        <line x1={padding.left} y1={padding.top + innerHeight / 2} x2={width - padding.right} y2={padding.top + innerHeight / 2} stroke="#2C3454" strokeDasharray="3 3" />
-        <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#2C3454" />
+        <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="rgb(var(--line-rgb) / .13)" strokeDasharray="3 3" />
+        <line x1={padding.left} y1={padding.top + innerHeight / 2} x2={width - padding.right} y2={padding.top + innerHeight / 2} stroke="rgb(var(--line-rgb) / .13)" strokeDasharray="3 3" />
+        <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="rgb(var(--line-rgb) / .13)" />
 
         {/* Gradient Area Fill */}
         <path d={areaD} fill="url(#revenueCleanGrad)" className="revenue-area-fill" />
 
         {/* Deep Green Curve Line */}
-        <path d={pathD} fill="none" stroke="#3B6FD4" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
+        <path d={pathD} fill="none" stroke="rgb(var(--fg))" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
 
         {/* Data Nodes */}
         {points.map((pt, i) => (
@@ -208,8 +208,8 @@ export function RevenueLineChart({
             cx={pt.x}
             cy={pt.y}
             r={hoverIndex === i ? 6 : 3.5}
-            fill={hoverIndex === i ? '#3B6FD4' : '#FFFFFF'}
-            stroke="#3B6FD4"
+            fill={hoverIndex === i ? 'rgb(var(--fg))' : 'rgb(var(--surface-2))'}
+            stroke="rgb(var(--fg))"
             strokeWidth={hoverIndex === i ? 2.5 : 2}
             className="revenue-node"
           />
@@ -223,19 +223,19 @@ export function RevenueLineChart({
               y1={padding.top}
               x2={activePoint.x}
               y2={height - padding.bottom}
-              stroke="#3B6FD4"
+              stroke="rgb(var(--fg))"
               strokeDasharray="4 4"
               strokeWidth="1.5"
             />
-            <circle cx={activePoint.x} cy={activePoint.y} r={6} fill="#6D9BE8" stroke="#3B6FD4" strokeWidth="2" />
+            <circle cx={activePoint.x} cy={activePoint.y} r={6} fill="rgb(var(--surface-2))" stroke="rgb(var(--fg))" strokeWidth="2" />
           </g>
         )}
       </svg>
 
       {/* Axis Month Labels */}
-      <div className="revenue-x-labels" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', padding: '0 4px', fontSize: '12px', fontWeight: 600, color: '#A8AEC4' }}>
+      <div className="revenue-x-labels" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', padding: '0 4px', fontSize: '12px', fontWeight: 600, color: 'rgb(var(--faint))' }}>
         {data.map((d, i) => (
-          <span key={i} style={{ color: hoverIndex === i ? '#3B6FD4' : 'inherit', fontWeight: hoverIndex === i ? 800 : 600 }}>
+          <span key={i} style={{ color: hoverIndex === i ? 'rgb(var(--fg))' : 'inherit', fontWeight: hoverIndex === i ? 800 : 600 }}>
             {d.label}
           </span>
         ))}
@@ -250,20 +250,20 @@ export function RevenueLineChart({
             left: `${mousePos.x}px`,
             top: `${mousePos.y - 45}px`,
             transform: 'translate(-50%, -100%)',
-            background: '#3B6FD4',
-            color: '#FFFFFF',
+            background: 'rgb(var(--ink))',
+            color: 'rgb(var(--on-ink))',
             padding: '7px 12px',
             borderRadius: '8px',
             fontSize: '12px',
             fontWeight: 700,
-            boxShadow: '0 4px 16px rgba(59,111,212,0.18)',
+            boxShadow: 'var(--shadow)',
             pointerEvents: 'none',
             zIndex: 30,
             whiteSpace: 'nowrap',
             transition: 'left 150ms ease-out, top 150ms ease-out',
           }}
         >
-          <div style={{ color: '#6D9BE8', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{activePoint.label}</div>
+          <div style={{ color: 'rgb(var(--on-ink) / .65)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{activePoint.label}</div>
           <div style={{ fontSize: '14px', marginTop: '2px' }}>{formatValue(activePoint.value)}</div>
         </div>
       )}

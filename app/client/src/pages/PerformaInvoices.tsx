@@ -38,11 +38,11 @@ function matchesDate(dateStr: string | null | undefined, range: { start: string;
 }
 
 const PI_STATUS_TONES: Record<string, string> = {
-  issued: '#6B78D6',
-  active: '#6B78D6',
-  paid: '#3B6FD4',
-  overdue: '#E5484D',
-  cancelled: '#A8AEC4',
+  issued: 'rgb(var(--fg))',
+  active: 'rgb(var(--fg))',
+  paid: 'rgb(var(--good))',
+  overdue: 'rgb(var(--bad))',
+  cancelled: 'rgb(var(--faint))',
 };
 
 export default function PerformaInvoices() {
@@ -208,7 +208,7 @@ export default function PerformaInvoices() {
             </thead>
             <tbody>
               {paged.map((pi) => {
-                const tone = PI_STATUS_TONES[pi.status.toLowerCase()] || '#6B78D6';
+                const tone = PI_STATUS_TONES[pi.status.toLowerCase()] || 'rgb(var(--fg))';
                 return (
                   <tr key={pi.id} >
                     <td className="p-[11px_10px] font-medium text-fg">{pi.number}</td>
