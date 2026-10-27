@@ -30,30 +30,30 @@ export default function ProcurementActivity() {
   };
 
   return (
-    <div className="page-container">
-      <div className="flex-between mb-2">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
           <h1 className="ts-title">Procurement Activity Audit Stream</h1>
-          <p className="muted text-sm">Chronological log of procurement requirements, PO creations, and stock intake receipts.</p>
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">Chronological log of procurement requirements, PO creations, and stock intake receipts.</p>
         </div>
-        <div className="flex-gap">
-          <Link to="/procurement" className="btn secondary">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/procurement" className="ts-btn ts-ghost">
             ← Control Center
           </Link>
         </div>
       </div>
 
       {/* FILTER BAR */}
-      <div className="card mb-3 p-2">
-        <div className="flex-gap">
+      <div className="ts-card">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             type="text"
-            className="input-field"
+            className="ts-fi !pl-4 !rounded-full !bg-tile !border-transparent sm:flex-1"
             placeholder="Search document number, part number, description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button className="btn secondary" onClick={() => setSearch('')}>
+          <button className="ts-btn ts-ghost ts-xs self-start sm:self-auto" onClick={() => setSearch('')}>
             Reset Filter
           </button>
         </div>
@@ -61,20 +61,20 @@ export default function ProcurementActivity() {
 
       {/* TABLE */}
       {loading ? (
-        <p className="loading-text">Loading procurement activity log…</p>
+        <p className="ts-empty">Loading procurement activity log…</p>
       ) : error ? (
-        <div className="error-banner">
+        <div className="ts-warnbox">
           <p>{error}</p>
-          <button className="btn secondary text-sm" onClick={loadActivity}>Retry</button>
+          <button className="ts-btn ts-ghost text-[13.5px]" onClick={loadActivity}>Retry</button>
         </div>
       ) : activity.length === 0 ? (
-        <div className="empty-state">
-          <p className="muted">No procurement activity recorded yet.</p>
+        <div className="ts-empty">
+          <p className="text-subtle">No procurement activity recorded yet.</p>
         </div>
       ) : (
-        <div className="card">
-          <div className="table-responsive">
-            <table className="data-table">
+        <div className="ts-card ts-tbl">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
                 <tr>
                   <th>Date & Time</th>
@@ -88,24 +88,24 @@ export default function ProcurementActivity() {
               <tbody>
                 {activity.map((item, idx) => (
                   <tr key={idx}>
-                    <td className="text-xs muted font-mono">{item.event_timestamp}</td>
+                    <td className="text-[13px] text-subtle num">{item.event_timestamp}</td>
                     <td>
-                      <span className={item.doc_type === 'STOCK_RECEIPT' ? 'badge success' : 'badge info'}>
+                      <span className={item.doc_type === 'STOCK_RECEIPT' ? 'ts-st ts-tone-good' : 'ts-st'}>
                         {item.doc_type}
                       </span>
                     </td>
-                    <td className="font-medium font-mono">{item.doc_number}</td>
-                    <td className="font-mono text-xs">{item.product_part || '—'}</td>
+                    <td className="font-medium num">{item.doc_number}</td>
+                    <td className="num text-[13px]">{item.product_part || '—'}</td>
                     <td>
-                      <span className="badge secondary text-xs">{item.status}</span>
+                      <span className="ts-st">{item.status}</span>
                     </td>
-                    <td className="text-sm">{item.description}</td>
+                    <td className="text-[13.5px]">{item.description}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="flex-between p-2 muted text-xs border-top">
+          <div className="flex items-center justify-between gap-3 flex-wrap p-2 text-subtle text-[13px] border-t border-line2">
             <span>Showing {activity.length} of {total} activity records</span>
           </div>
         </div>

@@ -38,48 +38,48 @@ export default function ProcurementRequirements() {
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'CRITICAL':
-        return <span className="badge danger">CRITICAL</span>;
+        return <span className="ts-st ts-tone-bad">CRITICAL</span>;
       case 'HIGH':
-        return <span className="badge warning">HIGH</span>;
+        return <span className="ts-st ts-tone-warn">HIGH</span>;
       case 'MEDIUM':
-        return <span className="badge info">MEDIUM</span>;
+        return <span className="ts-st">MEDIUM</span>;
       default:
-        return <span className="badge secondary">LOW</span>;
+        return <span className="ts-st">LOW</span>;
     }
   };
 
   return (
-    <div className="page-container">
-      <div className="flex-between mb-2">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
           <h1 className="ts-title">Procurement Requirements</h1>
-          <p className="muted text-sm">Consolidated demand recommendations originating from Restock Queue, Stock Intelligence, and Sales Constraints.</p>
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">Consolidated demand recommendations originating from Restock Queue, Stock Intelligence, and Sales Constraints.</p>
         </div>
-        <div className="flex-gap">
-          <Link to="/procurement" className="btn secondary">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/procurement" className="ts-btn ts-ghost">
             ← Control Center
           </Link>
         </div>
       </div>
 
       {/* FILTER BAR */}
-      <div className="card mb-3 p-2">
-        <div className="flex-gap">
+      <div className="ts-card">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             type="text"
-            className="input-field"
+            className="ts-fi !pl-4 !rounded-full !bg-tile !border-transparent sm:flex-1"
             placeholder="Search part #, description, requirement code, reason..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select className="input-field" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+          <select className="ts-fi ts-sel sm:!w-56" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
             <option value="">All Priorities</option>
             <option value="CRITICAL">Critical</option>
             <option value="HIGH">High</option>
             <option value="MEDIUM">Medium</option>
             <option value="LOW">Low</option>
           </select>
-          <select className="input-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select className="ts-fi" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All Statuses</option>
             <option value="OPEN">Open</option>
             <option value="PARTIALLY_COVERED">Partially Covered</option>
@@ -87,7 +87,7 @@ export default function ProcurementRequirements() {
             <option value="RECEIVING">Receiving</option>
             <option value="FULFILLED">Fulfilled</option>
           </select>
-          <button className="btn secondary" onClick={() => { setSearch(''); setPriorityFilter(''); setStatusFilter(''); }}>
+          <button className="ts-btn ts-ghost ts-xs self-start sm:self-auto" onClick={() => { setSearch(''); setPriorityFilter(''); setStatusFilter(''); }}>
             Reset Filters
           </button>
         </div>
@@ -95,20 +95,20 @@ export default function ProcurementRequirements() {
 
       {/* TABLE */}
       {loading ? (
-        <p className="loading-text">Loading procurement requirements...</p>
+        <p className="ts-empty">Loading procurement requirements...</p>
       ) : error ? (
-        <div className="error-banner">
+        <div className="ts-warnbox">
           <p>{error}</p>
-          <button className="btn secondary text-sm" onClick={loadRequirements}>Retry</button>
+          <button className="ts-btn ts-ghost text-[13.5px]" onClick={loadRequirements}>Retry</button>
         </div>
       ) : requirements.length === 0 ? (
-        <div className="empty-state">
-          <p className="muted">No procurement requirements found matching filters.</p>
+        <div className="ts-empty">
+          <p className="text-subtle">No procurement requirements found matching filters.</p>
         </div>
       ) : (
-        <div className="card">
-          <div className="table-responsive">
-            <table className="data-table">
+        <div className="ts-card ts-tbl">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
                 <tr>
                   <th>Priority</th>
@@ -116,9 +116,9 @@ export default function ProcurementRequirements() {
                   <th>Part Number</th>
                   <th>Description</th>
                   <th>Warehouse</th>
-                  <th className="text-right">Available</th>
-                  <th className="text-right">Incoming</th>
-                  <th className="text-right">Suggested Qty</th>
+                  <th className="ts-r">Available</th>
+                  <th className="ts-r">Incoming</th>
+                  <th className="ts-r">Suggested Qty</th>
                   <th>Source</th>
                   <th>Status</th>
                   <th className="text-center">Action</th>
@@ -128,27 +128,27 @@ export default function ProcurementRequirements() {
                 {requirements.map((r) => (
                   <tr key={r.id}>
                     <td>{getPriorityBadge(r.priority)}</td>
-                    <td className="font-mono font-medium">
-                      <Link to={`/procurement/requirements/${r.id}`} className="accent-link">
+                    <td className="num font-medium">
+                      <Link to={`/procurement/requirements/${r.id}`} className="text-fg hover:underline">
                         {r.requirement_code}
                       </Link>
                     </td>
-                    <td className="font-mono font-bold">{r.part_no}</td>
+                    <td className="num">{r.part_no}</td>
                     <td>{r.product_description}</td>
                     <td>{r.warehouse_name}</td>
-                    <td className="text-right font-mono font-bold">{r.available}</td>
-                    <td className="text-right font-mono info">{r.incoming}</td>
-                    <td className="text-right font-mono accent font-bold">{r.suggested_quantity}</td>
+                    <td className="ts-r num">{r.available}</td>
+                    <td className="ts-r num text-fg">{r.incoming}</td>
+                    <td className="ts-r num text-fg">{r.suggested_quantity}</td>
                     <td>
-                      <span className="badge secondary text-xs">{r.source_type}</span>
+                      <span className="ts-st">{r.source_type}</span>
                     </td>
                     <td>
-                      <span className={r.status === 'FULFILLED' ? 'badge success' : r.status === 'ORDERED' ? 'badge info' : 'badge warning'}>
+                      <span className={r.status === 'FULFILLED' ? 'ts-st ts-tone-good' : r.status === 'ORDERED' ? 'ts-st' : 'ts-st ts-tone-warn'}>
                         {r.status}
                       </span>
                     </td>
                     <td className="text-center">
-                      <Link to={`/procurement/requirements/${r.id}`} className="btn secondary text-xs">
+                      <Link to={`/procurement/requirements/${r.id}`} className="ts-btn ts-ghost ts-xs">
                         View Detail
                       </Link>
                     </td>
@@ -157,7 +157,7 @@ export default function ProcurementRequirements() {
               </tbody>
             </table>
           </div>
-          <div className="flex-between p-2 muted text-xs border-top">
+          <div className="flex items-center justify-between gap-3 flex-wrap p-2 text-subtle text-[13px] border-t border-line2">
             <span>Showing {requirements.length} of {total} requirements</span>
           </div>
         </div>

@@ -21,8 +21,8 @@ export default function PurchaseOrdersNotInvoiced() {
     api.dashboard.purchaseOrdersNotInvoiced().then(setData).catch((e) => setError(e.message));
   }, []);
 
-  if (error) return <div className="error">{error}</div>;
-  if (!data) return <p className="muted loading-text">Loading…</p>;
+  if (error) return <div className="ts-warnbox">{error}</div>;
+  if (!data) return <p className="text-subtle ts-empty">Loading…</p>;
 
   const q = search.toLowerCase();
   const filtered = search
@@ -35,18 +35,20 @@ export default function PurchaseOrdersNotInvoiced() {
     : data.purchaseOrders;
 
   return (
-    <div>
-      <h2>Purchase Orders Not Yet Invoiced</h2>
-      <p className="page-subtitle">Purchase orders with no performa invoice issued yet.</p>
-
-      <div className="inactive-summary">
-        <div className="inactive-summary-count">
-          {data.count} Not Yet Invoiced
-        </div>
-        <div className="inactive-summary-hint">These orders have no performa invoice issued yet.</div>
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 !block">
+      <h1 className="ts-title">Purchase Orders Not Yet Invoiced</h1>
+      <p className="ts-muted m-0 mt-1.5 text-[14px]">Purchase orders with no performa invoice issued yet.</p>
       </div>
 
-      <div className="mb-3">
+      <div className="ts-card ts-kpi-sm flex flex-wrap items-baseline justify-between gap-2">
+        <div className="text-[22px] font-medium text-fg num tracking-[-.02em]">
+          {data.count} Not Yet Invoiced
+        </div>
+        <div className="text-[13px] text-subtle">These orders have no performa invoice issued yet.</div>
+      </div>
+
+      <div>
         <ExpandableSearch
           value={search}
           onChange={setSearch}
@@ -56,16 +58,16 @@ export default function PurchaseOrdersNotInvoiced() {
         />
       </div>
 
-      <div className="card">
-        <div className="table-scroll">
-          <table className="data-table">
+      <div className="ts-card ts-tbl">
+        <div className="ts-tblwrap">
+          <table>
             <thead>
               <tr>
                 <th>PO Number</th>
                 <th>Quotation</th>
                 <th>Company</th>
                 <th>Date</th>
-                <th className="text-right">Amount</th>
+                <th className="ts-r">Amount</th>
                 <th></th>
               </tr>
             </thead>
@@ -78,9 +80,9 @@ export default function PurchaseOrdersNotInvoiced() {
                   </td>
                   <td>{po.company_name}</td>
                   <td>{formatDate(po.date)}</td>
-                  <td className="text-right">{formatCurrency(po.total)}</td>
+                  <td className="ts-r">{formatCurrency(po.total)}</td>
                   <td>
-                    <a className="btn small secondary" href={api.purchaseOrders.pdfUrl(po.id)} target="_blank" rel="noreferrer">
+                    <a className="ts-btn ts-ghost ts-xs" href={api.purchaseOrders.pdfUrl(po.id)} target="_blank" rel="noreferrer">
                       PDF
                     </a>
                   </td>
@@ -88,7 +90,7 @@ export default function PurchaseOrdersNotInvoiced() {
               ))}
               {filtered.length === 0 && data.purchaseOrders.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={6} className="text-subtle">
                     No purchase orders awaiting invoicing.
                     <br />
                     You're all caught up.
@@ -97,7 +99,7 @@ export default function PurchaseOrdersNotInvoiced() {
               )}
               {filtered.length === 0 && data.purchaseOrders.length > 0 && (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={6} className="text-subtle">
                     No matches.
                   </td>
                 </tr>

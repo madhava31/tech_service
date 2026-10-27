@@ -28,18 +28,18 @@ export default function SupplierDetail() {
 
   if (loading) {
     return (
-      <div className="page-container">
-        <p className="loading-text">Loading supplier profile…</p>
+      <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+        <p className="ts-empty">Loading supplier profile…</p>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="page-container">
-        <div className="error-banner">
+      <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+        <div className="ts-warnbox">
           <p>{error || 'Supplier not found'}</p>
-          <Link to="/procurement/suppliers" className="btn secondary text-sm mt-2">
+          <Link to="/procurement/suppliers" className="ts-btn ts-ghost text-[13.5px] mt-2">
             Back to Suppliers
           </Link>
         </div>
@@ -50,78 +50,78 @@ export default function SupplierDetail() {
   const { supplier, purchaseOrders, summary } = data;
 
   return (
-    <div className="page-container">
-      <div className="flex-between mb-3">
+    <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      <div className="ts-phead !mb-2 justify-between">
         <div>
           <h1 className="ts-title">{supplier.name}</h1>
-          <p className="muted text-sm mt-1">
+          <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Contact: {supplier.contact_person || 'N/A'} | Email: {supplier.email || 'N/A'} | Phone: {supplier.phone || 'N/A'}
           </p>
         </div>
-        <div className="flex-gap">
-          <Link to="/procurement/suppliers" className="btn secondary">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/procurement/suppliers" className="ts-btn ts-ghost">
             ← Suppliers Directory
           </Link>
         </div>
       </div>
 
       {/* METRIC CARDS */}
-      <div className="grid-cards mb-3">
-        <div className="stat-card">
-          <span className="stat-label">Total Purchase Orders</span>
-          <span className="stat-value">{summary.totalPurchaseOrders}</span>
-          <span className="text-xs muted mt-1">All Time POs</span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="ts-card ts-kpi-sm flex flex-col">
+          <span className="text-[13.5px] text-subtle">Total Purchase Orders</span>
+          <span className="ts-val num !mt-1.5 truncate">{summary.totalPurchaseOrders}</span>
+          <span className="text-[12.5px] text-faint mt-1">All Time POs</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Open Orders</span>
-          <span className="stat-value warning">{summary.openOrders}</span>
-          <span className="text-xs muted mt-1">Pending Delivery</span>
+        <div className="ts-card ts-kpi-sm flex flex-col">
+          <span className="text-[13.5px] text-subtle">Open Orders</span>
+          <span className="ts-val num !mt-1.5 truncate text-warn">{summary.openOrders}</span>
+          <span className="text-[12.5px] text-faint mt-1">Pending Delivery</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Completed Orders</span>
-          <span className="stat-value success">{summary.completedOrders}</span>
-          <span className="text-xs muted mt-1">Fully Received</span>
+        <div className="ts-card ts-kpi-sm flex flex-col">
+          <span className="text-[13.5px] text-subtle">Completed Orders</span>
+          <span className="ts-val num !mt-1.5 truncate text-good">{summary.completedOrders}</span>
+          <span className="text-[12.5px] text-faint mt-1">Fully Received</span>
         </div>
-        <div className="stat-card accent-border">
-          <span className="stat-label">Total Procurement Spend</span>
-          <span className="stat-value accent">₹{summary.totalProcurementValue.toLocaleString('en-IN')}</span>
-          <span className="text-xs muted mt-1">Cumulative PO Value</span>
+        <div className="ts-card ts-kpi-sm flex flex-col accent-border">
+          <span className="text-[13.5px] text-subtle">Total Procurement Spend</span>
+          <span className="ts-val num !mt-1.5 truncate text-fg">₹{summary.totalProcurementValue.toLocaleString('en-IN')}</span>
+          <span className="text-[12.5px] text-faint mt-1">Cumulative PO Value</span>
         </div>
       </div>
 
       {/* PO HISTORY TABLE */}
-      <div className="card">
-        <h2 className="card-title mb-2">Purchase Orders History</h2>
+      <div className="ts-card ts-tbl">
+        <h2 className="m-0 text-[15px] font-medium text-fg mb-2">Purchase Orders History</h2>
         {purchaseOrders.length === 0 ? (
-          <p className="text-xs muted p-2">No purchase orders linked to this supplier yet.</p>
+          <p className="text-[13px] text-subtle p-2">No purchase orders linked to this supplier yet.</p>
         ) : (
-          <div className="table-responsive">
-            <table className="data-table">
+          <div className="ts-tblwrap">
+            <table>
               <thead>
                 <tr>
                   <th>PO Number</th>
                   <th>PO Date</th>
                   <th>Quotation Ref</th>
                   <th>Status</th>
-                  <th className="text-right">Total Amount</th>
+                  <th className="ts-r">Total Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {purchaseOrders.map((po) => (
                   <tr key={po.id}>
-                    <td className="font-mono font-bold">
-                      <Link to="/purchase-orders" className="accent-link">
+                    <td className="num">
+                      <Link to="/purchase-orders" className="text-fg hover:underline">
                         {po.number}
                       </Link>
                     </td>
                     <td>{po.date}</td>
-                    <td className="font-mono text-xs">{po.quotation_number}</td>
+                    <td className="num text-[13px]">{po.quotation_number}</td>
                     <td>
-                      <span className={po.status === 'received' || po.status === 'RECEIVED' ? 'badge success' : 'badge info'}>
+                      <span className={po.status === 'received' || po.status === 'RECEIVED' ? 'ts-st ts-tone-good' : 'ts-st'}>
                         {po.status}
                       </span>
                     </td>
-                    <td className="text-right font-bold">₹{Number(po.total || 0).toLocaleString('en-IN')}</td>
+                    <td className="ts-r">₹{Number(po.total || 0).toLocaleString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>
