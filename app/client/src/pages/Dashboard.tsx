@@ -22,7 +22,7 @@ import {
 import { RevenueLineChart } from '../components/RevenueLineChart';
 import { PipelineDonutChart } from '../components/PipelineDonutChart';
 import { HorizontalBarChart } from '../components/HorizontalBarChart';
-import { YearAnalysisButton, YearAnalysisView } from '../components/YearAnalysis';
+import { PastYearAnalysisButton, YearAnalysisView } from '../components/YearAnalysis';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -139,21 +139,20 @@ function WidgetErrorState({ message, onRetry }: { message: string; onRetry: () =
 
 type PeriodTabKey = 'thisMonth' | 'thisQuarter' | 'thisYear';
 
-// Past year whose sales come from an uploaded Excel file instead of the live data.
-const ANALYSIS_YEAR = 2025;
-
 export default function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const showAnalysis = searchParams.get('analysis') === String(ANALYSIS_YEAR);
-  const liveLabel = String(new Date().getFullYear());
+  const currentYear = new Date().getFullYear();
+  // ?analysis=<year> shows that past year's sales from its uploaded Excel file instead of live data.
+  const analysisYear = Number(searchParams.get('analysis'));
+  const showAnalysis = Number.isInteger(analysisYear) && analysisYear >= 2000 && analysisYear < currentYear;
 
   if (showAnalysis) {
-    return <YearAnalysisView year={ANALYSIS_YEAR} liveLabel={liveLabel} onExit={() => setSearchParams({})} />;
+    return <YearAnalysisView key={analysisYear} year={analysisYear} liveLabel={String(currentYear)} onExit={() => setSearchParams({})} />;
   }
-  return <LiveDashboard onOpenAnalysis={() => setSearchParams({ analysis: String(ANALYSIS_YEAR) })} />;
+  return <LiveDashboard onOpenAnalysis={(year) => setSearchParams({ analysis: String(year) })} />;
 }
 
-function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: () => void }) {
+function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => void }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
 
@@ -446,7 +445,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: () => void }) {
           <p className="text-xs text-[#7A839E] mt-0.5">Real-time view of revenue, quotations, customers and business performance.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <YearAnalysisButton year={ANALYSIS_YEAR} onOpen={onOpenAnalysis} />
+          <PastYearAnalysisButton onOpen={onOpenAnalysis} />
           <Button
             variant="outline"
             size="sm"

@@ -682,6 +682,13 @@ export interface YearAnalysisStatus {
   uploadedAt?: string;
 }
 
+export interface StoredAnalysisYear {
+  year: number;
+  filename: string;
+  importedCount: number;
+  uploadedAt: string;
+}
+
 export interface YearAnalysisUploadResult {
   year: number;
   batchId: number;
@@ -1121,6 +1128,7 @@ export const api = {
     },
   },
   analysis: {
+    years: () => request<StoredAnalysisYear[]>('/analysis/years'),
     status: (year: number) => request<YearAnalysisStatus>(`/analysis/${year}/status`),
     summary: (year: number) => request<YearAnalysisSummary>(`/analysis/${year}/summary`),
     upload: async (year: number, file: File): Promise<YearAnalysisUploadResult> => {

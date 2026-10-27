@@ -44,6 +44,22 @@ export function parseYear(raw) {
 }
 
 /**
+ * Every year that currently has an analysis file stored, newest first.
+ */
+export async function listAnalysisYears() {
+  const rows = await db
+    .prepare(`SELECT DISTINCT ON (year) year, filename, imported_count, uploaded_at
+              FROM analysis_batch ORDER BY year DESC, id DESC`)
+    .all();
+  return rows.map((r) => ({
+    year: Number(r.year),
+    filename: r.filename,
+    importedCount: Number(r.imported_count),
+    uploadedAt: r.uploaded_at,
+  }));
+}
+
+/**
  * Returns the stored analysis file for a year, or null when none has been uploaded.
  */
 export async function getAnalysisStatus(year) {

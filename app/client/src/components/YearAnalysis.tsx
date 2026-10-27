@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowLeftIcon,
   BarChart3Icon,
+  ChevronDownIcon,
   FileSpreadsheetIcon,
   Loader2Icon,
   RefreshCwIcon,
@@ -9,7 +10,7 @@ import {
   UploadIcon,
   XIcon,
 } from 'lucide-react';
-import { api, type YearAnalysisSummary, type YearAnalysisUploadResult } from '../api';
+import { api, type StoredAnalysisYear, type YearAnalysisSummary, type YearAnalysisUploadResult } from '../api';
 import { RevenueLineChart } from './RevenueLineChart';
 import { HorizontalBarChart } from './HorizontalBarChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -141,7 +142,7 @@ export function YearAnalysisUploadDialog({
         )}
 
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={onClose} disabled={uploading} className="h-9 border-[#E2EAE5] text-xs font-semibold">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={uploading} className="h-9 border-[#E2EAE5] hover:text-[#141B34] text-xs font-semibold">
             Cancel
           </Button>
           <Button
@@ -159,61 +160,138 @@ export function YearAnalysisUploadDialog({
   );
 }
 
+const PICKER_YEAR_COUNT = 6;
+
+/** Past years offered in the picker: the last few years, plus any older year that has data stored. */
+function pickerYears(stored: StoredAnalysisYear[]) {
+  const current = new Date().getFullYear();
+  const years = new Set<number>();
+  for (let i = 1; i <= PICKER_YEAR_COUNT; i++) years.add(current - i);
+  stored.forEach((s) => years.add(s.year));
+  return [...years].sort((a, b) => b - a);
+}
+
 /**
- * "2025 Analysis" button: checks the database first and opens the analysis when the year's data
- * is already stored; only asks for a file when it is not.
+ * "Past Year Analysis" button with a year picker. Opening the picker checks the database for
+ * stored years; choosing a year opens its analysis when the data is stored and only asks for a
+ * file when it is not.
  */
-export function YearAnalysisButton({
-  year,
+export function PastYearAnalysisButton({
   onOpen,
   className = '',
 }: {
-  year: number;
-  onOpen: () => void;
+  onOpen: (year: number) => void;
   className?: string;
 }) {
-  const [checking, setChecking] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [stored, setStored] = useState<StoredAnalysisYear[] | null>(null);
   const [error, setError] = useState('');
+  const [uploadYear, setUploadYear] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  async function handleClick() {
-    setChecking(true);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
+  async function toggleMenu() {
+    if (menuOpen) return setMenuOpen(false);
+    setMenuOpen(true);
+    setStored(null);
     setError('');
     try {
-      const status = await api.analysis.status(year);
-      if (status.exists) onOpen();
-      else setDialogOpen(true);
+      setStored(await api.analysis.years());
     } catch (e: any) {
-      setError(e.message || `Could not check ${year} data.`);
-    } finally {
-      setChecking(false);
+      setError(e.message || 'Could not check stored years.');
     }
   }
 
+  function chooseYear(year: number) {
+    setMenuOpen(false);
+    if (stored?.some((s) => s.year === year)) onOpen(year);
+    else setUploadYear(year);
+  }
+
   return (
-    <>
+    <div className="relative" ref={menuRef}>
       <Button
         variant="outline"
         size="sm"
-        onClick={handleClick}
-        disabled={checking}
-        title={error || `Open the ${year} analysis`}
-        className={`h-9 border-[#A7F3D0] bg-[#ECFDF5] text-[#047857] hover:bg-[#D1FAE5] text-xs font-bold gap-1.5 shadow-xs ${className}`}
+        onClick={toggleMenu}
+        aria-haspopup="menu"
+        aria-expanded={menuOpen}
+        className={`h-9 border-[#A7F3D0] bg-[#ECFDF5] text-[#047857] hover:bg-[#D1FAE5] hover:text-[#047857] text-xs font-bold gap-1.5 shadow-xs ${className}`}
       >
-        {checking ? <Loader2Icon className="size-3.5 animate-spin" /> : <BarChart3Icon className="size-3.5" />}
-        <span>{year} Analysis</span>
+        <BarChart3Icon className="size-3.5" />
+        <span>Past Year Analysis</span>
+        <ChevronDownIcon className="size-3 text-[#059669]" />
       </Button>
-      {error && <span className="text-[11px] font-semibold text-[#C8323A]">{error}</span>}
+
+      {menuOpen && (
+        <div
+          role="menu"
+          className="absolute left-0 top-11 z-50 min-w-[230px] p-1.5 rounded-[10px] bg-white border border-[#E2EAE5] shadow-[0_12px_28px_rgba(20,33,61,0.08)]"
+        >
+          <div className="px-2 py-1 border-b border-[#E2EAE5] mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Choose a year</span>
+          </div>
+          {error ? (
+            <p className="px-2 py-2 text-[11px] font-semibold text-[#C8323A]">{error}</p>
+          ) : !stored ? (
+            <p className="px-2 py-2 text-[11px] text-[#64748B] flex items-center gap-1.5">
+              <Loader2Icon className="size-3 animate-spin" /> Checking stored data…
+            </p>
+          ) : (
+            <div className="space-y-0.5">
+              {pickerYears(stored).map((year) => {
+                const saved = stored.find((s) => s.year === year);
+                return (
+                  <button
+                    key={year}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => chooseYear(year)}
+                    className="w-full text-left px-2 py-1.5 rounded-[7px] text-[12px] font-medium text-[#141B34] hover:bg-[#F8FAF9] flex items-center justify-between gap-3"
+                  >
+                    <span className="font-semibold">{year} Analysis</span>
+                    {saved ? (
+                      <span className="text-[10px] font-bold text-[#059669] bg-[#ECFDF5] border border-[#A7F3D0] rounded-full px-1.5 py-0.5">
+                        Saved · {saved.importedCount} rows
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-[#94A3B8] flex items-center gap-1">
+                        <UploadIcon className="size-3" /> Add file
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       <YearAnalysisUploadDialog
-        year={year}
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onUploaded={() => {
-          setDialogOpen(false);
-          onOpen();
+        year={uploadYear ?? new Date().getFullYear() - 1}
+        open={uploadYear !== null}
+        onClose={() => setUploadYear(null)}
+        onUploaded={(result) => {
+          setUploadYear(null);
+          onOpen(result.year);
         }}
       />
-    </>
+    </div>
   );
 }
 
@@ -300,7 +378,7 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
             variant="outline"
             size="sm"
             onClick={onExit}
-            className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] text-xs font-semibold gap-1.5 shadow-xs"
+            className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] hover:text-[#141B34] text-xs font-semibold gap-1.5 shadow-xs"
           >
             <ArrowLeftIcon className="size-3.5 text-[#64748B]" />
             Back to {liveLabel}
@@ -311,7 +389,7 @@ export function YearAnalysisView({ year, liveLabel, onExit }: { year: number; li
                 variant="outline"
                 size="sm"
                 onClick={() => setDialogOpen(true)}
-                className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] text-xs font-semibold gap-1.5 shadow-xs"
+                className="h-9 border-[#E2EAE5] bg-[#FFFFFF] text-[#141B34] hover:bg-[#F8FAF9] hover:text-[#141B34] text-xs font-semibold gap-1.5 shadow-xs"
               >
                 <RefreshCwIcon className="size-3.5 text-[#64748B]" />
                 Replace file

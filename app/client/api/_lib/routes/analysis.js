@@ -3,6 +3,7 @@ import multer from 'multer';
 import { ensureAnalysisSchema } from '../db/analysisSchema.js';
 import {
   parseYear,
+  listAnalysisYears,
   getAnalysisStatus,
   importAnalysisWorkbook,
   getAnalysisSummary,
@@ -27,6 +28,14 @@ function sendError(res, err) {
   console.error('Analysis route error:', err);
   res.status(500).json({ error: 'Something went wrong. Please try again.' });
 }
+
+router.get('/years', async (req, res) => {
+  try {
+    res.json(await listAnalysisYears());
+  } catch (err) {
+    sendError(res, err);
+  }
+});
 
 router.get('/:year/status', async (req, res) => {
   try {

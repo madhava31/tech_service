@@ -6,7 +6,7 @@ import { GroupedBarChart } from '../components/BarChart';
 import CompanyTrendLineChart from '../components/CompanyTrendLineChart';
 import SearchableSelect from '../components/SearchableSelect';
 import { ExpandableSearch } from '../components/ExpandableSearch';
-import { YearAnalysisButton } from '../components/YearAnalysis';
+import { PastYearAnalysisButton } from '../components/YearAnalysis';
 
 type Tab = 'companies' | 'products' | 'review' | 'import' | 'lapsed' | 'trends';
 
@@ -766,13 +766,13 @@ export default function Reports() {
         <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-[12px] border border-[#A7F3D0] bg-[#F0FDF4]">
             <div>
-              <h3 className="margin-0 text-[14px] font-semibold text-[#141B34]">2025 Analysis</h3>
+              <h3 className="margin-0 text-[14px] font-semibold text-[#141B34]">Past Year Analysis</h3>
               <p className="margin-0 mt-1 text-[12px] text-[#7A839E]">
-                View last year's sales from its Excel file without mixing it into the live data. Opens the stored file, or asks for one if none is saved.
+                View a past year's sales (e.g. 2024 or 2025) from its Excel file without mixing it into the live data. Opens the stored file, or asks for one if none is saved.
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <YearAnalysisButton year={2025} onOpen={() => navigate('/?analysis=2025')} />
+              <PastYearAnalysisButton onOpen={(year) => navigate(`/?analysis=${year}`)} />
             </div>
           </div>
           <p className="margin-0 text-[13px] text-[#7A839E]">
