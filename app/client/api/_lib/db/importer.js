@@ -16,7 +16,7 @@ const STATE_MAP = {
   delhi: 'Delhi',
 };
 
-function normalizeState(raw) {
+export function normalizeState(raw) {
   if (raw == null) return { value: null, ok: true };
   const s = String(raw).trim();
   if (!s) return { value: null, ok: true };
@@ -49,7 +49,7 @@ function buildDateFromParts(aStr, bStr, yStr, kind) {
   return { iso: `${y}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, year: y };
 }
 
-function normalizeDate(raw) {
+export function normalizeDate(raw) {
   if (raw == null) return { value: null, year: null };
 
   if (raw instanceof Date) {

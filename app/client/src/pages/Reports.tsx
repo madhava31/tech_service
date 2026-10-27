@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api, Company, Product } from '../api';
 import { HorizontalBarChart } from '../components/BarChart';
 import { GroupedBarChart } from '../components/BarChart';
 import CompanyTrendLineChart from '../components/CompanyTrendLineChart';
 import SearchableSelect from '../components/SearchableSelect';
 import { ExpandableSearch } from '../components/ExpandableSearch';
+import { PastYearAnalysisButton } from '../components/YearAnalysis';
 
 type Tab = 'companies' | 'products' | 'review' | 'import' | 'lapsed' | 'trends';
 
 export default function Reports() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>(location.pathname === '/reports/company-trends' ? 'trends' : 'companies');
 
   useEffect(() => {
@@ -762,6 +764,17 @@ export default function Reports() {
 
       {!loading && tab === 'import' && (
         <section className="ts-card ts-white ts-tbl flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-[15px] bg-goodbg">
+            <div>
+              <h3 className="m-0 text-[15px] font-medium text-fg">Past year analysis</h3>
+              <p className="m-0 mt-1 text-[13px] text-subtle">
+                View a past year's sales (e.g. 2024 or 2025) from its Excel file without mixing it into the live data. Opens the stored file, or asks for one if none is saved.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <PastYearAnalysisButton onOpen={(year) => navigate(`/?analysis=${year}`)} />
+            </div>
+          </div>
           <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Upload a year's sales Excel file to import data into the database.
           </p>

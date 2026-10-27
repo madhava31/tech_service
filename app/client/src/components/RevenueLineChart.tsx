@@ -93,7 +93,9 @@ export function RevenueLineChart({
         <path d={areaD} fill="url(#limeRevenueGrad)" className="revenue-area-fill" />
 
         {/* Lime Primary Line */}
-        <path d={pathD} fill="none" stroke="rgb(var(--fg))" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
+        {/* pathLength normalises the line to 1000 units so the 1000-unit draw-in animation
+            (styles.css .revenue-line-path) always finishes, however spiky the data is. */}
+        <path d={pathD} pathLength={1000} fill="none" stroke="rgb(var(--fg))" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
 
         {/* Data Nodes */}
         {points.map((pt, i) => (

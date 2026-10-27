@@ -21,6 +21,7 @@ import opportunitiesRouter from '../client/api/_lib/routes/opportunities.js';
 import engineersRouter from '../client/api/_lib/routes/engineers.js';
 import saleReportsRouter from '../client/api/_lib/routes/saleReports.js';
 import inventoryRouter from '../client/api/_lib/routes/inventory.js';
+import analysisRouter from '../client/api/_lib/routes/analysis.js';
 import exportRouter from '../client/api/_lib/routes/export.js';
 import firmsRouter from '../client/api/_lib/routes/firms.js';
 import branchesRouter from '../client/api/_lib/routes/branches.js';
@@ -223,6 +224,7 @@ app.use('/api/opportunities', requireAuth, opportunitiesRouter);
 app.use('/api/engineers', requireAuth, engineersRouter);
 app.use('/api/sale-reports', requireAuth, saleReportsRouter);
 app.use('/api/inventory', requireAuth, inventoryRouter);
+app.use('/api/analysis', requireAuth, analysisRouter);
 app.use('/api/export', requireAuth, exportRouter);
 app.get('/api/sales/pipeline/export', requireAuth, (req, res, next) => {
   req.url = '/pipeline';

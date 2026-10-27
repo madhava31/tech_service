@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, type ComponentType } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   api,
   type AttentionData,
@@ -28,6 +28,7 @@ import { lakh } from '../components/ds/format';
 import { RevenueLineChart } from '../components/RevenueLineChart';
 import { PipelineDonutChart } from '../components/PipelineDonutChart';
 import { HorizontalBarChart } from '../components/HorizontalBarChart';
+import { PastYearAnalysisButton, YearAnalysisView } from '../components/YearAnalysis';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -145,6 +146,19 @@ function WidgetErrorState({ message, onRetry }: { message: string; onRetry: () =
 type PeriodTabKey = 'thisMonth' | 'thisQuarter' | 'thisYear';
 
 export default function Dashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentYear = new Date().getFullYear();
+  // ?analysis=<year> shows that past year's sales from its uploaded Excel file instead of live data.
+  const analysisYear = Number(searchParams.get('analysis'));
+  const showAnalysis = Number.isInteger(analysisYear) && analysisYear >= 2000 && analysisYear < currentYear;
+
+  if (showAnalysis) {
+    return <YearAnalysisView key={analysisYear} year={analysisYear} liveLabel={String(currentYear)} onExit={() => setSearchParams({})} />;
+  }
+  return <LiveDashboard onOpenAnalysis={(year) => setSearchParams({ analysis: String(year) })} />;
+}
+
+function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => void }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
 
@@ -472,7 +486,8 @@ export default function Dashboard() {
           />
         </div>
         <div className="ts-meta"><CalendarIcon className="size-4" /> {displayedSubtitle}</div>
-        <div className="ts-end">
+        <div className="ts-end flex flex-wrap items-center gap-2">
+          <PastYearAnalysisButton onOpen={onOpenAnalysis} />
           <Link className="ts-btn ts-ghost" to="/business-health"><SparklesIcon /> Business health</Link>
         </div>
       </div>
