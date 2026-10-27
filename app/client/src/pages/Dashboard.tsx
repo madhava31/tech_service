@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, type ComponentType } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   api,
   type AttentionData,
@@ -22,6 +22,7 @@ import {
 import { RevenueLineChart } from '../components/RevenueLineChart';
 import { PipelineDonutChart } from '../components/PipelineDonutChart';
 import { HorizontalBarChart } from '../components/HorizontalBarChart';
+import { PastYearAnalysisButton, YearAnalysisView } from '../components/YearAnalysis';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -139,6 +140,19 @@ function WidgetErrorState({ message, onRetry }: { message: string; onRetry: () =
 type PeriodTabKey = 'thisMonth' | 'thisQuarter' | 'thisYear';
 
 export default function Dashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentYear = new Date().getFullYear();
+  // ?analysis=<year> shows that past year's sales from its uploaded Excel file instead of live data.
+  const analysisYear = Number(searchParams.get('analysis'));
+  const showAnalysis = Number.isInteger(analysisYear) && analysisYear >= 2000 && analysisYear < currentYear;
+
+  if (showAnalysis) {
+    return <YearAnalysisView key={analysisYear} year={analysisYear} liveLabel={String(currentYear)} onExit={() => setSearchParams({})} />;
+  }
+  return <LiveDashboard onOpenAnalysis={(year) => setSearchParams({ analysis: String(year) })} />;
+}
+
+function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => void }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
 
@@ -430,7 +444,8 @@ export default function Dashboard() {
           <h1 className="text-3xl font-extrabold text-[#141B34] tracking-tight">Business Analytics</h1>
           <p className="text-xs text-[#7A839E] mt-0.5">Real-time view of revenue, quotations, customers and business performance.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <PastYearAnalysisButton onOpen={onOpenAnalysis} />
           <Button
             variant="outline"
             size="sm"
