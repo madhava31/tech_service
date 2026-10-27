@@ -671,6 +671,45 @@ export interface FlaggedSalesRecordsData {
 
 export type PipelineStageKey = 'draft' | 'sent' | 'accepted' | 'rejected';
 
+export interface YearAnalysisStatus {
+  year: number;
+  exists: boolean;
+  batchId?: number;
+  filename?: string;
+  rowCount?: number;
+  importedCount?: number;
+  skippedCount?: number;
+  uploadedAt?: string;
+}
+
+export interface YearAnalysisUploadResult {
+  year: number;
+  batchId: number;
+  filename: string;
+  rowCount: number;
+  importedCount: number;
+  skippedCount: number;
+  skippedSamples: { row: number; reasons: string[] }[];
+}
+
+export interface YearAnalysisSummary extends YearAnalysisStatus {
+  kpis: {
+    totalRevenue: number;
+    invoiceCount: number;
+    lineCount: number;
+    companyCount: number;
+    productCount: number;
+    totalQty: number;
+    avgInvoiceValue: number;
+    avgMonthlyRevenue: number;
+    bestMonth: { label: string; revenue: number } | null;
+  };
+  monthly: { month: number; label: string; revenue: number; invoices: number }[];
+  topCompanies: { name: string; revenue: number; invoices: number }[];
+  topProducts: { partNo: string | null; description: string; revenue: number; qty: number }[];
+  byState: { state: string; revenue: number }[];
+}
+
 export interface PipelineStage {
   key: PipelineStageKey;
   label: string;
@@ -1080,6 +1119,19 @@ export const api = {
       if (!res.ok) throw new Error(body.error || `Upload failed: ${res.status}`);
       return body;
     },
+  },
+  analysis: {
+    status: (year: number) => request<YearAnalysisStatus>(`/analysis/${year}/status`),
+    summary: (year: number) => request<YearAnalysisSummary>(`/analysis/${year}/summary`),
+    upload: async (year: number, file: File): Promise<YearAnalysisUploadResult> => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${BASE}/analysis/${year}/upload`, { method: 'POST', body: formData, credentials: 'include' });
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      if (!res.ok) throw new Error(body.error || `Upload failed: ${res.status}`);
+      return body;
+    },
+    remove: (year: number) => request<{ ok: true; year: number }>(`/analysis/${year}`, { method: 'DELETE' }),
   },
   auth: {
     me: async (): Promise<{ needsSetup?: boolean; user?: AuthUser }> => {

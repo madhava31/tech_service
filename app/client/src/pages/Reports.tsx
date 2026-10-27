@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api, Company, Product } from '../api';
 import { HorizontalBarChart } from '../components/BarChart';
 import { GroupedBarChart } from '../components/BarChart';
 import CompanyTrendLineChart from '../components/CompanyTrendLineChart';
 import SearchableSelect from '../components/SearchableSelect';
 import { ExpandableSearch } from '../components/ExpandableSearch';
+import { YearAnalysisButton } from '../components/YearAnalysis';
 
 type Tab = 'companies' | 'products' | 'review' | 'import' | 'lapsed' | 'trends';
 
 export default function Reports() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>(location.pathname === '/reports/company-trends' ? 'trends' : 'companies');
 
   useEffect(() => {
@@ -762,6 +764,17 @@ export default function Reports() {
 
       {!loading && tab === 'import' && (
         <section className="bg-[#FFFFFF] border border-[#E4E8F2] rounded-[16px] p-6 flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-[12px] border border-[#A7F3D0] bg-[#F0FDF4]">
+            <div>
+              <h3 className="margin-0 text-[14px] font-semibold text-[#141B34]">2025 Analysis</h3>
+              <p className="margin-0 mt-1 text-[12px] text-[#7A839E]">
+                View last year's sales from its Excel file without mixing it into the live data. Opens the stored file, or asks for one if none is saved.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <YearAnalysisButton year={2025} onOpen={() => navigate('/?analysis=2025')} />
+            </div>
+          </div>
           <p className="margin-0 text-[13px] text-[#7A839E]">
             Upload a year's sales Excel file to import data into the database.
           </p>
