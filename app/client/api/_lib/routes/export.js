@@ -2,6 +2,7 @@ import { Router } from 'express';
 import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { getEngineerPerformance } from '../db/engineerService.js';
+import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
 
@@ -224,7 +225,7 @@ router.get('/engineers/performance', async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Engineer_Sales_${fyTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export engineer performance:', err);
-    res.status(500).json({ error: err.message || 'Failed to export engineer performance' });
+    sendRouteError(res, err, 500, 'Failed to export engineer performance');
   }
 });
 
@@ -321,7 +322,7 @@ router.get('/quotations', async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Quotations_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export quotations:', err);
-    res.status(500).json({ error: err.message || 'Failed to export quotations' });
+    sendRouteError(res, err, 500, 'Failed to export quotations');
   }
 });
 
@@ -391,7 +392,7 @@ router.get('/inventory/stock', async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Inventory_Stock_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export inventory stock:', err);
-    res.status(500).json({ error: err.message || 'Failed to export inventory stock' });
+    sendRouteError(res, err, 500, 'Failed to export inventory stock');
   }
 });
 
@@ -467,7 +468,7 @@ router.get('/procurement/requirements', async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Procurement_Requirements_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export procurement requirements:', err);
-    res.status(500).json({ error: err.message || 'Failed to export procurement requirements' });
+    sendRouteError(res, err, 500, 'Failed to export procurement requirements');
   }
 });
 
@@ -549,7 +550,7 @@ router.get('/sales/reports', async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Confirmed_Sales_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export sales reports:', err);
-    res.status(500).json({ error: err.message || 'Failed to export sales reports' });
+    sendRouteError(res, err, 500, 'Failed to export sales reports');
   }
 });
 
@@ -629,7 +630,7 @@ router.get(['/pipeline', '/sales/pipeline'], async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Sales_Pipeline_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export sales pipeline:', err);
-    res.status(500).json({ error: err.message || 'Failed to export sales pipeline' });
+    sendRouteError(res, err, 500, 'Failed to export sales pipeline');
   }
 });
 
@@ -715,7 +716,7 @@ router.get(['/follow-ups', '/sales/follow-ups'], async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Follow_Ups_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export follow-ups:', err);
-    res.status(500).json({ error: err.message || 'Failed to export follow-ups' });
+    sendRouteError(res, err, 500, 'Failed to export follow-ups');
   }
 });
 
@@ -828,7 +829,7 @@ router.get(['/inventory/stock', '/inventory-stock'], async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Stock_Ledger_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export stock ledger:', err);
-    res.status(500).json({ error: err.message || 'Failed to export inventory stock ledger' });
+    sendRouteError(res, err, 500, 'Failed to export inventory stock ledger');
   }
 });
 
@@ -913,7 +914,7 @@ router.get(['/inventory/receipts', '/inventory/stock-inward'], async (req, res) 
     sendExcelResponse(res, buffer, `TECHNICON_Stock_Inward_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export stock inward:', err);
-    res.status(500).json({ error: err.message || 'Failed to export stock inward receipts' });
+    sendRouteError(res, err, 500, 'Failed to export stock inward receipts');
   }
 });
 
@@ -1004,7 +1005,7 @@ router.get('/inventory/reservations', async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Stock_Reservations_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export stock reservations:', err);
-    res.status(500).json({ error: err.message || 'Failed to export stock reservations' });
+    sendRouteError(res, err, 500, 'Failed to export stock reservations');
   }
 });
 
@@ -1082,7 +1083,7 @@ router.get('/inventory/intelligence', async (req, res) => {
     sendExcelResponse(res, buffer, `TECHNICON_Stock_Intelligence_${dateTag}.xlsx`);
   } catch (err) {
     console.error('Failed to export stock intelligence:', err);
-    res.status(500).json({ error: err.message || 'Failed to export stock intelligence' });
+    sendRouteError(res, err, 500, 'Failed to export stock intelligence');
   }
 });
 

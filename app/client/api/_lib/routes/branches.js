@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
+import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
 
@@ -137,7 +138,7 @@ router.get('/all', async (req, res) => {
     res.json(branches);
   } catch (err) {
     console.error('Failed to get branches:', err);
-    res.status(500).json({ error: err.message || 'Failed to get branches' });
+    sendRouteError(res, err, 500, 'Failed to get branches');
   }
 });
 
@@ -191,7 +192,7 @@ router.get('/', async (req, res) => {
     res.json(branches);
   } catch (err) {
     console.error('Failed to get branches:', err);
-    res.status(500).json({ error: err.message || 'Failed to get branches' });
+    sendRouteError(res, err, 500, 'Failed to get branches');
   }
 });
 
@@ -205,7 +206,7 @@ router.get('/:id', async (req, res) => {
     res.json(branch);
   } catch (err) {
     console.error('Failed to get branch:', err);
-    res.status(500).json({ error: err.message || 'Failed to get branch' });
+    sendRouteError(res, err, 500, 'Failed to get branch');
   }
 });
 
@@ -277,7 +278,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(created);
   } catch (err) {
     console.error('Failed to create branch:', err);
-    res.status(500).json({ error: err.message || 'Failed to create branch' });
+    sendRouteError(res, err, 500, 'Failed to create branch');
   }
 });
 
@@ -337,7 +338,7 @@ router.put('/:id', async (req, res) => {
     res.json(updated);
   } catch (err) {
     console.error('Failed to update branch:', err);
-    res.status(500).json({ error: err.message || 'Failed to update branch' });
+    sendRouteError(res, err, 500, 'Failed to update branch');
   }
 });
 
@@ -419,7 +420,7 @@ router.put('/:id/document-settings', async (req, res) => {
     res.json(updated.document_settings);
   } catch (err) {
     console.error('Failed to update branch document settings:', err);
-    res.status(500).json({ error: err.message || 'Failed to update branch document settings' });
+    sendRouteError(res, err, 500, 'Failed to update branch document settings');
   }
 });
 
@@ -444,7 +445,7 @@ router.delete('/:id', async (req, res) => {
     res.json({ ok: true, message: 'Branch deleted successfully' });
   } catch (err) {
     console.error('Failed to delete branch:', err);
-    res.status(400).json({ error: err.message || 'Failed to delete branch' });
+    sendRouteError(res, err, 400, 'Failed to delete branch');
   }
 });
 
@@ -465,7 +466,7 @@ router.post('/bulk-delete', async (req, res) => {
     res.json({ ok: true, deletedCount });
   } catch (err) {
     console.error('Failed to bulk delete branches:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete branches' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete branches');
   }
 });
 

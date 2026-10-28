@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
+import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
 
@@ -171,7 +172,7 @@ router.get('/', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to list sale reports:', err);
-    res.status(500).json({ error: err.message || 'Failed to list sale reports' });
+    sendRouteError(res, err, 500, 'Failed to list sale reports');
   }
 });
 
@@ -323,7 +324,7 @@ router.get('/source-doc/:type/:id', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to get source document items:', err);
-    res.status(400).json({ error: err.message || 'Failed to retrieve source document items' });
+    sendRouteError(res, err, 400, 'Failed to retrieve source document items');
   }
 });
 
@@ -410,7 +411,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to get sale report:', err);
-    res.status(500).json({ error: err.message || 'Failed to get sale report' });
+    sendRouteError(res, err, 500, 'Failed to get sale report');
   }
 });
 
@@ -573,7 +574,7 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(201).json({ id: reportId, report_number: reportNumber, status });
   } catch (err) {
     console.error('Failed to create sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to create sale report' });
+    sendRouteError(res, err, 400, 'Failed to create sale report');
   }
 });
 
@@ -689,7 +690,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     res.json({ id: reportId, status: 'DRAFT' });
   } catch (err) {
     console.error('Failed to update sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to update sale report' });
+    sendRouteError(res, err, 400, 'Failed to update sale report');
   }
 });
 
@@ -716,7 +717,7 @@ router.post('/:id/confirm', requireAuth, async (req, res) => {
     res.json({ id: reportId, status: 'CONFIRMED' });
   } catch (err) {
     console.error('Failed to confirm sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to confirm sale report' });
+    sendRouteError(res, err, 400, 'Failed to confirm sale report');
   }
 });
 
@@ -737,7 +738,7 @@ router.post('/:id/cancel', requireAuth, async (req, res) => {
     res.json({ id: reportId, status: 'CANCELLED' });
   } catch (err) {
     console.error('Failed to cancel sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to cancel sale report' });
+    sendRouteError(res, err, 400, 'Failed to cancel sale report');
   }
 });
 
@@ -763,7 +764,7 @@ router.post('/bulk-delete', requireAuth, async (req, res) => {
     res.json({ success: true, deletedCount: numericIds.length });
   } catch (err) {
     console.error('Failed to bulk delete sale reports:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete sale reports' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete sale reports');
   }
 });
 
@@ -785,7 +786,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     res.json({ success: true, id: reportId, report_number: existing.report_number });
   } catch (err) {
     console.error('Failed to delete sale report:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete sale report' });
+    sendRouteError(res, err, 500, 'Failed to delete sale report');
   }
 });
 

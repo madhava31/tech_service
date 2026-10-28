@@ -6,6 +6,7 @@ import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
 import { ensureInventorySchema, getUserTable, resolveUserId } from '../db/inventorySchema.js';
 import * as inventory from '../inventory/service.js';
+import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
 
@@ -279,7 +280,7 @@ router.get('/intelligence', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to get inventory intelligence:', err);
-    res.status(500).json({ error: err.message || 'Failed to fetch inventory intelligence' });
+    sendRouteError(res, err, 500, 'Failed to fetch inventory intelligence');
   }
 });
 
@@ -407,7 +408,7 @@ router.post('/warehouses', requireAuth, async (req, res) => {
     res.status(201).json(result);
   } catch (err) {
     console.error('Failed to create warehouse:', err);
-    res.status(400).json({ error: err.message || 'Failed to create warehouse' });
+    sendRouteError(res, err, 400, 'Failed to create warehouse');
   }
 });
 
@@ -458,7 +459,7 @@ router.patch('/warehouses/:id', requireAuth, async (req, res) => {
     res.json(updated);
   } catch (err) {
     console.error('Failed to update warehouse:', err);
-    res.status(400).json({ error: err.message || 'Failed to update warehouse' });
+    sendRouteError(res, err, 400, 'Failed to update warehouse');
   }
 });
 
@@ -518,7 +519,7 @@ router.post('/warehouses/bulk-delete', requireAuth, async (req, res) => {
     res.json({ success: true, deletedCount: idsToDelete.length, deleted: toDelete });
   } catch (err) {
     console.error('Failed to bulk delete warehouses:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete warehouses' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete warehouses');
   }
 });
 
@@ -537,9 +538,8 @@ router.delete('/warehouses/:id', requireAuth, async (req, res) => {
 
     res.json({ success: true, ...deleted });
   } catch (err) {
-    console.error('Failed to delete warehouse:', err);
     const status = err.message && err.message.includes('not found') ? 404 : 400;
-    res.status(status).json({ error: err.message || 'Failed to delete warehouse' });
+    sendRouteError(res, err, status, 'Failed to delete warehouse');
   }
 });
 
@@ -840,7 +840,7 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
     });
   } catch (err) {
     console.error('Failed to import stock from Excel:', err);
-    res.status(500).json({ error: err.message || 'Failed to import Excel file' });
+    sendRouteError(res, err, 500, 'Failed to import Excel file');
   }
 });
 
@@ -858,7 +858,7 @@ router.post('/stock/bulk-delete', requireAuth, async (req, res) => {
     res.json({ success: true, deletedCount: count });
   } catch (err) {
     console.error('Failed to bulk delete stock items:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete stock items' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete stock items');
   }
 });
 
@@ -877,7 +877,7 @@ router.delete('/stock/:productId', requireAuth, async (req, res) => {
     res.json({ success: true, id: prodId, partNo: existing.part_no });
   } catch (err) {
     console.error('Failed to delete stock product:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete stock item' });
+    sendRouteError(res, err, 500, 'Failed to delete stock item');
   }
 });
 
@@ -960,7 +960,7 @@ router.get('/stock/:productId', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to get product stock detail:', err);
-    res.status(500).json({ error: err.message || 'Failed to fetch product stock' });
+    sendRouteError(res, err, 500, 'Failed to fetch product stock');
   }
 });
 
@@ -1178,7 +1178,7 @@ router.get('/receipts', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to load stock receipts:', err);
-    res.status(500).json({ error: err.message || 'Failed to load stock receipts' });
+    sendRouteError(res, err, 500, 'Failed to load stock receipts');
   }
 });
 
@@ -1462,7 +1462,7 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
     });
   } catch (err) {
     console.error('Failed to import stock receipts from Excel:', err);
-    res.status(500).json({ error: err.message || 'Failed to import stock receipts' });
+    sendRouteError(res, err, 500, 'Failed to import stock receipts');
   }
 });
 
@@ -1480,7 +1480,7 @@ router.post('/receipts/bulk-delete', requireAuth, async (req, res) => {
     res.json({ success: true, deletedCount: count });
   } catch (err) {
     console.error('Failed to bulk delete receipts:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete receipts' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete receipts');
   }
 });
 
@@ -1499,7 +1499,7 @@ router.delete('/receipts/:id', requireAuth, async (req, res) => {
     res.json({ success: true, id: recId, receiptNumber: existing.receipt_number });
   } catch (err) {
     console.error('Failed to delete stock receipt:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete stock receipt' });
+    sendRouteError(res, err, 500, 'Failed to delete stock receipt');
   }
 });
 
@@ -1516,7 +1516,7 @@ router.get('/receipts/:id', requireAuth, async (req, res) => {
     res.json(detail);
   } catch (err) {
     console.error('Failed to get stock receipt detail:', err);
-    res.status(500).json({ error: err.message || 'Failed to fetch receipt detail' });
+    sendRouteError(res, err, 500, 'Failed to fetch receipt detail');
   }
 });
 
@@ -1620,7 +1620,7 @@ router.post('/receipts', requireAuth, async (req, res) => {
     res.status(201).json(detail);
   } catch (err) {
     console.error('Failed to create stock receipt:', err);
-    res.status(400).json({ error: err.message || 'Failed to create stock receipt' });
+    sendRouteError(res, err, 400, 'Failed to create stock receipt');
   }
 });
 
@@ -1684,7 +1684,7 @@ router.post('/receipts/:id/confirm', requireAuth, async (req, res) => {
     res.json(detail);
   } catch (err) {
     console.error('Failed to confirm receipt:', err);
-    res.status(400).json({ error: err.message || 'Failed to confirm receipt' });
+    sendRouteError(res, err, 400, 'Failed to confirm receipt');
   }
 });
 
@@ -1705,7 +1705,7 @@ router.post('/receipts/:id/cancel', requireAuth, async (req, res) => {
     res.json(detail);
   } catch (err) {
     console.error('Failed to cancel receipt:', err);
-    res.status(400).json({ error: err.message || 'Failed to cancel receipt' });
+    sendRouteError(res, err, 400, 'Failed to cancel receipt');
   }
 });
 
@@ -1958,7 +1958,7 @@ router.post('/reservations/import-excel', requireAuth, uploadExcel.single('file'
     });
   } catch (err) {
     console.error('Failed to import reservations from Excel:', err);
-    res.status(500).json({ error: err.message || 'Failed to import reservations' });
+    sendRouteError(res, err, 500, 'Failed to import reservations');
   }
 });
 
@@ -1976,7 +1976,7 @@ router.post('/reservations/bulk-delete', requireAuth, async (req, res) => {
     res.json({ success: true, deletedCount: count });
   } catch (err) {
     console.error('Failed to bulk delete reservations:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete reservations' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete reservations');
   }
 });
 
@@ -1995,7 +1995,7 @@ router.delete('/reservations/:id', requireAuth, async (req, res) => {
     res.json({ success: true, id: resId });
   } catch (err) {
     console.error('Failed to delete reservation:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete reservation' });
+    sendRouteError(res, err, 500, 'Failed to delete reservation');
   }
 });
 
@@ -2256,7 +2256,7 @@ function withExcelUpload(handler) {
         const message = err.code === 'LIMIT_FILE_SIZE' ? 'The file is too large (maximum allowed is 25MB)' : `Upload error: ${err.message}`;
         return res.status(400).json({ error: message });
       }
-      if (err) return res.status(400).json({ error: err.message || 'Upload failed' });
+      if (err) return sendRouteError(res, err, 400, 'Upload failed');
       if (!req.file) return res.status(400).json({ error: 'No Excel file uploaded' });
       handler(req, res);
     });
@@ -2273,7 +2273,7 @@ router.post(
     try {
       res.json(await inventory.analyzeExcelStockWorkbook(req.file.buffer));
     } catch (err) {
-      res.status(err.status || 400).json({ error: err.message || 'Could not parse Excel workbook' });
+      sendRouteError(res, err, 400, 'Could not parse Excel workbook');
     }
   })
 );
@@ -2310,7 +2310,7 @@ router.post(
         })
       );
     } catch (err) {
-      res.status(err.status || 400).json({ error: err.message || 'Could not parse workbook data' });
+      sendRouteError(res, err, 400, 'Could not parse workbook data');
     }
   })
 );
