@@ -12,6 +12,12 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not set. Point it at a Postgres connection string (local Docker Postgres for dev, Supabase in production).');
 }
 
+// On Vercel every concurrent function instance gets its own pool, so the per-instance size must
+// stay small or instances × max quickly exceeds the Supabase pooler's client limit ("max clients
+// reached"). Idle clients are closed quickly because a frozen instance would otherwise hold them,
+// and a bounded connect timeout makes a saturated pooler fail the request instead of hanging it.
+const isServerless = !!process.env.VERCEL;
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Supabase (and most hosted Postgres) require TLS; self-signed/managed certs mean we can't
@@ -19,6 +25,9 @@ const pool = new Pool({
   ssl: process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1')
     ? false
     : { rejectUnauthorized: false },
+  max: isServerless ? 3 : 10,
+  idleTimeoutMillis: isServerless ? 5000 : 30000,
+  connectionTimeoutMillis: isServerless ? 5000 : 10000,
 });
 
 // pg-pool emits 'error' on the Pool itself when an *idle* pooled connection dies (DB restarted,
@@ -82,16 +91,23 @@ function prepare(sql) {
 
 async function transaction(fn) {
   const client = await pool.connect();
+  let releaseErr;
   try {
     await client.query('BEGIN');
     const result = await als.run(client, fn);
     await client.query('COMMIT');
     return result;
   } catch (err) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch (rollbackErr) {
+      // The connection itself is broken: destroy it instead of returning it to the pool, and
+      // surface the original error rather than the rollback failure.
+      releaseErr = rollbackErr;
+    }
     throw err;
   } finally {
-    client.release();
+    client.release(releaseErr);
   }
 }
 

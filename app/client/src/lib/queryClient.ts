@@ -4,6 +4,10 @@
 
 export type QueryKey = string | readonly unknown[];
 
+// After a failed fetch, the entry counts as fresh for this long so subscribers do not hammer a failing
+// endpoint (e.g. while the database pooler is saturated).
+const ERROR_RETRY_DELAY_MS = 10000;
+
 export function serializeKey(key: QueryKey): string {
   if (typeof key === 'string') return key;
   if (Array.isArray(key)) {
@@ -177,9 +181,10 @@ export class QueryClient {
       tags: Array.from(new Set([...(entry?.tags || []), ...(options.tags || [])])),
     };
     this.cache.set(scopedKey, fetchingEntry);
-    this.notify(scopedKey, fetchingEntry);
 
     const promise = (async () => {
+      // Start the request only after inFlight is registered below, even if queryFn throws synchronously.
+      await Promise.resolve();
       try {
         const freshData = await options.queryFn(controller.signal);
 
@@ -214,7 +219,9 @@ export class QueryClient {
           status: entry?.data !== undefined ? 'success' : 'error',
           isFetching: false,
           updatedAt: entry?.updatedAt || 0,
-          staleAt: 0,
+          // staleAt 0 means "invalidated, refetch now" to subscribers, which turned a failing endpoint
+          // into an immediate retry loop. Back off instead; polling, focus or navigation retries later.
+          staleAt: Date.now() + ERROR_RETRY_DELAY_MS,
           tags: entry?.tags || options.tags || [],
         };
 
@@ -227,7 +234,11 @@ export class QueryClient {
       }
     })();
 
+    // Register the in-flight promise BEFORE notifying: subscribers may react to this notification by
+    // calling fetchQuery again synchronously, and that call must be deduplicated onto this request.
+    // Notifying first caused unbounded re-entrant fetches (a request storm) after any invalidation.
     this.inFlight.set(scopedKey, promise);
+    this.notify(scopedKey, fetchingEntry);
     return promise;
   }
 

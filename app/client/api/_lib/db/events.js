@@ -188,8 +188,10 @@ export async function broadcastEvent(dbPoolOrExecutor, { entity, action, tags = 
   // 1. Emit to local in-memory event bus immediately
   eventBus.emit('invalidate', payloadObj);
 
-  // 2. Publish to PostgreSQL LISTEN/NOTIFY channel if database pool is available
-  if (dbPoolOrExecutor) {
+  // 2. Publish to PostgreSQL LISTEN/NOTIFY channel if database pool is available. Skipped on
+  // serverless: no instance LISTENs there, and this runs after the response is sent, when Vercel
+  // may freeze the function mid-query and leave the pooled connection checked out.
+  if (dbPoolOrExecutor && !isServerless) {
     try {
       // In PostgreSQL, pg_notify is transaction-safe: if called inside an open transaction,
       // the notification is only delivered if and when the transaction COMMITS!
