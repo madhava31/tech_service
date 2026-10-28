@@ -28,6 +28,7 @@ import branchesRouter from '../client/api/_lib/routes/branches.js';
 import { getSalesOverview } from '../client/api/_lib/sales/overview.js';
 import salesRouter from '../client/api/_lib/routes/sales.js';
 import procurementRouter from '../client/api/_lib/routes/procurement.js';
+import searchRouter from '../client/api/_lib/routes/search.js';
 
 import compression from 'compression';
 import { apiCache } from '../client/api/_lib/cache/apiCache.js';
@@ -252,6 +253,7 @@ app.get('/api/sales/overview', requireAuth, async (req, res) => {
 // Remaining /api/sales routes (pipeline, follow-ups, orders, pending, activity, reports, ...)
 app.use('/api/sales', requireAuth, salesRouter);
 app.use('/api/procurement', requireAuth, procurementRouter);
+app.use('/api/search', requireAuth, searchRouter);
 
 app.use('/api/firms', requireAuth, firmsRouter);
 app.use('/api/branches', requireAuth, branchesRouter);
