@@ -26,6 +26,7 @@ import exportRouter from '../client/api/_lib/routes/export.js';
 import firmsRouter from '../client/api/_lib/routes/firms.js';
 import branchesRouter from '../client/api/_lib/routes/branches.js';
 import { getSalesOverview } from '../client/api/_lib/sales/overview.js';
+import salesRouter from '../client/api/_lib/routes/sales.js';
 
 import compression from 'compression';
 import { apiCache } from '../client/api/_lib/cache/apiCache.js';
@@ -247,29 +248,8 @@ app.get('/api/sales/overview', requireAuth, async (req, res) => {
   }
 });
 
-// PostgreSQL Sales Orders List endpoint
-app.get('/api/sales/orders', requireAuth, async (req, res) => {
-  try {
-    const orders = await db.prepare(`
-      SELECT
-        id, invoice_no AS number, sale_date AS date, company_name,
-        part_no, product_description, qty, price, total_amount AS total
-      FROM sales_record
-      WHERE needs_review = 0
-      ORDER BY sale_date DESC
-      LIMIT 100
-    `).all();
-
-    res.json({
-      orders: orders || [],
-      total: orders.length,
-      limit: 100,
-      offset: 0
-    });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to load sales orders' });
-  }
-});
+// Remaining /api/sales routes (pipeline, follow-ups, orders, pending, activity, reports, ...)
+app.use('/api/sales', requireAuth, salesRouter);
 
 app.use('/api/firms', requireAuth, firmsRouter);
 app.use('/api/branches', requireAuth, branchesRouter);
