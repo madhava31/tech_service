@@ -2,18 +2,9 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
 import { sendRouteError } from '../http/errors.js';
+import { resolveUserId } from '../db/inventorySchema.js';
 
 const router = Router();
-
-// Helper: Safely resolve valid user ID in "user" table to satisfy foreign key constraints
-async function getValidUserId(userId) {
-  if (!userId) return null;
-  try {
-    const row = await db.prepare('SELECT id FROM "user" WHERE id = ?').get(userId);
-    if (row) return row.id;
-  } catch (err) {}
-  return null;
-}
 
 // Generates next report number e.g. SR2627/1
 async function getNextReportNumber(prefix = 'SR') {
@@ -505,7 +496,7 @@ router.post('/', requireAuth, async (req, res) => {
     const taxAmount = Number(((subtotal * taxP) / 100).toFixed(2));
     const totalAmount = Math.round(subtotal + taxAmount);
 
-    const validUserId = await getValidUserId(req.user?.id);
+    const validUserId = await resolveUserId(req.user, 'sale_report');
 
     // Validate selected sales engineer if provided
     let validatedSalesEngineerId = null;
@@ -707,7 +698,7 @@ router.post('/:id/confirm', requireAuth, async (req, res) => {
     if (existing.status === 'CONFIRMED') return res.json({ id: reportId, status: 'CONFIRMED' });
     if (existing.status !== 'DRAFT') return res.status(400).json({ error: `Cannot confirm report with status '${existing.status}'` });
 
-    const validUserId = await getValidUserId(req.user?.id);
+    const validUserId = await resolveUserId(req.user, 'sale_report');
     await db.prepare(`
       UPDATE sale_report 
       SET status = 'CONFIRMED', confirmed_at = NOW(), confirmed_by = ? 
