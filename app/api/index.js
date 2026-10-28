@@ -25,6 +25,7 @@ import analysisRouter from '../client/api/_lib/routes/analysis.js';
 import exportRouter from '../client/api/_lib/routes/export.js';
 import firmsRouter from '../client/api/_lib/routes/firms.js';
 import branchesRouter from '../client/api/_lib/routes/branches.js';
+import { getSalesOverview } from '../client/api/_lib/sales/overview.js';
 
 import compression from 'compression';
 import { apiCache } from '../client/api/_lib/cache/apiCache.js';
@@ -236,23 +237,12 @@ app.get('/api/sales/follow-ups/export', requireAuth, (req, res, next) => {
 });
 app.use('/api/admin', adminRouter);
 
-// PostgreSQL Sales Overview endpoint
+// PostgreSQL Sales Overview endpoint ({ kpis, pipeline }, as the Sales Overview page expects)
 app.get('/api/sales/overview', requireAuth, async (req, res) => {
   try {
-    const summary = await db.prepare(`
-      SELECT
-        COUNT(*) AS total_sales,
-        COALESCE(SUM(total_amount), 0) AS total_revenue
-      FROM sales_record
-      WHERE needs_review = 0
-    `).get();
-
-    res.json({
-      totalSales: Number(summary?.total_sales || 0),
-      totalRevenue: Number(summary?.total_revenue || 0),
-      sales: []
-    });
+    res.json(await getSalesOverview());
   } catch (err) {
+    console.error('Failed to load sales overview:', err);
     res.status(500).json({ error: 'Failed to load sales overview' });
   }
 });

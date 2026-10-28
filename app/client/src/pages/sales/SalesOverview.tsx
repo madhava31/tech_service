@@ -25,6 +25,11 @@ export default function SalesOverview() {
       setLoading(true);
       setError(null);
       const res = await api.sales.overview();
+      // A successful response in another shape (e.g. an older API) must not crash the page or be
+      // shown as zeros; treat it as a load failure the user can retry.
+      if (!res || typeof res.kpis !== 'object' || res.kpis === null || !Array.isArray(res.pipeline)) {
+        throw new Error('Sales overview returned an unexpected response. Please try again or contact support.');
+      }
       setData(res);
     } catch (err: any) {
       console.error('Failed to load sales overview:', err);
