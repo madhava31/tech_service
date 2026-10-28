@@ -27,7 +27,7 @@ const pool = new Pool({
     : { rejectUnauthorized: false },
   max: isServerless ? 3 : 10,
   idleTimeoutMillis: isServerless ? 5000 : 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: isServerless ? 5000 : 10000,
 });
 
 // pg-pool emits 'error' on the Pool itself when an *idle* pooled connection dies (DB restarted,
