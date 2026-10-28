@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "regions": ["icn1"],
   "buildCommand": "npm --prefix app run build",
   "outputDirectory": "app/client/dist",
   "rewrites": [
