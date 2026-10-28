@@ -10,6 +10,8 @@
 --   * created_by / confirmed_by reference app_user (the table the Postgres app authenticates with)
 --     ON DELETE SET NULL, like the inventory tables, instead of the legacy SQLite-era "user" table.
 --   * sales_engineer.user_id and is_sales_engineer are not added: no code reads or writes them.
+--   * purchase_order.sales_engineer_id/firm_id/branch_id are not added: nothing writes them, and
+--     the one read (saleReports.js, from SELECT po.*) already falls back to NULL without them.
 --
 -- Requires the base schema (schema.sql) and the inventory tables (created by
 -- app/client/api/_lib/db/inventorySchema.js on first use), which sale_report and
@@ -193,5 +195,14 @@ ALTER TABLE quotation_follow_up ADD COLUMN IF NOT EXISTS firm_id INTEGER;
 ALTER TABLE quotation_follow_up ADD COLUMN IF NOT EXISTS branch_id INTEGER;
 ALTER TABLE quotation_follow_up ADD COLUMN IF NOT EXISTS company_id INTEGER;
 ALTER TABLE quotation_follow_up ADD COLUMN IF NOT EXISTS sales_engineer_id INTEGER;
+
+-- Columns used by the procurement code (supplier purchase orders and supplier companies) ------
+-- A supplier purchase order is a purchase_order row with supplier_id or procurement_requirement_id
+-- set; customer purchase orders leave both NULL.
+ALTER TABLE purchase_order ADD COLUMN IF NOT EXISTS supplier_id INTEGER;
+ALTER TABLE purchase_order ADD COLUMN IF NOT EXISTS received_quantity DOUBLE PRECISION;
+ALTER TABLE purchase_order ADD COLUMN IF NOT EXISTS procurement_requirement_id INTEGER;
+ALTER TABLE company ADD COLUMN IF NOT EXISTS is_supplier INTEGER;
+ALTER TABLE company ADD COLUMN IF NOT EXISTS company_type TEXT;
 
 COMMIT;

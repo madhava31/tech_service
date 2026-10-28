@@ -98,7 +98,7 @@ async function ensureDefaultWarehouse() {
 }
 
 // Helper: Generate next stock receipt number e.g. REC2627/1
-async function getNextReceiptNumber(prefix = 'REC') {
+export async function getNextReceiptNumber(prefix = 'REC') {
   const now = new Date();
   const fyStartYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
   const fyTag = `${String(fyStartYear).slice(2)}${String(fyStartYear + 1).slice(2)}`;

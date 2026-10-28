@@ -63,6 +63,8 @@ try {
     quotation: ['firm_id', 'branch_id', 'gross_subtotal', 'product_discount_total', 'subtotal_after_product_discounts', 'overall_discount_type', 'overall_discount_value', 'overall_discount_amount', 'net_subtotal'],
     quotation_item: ['actual_unit_price', 'discount_type', 'discount_value', 'product_discount_amount', 'after_product_discount_amount', 'overall_discount_allocated', 'final_unit_price', 'final_line_total'],
     quotation_follow_up: ['follow_up_time', 'priority', 'firm_id', 'branch_id', 'company_id', 'sales_engineer_id'],
+    purchase_order: ['supplier_id', 'received_quantity', 'procurement_requirement_id'],
+    company: ['is_supplier', 'company_type'],
   };
   for (const [t, list] of Object.entries(ADDED)) {
     const missing = list.filter((c) => !has(t, c));

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import db from '../db/index.js';
 import { sendRouteError } from '../http/errors.js';
+import { createSchemaGuard } from '../db/schemaGuard.js';
 import {
   getSalesOrders,
   getSalesOrderById,
@@ -32,10 +32,7 @@ import {
 
 const router = Router();
 
-// The sales module needs the tables/columns added by
-// app/client/api/_lib/db/migrations/001_erp_missing_tables.sql. Until it is applied every route
-// answers 503 with a clear message instead of failing on a missing relation. Only a successful
-// check is cached, so the routes start working as soon as the migration is applied.
+// Tables/columns from migration 001 that the sales module needs (see db/schemaGuard.js).
 const REQUIRED_COLUMNS = {
   sale_report: ['id', 'source_quotation_id', 'source_po_id', 'source_pi_id', 'status', 'total_amount'],
   sale_report_item: ['sale_report_id', 'quantity'],
@@ -46,36 +43,7 @@ const REQUIRED_COLUMNS = {
   warehouse: ['id'],
   inventory_stock: ['product_id'],
 };
-let schemaReady = false;
-
-export async function salesSchemaMissing() {
-  const rows = await db
-    .prepare(
-      `SELECT table_name, column_name FROM information_schema.columns
-       WHERE table_schema = 'public' AND table_name = ANY(?::text[])`
-    )
-    .all(Object.keys(REQUIRED_COLUMNS));
-  const present = new Set(rows.map((r) => `${r.table_name}.${r.column_name}`));
-  return Object.entries(REQUIRED_COLUMNS).flatMap(([t, cols]) => cols.filter((c) => !present.has(`${t}.${c}`)).map((c) => `${t}.${c}`));
-}
-
-router.use(async (req, res, next) => {
-  if (schemaReady) return next();
-  try {
-    const missing = await salesSchemaMissing();
-    if (missing.length) {
-      console.error('[sales] database migration 001 not applied; missing:', missing.join(', '));
-      return res.status(503).json({
-        error: 'Sales features need a database update (migration 001) that has not been applied yet. Please contact your administrator.',
-        code: 'MIGRATION_REQUIRED',
-      });
-    }
-    schemaReady = true;
-    next();
-  } catch (err) {
-    sendRouteError(res, err, 500, 'Failed to load sales data');
-  }
-});
+router.use(createSchemaGuard(REQUIRED_COLUMNS, 'Sales', 'Failed to load sales data'));
 
 const intOrNull = (v) => (v ? Number(v) : null);
 const handle = (fn, fallback) => async (req, res) => {
