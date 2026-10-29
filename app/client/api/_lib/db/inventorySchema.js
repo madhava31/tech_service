@@ -151,7 +151,7 @@ export function getUserTable(table = 'inventory_movement') {
         JOIN information_schema.constraint_column_usage ccu
           ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
         WHERE tc.constraint_type = 'FOREIGN KEY'
-          AND tc.table_schema = 'public'
+          AND tc.table_schema = current_schema()
           AND tc.table_name = ?
           AND kcu.column_name = 'created_by'
         LIMIT 1

@@ -11,7 +11,7 @@ export async function missingColumns(required) {
   const rows = await db
     .prepare(
       `SELECT table_name, column_name FROM information_schema.columns
-       WHERE table_schema = 'public' AND table_name = ANY(?::text[])`
+       WHERE table_schema = current_schema() AND table_name = ANY(?::text[])`
     )
     .all(Object.keys(required));
   const present = new Set(rows.map((r) => `${r.table_name}.${r.column_name}`));
