@@ -1,4 +1,5 @@
 import db from '../db/index.js';
+import { sendRouteError } from '../http/errors.js';
 
 export async function getSessionUser(token) {
   if (!token) return null;
@@ -31,7 +32,8 @@ export async function requireAuth(req, res, next) {
     // rejections) and could crash the whole process outright (observed locally when Postgres was
     // paused mid-request during Step 5.5 testing). Fails CLOSED: no `req.user` is ever set and
     // `next()` is never called, so a DB outage can never be mistaken for "authenticated".
-    res.status(500).json({ error: 'Unable to verify authentication. Please try again.' });
+    // The real error is logged server-side only; the client gets the generic message.
+    sendRouteError(res, err, 500, 'Unable to verify authentication. Please try again.');
   }
 }
 
