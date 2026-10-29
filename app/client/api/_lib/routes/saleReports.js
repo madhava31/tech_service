@@ -3,8 +3,16 @@ import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
 import { sendRouteError } from '../http/errors.js';
 import { resolveUserId } from '../db/inventorySchema.js';
+import { createSchemaGuard } from '../db/schemaGuard.js';
 
 const router = Router();
+
+// sale_report / sale_report_item come from migration 001. Until it is applied every route answers
+// 503 MIGRATION_REQUIRED with a safe message instead of 'relation "sale_report" does not exist'.
+router.use(createSchemaGuard({
+  sale_report: ['id', 'report_number', 'company_id', 'warehouse_id', 'source_type', 'status', 'total_amount', 'created_by', 'confirmed_by'],
+  sale_report_item: ['sale_report_id', 'product_id', 'quantity'],
+}, 'Sale report', 'Failed to load sale reports'));
 
 // Generates next report number e.g. SR2627/1
 async function getNextReportNumber(prefix = 'SR') {
