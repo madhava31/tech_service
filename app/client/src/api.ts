@@ -2483,36 +2483,46 @@ export type DerivedSalesOrderStatus =
   | 'PARTIALLY_DISPATCHED'
   | 'COMPLETED';
 
+// count/value are null when the stage cannot be calculated (listed in SalesOverviewResponse.unavailable).
 export interface SalesPipelineStage {
   stage: string;
   label: string;
-  count: number;
-  value: number;
+  count: number | null;
+  value: number | null;
 }
 
+// Fields typed `number | null` depend on sale reports; they are null (never 0) when sale reports
+// are not set up in the database, and are then listed in SalesOverviewResponse.unavailable.
 export interface SalesOverviewKpis {
   totalQuotations: number;
   draftQuotations: number;
   sentQuotations: number;
   acceptedQuotations: number;
   rejectedQuotations: number;
-  openOrders: number;
+  openOrders: number | null;
   pendingPis: number;
-  pendingSaleReports: number;
-  confirmedSales: number;
-  salesValue: number;
-  grossSales: number;
+  pendingSaleReports: number | null;
+  confirmedSales: number | null;
+  salesValue: number | null;
+  grossSales: number | null;
   acceptedQuotationValue: number;
-  openOrderValue: number;
-  pendingDispatchValue: number;
-  completedSalesValue: number;
-  averageOrderValue: number;
+  openOrderValue: number | null;
+  pendingDispatchValue: number | null;
+  completedSalesValue: number | null;
+  averageOrderValue: number | null;
   quotationConversionRate: number;
+}
+
+export interface SalesOverviewUnavailable {
+  reason: string;
+  metrics: (keyof SalesOverviewKpis)[];
+  stages: string[];
 }
 
 export interface SalesOverviewResponse {
   kpis: SalesOverviewKpis;
   pipeline: SalesPipelineStage[];
+  unavailable: SalesOverviewUnavailable | null;
 }
 
 export interface SalesOrderItem {

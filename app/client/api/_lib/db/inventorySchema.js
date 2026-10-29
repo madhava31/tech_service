@@ -133,15 +133,16 @@ export function ensureInventorySchema() {
   return schemaReady;
 }
 
-let userTablePromise = null;
+const userTablePromises = new Map();
 
 /**
- * Returns the quoted table name that inventory_movement.created_by references
- * ('"user"' on older databases, 'app_user' otherwise).
+ * Returns the quoted table name that <table>.created_by references ('"user"' on older databases,
+ * 'app_user' otherwise). Defaults to inventory_movement; other tables (e.g. sale_report) can
+ * reference a different user table on older databases, so each table is checked separately.
  */
-export function getUserTable() {
-  if (!userTablePromise) {
-    userTablePromise = db
+export function getUserTable(table = 'inventory_movement') {
+  if (!userTablePromises.has(table)) {
+    const promise = db
       .prepare(`
         SELECT ccu.table_name AS ref_table
         FROM information_schema.table_constraints tc
@@ -150,27 +151,28 @@ export function getUserTable() {
         JOIN information_schema.constraint_column_usage ccu
           ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
         WHERE tc.constraint_type = 'FOREIGN KEY'
-          AND tc.table_schema = 'public'
-          AND tc.table_name = 'inventory_movement'
+          AND tc.table_schema = current_schema()
+          AND tc.table_name = ?
           AND kcu.column_name = 'created_by'
         LIMIT 1
       `)
-      .get()
+      .get(table)
       .then((row) => (row?.ref_table === 'user' ? '"user"' : 'app_user'))
       .catch((err) => {
-        userTablePromise = null;
+        userTablePromises.delete(table);
         throw err;
       });
+    userTablePromises.set(table, promise);
   }
-  return userTablePromise;
+  return userTablePromises.get(table);
 }
 
 /**
- * Maps the logged-in app_user to an id that satisfies the created_by foreign key, or null.
+ * Maps the logged-in app_user to an id that satisfies <table>.created_by's foreign key, or null.
  */
-export async function resolveUserId(sessionUser) {
+export async function resolveUserId(sessionUser, table = 'inventory_movement') {
   if (!sessionUser?.id) return null;
-  const userTable = await getUserTable();
+  const userTable = await getUserTable(table);
   if (userTable === 'app_user') return sessionUser.id;
   try {
     const byName = sessionUser.username

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { sendRouteError } from '../http/errors.js';
 import {
   getEngineers,
   getEngineerById,
@@ -71,7 +72,7 @@ router.post('/targets', async (req, res) => {
     });
     res.status(201).json(result);
   } catch (err) {
-    res.status(400).json({ error: err.message || 'Failed to set engineer target' });
+    sendRouteError(res, err, 400, 'Failed to set engineer target');
   }
 });
 
@@ -93,7 +94,7 @@ router.post('/', async (req, res) => {
     const engineer = await createEngineer(req.body);
     res.status(201).json(engineer);
   } catch (err) {
-    res.status(400).json({ error: err.message || 'Failed to create engineer' });
+    sendRouteError(res, err, 400, 'Failed to create engineer');
   }
 });
 
@@ -102,7 +103,7 @@ router.put('/:id', async (req, res) => {
     const engineer = await updateEngineer(req.params.id, req.body);
     res.json(engineer);
   } catch (err) {
-    res.status(400).json({ error: err.message || 'Failed to update engineer' });
+    sendRouteError(res, err, 400, 'Failed to update engineer');
   }
 });
 

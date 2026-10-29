@@ -90,6 +90,11 @@ function prepare(sql) {
 }
 
 async function transaction(fn) {
+  // Already inside a transaction (e.g. receiving stock calls recordStockIn, which opens its own):
+  // join it instead of checking out a second connection, so the whole operation stays
+  // all-or-nothing and a small serverless pool cannot be exhausted by nested calls.
+  if (als.getStore()) return fn();
+
   const client = await pool.connect();
   let releaseErr;
   try {

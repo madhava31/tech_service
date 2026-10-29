@@ -3,6 +3,7 @@ import db from '../db/index.js';
 import { nextNumber } from '../db/numbering.js';
 import { streamQuotationPdf } from '../pdf/documents.js';
 import apiCache from '../cache/apiCache.js';
+import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
 
@@ -222,7 +223,7 @@ router.post('/calculate-pricing', (req, res) => {
     const result = computeTotals(items || [], taxPct, dType, dVal);
     res.json(result);
   } catch (err) {
-    res.status(400).json({ error: err.message || 'Failed to calculate pricing' });
+    sendRouteError(res, err, 400, 'Failed to calculate pricing');
   }
 });
 
@@ -238,7 +239,7 @@ router.get('/stock-analysis', async (req, res) => {
     res.json(analysis);
   } catch (err) {
     console.error('Failed to analyze quotation stock:', err);
-    res.status(500).json({ error: err.message || 'Failed to analyze quotation stock' });
+    sendRouteError(res, err, 500, 'Failed to analyze quotation stock');
   }
 });
 
@@ -289,7 +290,7 @@ router.post('/stock-analysis', async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to analyze quotation stock:', err);
-    res.status(500).json({ error: err.message || 'Failed to analyze quotation stock' });
+    sendRouteError(res, err, 500, 'Failed to analyze quotation stock');
   }
 });
 
@@ -596,7 +597,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(row);
   } catch (err) {
     console.error('Unable to create the quotation:', err);
-    res.status(500).json({ error: err.message || 'Unable to create the quotation. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to create the quotation. Please try again.');
   }
 });
 
@@ -752,7 +753,7 @@ router.put('/:id', async (req, res) => {
     res.json(row);
   } catch (err) {
     console.error('Unable to save the quotation:', err);
-    res.status(500).json({ error: err.message || 'Unable to save the quotation. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to save the quotation. Please try again.');
   }
 });
 
@@ -777,7 +778,7 @@ router.post('/:id/status', async (req, res) => {
     res.json(await db.prepare(`SELECT * FROM quotation WHERE id = ?`).get(req.params.id));
   } catch (err) {
     console.error('Unable to update quotation status:', err);
-    res.status(500).json({ error: err.message || 'Unable to update the quotation status. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to update the quotation status. Please try again.');
   }
 });
 
@@ -818,7 +819,7 @@ router.delete('/:id', async (req, res) => {
     res.json({ success: true, message: 'Quotation deleted successfully' });
   } catch (err) {
     console.error('Failed to delete quotation:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete quotation. Please try again.' });
+    sendRouteError(res, err, 500, 'Failed to delete quotation. Please try again.');
   }
 });
 
@@ -845,7 +846,7 @@ router.post('/:id/follow-ups', async (req, res) => {
     res.status(201).json(row);
   } catch (err) {
     console.error('Unable to schedule follow-up:', err);
-    res.status(500).json({ error: err.message || 'Unable to schedule the follow-up. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to schedule the follow-up. Please try again.');
   }
 });
 
@@ -898,7 +899,7 @@ router.post('/:quotationId/follow-ups/:followUpId/complete', async (req, res) =>
     res.json(await db.prepare(`SELECT * FROM quotation_follow_up WHERE id = ?`).get(req.params.followUpId));
   } catch (err) {
     console.error('Unable to complete follow-up:', err);
-    res.status(500).json({ error: err.message || 'Unable to complete the follow-up. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to complete the follow-up. Please try again.');
   }
 });
 
@@ -920,7 +921,7 @@ router.post('/:quotationId/follow-ups/:followUpId/cancel', async (req, res) => {
     res.json(await db.prepare(`SELECT * FROM quotation_follow_up WHERE id = ?`).get(req.params.followUpId));
   } catch (err) {
     console.error('Unable to cancel follow-up:', err);
-    res.status(500).json({ error: err.message || 'Unable to cancel the follow-up. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to cancel the follow-up. Please try again.');
   }
 });
 

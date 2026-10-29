@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
+import { sendRouteError } from '../http/errors.js';
 import { createSchemaGuard } from '../db/schemaGuard.js';
 
 const router = Router();
@@ -51,7 +52,7 @@ router.get('/', async (req, res) => {
     res.json(firms);
   } catch (err) {
     console.error('Failed to get firms:', err);
-    res.status(500).json({ error: err.message || 'Failed to get firms' });
+    sendRouteError(res, err, 500, 'Failed to get firms');
   }
 });
 
@@ -82,7 +83,7 @@ router.get('/:id', async (req, res) => {
     res.json({ ...firm, branches });
   } catch (err) {
     console.error('Failed to get firm:', err);
-    res.status(500).json({ error: err.message || 'Failed to get firm' });
+    sendRouteError(res, err, 500, 'Failed to get firm');
   }
 });
 
@@ -129,7 +130,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(created);
   } catch (err) {
     console.error('Failed to create firm:', err);
-    res.status(500).json({ error: err.message || 'Failed to create firm' });
+    sendRouteError(res, err, 500, 'Failed to create firm');
   }
 });
 
@@ -185,7 +186,7 @@ router.put('/:id', async (req, res) => {
     res.json(updated);
   } catch (err) {
     console.error('Failed to update firm:', err);
-    res.status(500).json({ error: err.message || 'Failed to update firm' });
+    sendRouteError(res, err, 500, 'Failed to update firm');
   }
 });
 
@@ -220,7 +221,7 @@ router.delete('/:id', async (req, res) => {
     res.json({ ok: true, message: 'Firm deleted successfully' });
   } catch (err) {
     console.error('Failed to delete firm:', err);
-    res.status(400).json({ error: err.message || 'Failed to delete firm' });
+    sendRouteError(res, err, 400, 'Failed to delete firm');
   }
 });
 
@@ -245,7 +246,7 @@ router.post('/bulk-delete', async (req, res) => {
     res.json({ ok: true, deletedCount });
   } catch (err) {
     console.error('Failed to bulk delete firms:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete firms' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete firms');
   }
 });
 

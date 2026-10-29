@@ -107,13 +107,13 @@ try {
 
   await test('failure is not cached: complete schema lets requests reach both routers', async () => {
     columns = rowsFor(FULL);
-    // the stub then fails the data query inside each route (its own 500, not the guard's 503)
-    const before = dataQueries;
+    // the stub then fails the data query: each route's own generic 500, no database text
     const f = await call('GET', '/firms');
     assert.strictEqual(f.status, 500);
+    assert.deepStrictEqual(f.body, { error: 'Failed to get firms' });
     const b = await call('GET', '/branches');
     assert.strictEqual(b.status, 500);
-    assert.ok(dataQueries > before, 'the routes themselves ran');
+    assert.deepStrictEqual(b.body, { error: 'Failed to get branches' });
   });
 
   await test('success is cached: no further catalog lookups', async () => {

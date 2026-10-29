@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import db from '../db/index.js';
 import { hashPassword, verifyPassword } from '../auth/password.js';
 import { getSessionUser } from '../auth/middleware.js';
+import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
 const SESSION_DAYS = 30;
@@ -36,7 +37,7 @@ router.get('/me', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Not authenticated' });
     res.json({ user });
   } catch (err) {
-    res.status(500).json({ error: 'Unable to check authentication status. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to check authentication status. Please try again.');
   }
 });
 
@@ -57,7 +58,7 @@ router.post('/setup', async (req, res) => {
     await createSession(info.lastInsertRowid, res);
     res.status(201).json({ user: { id: info.lastInsertRowid, username: username.trim(), role: 'admin' } });
   } catch (err) {
-    res.status(500).json({ error: 'Unable to complete setup. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to complete setup. Please try again.');
   }
 });
 
@@ -74,7 +75,7 @@ router.post('/login', async (req, res) => {
     await createSession(row.id, res);
     res.json({ user: { id: row.id, username: row.username, role: row.role } });
   } catch (err) {
-    res.status(500).json({ error: 'Unable to sign in. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to sign in. Please try again.');
   }
 });
 
@@ -85,7 +86,7 @@ router.post('/logout', async (req, res) => {
     res.clearCookie(COOKIE_NAME, { path: '/', secure: isProduction, sameSite: 'lax' });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: 'Unable to sign out. Please try again.' });
+    sendRouteError(res, err, 500, 'Unable to sign out. Please try again.');
   }
 });
 

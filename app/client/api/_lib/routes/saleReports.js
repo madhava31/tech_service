@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import db from '../db/index.js';
-import { createSchemaGuard } from '../db/schemaGuard.js';
 import { requireAuth } from '../auth/middleware.js';
+import { sendRouteError } from '../http/errors.js';
+import { resolveUserId } from '../db/inventorySchema.js';
+import { createSchemaGuard } from '../db/schemaGuard.js';
 
 const router = Router();
 
@@ -11,16 +13,6 @@ router.use(createSchemaGuard({
   sale_report: ['id', 'report_number', 'company_id', 'warehouse_id', 'source_type', 'status', 'total_amount', 'created_by', 'confirmed_by'],
   sale_report_item: ['sale_report_id', 'product_id', 'quantity'],
 }, 'Sale report', 'Failed to load sale reports'));
-
-// Helper: Safely resolve valid user ID in "user" table to satisfy foreign key constraints
-async function getValidUserId(userId) {
-  if (!userId) return null;
-  try {
-    const row = await db.prepare('SELECT id FROM "user" WHERE id = ?').get(userId);
-    if (row) return row.id;
-  } catch (err) {}
-  return null;
-}
 
 // Generates next report number e.g. SR2627/1
 async function getNextReportNumber(prefix = 'SR') {
@@ -179,7 +171,7 @@ router.get('/', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to list sale reports:', err);
-    res.status(500).json({ error: err.message || 'Failed to list sale reports' });
+    sendRouteError(res, err, 500, 'Failed to list sale reports');
   }
 });
 
@@ -331,7 +323,7 @@ router.get('/source-doc/:type/:id', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to get source document items:', err);
-    res.status(400).json({ error: err.message || 'Failed to retrieve source document items' });
+    sendRouteError(res, err, 400, 'Failed to retrieve source document items');
   }
 });
 
@@ -418,7 +410,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     });
   } catch (err) {
     console.error('Failed to get sale report:', err);
-    res.status(500).json({ error: err.message || 'Failed to get sale report' });
+    sendRouteError(res, err, 500, 'Failed to get sale report');
   }
 });
 
@@ -512,7 +504,7 @@ router.post('/', requireAuth, async (req, res) => {
     const taxAmount = Number(((subtotal * taxP) / 100).toFixed(2));
     const totalAmount = Math.round(subtotal + taxAmount);
 
-    const validUserId = await getValidUserId(req.user?.id);
+    const validUserId = await resolveUserId(req.user, 'sale_report');
 
     // Validate selected sales engineer if provided
     let validatedSalesEngineerId = null;
@@ -581,7 +573,7 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(201).json({ id: reportId, report_number: reportNumber, status });
   } catch (err) {
     console.error('Failed to create sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to create sale report' });
+    sendRouteError(res, err, 400, 'Failed to create sale report');
   }
 });
 
@@ -697,7 +689,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     res.json({ id: reportId, status: 'DRAFT' });
   } catch (err) {
     console.error('Failed to update sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to update sale report' });
+    sendRouteError(res, err, 400, 'Failed to update sale report');
   }
 });
 
@@ -714,7 +706,7 @@ router.post('/:id/confirm', requireAuth, async (req, res) => {
     if (existing.status === 'CONFIRMED') return res.json({ id: reportId, status: 'CONFIRMED' });
     if (existing.status !== 'DRAFT') return res.status(400).json({ error: `Cannot confirm report with status '${existing.status}'` });
 
-    const validUserId = await getValidUserId(req.user?.id);
+    const validUserId = await resolveUserId(req.user, 'sale_report');
     await db.prepare(`
       UPDATE sale_report 
       SET status = 'CONFIRMED', confirmed_at = NOW(), confirmed_by = ? 
@@ -724,7 +716,7 @@ router.post('/:id/confirm', requireAuth, async (req, res) => {
     res.json({ id: reportId, status: 'CONFIRMED' });
   } catch (err) {
     console.error('Failed to confirm sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to confirm sale report' });
+    sendRouteError(res, err, 400, 'Failed to confirm sale report');
   }
 });
 
@@ -745,7 +737,7 @@ router.post('/:id/cancel', requireAuth, async (req, res) => {
     res.json({ id: reportId, status: 'CANCELLED' });
   } catch (err) {
     console.error('Failed to cancel sale report:', err);
-    res.status(400).json({ error: err.message || 'Failed to cancel sale report' });
+    sendRouteError(res, err, 400, 'Failed to cancel sale report');
   }
 });
 
@@ -771,7 +763,7 @@ router.post('/bulk-delete', requireAuth, async (req, res) => {
     res.json({ success: true, deletedCount: numericIds.length });
   } catch (err) {
     console.error('Failed to bulk delete sale reports:', err);
-    res.status(500).json({ error: err.message || 'Failed to bulk delete sale reports' });
+    sendRouteError(res, err, 500, 'Failed to bulk delete sale reports');
   }
 });
 
@@ -793,7 +785,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     res.json({ success: true, id: reportId, report_number: existing.report_number });
   } catch (err) {
     console.error('Failed to delete sale report:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete sale report' });
+    sendRouteError(res, err, 500, 'Failed to delete sale report');
   }
 });
 

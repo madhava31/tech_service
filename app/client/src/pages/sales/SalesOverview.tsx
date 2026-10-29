@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, SalesOverviewResponse } from '../../api';
 import { LoadingState, ErrorState } from '../../components/ui/state-views';
+import { parseSalesOverviewResponse } from '../../lib/salesOverview';
 
 function formatCurrency(val: number) {
   return new Intl.NumberFormat('en-IN', {
@@ -10,6 +11,11 @@ function formatCurrency(val: number) {
     maximumFractionDigits: 0,
   }).format(val || 0);
 }
+
+// Metrics the server could not calculate arrive as null; show them as unavailable, never as 0.
+const NOT_AVAILABLE = '—';
+const showCount = (v: number | null) => (v === null ? NOT_AVAILABLE : v);
+const showMoney = (v: number | null) => (v === null ? NOT_AVAILABLE : formatCurrency(v));
 
 export default function SalesOverview() {
   const [data, setData] = useState<SalesOverviewResponse | null>(null);
@@ -25,7 +31,8 @@ export default function SalesOverview() {
       setLoading(true);
       setError(null);
       const res = await api.sales.overview();
-      setData(res);
+      // Throws on a missing or malformed response (e.g. an older API), which shows the error state.
+      setData(parseSalesOverviewResponse(res));
     } catch (err: any) {
       console.error('Failed to load sales overview:', err);
       setError(err.message || 'Failed to load sales overview');
@@ -42,7 +49,7 @@ export default function SalesOverview() {
     return <ErrorState message={error || 'Failed to load sales overview'} onRetry={loadOverview} />;
   }
 
-  const { kpis, pipeline } = data;
+  const { kpis, pipeline, unavailable } = data;
 
   return (
     <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
@@ -76,6 +83,13 @@ export default function SalesOverview() {
         </div>
       </div>
 
+      {unavailable && (
+        <div className="ts-card text-[13px] text-subtle" role="status">
+          <span className="text-warn font-medium">Some figures are not available.</span> {unavailable.reason} Values shown as{' '}
+          {NOT_AVAILABLE} are not calculated.
+        </div>
+      )}
+
       {/* KPI Cards Grid - Fixed text collision */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="ts-card ts-kpi-sm space-y-1">
@@ -96,9 +110,9 @@ export default function SalesOverview() {
 
         <div className="ts-card ts-kpi-sm space-y-1">
           <div className="text-[13px] text-subtle">Open Orders</div>
-          <div className="ts-val num text-fg !mt-1.5 truncate">{kpis.openOrders}</div>
+          <div className="ts-val num text-fg !mt-1.5 truncate">{showCount(kpis.openOrders)}</div>
           <div className="text-[12.5px] text-faint pt-1 num">
-            {formatCurrency(kpis.openOrderValue)}
+            {showMoney(kpis.openOrderValue)}
           </div>
         </div>
 
@@ -110,15 +124,15 @@ export default function SalesOverview() {
 
         <div className="ts-card ts-kpi-sm space-y-1">
           <div className="text-[13px] text-subtle">Pending Dispatch</div>
-          <div className="ts-val num text-warn !mt-1.5 truncate">{kpis.pendingSaleReports}</div>
+          <div className="ts-val num text-warn !mt-1.5 truncate">{showCount(kpis.pendingSaleReports)}</div>
           <div className="text-[12.5px] text-faint pt-1">Draft Sale Reports</div>
         </div>
 
         <div className="ts-card ts-charcoal ts-kpi-sm space-y-1">
           <div className="text-[13px] opacity-70">Confirmed Sales</div>
-          <div className="ts-val num !mt-1.5 truncate">{formatCurrency(kpis.salesValue)}</div>
+          <div className="ts-val num !mt-1.5 truncate">{showMoney(kpis.salesValue)}</div>
           <div className="text-[12.5px] opacity-60 pt-1">
-            {kpis.confirmedSales} Confirmed Sales
+            {kpis.confirmedSales === null ? 'Not available' : `${kpis.confirmedSales} Confirmed Sales`}
           </div>
         </div>
       </div>
@@ -149,8 +163,8 @@ export default function SalesOverview() {
                 <div className="text-[13px] font-medium text-fg mt-1">{stage.label}</div>
               </div>
               <div className="mt-3 pt-2 border-t border-dashed border-line2 flex justify-between items-baseline gap-2">
-                <span className="text-[20px] font-medium text-fg num">{stage.count}</span>
-                <span className="text-[13px] num text-fg font-medium">{formatCurrency(Number(stage.value))}</span>
+                <span className="text-[20px] font-medium text-fg num">{showCount(stage.count)}</span>
+                <span className="text-[13px] num text-fg font-medium">{showMoney(stage.value)}</span>
               </div>
             </div>
           ))}
@@ -225,7 +239,7 @@ export default function SalesOverview() {
               <tbody>
                 <tr>
                   <td className="text-subtle">Gross Sales (Confirmed)</td>
-                  <td className="ts-r text-fg num">{formatCurrency(kpis.grossSales)}</td>
+                  <td className="ts-r text-fg num">{showMoney(kpis.grossSales)}</td>
                 </tr>
                 <tr>
                   <td className="text-subtle">Accepted Quotation Pipeline</td>
@@ -233,15 +247,15 @@ export default function SalesOverview() {
                 </tr>
                 <tr>
                   <td className="text-subtle">Open Order Value</td>
-                  <td className="ts-r text-fg num">{formatCurrency(kpis.openOrderValue)}</td>
+                  <td className="ts-r text-fg num">{showMoney(kpis.openOrderValue)}</td>
                 </tr>
                 <tr>
                   <td className="text-subtle">Pending Dispatch Value</td>
-                  <td className="ts-r text-warn num">{formatCurrency(kpis.pendingDispatchValue)}</td>
+                  <td className="ts-r text-warn num">{showMoney(kpis.pendingDispatchValue)}</td>
                 </tr>
                 <tr>
                   <td className="text-subtle">Average Order Value</td>
-                  <td className="ts-r text-fg num">{formatCurrency(kpis.averageOrderValue)}</td>
+                  <td className="ts-r text-fg num">{showMoney(kpis.averageOrderValue)}</td>
                 </tr>
                 <tr>
                   <td className="text-subtle">Quotation Conversion Rate</td>
