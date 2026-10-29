@@ -1,8 +1,20 @@
 import { Router } from 'express';
 import db from '../db/index.js';
 import { sendRouteError } from '../http/errors.js';
+import { createSchemaGuard } from '../db/schemaGuard.js';
 
 const router = Router();
+
+// firm / branch / branch_document_settings (and quotation.firm_id/branch_id) come from migration
+// 001. Until it is applied every route answers 503 MIGRATION_REQUIRED with a safe message instead
+// of 'relation "firm" does not exist'.
+router.use(createSchemaGuard({
+  firm: ['id', 'firm_code', 'firm_name', 'is_default', 'is_active'],
+  branch: ['id', 'firm_id', 'branch_code', 'branch_name', 'is_default', 'is_active'],
+  branch_document_settings: ['branch_id'],
+  quotation: ['firm_id', 'branch_id'],
+  sales_engineer: ['branch_id'],
+}, 'Firm and branch', 'Failed to load firms'));
 
 /**
  * GET /api/firms
