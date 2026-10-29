@@ -1,7 +1,17 @@
 import { Router } from 'express';
 import db from '../db/index.js';
+import { createSchemaGuard } from '../db/schemaGuard.js';
 
 const router = Router();
+
+// Same tables as /api/firms (migration 001); see routes/firms.js.
+router.use(createSchemaGuard({
+  firm: ['id', 'firm_code', 'firm_name', 'is_default', 'is_active'],
+  branch: ['id', 'firm_id', 'branch_code', 'branch_name', 'is_default', 'is_active'],
+  branch_document_settings: ['branch_id'],
+  quotation: ['firm_id', 'branch_id'],
+  sales_engineer: ['branch_id'],
+}, 'Firm and branch', 'Failed to load branches'));
 
 async function fetchBranchWithSettings(id) {
   const branchId = Number(id);
