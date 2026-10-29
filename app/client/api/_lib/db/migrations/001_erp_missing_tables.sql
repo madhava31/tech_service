@@ -1,9 +1,26 @@
 -- Migration 001: tables and columns used by the Sales, Sale Reports, Firms/Branches, Procurement
 -- and Search code that were never added to the Postgres schema.
 --
--- Run manually (Supabase SQL Editor) after review. It is idempotent: every statement is
--- IF NOT EXISTS, so it is safe on a database that already has some or all of these objects,
--- and it runs in one transaction, so it either applies completely or not at all.
+-- Run manually (Supabase SQL Editor) after review. It runs in one transaction, so it either
+-- applies completely or not at all.
+--
+-- IF NOT EXISTS makes it re-runnable, but does NOT make it safe on a database that already has
+-- some of these objects: an existing table or column is kept exactly as it is, even with a
+-- different type. The validation block at the end therefore checks every column this migration
+-- declares (type and nullability) and rolls everything back if anything differs.
+--
+-- Locks: ADD COLUMN and REFERENCES take short exclusive/share locks on company, purchase_order,
+-- quotation* and the referenced tables, held until COMMIT. lock_timeout makes the migration give
+-- up (and roll back) instead of queueing the live app behind it; just run it again later.
+--
+-- Security: the six new tables get row level security with NO policies, and anon/authenticated
+-- (Supabase's public API roles) lose their default grants on them. The backend connects as
+-- postgres, which has BYPASSRLS, so the app is unaffected; the frontend never queries Supabase
+-- directly (all data goes through /api).
+--
+-- Data: nothing is inserted, updated or backfilled. Existing purchase_order rows keep
+-- supplier_id / procurement_requirement_id NULL, so they remain customer purchase orders;
+-- existing companies keep is_supplier NULL.
 --
 -- Source of truth: the Postgres database these routes were developed against (a read-only catalog
 -- read of the previous project). Differences from that source, on purpose:
@@ -18,6 +35,9 @@
 -- procurement_requirement reference.
 
 BEGIN;
+
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '60s';
 
 DO $$
 DECLARE
@@ -204,5 +224,226 @@ ALTER TABLE purchase_order ADD COLUMN IF NOT EXISTS received_quantity DOUBLE PRE
 ALTER TABLE purchase_order ADD COLUMN IF NOT EXISTS procurement_requirement_id INTEGER;
 ALTER TABLE company ADD COLUMN IF NOT EXISTS is_supplier INTEGER;
 ALTER TABLE company ADD COLUMN IF NOT EXISTS company_type TEXT;
+
+-- Security for the new tables ---------------------------------------------------------------
+-- RLS with no policies denies every role without BYPASSRLS. Grants are revoked as well, so the
+-- tables are not reachable through Supabase's REST/GraphQL API with the anon or authenticated
+-- role. service_role (server-side secret key, BYPASSRLS) keeps Supabase's defaults.
+ALTER TABLE firm ENABLE ROW LEVEL SECURITY;
+ALTER TABLE branch ENABLE ROW LEVEL SECURITY;
+ALTER TABLE branch_document_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sale_report ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sale_report_item ENABLE ROW LEVEL SECURITY;
+ALTER TABLE procurement_requirement ENABLE ROW LEVEL SECURITY;
+
+DO $$
+DECLARE
+  r text;
+  t text;
+  seq text;
+BEGIN
+  FOREACH r IN ARRAY ARRAY['anon', 'authenticated'] LOOP
+    -- these roles exist only on Supabase; plain Postgres (local/test) skips this
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+      FOREACH t IN ARRAY ARRAY['firm', 'branch', 'branch_document_settings', 'sale_report',
+                               'sale_report_item', 'procurement_requirement'] LOOP
+        EXECUTE format('REVOKE ALL ON TABLE %I FROM %I', t, r);
+        seq := pg_get_serial_sequence(t, 'id');
+        IF seq IS NOT NULL THEN
+          EXECUTE format('REVOKE ALL ON SEQUENCE %s FROM %I', seq, r);
+        END IF;
+      END LOOP;
+    END IF;
+  END LOOP;
+END $$;
+
+-- Validation (rolls the whole migration back on any mismatch) ---------------------------------
+-- Every column this migration declares, plus the two existing branch_id columns the code joins
+-- to branch. Types must match exactly: node-postgres returns numeric and bigint as strings, so
+-- a "compatible-looking" numeric/bigint column would break the arithmetic in the quotation,
+-- sales and procurement code.
+DO $$
+DECLARE
+  problems text;
+BEGIN
+  WITH expected(table_name, column_name, data_type, is_nullable) AS (VALUES
+    ('firm', 'id', 'integer', 'NO'),
+    ('firm', 'firm_code', 'text', 'NO'),
+    ('firm', 'firm_name', 'text', 'NO'),
+    ('firm', 'legal_name', 'text', 'YES'),
+    ('firm', 'gstin', 'text', 'YES'),
+    ('firm', 'pan', 'text', 'YES'),
+    ('firm', 'email', 'text', 'YES'),
+    ('firm', 'phone', 'text', 'YES'),
+    ('firm', 'address_line_1', 'text', 'YES'),
+    ('firm', 'address_line_2', 'text', 'YES'),
+    ('firm', 'city', 'text', 'YES'),
+    ('firm', 'state', 'text', 'YES'),
+    ('firm', 'pincode', 'text', 'YES'),
+    ('firm', 'country', 'text', 'YES'),
+    ('firm', 'logo', 'text', 'YES'),
+    ('firm', 'quotation_prefix', 'text', 'YES'),
+    ('firm', 'invoice_prefix', 'text', 'YES'),
+    ('firm', 'is_default', 'integer', 'NO'),
+    ('firm', 'is_active', 'integer', 'NO'),
+    ('firm', 'created_at', 'timestamp without time zone', 'NO'),
+    ('firm', 'updated_at', 'timestamp without time zone', 'NO'),
+    ('branch', 'id', 'integer', 'NO'),
+    ('branch', 'firm_id', 'integer', 'NO'),
+    ('branch', 'branch_code', 'text', 'NO'),
+    ('branch', 'branch_name', 'text', 'NO'),
+    ('branch', 'address_line_1', 'text', 'YES'),
+    ('branch', 'address_line_2', 'text', 'YES'),
+    ('branch', 'city', 'text', 'YES'),
+    ('branch', 'state', 'text', 'YES'),
+    ('branch', 'pincode', 'text', 'YES'),
+    ('branch', 'phone', 'text', 'YES'),
+    ('branch', 'email', 'text', 'YES'),
+    ('branch', 'gstin', 'text', 'YES'),
+    ('branch', 'pan', 'text', 'YES'),
+    ('branch', 'bank_details', 'text', 'YES'),
+    ('branch', 'terms_conditions', 'text', 'YES'),
+    ('branch', 'quotation_prefix', 'text', 'YES'),
+    ('branch', 'is_default', 'integer', 'NO'),
+    ('branch', 'is_active', 'integer', 'NO'),
+    ('branch', 'created_at', 'timestamp without time zone', 'NO'),
+    ('branch', 'updated_at', 'timestamp without time zone', 'NO'),
+    ('branch_document_settings', 'id', 'integer', 'NO'),
+    ('branch_document_settings', 'branch_id', 'integer', 'NO'),
+    ('branch_document_settings', 'document_title_prefix', 'text', 'YES'),
+    ('branch_document_settings', 'logo_path', 'text', 'YES'),
+    ('branch_document_settings', 'header_text', 'text', 'YES'),
+    ('branch_document_settings', 'footer_text', 'text', 'YES'),
+    ('branch_document_settings', 'authorized_signatory', 'text', 'YES'),
+    ('branch_document_settings', 'bank_name', 'text', 'YES'),
+    ('branch_document_settings', 'account_number', 'text', 'YES'),
+    ('branch_document_settings', 'ifsc_code', 'text', 'YES'),
+    ('branch_document_settings', 'branch_bank_name', 'text', 'YES'),
+    ('branch_document_settings', 'terms_conditions', 'text', 'YES'),
+    ('branch_document_settings', 'created_at', 'timestamp without time zone', 'NO'),
+    ('branch_document_settings', 'updated_at', 'timestamp without time zone', 'NO'),
+    ('sale_report', 'id', 'integer', 'NO'),
+    ('sale_report', 'report_number', 'text', 'NO'),
+    ('sale_report', 'company_id', 'integer', 'YES'),
+    ('sale_report', 'company_name_snapshot', 'text', 'NO'),
+    ('sale_report', 'invoice_number', 'text', 'YES'),
+    ('sale_report', 'sale_date', 'date', 'NO'),
+    ('sale_report', 'phone_number_snapshot', 'text', 'YES'),
+    ('sale_report', 'warehouse_id', 'integer', 'NO'),
+    ('sale_report', 'source_type', 'text', 'NO'),
+    ('sale_report', 'source_reference', 'text', 'YES'),
+    ('sale_report', 'source_quotation_id', 'integer', 'YES'),
+    ('sale_report', 'source_po_id', 'integer', 'YES'),
+    ('sale_report', 'source_pi_id', 'integer', 'YES'),
+    ('sale_report', 'sales_engineer_id', 'integer', 'YES'),
+    ('sale_report', 'firm_id', 'integer', 'YES'),
+    ('sale_report', 'branch_id', 'integer', 'YES'),
+    ('sale_report', 'status', 'text', 'NO'),
+    ('sale_report', 'subtotal', 'double precision', 'NO'),
+    ('sale_report', 'tax_percent', 'double precision', 'NO'),
+    ('sale_report', 'tax_amount', 'double precision', 'NO'),
+    ('sale_report', 'total_amount', 'double precision', 'NO'),
+    ('sale_report', 'notes', 'text', 'YES'),
+    ('sale_report', 'created_by', 'integer', 'YES'),
+    ('sale_report', 'created_at', 'timestamp without time zone', 'NO'),
+    ('sale_report', 'updated_at', 'timestamp without time zone', 'NO'),
+    ('sale_report', 'confirmed_at', 'timestamp without time zone', 'YES'),
+    ('sale_report', 'confirmed_by', 'integer', 'YES'),
+    ('sale_report_item', 'id', 'integer', 'NO'),
+    ('sale_report_item', 'sale_report_id', 'integer', 'NO'),
+    ('sale_report_item', 'product_id', 'integer', 'NO'),
+    ('sale_report_item', 'part_number_snapshot', 'text', 'NO'),
+    ('sale_report_item', 'description_snapshot', 'text', 'NO'),
+    ('sale_report_item', 'hsn_code_snapshot', 'text', 'YES'),
+    ('sale_report_item', 'quantity', 'double precision', 'NO'),
+    ('sale_report_item', 'unit_price', 'double precision', 'NO'),
+    ('sale_report_item', 'total_price', 'double precision', 'NO'),
+    ('sale_report_item', 'before_on_hand', 'double precision', 'NO'),
+    ('sale_report_item', 'after_on_hand', 'double precision', 'NO'),
+    ('sale_report_item', 'created_at', 'timestamp without time zone', 'NO'),
+    ('procurement_requirement', 'id', 'integer', 'NO'),
+    ('procurement_requirement', 'requirement_code', 'text', 'NO'),
+    ('procurement_requirement', 'product_id', 'integer', 'NO'),
+    ('procurement_requirement', 'warehouse_id', 'integer', 'NO'),
+    ('procurement_requirement', 'required_quantity', 'double precision', 'NO'),
+    ('procurement_requirement', 'suggested_quantity', 'double precision', 'NO'),
+    ('procurement_requirement', 'priority', 'text', 'NO'),
+    ('procurement_requirement', 'reason', 'text', 'YES'),
+    ('procurement_requirement', 'source_type', 'text', 'NO'),
+    ('procurement_requirement', 'source_reference', 'text', 'YES'),
+    ('procurement_requirement', 'supplier_id', 'integer', 'YES'),
+    ('procurement_requirement', 'status', 'text', 'NO'),
+    ('procurement_requirement', 'purchase_order_id', 'integer', 'YES'),
+    ('procurement_requirement', 'created_by', 'integer', 'YES'),
+    ('procurement_requirement', 'created_at', 'timestamp without time zone', 'NO'),
+    ('procurement_requirement', 'updated_at', 'timestamp without time zone', 'NO'),
+    ('quotation', 'firm_id', 'integer', 'YES'),
+    ('quotation', 'branch_id', 'integer', 'YES'),
+    ('quotation', 'gross_subtotal', 'double precision', 'YES'),
+    ('quotation', 'product_discount_total', 'double precision', 'YES'),
+    ('quotation', 'subtotal_after_product_discounts', 'double precision', 'YES'),
+    ('quotation', 'overall_discount_type', 'text', 'YES'),
+    ('quotation', 'overall_discount_value', 'double precision', 'YES'),
+    ('quotation', 'overall_discount_amount', 'double precision', 'YES'),
+    ('quotation', 'net_subtotal', 'double precision', 'YES'),
+    ('quotation_item', 'actual_unit_price', 'double precision', 'YES'),
+    ('quotation_item', 'discount_type', 'text', 'YES'),
+    ('quotation_item', 'discount_value', 'double precision', 'YES'),
+    ('quotation_item', 'product_discount_amount', 'double precision', 'YES'),
+    ('quotation_item', 'after_product_discount_amount', 'double precision', 'YES'),
+    ('quotation_item', 'overall_discount_allocated', 'double precision', 'YES'),
+    ('quotation_item', 'final_unit_price', 'double precision', 'YES'),
+    ('quotation_item', 'final_line_total', 'double precision', 'YES'),
+    ('quotation_follow_up', 'follow_up_time', 'text', 'YES'),
+    ('quotation_follow_up', 'priority', 'text', 'YES'),
+    ('quotation_follow_up', 'firm_id', 'integer', 'YES'),
+    ('quotation_follow_up', 'branch_id', 'integer', 'YES'),
+    ('quotation_follow_up', 'company_id', 'integer', 'YES'),
+    ('quotation_follow_up', 'sales_engineer_id', 'integer', 'YES'),
+    ('purchase_order', 'supplier_id', 'integer', 'YES'),
+    ('purchase_order', 'received_quantity', 'double precision', 'YES'),
+    ('purchase_order', 'procurement_requirement_id', 'integer', 'YES'),
+    ('company', 'is_supplier', 'integer', 'YES'),
+    ('company', 'company_type', 'text', 'YES'),
+    ('sales_engineer', 'branch_id', 'integer', 'YES'),
+    ('engineer_sales_targets', 'branch_id', 'integer', 'YES')
+  ),
+  actual AS (
+    SELECT table_name::text, column_name::text, data_type::text, is_nullable::text
+    FROM information_schema.columns
+    WHERE table_schema = current_schema()
+  )
+  SELECT string_agg(
+           format('%s.%s (expected %s %s, found %s)', e.table_name, e.column_name, e.data_type,
+                  CASE e.is_nullable WHEN 'YES' THEN 'NULL' ELSE 'NOT NULL' END,
+                  COALESCE(a.data_type || CASE a.is_nullable WHEN 'YES' THEN ' NULL' ELSE ' NOT NULL' END, 'missing')),
+           '; ' ORDER BY e.table_name, e.column_name)
+  INTO problems
+  FROM expected e
+  LEFT JOIN actual a ON a.table_name = e.table_name AND a.column_name = e.column_name
+  WHERE a.data_type IS NULL OR a.data_type <> e.data_type OR a.is_nullable <> e.is_nullable;
+  IF problems IS NOT NULL THEN
+    RAISE EXCEPTION 'Migration 001 validation failed, nothing was applied: %', problems;
+  END IF;
+
+  SELECT string_agg(c.relname, ', ') INTO problems
+  FROM pg_class c
+  WHERE c.oid IN (to_regclass('firm'), to_regclass('branch'), to_regclass('branch_document_settings'),
+                  to_regclass('sale_report'), to_regclass('sale_report_item'), to_regclass('procurement_requirement'))
+    AND NOT c.relrowsecurity;
+  IF problems IS NOT NULL THEN
+    RAISE EXCEPTION 'Migration 001 validation failed: row level security is off on %', problems;
+  END IF;
+
+  SELECT string_agg(DISTINCT g.grantee || ' on ' || g.table_name, ', ') INTO problems
+  FROM information_schema.role_table_grants g
+  WHERE g.table_schema = current_schema()
+    AND g.grantee IN ('anon', 'authenticated')
+    AND g.table_name IN ('firm', 'branch', 'branch_document_settings', 'sale_report',
+                         'sale_report_item', 'procurement_requirement');
+  IF problems IS NOT NULL THEN
+    RAISE EXCEPTION 'Migration 001 validation failed: public API roles still have grants (%)', problems;
+  END IF;
+END $$;
 
 COMMIT;
