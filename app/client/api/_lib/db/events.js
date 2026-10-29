@@ -208,9 +208,12 @@ export async function broadcastEvent(dbPoolOrExecutor, { entity, action, tags = 
 // SSE Request Handler for /api/events
 export function handleSseConnection(req, res) {
   if (isServerless) {
-    res.status(501).json({
-      error: 'Realtime SSE streams are not supported in serverless lambdas. Client should use focus-revalidation / polling fallback.',
+    // Not an error: serverless hosts simply use polling. A 2xx keeps the browser from logging a
+    // failed request on every page load; the client reads `mode` (and still accepts the old 501).
+    res.set('Cache-Control', 'no-store');
+    res.status(200).json({
       mode: 'polling',
+      message: 'Realtime SSE streams are not supported in serverless lambdas; use focus-revalidation / polling.',
     });
     return;
   }
