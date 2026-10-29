@@ -16,8 +16,9 @@ type ProbeResult = 'sse' | 'polling' | 'unauthorized' | 'retry';
 /**
  * Asks /api/events which realtime mode the server supports. EventSource cannot read status codes
  * or bodies, so a plain fetch is used first. The server's contract on serverless is
- * `501 { mode: 'polling' }`; a long-lived host answers with a text/event-stream (aborted here, the
- * real stream is opened with EventSource afterwards).
+ * `200 { mode: 'polling' }` (older deployments answered `501 { mode: 'polling' }`, still accepted);
+ * a long-lived host answers with a text/event-stream (aborted here, the real stream is opened with
+ * EventSource afterwards).
  */
 async function probeRealtimeMode(signal: AbortSignal): Promise<ProbeResult> {
   const controller = new AbortController();
@@ -31,6 +32,11 @@ async function probeRealtimeMode(signal: AbortSignal): Promise<ProbeResult> {
     });
     const contentType = res.headers.get('content-type') || '';
     if (res.ok && contentType.includes('text/event-stream')) return 'sse';
+    if (res.ok && contentType.includes('application/json')) {
+      const body = await res.json().catch(() => null);
+      if (body?.mode === 'polling') return 'polling';
+      return 'retry';
+    }
     if (res.status === 401 || res.status === 403) return 'unauthorized';
     if (res.status === 501) {
       const body = await res.json().catch(() => null);
