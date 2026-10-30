@@ -476,45 +476,4 @@ router.get('/:id/intelligence', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
-  const { part_no, hsn_sac, description, unit, default_price } = req.body;
-  if (!part_no || !description) return res.status(400).json({ error: 'part_no and description are required' });
-  try {
-    const info = await db
-      .prepare(`INSERT INTO product (part_no, hsn_sac, description, unit, default_price) VALUES (?, ?, ?, ?, ?) RETURNING id`)
-      .run(part_no.trim(), hsn_sac || null, description.trim(), unit || 'Nos', default_price ?? 0);
-    const row = await db.prepare(`SELECT * FROM product WHERE id = ?`).get(info.lastInsertRowid);
-    res.status(201).json(row);
-  } catch (err) {
-    if (err.code === '23505') {
-      return res.status(409).json({ error: 'A product with this part number already exists' });
-    }
-    res.status(500).json({ error: 'Unable to save the product. Please try again.' });
-  }
-});
-
-router.put('/:id', async (req, res) => {
-  try {
-    const existing = await db.prepare(`SELECT * FROM product WHERE id = ?`).get(req.params.id);
-    if (!existing) return res.status(404).json({ error: 'Product not found' });
-    const { part_no, hsn_sac, description, unit, default_price } = req.body;
-    await db
-      .prepare(
-        `UPDATE product SET part_no = ?, hsn_sac = ?, description = ?, unit = ?, default_price = ? WHERE id = ?`
-      )
-      .run(
-        part_no?.trim() || existing.part_no,
-        hsn_sac ?? existing.hsn_sac,
-        description?.trim() || existing.description,
-        unit ?? existing.unit,
-        default_price ?? existing.default_price,
-        req.params.id
-      );
-    const row = await db.prepare(`SELECT * FROM product WHERE id = ?`).get(req.params.id);
-    res.json(row);
-  } catch (err) {
-    res.status(500).json({ error: 'Unable to save the product. Please try again.' });
-  }
-});
-
 export default router;

@@ -1,6 +1,10 @@
 # Not implemented: frontend calls with no backend route
 
-**Status: out of scope, future work. These 12 endpoints are NOT implemented.**
+**Status: out of scope, future work. These 10 endpoints are NOT implemented.**
+
+(The two company delete routes, `DELETE /api/companies/:id` and `POST /api/companies/bulk-delete`,
+were originally on this list. They are now implemented: admin only, and they refuse companies still
+used by other records.)
 
 `app/client/src/api.ts` calls them, but no route exists in the Postgres API (`app/api/index.js` and
 `app/client/api/_lib/routes`). The legacy SQLite server never had them either. Every call returns
@@ -9,14 +13,6 @@
 They were left out of the `fix/sales-overview-contract` work on purpose. There was no earlier
 implementation to port, and each one deletes or overwrites business data, so each needs its own
 design: who may call it (admin only?), how it treats linked records, and whether it can be undone.
-
-## Companies (2)
-| Method | Path | Frontend function |
-|---|---|---|
-| DELETE | `/api/companies/:id` | `companies.delete` |
-| POST | `/api/companies/bulk-delete` | `companies.bulkDelete` |
-
-The admin-only `DELETE /api/admin/companies/:id` does exist; this frontend function does not call it.
 
 ## Dashboard: business health (2)
 | Method | Path | Frontend function |

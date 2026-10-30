@@ -275,4 +275,106 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// ---------- Delete ----------
+// Admin only, and never cascading: a company still used by business records is refused with a
+// message naming what still uses it. Tables/columns added by migration 001 are only checked
+// where they exist, so this also works on a database without them.
+const COMPANY_REFERENCES = [
+  ['quotation', 'company_id', 'quotation'],
+  ['sales_record', 'company_id', 'sales record'],
+  ['sale_report', 'company_id', 'sale report'],
+  ['procurement_requirement', 'supplier_id', 'procurement requirement'],
+  ['purchase_order', 'supplier_id', 'supplier purchase order'],
+];
+const MAX_BULK_DELETE = 500;
+
+function adminOnly(req, res, next) {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Only an administrator can delete companies' });
+  next();
+}
+
+function toIds(values) {
+  const ids = [...new Set((Array.isArray(values) ? values : [values]).map(Number))];
+  return ids.every((n) => Number.isInteger(n) && n > 0) ? ids : null;
+}
+
+/** company id -> ['2 quotations', '1 sales record', ...] for the given ids (only those referenced). */
+async function companyReferences(ids) {
+  const present = await db
+    .prepare(
+      `SELECT table_name || '.' || column_name AS ref FROM information_schema.columns
+       WHERE table_schema = current_schema() AND table_name || '.' || column_name = ANY(?::text[])`
+    )
+    .all(COMPANY_REFERENCES.map(([t, c]) => `${t}.${c}`));
+  const have = new Set(present.map((r) => r.ref));
+  const refs = new Map();
+  for (const [table, column, label] of COMPANY_REFERENCES) {
+    if (!have.has(`${table}.${column}`)) continue;
+    // table/column come from the constant list above, never from the request
+    const rows = await db
+      .prepare(`SELECT ${column} AS id, COUNT(*)::int AS n FROM ${table} WHERE ${column} = ANY(?::int[]) GROUP BY ${column}`)
+      .all(ids);
+    for (const r of rows) {
+      if (!refs.has(r.id)) refs.set(r.id, []);
+      refs.get(r.id).push(`${r.n} ${label}${r.n === 1 ? '' : 's'}`);
+    }
+  }
+  return refs;
+}
+
+router.delete('/:id', adminOnly, async (req, res) => {
+  const ids = toIds(req.params.id);
+  if (!ids) return res.status(400).json({ error: 'Invalid company id' });
+  try {
+    const company = await db.prepare(`SELECT id, name FROM company WHERE id = ?`).get(ids[0]);
+    if (!company) return res.status(404).json({ error: 'Company not found' });
+    const used = (await companyReferences(ids)).get(company.id);
+    if (used) {
+      return res.status(409).json({ error: `Cannot delete "${company.name}": it is still used by ${used.join(', ')}.` });
+    }
+    await db.prepare(`DELETE FROM company WHERE id = ?`).run(company.id);
+    res.json({ ok: true });
+  } catch (err) {
+    if (err.code === '23503') {
+      // a record started referencing the company between the check and the delete
+      return res.status(409).json({ error: 'Cannot delete this company: it is still used by other records.' });
+    }
+    console.error('Failed to delete company:', err);
+    res.status(500).json({ error: 'Unable to delete the company. Please try again.' });
+  }
+});
+
+router.post('/bulk-delete', adminOnly, async (req, res) => {
+  const ids = toIds(req.body?.ids ?? []);
+  if (!ids || ids.length === 0) return res.status(400).json({ error: 'Select at least one company to delete' });
+  if (ids.length > MAX_BULK_DELETE) return res.status(400).json({ error: `At most ${MAX_BULK_DELETE} companies can be deleted at once` });
+  try {
+    const result = await db.transaction(async () => {
+      const companies = await db.prepare(`SELECT id, name FROM company WHERE id = ANY(?::int[]) FOR UPDATE`).all(ids);
+      const refs = await companyReferences(companies.map((c) => c.id));
+      const blocked = companies.filter((c) => refs.has(c.id));
+      const deletable = companies.filter((c) => !refs.has(c.id)).map((c) => c.id);
+      if (deletable.length) await db.prepare(`DELETE FROM company WHERE id = ANY(?::int[])`).run(deletable);
+      return { deletedCount: deletable.length, blocked, notFound: ids.length - companies.length };
+    });
+    const { deletedCount, blocked, notFound } = result;
+    const parts = [`Deleted ${deletedCount} compan${deletedCount === 1 ? 'y' : 'ies'}.`];
+    if (blocked.length) parts.push(`${blocked.length} could not be deleted because they are still used by other records: ${blocked.map((c) => c.name).join(', ')}.`);
+    if (notFound) parts.push(`${notFound} no longer existed.`);
+    res.json({
+      success: true,
+      deletedCount,
+      blockedCount: blocked.length,
+      blockedNames: blocked.map((c) => c.name),
+      message: parts.join(' '),
+    });
+  } catch (err) {
+    if (err.code === '23503') {
+      return res.status(409).json({ error: 'Nothing was deleted: some companies started being used by other records. Please try again.' });
+    }
+    console.error('Failed to bulk delete companies:', err);
+    res.status(500).json({ error: 'Unable to delete the selected companies. Please try again.' });
+  }
+});
+
 export default router;
