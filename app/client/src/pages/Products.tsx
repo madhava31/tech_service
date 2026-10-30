@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, Product } from '../api';
+import { api, clearCache, Product } from '../api';
 import { useAuth } from '../auth';
 import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
@@ -60,7 +60,13 @@ export default function Products() {
       await api.admin.deleteProduct(id);
       load();
     } catch (e: any) {
-      setError(e.message);
+      if (e?.status === 404) {
+        // already deleted (e.g. a second click on a stale row): just refresh the list
+        clearCache('products');
+        load();
+      } else {
+        setError(e.message);
+      }
     } finally {
       setDeletingId(null);
     }

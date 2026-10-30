@@ -11,7 +11,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(body.error || `Request failed: ${res.status}`);
+    // status lets callers tell e.g. "already deleted" (404) apart from real failures
+    throw Object.assign(new Error(body.error || `Request failed: ${res.status}`), { status: res.status });
   }
   if (res.status === 204) return undefined as T;
   return res.json();
@@ -1156,8 +1157,18 @@ export const api = {
   admin: {
     stats: () => request<{ counts: Record<string, number>; dbSizeBytes: number }>('/admin/stats'),
     deleteImport: (id: number) => request<{ ok: true }>(`/admin/imports/${id}`, { method: 'DELETE' }),
-    deleteCompany: (id: number) => request<{ ok: true }>(`/admin/companies/${id}`, { method: 'DELETE' }),
-    deleteProduct: (id: number) => request<{ ok: true }>(`/admin/products/${id}`, { method: 'DELETE' }),
+    // Clear the cached lists so the deleted row doesn't stay on screen for up to 60s
+    // (there is no realtime push on Vercel to invalidate them).
+    deleteCompany: async (id: number) => {
+      const res = await request<{ ok: true }>(`/admin/companies/${id}`, { method: 'DELETE' });
+      clearCache('companies');
+      return res;
+    },
+    deleteProduct: async (id: number) => {
+      const res = await request<{ ok: true }>(`/admin/products/${id}`, { method: 'DELETE' });
+      clearCache('products');
+      return res;
+    },
     dismissReview: (id: number) => request<{ ok: true }>(`/admin/review-queue/${id}/dismiss`, { method: 'POST' }),
     deleteReview: (id: number) => request<{ ok: true }>(`/admin/review-queue/${id}`, { method: 'DELETE' }),
     getConfig: () => request<{ default_tax_percent: number; default_lapse_months: number }>('/admin/config'),
