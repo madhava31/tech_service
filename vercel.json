@@ -3,6 +3,11 @@
   "regions": ["icn1"],
   "buildCommand": "npm --prefix app run build",
   "outputDirectory": "app/client/dist",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "app/client/api/_lib/pdf/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

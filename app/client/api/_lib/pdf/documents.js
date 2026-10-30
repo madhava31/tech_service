@@ -11,6 +11,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DEFAULT_LOGO_PATH = path.join(__dirname, 'logo.png');
 const DEFAULT_SIG_PATH = path.join(__dirname, 'signature.png');
+// Bundled so every platform renders the same glyphs. Arimo (SIL OFL 1.1, see fonts/OFL.txt) is
+// metric-compatible with Arial and, unlike PDF's built-in Helvetica, contains the rupee sign.
+export const FONT_REGULAR_PATH = path.join(__dirname, 'fonts', 'Arimo-Regular.ttf');
+export const FONT_BOLD_PATH = path.join(__dirname, 'fonts', 'Arimo-Bold.ttf');
 
 // Centralized Column Definition System (Requirement #30)
 // Total width: 18 + 52 + 48 + 95 + 30 + 20 + 62 + 65 + 65 + 68.28 = 523.28 pt
@@ -132,14 +136,15 @@ function imageBuffer(dataUri) {
   return null;
 }
 
+// The built-in Helvetica only covers WinAnsi, so '₹' (U+20B9) came out as a space plus '¹'
+// wherever no Arial was installed (e.g. on Vercel). Helvetica stays only as a last resort.
 function getFonts(doc) {
-  const sysArial = 'C:/Windows/Fonts/arial.ttf';
-  const sysArialBd = 'C:/Windows/Fonts/arialbd.ttf';
-  if (fs.existsSync(sysArial) && fs.existsSync(sysArialBd)) {
-    doc.registerFont('Arial', sysArial);
-    doc.registerFont('Arial-Bold', sysArialBd);
-    return { reg: 'Arial', bold: 'Arial-Bold' };
+  if (fs.existsSync(FONT_REGULAR_PATH) && fs.existsSync(FONT_BOLD_PATH)) {
+    doc.registerFont('Arimo', FONT_REGULAR_PATH);
+    doc.registerFont('Arimo-Bold', FONT_BOLD_PATH);
+    return { reg: 'Arimo', bold: 'Arimo-Bold' };
   }
+  console.error('[pdf] bundled fonts missing; falling back to Helvetica (no rupee glyph)');
   return { reg: 'Helvetica', bold: 'Helvetica-Bold' };
 }
 
