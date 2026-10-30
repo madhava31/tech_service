@@ -1152,6 +1152,11 @@ export const api = {
     login: (username: string, password: string) =>
       request<{ user: AuthUser }>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
     logout: () => request<{ ok: true }>('/auth/logout', { method: 'POST' }),
+    // The signed-in admin's own account; the server never takes a user id from here.
+    changeUsername: (newUsername: string, currentPassword: string) =>
+      request<{ user: AuthUser }>('/auth/username', { method: 'PUT', body: JSON.stringify({ newUsername, currentPassword }) }),
+    changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) =>
+      request<{ ok: true }>('/auth/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword, confirmPassword }) }),
   },
   admin: {
     stats: () => request<{ counts: Record<string, number>; dbSizeBytes: number }>('/admin/stats'),
