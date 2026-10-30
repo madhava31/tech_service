@@ -49,6 +49,29 @@ function executor() {
   return als.getStore() || pool;
 }
 
+// With max 3 clients and a 5s connect timeout (serverless), a cold instance that receives several
+// requests at once can fail a query while it is still *waiting for a connection*: pages fire
+// several endpoints in parallel and some endpoints run their queries in parallel too. Those
+// errors are raised by pg-pool before anything is sent to Postgres, so retrying once is safe for
+// any statement (it cannot run twice). Errors from the query itself are never retried.
+const ACQUIRE_FAILURES = ['timeout exceeded when trying to connect', 'Connection terminated due to connection timeout'];
+const ACQUIRE_RETRY_DELAY_MS = 250;
+
+export function isAcquireFailure(err) {
+  return typeof err?.message === 'string' && ACQUIRE_FAILURES.some((m) => err.message.startsWith(m));
+}
+
+async function withAcquireRetry(acquire) {
+  try {
+    return await acquire();
+  } catch (err) {
+    if (!isAcquireFailure(err)) throw err;
+    console.warn('[db] no connection within the timeout; retrying once:', err.message);
+    await new Promise((resolve) => setTimeout(resolve, ACQUIRE_RETRY_DELAY_MS));
+    return acquire();
+  }
+}
+
 // better-sqlite3 (and this codebase's existing call sites) use `?` placeholders; pg needs
 // `$1, $2, ...`. Converting here means every existing query string keeps working unchanged.
 function toPgSql(sql) {
@@ -67,7 +90,10 @@ function normalizeArgs(params) {
 function prepare(sql) {
   const pgSql = toPgSql(sql);
   async function exec(params) {
-    return executor().query(pgSql, normalizeArgs(params));
+    const ex = executor();
+    // Inside a transaction the client is already checked out: nothing to acquire, no retry.
+    if (ex !== pool) return ex.query(pgSql, normalizeArgs(params));
+    return withAcquireRetry(() => pool.query(pgSql, normalizeArgs(params)));
   }
   return {
     async get(...params) {
@@ -95,7 +121,8 @@ async function transaction(fn) {
   // all-or-nothing and a small serverless pool cannot be exhausted by nested calls.
   if (als.getStore()) return fn();
 
-  const client = await pool.connect();
+  // Retrying the checkout is safe: BEGIN has not been sent yet.
+  const client = await withAcquireRetry(() => pool.connect());
   let releaseErr;
   try {
     await client.query('BEGIN');
