@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api, AdminUser } from '../api';
 import { useAuth } from '../auth';
+import AccountSettings from '../components/AccountSettings';
 
-type Tab = 'users' | 'data' | 'config';
+type Tab = 'users' | 'data' | 'config' | 'account';
 
 function formatBytes(n: number) {
   if (n < 1024) return `${n} B`;
@@ -179,6 +180,12 @@ export default function Admin() {
           >
             Configuration
           </button>
+          <button
+            onClick={() => setTab('account')}
+            className={`ts-tab ${tab === 'account' ? 'ts-on' : ''}`}
+          >
+            Account Settings
+          </button>
         </div>
       </div>
 
@@ -199,6 +206,8 @@ export default function Admin() {
           <span>{notice}</span>
         </div>
       )}
+
+      {tab === 'account' && <AccountSettings />}
 
       {/* TAB 1: USERS */}
       {tab === 'users' && (
