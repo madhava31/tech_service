@@ -127,7 +127,9 @@
 
 /* ---------- page entrance ---------- */
 .ts-main { padding-top: 8px; }
-.ts-page { animation: tsPageIn .5s var(--out) both; }
+/* backwards, not both: holding the end state would keep a transform/filter on the page, which makes it a
+   stacking context and traps every page modal (fixed, z-50) underneath the header (z-30). */
+.ts-page { animation: tsPageIn .5s var(--out) backwards; }
 @keyframes tsPageIn { from { opacity: 0; filter: blur(6px); transform: translateY(6px) scale(.995) } to { opacity: 1; filter: none; transform: none } }
 
 /* ---------- responsive ---------- */

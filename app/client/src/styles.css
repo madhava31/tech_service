@@ -794,3 +794,7 @@ select:focus {
 .chat-panel-subtitle { font-size: 0.6875rem; color: rgb(var(--muted)); }
 .chat-panel-actions { display: flex; gap: 0.375rem; flex-shrink: 0; }
 .chat-panel-body { padding: 1rem; overflow-y: auto; flex: 1; }
+
+/* Page modals are inline `fixed inset-0` overlays that centre their dialog. Let the overlay scroll and centre
+   "safely", so a dialog taller than the window keeps its title and its action buttons reachable. */
+.fixed.inset-0.flex.items-center.justify-center { overflow-y: auto; align-items: safe center; }
