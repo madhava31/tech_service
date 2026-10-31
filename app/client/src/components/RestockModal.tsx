@@ -411,7 +411,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-ink hover:bg-ink/85 disabled:bg-faint text-onink rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2"
+              className="px-5 py-2.5 bg-accent2 hover:bg-accent2/85 disabled:bg-faint text-onaccent rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2"
             >
               {loading ? (
                 <>

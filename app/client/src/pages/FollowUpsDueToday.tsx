@@ -139,7 +139,7 @@ export default function FollowUpsDueToday() {
       {/* KPI Toolbar Card */}
       <div className="ts-card flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-[14px] bg-ink text-onink grid place-items-center text-[20px] font-medium num shrink-0">
+          <div className="w-12 h-12 rounded-[14px] bg-accent2 text-onaccent grid place-items-center text-[20px] font-medium num shrink-0">
             {followUps.length}
           </div>
           <div>

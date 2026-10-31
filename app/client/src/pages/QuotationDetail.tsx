@@ -11,11 +11,11 @@ function formatDate(d: string | null) {
 
 const STAGE_COLORS: Record<string, string> = {
   draft: 'rgb(var(--muted))',
-  sent: 'rgb(var(--fg))',
+  sent: 'rgb(var(--chart-fill))',
   accepted: 'rgb(var(--good))',
   rejected: 'rgb(var(--bad))',
-  po_created: 'rgb(var(--fg))',
-  pi_created: 'rgb(var(--fg))',
+  po_created: 'rgb(var(--chart-line))',
+  pi_created: 'rgb(var(--chart-line))',
 };
 
 export default function QuotationDetail() {
@@ -625,7 +625,7 @@ function QuotationTimelineSection({ quotationId }: { quotationId: number }) {
         {safeEvents.map((ev, idx) => (
           <div key={idx} className="relative">
             {/* Timeline bullet */}
-            <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-ink border-2 border-surface2" />
+            <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-accent2 border-2 border-surface2" />
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-xs text-fg">{ev.title || 'Commercial Event'}</span>

@@ -386,7 +386,7 @@ export default function ReservationList() {
             >
               <Filter className="w-4 h-4 text-fg" />
               <span>Filters</span>
-              {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-ink" />}
+              {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-brandorange" />}
             </button>
 
             {hasActiveFilters && (

@@ -562,21 +562,21 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
 
       {/* Lists */}
       <div className="ts-grid ts-row3">
-        <div className="ts-card" style={{ ['--i' as string]: 6 }}>
+        <div className="ts-card ts-top-cust" style={{ ['--i' as string]: 6 }}>
           <div className="ts-ch"><b>Top customers</b></div>
           <p className="ts-muted" style={{ margin: '2px 0 0', fontSize: 13 }}>Revenue · {currentRange.label}</p>
           {topCos.length ? <div className="ts-list">{topCos.map((c, i) => (
             <div key={c.company_name} className="ts-li"><span className="ts-rk">0{i + 1}</span><div style={{ minWidth: 0 }}><div className="ts-nm">{c.company_name}</div><div className="ts-sub">{c.orders} order{c.orders === 1 ? '' : 's'}</div><div className="ts-meter"><i style={{ width: `${(c.total / topCos[0].total) * 100}%` }} /></div></div><span className="ts-amt num">{lakh(c.total)}</span></div>
           ))}</div> : <div className="ts-dempty"><p>{loading ? 'Loading…' : 'No customer revenue in this period.'}</p></div>}
         </div>
-        <div className="ts-card" style={{ ['--i' as string]: 7 }}>
+        <div className="ts-card ts-top-prod" style={{ ['--i' as string]: 7 }}>
           <div className="ts-ch"><b>Best-selling products</b></div>
           <p className="ts-muted" style={{ margin: '2px 0 0', fontSize: 13 }}>By revenue · {currentRange.label}</p>
           {topProds.length ? <div className="ts-list">{topProds.map((p, i) => (
             <div key={p.part_no + i} className="ts-li"><span className="ts-rk">0{i + 1}</span><div style={{ minWidth: 0 }}><div className="ts-nm" title={p.product_description}>{p.product_description}</div><div className="ts-sub">{p.part_no} · {Math.round(p.qty).toLocaleString('en-IN')} units</div><div className="ts-meter"><i style={{ width: `${(p.total / topProds[0].total) * 100}%` }} /></div></div><span className="ts-amt num">{lakh(p.total)}</span></div>
           ))}</div> : <div className="ts-dempty"><p>{loading ? 'Loading…' : 'No product sales in this period.'}</p></div>}
         </div>
-        <div className="ts-card" style={{ ['--i' as string]: 8 }} ref={followUpsSectionRef}>
+        <div className="ts-card ts-fu" style={{ ['--i' as string]: 8 }} ref={followUpsSectionRef}>
           <div className="ts-rhead"><div className="ts-ch"><b>Follow-ups</b></div><Link className="ts-muted" style={{ fontSize: 13 }} to={followUpsViewAllLink}>View all →</Link></div>
           {followUpsError ? <div className="ts-dempty"><p>Follow-ups could not load.</p><button type="button" className="ts-btn ts-ghost" onClick={() => fetchFollowUps(fetchReqIdRef.current, true)}><RefreshCwIcon /> Retry</button></div>
           : fuList.length ? <div className="ts-list">{fuList.map((f) => {

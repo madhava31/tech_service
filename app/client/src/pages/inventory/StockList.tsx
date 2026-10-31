@@ -187,7 +187,7 @@ export default function StockList() {
 
           <button
             onClick={applyFilters}
-            className="px-3 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
+            className="px-3 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold rounded-lg text-xs transition-colors"
           >
             Filter
           </button>

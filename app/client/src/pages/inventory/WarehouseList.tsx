@@ -148,7 +148,7 @@ export default function WarehouseList() {
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-sm transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold rounded-lg text-sm transition-colors shadow-sm"
         >
           <span>+</span>
           <span>New Warehouse</span>
@@ -206,7 +206,7 @@ export default function WarehouseList() {
             {!search && (
               <button
                 onClick={openCreateModal}
-                className="mt-2 px-4 py-2 bg-ink text-onink font-semibold text-xs rounded-lg"
+                className="mt-2 px-4 py-2 bg-accent2 text-onaccent font-semibold text-xs rounded-lg"
               >
                 Create First Warehouse
               </button>
@@ -420,7 +420,7 @@ export default function WarehouseList() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-4 py-2 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink rounded-lg text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-accent2 hover:bg-accent2/85 disabled:opacity-50 text-onaccent rounded-lg text-xs font-semibold transition-colors"
                 >
                   {saving ? 'Saving...' : formData.id ? 'Update Warehouse' : 'Create Warehouse'}
                 </button>

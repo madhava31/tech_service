@@ -104,7 +104,7 @@ export default function CustomerHealthOverview() {
             <div className="flex h-2 rounded-[5px] overflow-hidden bg-surface">
               <div
                 style={{ width: `${((data.summary.strong + data.summary.active + data.summary.new) / Math.max(1, data.summary.total)) * 100}%` }}
-                className="bg-ink h-full"
+                className="bg-brandblue h-full"
               />
               <div
                 style={{ width: `${(data.summary.atRisk / Math.max(1, data.summary.total)) * 100}%` }}
@@ -117,7 +117,7 @@ export default function CustomerHealthOverview() {
             </div>
             <div className="flex gap-4 text-[11.5px] text-subtle">
               <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2 h-2 rounded-[2px] bg-ink" />
+                <span className="w-2 h-2 rounded-[2px] bg-brandblue" />
                 Healthy {data.summary.strong + data.summary.active + data.summary.new}
               </span>
               <span className="inline-flex gap-1.5 items-center">
