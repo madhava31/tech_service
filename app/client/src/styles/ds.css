@@ -36,7 +36,7 @@
 .ts-chip-demo{font-size:11px; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:999px; border:1px dashed rgb(var(--line-rgb) / .13); color:rgb(var(--faint))}
 
 /* ---------- cards ---------- */
-.ts-card{background:rgb(var(--surface)); border-radius:22px; padding:20px; box-shadow:var(--shadow); position:relative; min-width:0; animation:rise .7s var(--out) both; animation-delay:calc(var(--i,0) * 55ms)}
+.ts-card{background:rgb(var(--surface)); border-radius:22px; padding:20px; box-shadow:var(--shadow); position:relative; min-width:0; animation:rise .7s var(--out) backwards; animation-delay:calc(var(--i,0) * 55ms)}
 .ts-card.ts-white{background:rgb(var(--surface-2))}
 .ts-card.ts-charcoal{background:rgb(var(--charcoal)); color:rgb(var(--on-charcoal)); box-shadow:0 18px 36px -22px rgba(0,0,0,.6)}
 .ts-card.ts-inv{background:rgb(var(--ink)); color:rgb(var(--on-ink)); box-shadow:0 18px 36px -22px rgba(0,0,0,.6)}
@@ -420,7 +420,7 @@ select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-
 
 /* ---- Pipeline kanban (from prototype .kcol/.kcard/.tag/.kprog) ---- */
 .ts-kboard{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(280px,1fr); gap:12px; overflow-x:auto; padding-bottom:8px; align-items:start; scrollbar-width:thin}
-.ts-kcol{background:rgb(var(--tile)); border-radius:20px; padding:8px; min-width:0; transition:background .25s, box-shadow .25s; animation:rise .7s var(--out) both; animation-delay:calc(var(--i,0) * 60ms + 120ms)}
+.ts-kcol{background:rgb(var(--tile)); border-radius:20px; padding:8px; min-width:0; transition:background .25s, box-shadow .25s; animation:rise .7s var(--out) backwards; animation-delay:calc(var(--i,0) * 60ms + 120ms)}
 .ts-kcol header{display:flex; align-items:center; gap:8px; padding:8px 10px 12px; font-size:14.5px; font-weight:500; color:rgb(var(--fg))}
 .ts-kcol header i{width:8px; height:8px; border-radius:50%; background:rgb(var(--muted)); flex-shrink:0}
 .ts-kcol header i.won{background:rgb(var(--good))}
