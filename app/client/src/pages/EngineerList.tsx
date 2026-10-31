@@ -461,7 +461,7 @@ export default function EngineerList() {
                   return (
                     <tr
                       key={eng.id}
-                      className={`hover:bg-surface/50 transition-colors ${isSelected ? 'bg-ink/5' : ''}`}
+                      className={`hover:bg-surface/50 transition-colors ${isSelected ? 'bg-accent2/5' : ''}`}
                     >
                       {isSelectionMode && (
                         <td className="px-4 py-3 text-center">
@@ -497,7 +497,7 @@ export default function EngineerList() {
                           <div className="flex items-center justify-end space-x-2">
                             <div className="w-16 bg-surface border border-line2 rounded-full h-2 overflow-hidden">
                               <div
-                                className="bg-ink h-full transition-all"
+                                className="bg-brandblue h-full transition-all"
                                 style={{ width: `${Math.min(100, pct)}%` }}
                               />
                             </div>

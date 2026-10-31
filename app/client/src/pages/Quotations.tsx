@@ -402,7 +402,7 @@ export default function Quotations() {
             aria-controls="quotation-search-panel"
           >
             <Filter /> More filters
-            {(dateFilter !== 'all' || minAmount !== '' || maxAmount !== '') && <span className="w-1.5 h-1.5 rounded-full bg-ink" />}
+            {(dateFilter !== 'all' || minAmount !== '' || maxAmount !== '') && <span className="w-1.5 h-1.5 rounded-full bg-brandorange" />}
             {isSearchOpen ? <ChevronUp /> : <ChevronDown />}
           </button>
           {hasAnyActiveFilters && (

@@ -127,7 +127,7 @@ export default function InventoryOverview() {
           </Link>
           <Link
             to="/inventory/stock"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-ink hover:bg-ink/85 text-onink rounded-lg text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent rounded-lg text-xs font-semibold transition-colors"
           >
             <span>📦</span>
             <span>Stock Ledger</span>

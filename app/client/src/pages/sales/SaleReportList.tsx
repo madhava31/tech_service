@@ -318,7 +318,7 @@ export default function SaleReportList() {
               <span>Filters</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
               {hasActiveFilters && (
-                <span className="w-2 h-2 rounded-full bg-ink" />
+                <span className="w-2 h-2 rounded-full bg-brandorange" />
               )}
             </button>
 

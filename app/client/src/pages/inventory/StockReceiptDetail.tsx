@@ -222,7 +222,7 @@ export default function StockReceiptDetail() {
               <button
                 disabled={actionBusy}
                 onClick={handleConfirm}
-                className="px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
+                className="px-4 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold rounded-lg text-xs transition-colors"
               >
                 {actionBusy ? 'Confirming...' : 'Confirm Receipt Now →'}
               </button>

@@ -111,7 +111,7 @@ export default function EngineerDetail() {
           </div>
           <div className="w-full bg-surface border border-line2 rounded-full h-3 overflow-hidden">
             <div
-              className="bg-ink h-full transition-all duration-500"
+              className="bg-brandblue h-full transition-all duration-500"
               style={{ width: `${Math.min(100, pct)}%` }}
             />
           </div>

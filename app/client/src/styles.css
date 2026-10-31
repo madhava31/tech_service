@@ -310,9 +310,9 @@ textarea::placeholder {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: rgb(var(--fg));
+  border-color: rgb(var(--accent));
   background-color: rgb(var(--surface-2));
-  box-shadow: 0 0 0 3px rgba(59, 111, 212, 0.12);
+  box-shadow: 0 0 0 3px rgb(var(--accent) / .14);
 }
 
 /* ---------- Searchable select ---------- */
@@ -647,9 +647,9 @@ select:focus {
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 .input-field:focus {
-  border-color: rgb(var(--fg));
+  border-color: rgb(var(--accent));
   background: rgb(var(--surface-2));
-  box-shadow: 0 0 0 3px rgba(59, 111, 212, 0.12);
+  box-shadow: 0 0 0 3px rgb(var(--accent) / .14);
 }
 
 /* ---- Small text helpers ---- */

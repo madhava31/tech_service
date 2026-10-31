@@ -179,7 +179,7 @@ export default function WarehouseDetail() {
         <div className="flex items-center gap-3">
           <Link
             to={`/inventory/stock?warehouseId=${warehouse.id}`}
-            className="px-3.5 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
+            className="px-3.5 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold rounded-lg text-xs transition-colors"
           >
             Filter Stock Ledger →
           </Link>
@@ -241,7 +241,7 @@ export default function WarehouseDetail() {
         >
           <span>Inventory Stock ({warehouse.stock?.length || 0})</span>
           {activeTab === 'stock' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-ink" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent2" />
           )}
         </button>
 
@@ -255,7 +255,7 @@ export default function WarehouseDetail() {
         >
           <span>Movement Audit Ledger ({recentMovements.length})</span>
           {activeTab === 'movements' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-ink" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent2" />
           )}
         </button>
       </div>

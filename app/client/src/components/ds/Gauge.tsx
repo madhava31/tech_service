@@ -24,6 +24,7 @@ export function Gauge({ value }: { value: number }) {
       const [x, y] = P(200 - 220 * Math.max(p, 0.002), G.r);
       knob.current?.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
       const lim = 200 - 220 * p;
+      svg.current?.toggleAttribute('data-empty', p < 0.005);
       svg.current?.querySelectorAll<SVGLineElement>('.ts-tk').forEach((l) => l.setAttribute('opacity', +l.dataset.a! >= lim - 0.01 ? '.95' : '.22'));
     };
     if (reducedMotion()) { set(target); from.current = target; return; }
@@ -35,12 +36,12 @@ export function Gauge({ value }: { value: number }) {
   return (
     <svg ref={svg} className="ts-gauge" viewBox="0 0 300 205" aria-hidden="true">
       <defs>
-        <linearGradient id="gg" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="rgb(var(--brand-orange))" /><stop offset=".55" stopColor="rgb(var(--brand-blue))" /><stop offset="1" stopColor="rgb(var(--surface-2))" /></linearGradient>
+        <linearGradient id="gg" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="rgb(var(--brand-blue))" /><stop offset=".55" stopColor="rgb(var(--brand-blue))" /><stop offset="1" stopColor="rgb(var(--surface-2))" /></linearGradient>
       </defs>
       {TICKS.map((t, i) => <line key={i} className="ts-tk" data-a={t.a} x1={t.x0.toFixed(1)} y1={t.y0.toFixed(1)} x2={t.x1.toFixed(1)} y2={t.y1.toFixed(1)} opacity=".22" />)}
       <path className="ts-track" d={arcD(1)} />
       <path className="ts-prog" ref={prog} d={arcD(0)} />
-      <g ref={knob}><circle r="13" fill="rgb(var(--surface-2))" /><circle r="6.5" fill="none" stroke="rgb(var(--brand-orange))" strokeWidth="2.5" /></g>
+      <g ref={knob}><circle r="13" fill="rgb(var(--surface-2))" /><circle className="ts-knob" r="6.5" fill="none" strokeWidth="2.5" /></g>
     </svg>
   );
 }

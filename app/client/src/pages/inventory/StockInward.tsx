@@ -409,7 +409,7 @@ export default function StockInward() {
           </button>
           <button
             onClick={openExcelModal}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold rounded-lg text-xs transition-colors"
           >
             <span>📊</span>
             <span>Upload Excel</span>
@@ -499,7 +499,7 @@ export default function StockInward() {
               setPage(1);
               loadReceipts();
             }}
-            className="px-3 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold rounded-lg text-xs transition-colors"
+            className="px-3 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold rounded-lg text-xs transition-colors"
           >
             Apply
           </button>
@@ -802,7 +802,7 @@ export default function StockInward() {
                 <button
                   type="submit"
                   disabled={manualSaving}
-                  className="px-4 py-2 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink rounded-lg text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-accent2 hover:bg-accent2/85 disabled:opacity-50 text-onaccent rounded-lg text-xs font-semibold transition-colors"
                 >
                   {manualSaving ? 'Recording Receipt...' : 'Save Stock Receipt'}
                 </button>
@@ -887,7 +887,7 @@ export default function StockInward() {
                         Supports <strong className="text-fg">.xlsx</strong> and <strong className="text-fg">.xls</strong> files (Maximum safe file size: 5MB, up to 2,000 rows).
                       </p>
                     </div>
-                    <label className="cursor-pointer px-4 py-2 bg-ink hover:bg-ink/85 text-onink font-semibold text-xs rounded-lg transition-colors shadow-card">
+                    <label className="cursor-pointer px-4 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold text-xs rounded-lg transition-colors shadow-card">
                       {excelBusy ? 'Analyzing Workbook...' : 'Browse File'}
                       <input
                         type="file"
@@ -1050,7 +1050,7 @@ export default function StockInward() {
                       type="button"
                       disabled={excelBusy || !excelWarehouseId || !excelPartNoCol || !excelQtyCol}
                       onClick={handleExcelPreview}
-                      className="px-4 py-2 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-semibold text-xs rounded-lg transition-colors"
+                      className="px-4 py-2 bg-accent2 hover:bg-accent2/85 disabled:opacity-50 text-onaccent font-semibold text-xs rounded-lg transition-colors"
                     >
                       {excelBusy ? 'Validating against Catalogue...' : 'Validate & Preview Impact →'}
                     </button>
@@ -1232,7 +1232,7 @@ export default function StockInward() {
                       type="button"
                       disabled={excelBusy || excelPreview.validItems.length === 0}
                       onClick={handleExcelConfirm}
-                      className="px-5 py-2.5 bg-ink hover:bg-ink/85 disabled:opacity-50 text-onink font-bold text-xs rounded-lg transition-colors shadow-card"
+                      className="px-5 py-2.5 bg-accent2 hover:bg-accent2/85 disabled:opacity-50 text-onaccent font-bold text-xs rounded-lg transition-colors shadow-card"
                     >
                       {excelBusy
                         ? 'Confirming Receipt...'
@@ -1298,7 +1298,7 @@ export default function StockInward() {
                       <Link
                         to={`/inventory/stock-inward/${createdReceiptId}`}
                         onClick={() => setExcelModalOpen(false)}
-                        className="px-4 py-2.5 bg-ink hover:bg-ink/85 text-onink font-bold text-xs rounded-lg transition-colors"
+                        className="px-4 py-2.5 bg-accent2 hover:bg-accent2/85 text-onaccent font-bold text-xs rounded-lg transition-colors"
                       >
                         View Stock Receipt →
                       </Link>
