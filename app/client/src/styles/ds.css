@@ -3,7 +3,7 @@
 .ts-phead h1{font-size:36px; line-height:1.1; font-weight:500; letter-spacing:-.025em; margin:0; animation:titleIn .7s var(--out) both}
 .ts-phead .ts-grow{flex:1}
 .ts-live{display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; background:rgb(var(--surface-2)); box-shadow:var(--shadow); font-size:14px; color:rgb(var(--muted))}
-.ts-live i{width:7px; height:7px; border-radius:50%; background:rgb(var(--fg)); animation:pulse 2.4s infinite}
+.ts-live i{width:7px; height:7px; border-radius:50%; background:rgb(var(--brand-blue)); animation:pulse 2.4s infinite}
 .ts-live strong{font-weight:500; color:rgb(var(--fg)); display:inline-flex}
 .ts-roll{display:inline-block; height:1.2em; overflow:hidden; vertical-align:top}
 .ts-roll span{display:flex; flex-direction:column; transition:transform .7s var(--spring)}
@@ -22,11 +22,11 @@
 .ts-btn{display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:999px; font-size:14px; white-space:nowrap; transition:transform .2s var(--spring), background .3s, color .3s}
 .ts-btn:hover{transform:translateY(-1px)} .ts-btn:active{transform:scale(.97)}
 .ts-btn.ts-ghost{background:rgb(var(--surface-2)); box-shadow:var(--shadow), 0 0 0 1px rgb(var(--line-rgb) / .07)}
-.ts-btn.ts-dark{background:rgb(var(--ink)); color:rgb(var(--on-ink))}
+.ts-btn.ts-dark{background:rgb(var(--accent)); color:rgb(var(--on-accent))}
 .ts-switch{display:flex; align-items:center; gap:10px; color:rgb(var(--muted)); font-size:13.5px}
 .ts-switch button{width:42px; height:24px; border-radius:999px; background:rgb(var(--tile)); position:relative; transition:background .3s}
 .ts-switch button::after{content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:rgb(var(--surface-2)); box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .35s var(--spring)}
-.ts-switch button[aria-pressed="true"]{background:rgb(var(--charcoal))}
+.ts-switch button[aria-pressed="true"]{background:rgb(var(--accent))}
 .ts-switch button[aria-pressed="true"]::after{transform:translateX(18px)}
 .ts-dnote{opacity:.72}
 .ts-dempty{padding:16px 0 4px; color:rgb(var(--muted)); font-size:13.5px} .ts-dempty p{margin:0 0 10px; line-height:1.5}
@@ -43,7 +43,7 @@
 .ts-card.ts-charcoal .ts-muted,.ts-card.ts-inv .ts-muted{color:currentColor; opacity:.62}
 .ts-ch{display:flex; align-items:center; gap:7px; font-size:13.5px; color:rgb(var(--muted))}
 .ts-card.ts-charcoal .ts-ch,.ts-card.ts-inv .ts-ch{color:currentColor; opacity:.75}
-.ts-ch .ts-ic{width:14px; height:14px; opacity:.7}
+.ts-ch .ts-ic{width:14px; height:14px; opacity:.85; color:rgb(var(--brand-blue))}
 .ts-ch b{font-weight:500; color:rgb(var(--fg)); font-size:15px}
 .ts-card.ts-charcoal .ts-ch b,.ts-card.ts-inv .ts-ch b{color:currentColor}
 .ts-muted{color:rgb(var(--muted))}
@@ -71,15 +71,15 @@
 /* mini viz */
 .ts-minibars{display:flex; gap:5px; align-items:flex-end; height:44px}
 .ts-minibars i{width:12px; border-radius:6px; background:rgba(255,255,255,.28); height:var(--h); transform-origin:bottom; animation:growY .9s var(--spring) both; animation-delay:calc(.3s + var(--d))}
-.ts-minibars i:last-child{background:rgb(var(--on-charcoal))}
+.ts-minibars i:last-child{background:rgb(var(--brand-orange))}
 .ts-ticks{display:flex; gap:3px; align-items:flex-end; height:38px}
 .ts-ticks i{width:3px; border-radius:2px; background:rgb(var(--faint)); opacity:.6; height:var(--h); transform-origin:bottom; animation:growY .8s var(--spring) both; animation-delay:calc(.3s + var(--d))}
-.ts-ticks i:last-child{background:rgb(var(--fg)); opacity:1}
+.ts-ticks i:last-child{background:rgb(var(--brand-orange)); opacity:1}
 .ts-ring circle{fill:none; stroke-width:5}
-.ts-ring .ts-bg{stroke:rgb(var(--line-rgb) / .13)} .ts-ring .ts-fg{stroke:rgb(var(--fg)); stroke-linecap:round; transition:stroke-dashoffset 1.4s var(--out)}
+.ts-ring .ts-bg{stroke:rgb(var(--line-rgb) / .13)} .ts-ring .ts-fg{stroke:rgb(var(--chart-fill)); stroke-linecap:round; transition:stroke-dashoffset 1.4s var(--out)}
 .ts-ring text{font-size:11px; fill:rgb(var(--fg)); font-family:var(--font); font-weight:500}
 .ts-spark{width:100%; height:40px; margin-top:16px; overflow:visible}
-.ts-spark path,.ts-spark-sm path{fill:none; stroke:currentColor; stroke-width:1.6; vector-effect:non-scaling-stroke; stroke-linejoin:round}
+.ts-spark path,.ts-spark-sm path{fill:none; stroke:rgb(var(--chart-line)); stroke-width:1.6; vector-effect:non-scaling-stroke; stroke-linejoin:round}
 .ts-spark-sm{width:96px; height:40px}
 
 /* gauge */
@@ -105,7 +105,7 @@
 .ts-col{flex:1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; cursor:pointer}
 .ts-bar{width:min(40px,70%); height:0; border-radius:999px; background:repeating-linear-gradient(135deg, rgb(var(--line-rgb) / .11) 0 1.5px, transparent 1.5px 7px), rgb(var(--line-rgb) / .025); box-shadow:inset 0 0 0 1px rgb(var(--line-rgb) / .07); transition:height .95s var(--spring), background .35s, box-shadow .35s}
 .ts-col.ts-fc .ts-bar{box-shadow:none; border:1.5px dashed rgb(var(--line-rgb) / .13); background:repeating-linear-gradient(135deg, rgb(var(--line-rgb) / .07) 0 1.5px, transparent 1.5px 7px)}
-.ts-col.ts-on .ts-bar{background:linear-gradient(180deg, rgb(var(--ink)) 0%, rgb(var(--ink)) 55%, color-mix(in srgb, rgb(var(--ink)) 55%, transparent) 100%); box-shadow:0 14px 26px -12px color-mix(in srgb, rgb(var(--ink)) 70%, transparent)}
+.ts-col.ts-on .ts-bar{background:linear-gradient(180deg, rgb(var(--chart-fill)) 0%, rgb(var(--chart-fill)) 55%, color-mix(in srgb, rgb(var(--chart-fill)) 55%, transparent) 100%); box-shadow:0 14px 26px -12px color-mix(in srgb, rgb(var(--chart-fill)) 70%, transparent)}
 .ts-col .ts-m{position:absolute; bottom:-24px; font-size:11.5px; color:rgb(var(--faint)); transition:color .25s}
 .ts-col.ts-on .ts-m{color:rgb(var(--fg)); font-weight:500}
 .ts-avg{position:absolute; left:0; right:0; border-top:1.5px dashed rgb(var(--muted)); opacity:.55; transition:bottom .9s var(--spring); pointer-events:none}
@@ -125,7 +125,7 @@
 .ts-li .ts-sub{font-size:12px; color:rgb(var(--muted)); margin-top:1px}
 .ts-li .ts-amt{font-size:14px; font-weight:500; text-align:right}
 .ts-li .ts-meter{height:4px; border-radius:4px; background:rgb(var(--line-rgb) / .07); margin-top:7px; overflow:hidden}
-.ts-li .ts-meter i{display:block; height:100%; border-radius:4px; background:rgb(var(--fg)); width:0; transition:width 1.2s var(--out)}
+.ts-li .ts-meter i{display:block; height:100%; border-radius:4px; background:rgb(var(--chart-fill)); width:0; transition:width 1.2s var(--out)}
 .ts-av{width:28px; height:28px; border-radius:50%; background:rgb(var(--tile)); display:grid; place-items:center; font-size:10.5px; font-weight:500; flex:none; color:rgb(var(--fg))}
 .ts-due{display:inline-flex; align-items:center; gap:5px; font-size:12px; color:rgb(var(--muted)); white-space:nowrap}
 .ts-due.ts-warn{background:rgb(var(--warn-bg)); color:rgb(var(--warn)); padding:2px 7px; border-radius:7px}
@@ -427,7 +427,7 @@ select.ts-fi.ts-sel { width: auto; height: 40px; padding: 0 36px 0 16px; border-
 .ts-ktag-good{color:rgb(var(--good)); background:rgb(var(--good-bg))}
 .ts-ktag-warn{color:rgb(var(--warn)); background:rgb(var(--warn-bg))}
 .ts-ktag-bad{color:rgb(var(--bad)); background:rgb(var(--bad-bg))}
-.ts-ktag-ink{color:rgb(var(--on-ink)); background:rgb(var(--ink))}
+.ts-ktag-ink{color:rgb(var(--on-accent)); background:rgb(var(--accent))}
 .ts-kmeta{display:flex; justify-content:space-between; gap:10px; font-size:12px; color:rgb(var(--muted))}
 .ts-knext{margin-top:10px; padding:9px 10px; border-radius:10px; background:rgb(var(--tile)); font-size:12px; color:rgb(var(--muted))}
 .ts-kfoot{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px dashed rgb(var(--line-rgb) / .13)}

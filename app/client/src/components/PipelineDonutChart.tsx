@@ -8,8 +8,8 @@ function formatCurrency(n: number) {
 // Authentic quotation stage color palette
 const STAGE_COLORS: Record<string, string> = {
   draft: 'rgb(var(--muted))',
-  sent: 'rgb(var(--fg))',
-  accepted: 'rgb(var(--fg))',
+  sent: 'rgb(var(--chart-fill))',
+  accepted: 'rgb(var(--chart-line))',
   rejected: 'rgb(var(--bad))',
 };
 
@@ -44,7 +44,7 @@ export function PipelineDonutChart({
     accumulatedAngle += strokeDasharray;
     return {
       ...s,
-      color: STAGE_COLORS[s.key] || 'rgb(var(--fg))',
+      color: STAGE_COLORS[s.key] || 'rgb(var(--chart-line))',
       strokeDasharray: `${strokeDasharray} ${circumference}`,
       strokeDashoffset,
     };
@@ -92,7 +92,7 @@ export function PipelineDonutChart({
       {/* Stage Breakdown & Progress Bars */}
       <div className="flex-1 space-y-2.5 w-full">
         {stages.map((stage) => {
-          const color = STAGE_COLORS[stage.key] || 'rgb(var(--fg))';
+          const color = STAGE_COLORS[stage.key] || 'rgb(var(--chart-line))';
           const metric = useCountForSegments ? stage.count : stage.value;
           const percent = Math.min(100, Math.max(3, (metric / denominator) * 100));
           return (

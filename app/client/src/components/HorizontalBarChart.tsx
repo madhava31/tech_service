@@ -10,7 +10,7 @@ function defaultFormat(n: number) {
 
 export function HorizontalBarChart({
   data,
-  color = 'rgb(var(--fg))',
+  color = 'rgb(var(--chart-fill))',
   formatValue = defaultFormat,
 }: {
   data: BarDatum[];
