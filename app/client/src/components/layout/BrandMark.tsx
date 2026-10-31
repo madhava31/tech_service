@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import companyLogo from '../../assets/brand/technicon-logo.png';
 
 /** The TS monogram, drawn in theme colours (top in ink, lower part in muted grey). */
 export function BrandLogo({ className = '' }: { className?: string }) {
@@ -21,14 +22,11 @@ export function BrandLogo({ className = '' }: { className?: string }) {
   );
 }
 
+/** The company logo exactly as supplied (mark, wordmark and tagline), cropped with a transparent background. */
 export function BrandMark() {
   return (
     <span className="ts-brand">
-      <span className="ts-logo-wrap"><BrandLogo /></span>
-      <span className="ts-bn">
-        <span className="ts-brand-name"><b>Technicon</b> Services</span>
-        <small className="ts-tagline">Advancing Analytical Science</small>
-      </span>
+      <img className="ts-brand-logo" src={companyLogo} alt="Technicon Services - Advancing Analytical Science" width={207} height={44} />
     </span>
   );
 }

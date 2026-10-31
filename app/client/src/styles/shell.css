@@ -36,6 +36,8 @@
 .ts-brand-name b { font-weight: 700; color: rgb(var(--fg)); }
 .ts-tagline { display: flex; align-items: center; gap: 7px; font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; color: rgb(var(--muted)); margin-top: 1px; }
 .ts-tagline::before, .ts-tagline::after { content: ""; width: 14px; height: 1px; background: currentColor; opacity: .55; }
+/* The supplied company logo, unaltered, on a transparent background (white TS letters kept). */
+.ts-brand-logo { display: block; height: 44px; width: auto; max-width: 100%; flex: none; }
 
 .ts-navwrap { min-width: 0; overflow-x: auto; scrollbar-width: none; border-radius: 999px; justify-self: center; max-width: 100%; }
 .ts-navwrap::-webkit-scrollbar { display: none; }
@@ -141,5 +143,6 @@
   .ts-dk { width: 40px; height: 40px; } .ts-dk[data-label]::after { display: none; }
   .ts-newq { width: 42px; padding: 0; justify-content: center; border-radius: 50%; } .ts-newq span { display: none; }
   .ts-tagline { display: none; }
+  .ts-brand-logo { height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { .ts-nav-ind { transition: none; } }
