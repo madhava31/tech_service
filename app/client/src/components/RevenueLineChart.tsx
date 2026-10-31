@@ -79,8 +79,8 @@ export function RevenueLineChart({
       >
         <defs>
           <linearGradient id="limeRevenueGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgb(var(--fg))" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="rgb(var(--fg))" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="rgb(var(--chart-fill))" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="rgb(var(--chart-fill))" stopOpacity="0.0" />
           </linearGradient>
         </defs>
 
@@ -95,7 +95,7 @@ export function RevenueLineChart({
         {/* Lime Primary Line */}
         {/* pathLength normalises the line to 1000 units so the 1000-unit draw-in animation
             (styles.css .revenue-line-path) always finishes, however spiky the data is. */}
-        <path d={pathD} pathLength={1000} fill="none" stroke="rgb(var(--fg))" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
+        <path d={pathD} pathLength={1000} fill="none" stroke="rgb(var(--chart-line))" strokeWidth="3" strokeLinecap="round" className="revenue-line-path" />
 
         {/* Data Nodes */}
         {points.map((pt, i) => (
@@ -104,8 +104,8 @@ export function RevenueLineChart({
             cx={pt.x}
             cy={pt.y}
             r={hoverIndex === i ? 6 : 3.5}
-            fill={hoverIndex === i ? 'rgb(var(--fg))' : 'rgb(var(--surface-2))'}
-            stroke="rgb(var(--fg))"
+            fill={hoverIndex === i ? 'rgb(var(--chart-hi))' : 'rgb(var(--surface-2))'}
+            stroke="rgb(var(--chart-line))"
             strokeWidth={hoverIndex === i ? 2.5 : 2}
             className="transition-all duration-150"
           />
@@ -119,12 +119,12 @@ export function RevenueLineChart({
               y1={padding.top}
               x2={activePoint.x}
               y2={height - padding.bottom}
-              stroke="rgb(var(--fg))"
+              stroke="rgb(var(--chart-line))"
               strokeDasharray="4 4"
               strokeWidth="1.5"
               opacity="0.6"
             />
-            <circle cx={activePoint.x} cy={activePoint.y} r={7} fill="rgb(var(--fg))" stroke="rgb(var(--surface-2))" strokeWidth="2.5" />
+            <circle cx={activePoint.x} cy={activePoint.y} r={7} fill="rgb(var(--chart-hi))" stroke="rgb(var(--surface-2))" strokeWidth="2.5" />
           </g>
         )}
       </svg>

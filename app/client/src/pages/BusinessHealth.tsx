@@ -230,7 +230,7 @@ export default function BusinessHealth() {
                     cy="100"
                     r="78"
                     fill="none"
-                    stroke="rgb(var(--fg))"
+                    stroke="rgb(var(--chart-line))"
                     strokeWidth="14"
                     strokeLinecap="round"
                     strokeDasharray="490"

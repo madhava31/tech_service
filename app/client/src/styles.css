@@ -12,13 +12,22 @@
 
 @layer base {
   :root {
-    --bg: 236 235 232; --surface: 245 245 243; --surface-2: 251 251 250; --tile: 226 225 222;
-    --fg: 20 20 19; --muted: 107 107 103; --faint: 163 163 159;
+    --bg: 247 248 250; --surface: 249 250 251; --surface-2: 255 255 255; --tile: 238 240 243;
+    --fg: 23 23 23; --muted: 107 114 128; --faint: 156 163 175;
     --ink: 18 18 17; --on-ink: 246 246 244; --charcoal: 58 58 55; --on-charcoal: 243 243 241;
     --dock: 17 17 16; --dock-fg: 201 201 197;
     --good: 35 120 79; --good-bg: 216 235 222; --bad: 168 56 47; --bad-bg: 243 220 216; --warn: 134 90 0; --warn-bg: 244 230 189;
-    --line-rgb: 20 20 18;
-    --shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 1px 2px rgba(20,20,18,.04), 0 10px 28px -16px rgba(20,20,18,.16);
+    --line-rgb: 17 24 39;
+    --shadow: 0 1px 0 rgba(255,255,255,.75) inset, 0 1px 2px rgba(17,24,39,.04), 0 10px 28px -16px rgba(17,24,39,.14);
+
+    /* Technicon Services brand colours, measured from the company logo */
+    --brand-orange: 243 111 30; --brand-blue: 49 170 246; --brand-navy: 7 68 180;
+    /* Roles. accent: primary buttons, active navigation, focus (navy + white text = 8.4:1).
+       cta: the main call to action ("New quotation"); brand orange needs dark text (6.1:1),
+       white on it is only 3.0:1. chart-line: thin series strokes; chart-fill: bars/areas. */
+    --accent: var(--brand-navy); --on-accent: 255 255 255;
+    --cta: var(--brand-orange); --on-cta: 23 23 23;
+    --chart-line: var(--brand-navy); --chart-fill: var(--brand-blue); --chart-hi: var(--brand-orange);
     --font: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --ease: cubic-bezier(.65,0,.35,1); --spring: cubic-bezier(.2,.9,.25,1.04); --out: cubic-bezier(.16,1,.3,1);
 
@@ -26,8 +35,8 @@
     --background: rgb(var(--bg)); --foreground: rgb(var(--fg));
     --card: rgb(var(--surface-2)); --card-foreground: rgb(var(--fg));
     --popover: rgb(var(--surface-2)); --popover-foreground: rgb(var(--fg));
-    --primary: rgb(var(--ink)); --primary-foreground: rgb(var(--on-ink));
-    --border: rgb(var(--line-rgb) / .13); --input: rgb(var(--line-rgb) / .13); --ring: rgb(var(--fg));
+    --primary: rgb(var(--accent)); --primary-foreground: rgb(var(--on-accent));
+    --border: rgb(var(--line-rgb) / .13); --input: rgb(var(--line-rgb) / .13); --ring: rgb(var(--accent));
     --radius: 12px; --radius-card: 22px;
     color-scheme: light;
   }
@@ -39,6 +48,11 @@
     --good: 95 199 148; --good-bg: 32 47 40; --bad: 239 139 128; --bad-bg: 52 38 37; --warn: 232 188 85; --warn-bg: 54 47 31;
     --line-rgb: 255 255 255;
     --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 10px 28px -16px rgba(0,0,0,.6);
+    --brand-orange: 243 111 30; --brand-blue: 49 170 246; --brand-navy: 7 68 180;
+    /* on dark surfaces navy is too dark to read: accents use the bright brand blue with dark text (7.3:1) */
+    --accent: var(--brand-blue); --on-accent: 18 18 17;
+    --cta: var(--brand-orange); --on-cta: 23 23 23;
+    --chart-line: var(--brand-blue); --chart-fill: var(--brand-blue); --chart-hi: var(--brand-orange);
     color-scheme: dark;
   }
 }
@@ -60,7 +74,7 @@
     overflow-x: hidden;
     transition: background-color .4s;
   }
-  :focus-visible { outline: 2px solid rgb(var(--fg)); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 2px; }
 }
 
 /* Circular theme reveal (View Transitions API) */
@@ -355,8 +369,8 @@ select:focus {
   border-radius: 999px;
   font-size: 0.875rem;
   font-weight: 700;
-  background: linear-gradient(135deg, rgb(var(--ink)) 0%, rgb(var(--ink)) 100%);
-  color: rgb(var(--on-ink));
+  background: rgb(var(--accent));
+  color: rgb(var(--on-accent));
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(59, 111, 212, 0.22);
