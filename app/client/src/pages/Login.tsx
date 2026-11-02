@@ -30,7 +30,7 @@ export default function Login() {
   return (
     <div className="ts-auth min-h-screen grid grid-cols-1 tablet-lg:grid-cols-[1.05fr_1fr] gap-3 p-3 text-fg antialiased">
       {/* Brand panel */}
-      <aside className="ts-card ts-charcoal hidden tablet-lg:flex relative overflow-hidden !p-10 flex-col justify-between gap-10 select-none">
+      <aside className="ts-card ts-white hidden tablet-lg:flex relative overflow-hidden !p-10 flex-col justify-between gap-10 select-none">
         <BrandMark />
 
         <div className="flex flex-col gap-5 max-w-[460px]">
@@ -42,12 +42,12 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Decorative trend curve, drawn in the panel's own text colour */}
+        {/* Decorative trend curve in the brand chart colours */}
         <svg viewBox="0 0 560 180" aria-hidden="true" className="w-full max-w-[560px] h-auto">
           <defs>
             <linearGradient id="loginArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="currentColor" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+              <stop offset="0%" stopColor="rgb(var(--chart-fill))" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="rgb(var(--chart-fill))" stopOpacity="0" />
             </linearGradient>
           </defs>
           <line x1="0" x2="560" y1="150" y2="150" stroke="currentColor" strokeOpacity=".14" />
@@ -61,7 +61,7 @@ export default function Login() {
             className="ts-auth-line"
             d="M 0 132 C 62 128, 78 108, 140 112 C 202 116, 218 72, 280 66 C 342 60, 358 92, 420 74 C 482 56, 498 28, 560 22"
             fill="none"
-            stroke="currentColor"
+            stroke="rgb(var(--chart-line))"
             strokeWidth="2"
             strokeLinecap="round"
           />

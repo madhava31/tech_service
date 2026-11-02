@@ -99,7 +99,7 @@ export function PipelineDonutChart({
             <div
               key={stage.key}
               className={`p-2 rounded-lg transition-colors border ${
-                hoveredKey === stage.key ? 'bg-surface border-fg/40' : 'border-transparent hover:border-line2'
+                hoveredKey === stage.key ? 'bg-surface border-accent2/40' : 'border-transparent hover:border-line2'
               }`}
               onMouseEnter={() => setHoveredKey(stage.key)}
               onMouseLeave={() => setHoveredKey(null)}

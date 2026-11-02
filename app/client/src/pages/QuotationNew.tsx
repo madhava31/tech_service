@@ -612,7 +612,7 @@ export default function QuotationNew() {
 
         {/* Summary */}
         <aside className="ts-qside">
-          <div className="ts-card ts-charcoal ts-qsum" style={{ ['--i' as string]: 1 }}>
+          <div className="ts-card ts-white ts-qsum" style={{ ['--i' as string]: 1 }}>
             <div className="ts-ch">Quotation summary</div>
             <div className="ts-qno">{isEdit ? quotationNumber || 'Quotation' : 'New quotation'} <span className="ts-pill ts-up">{isEdit ? 'Editing' : 'Draft'}</span></div>
             <dl className="ts-sumrows">

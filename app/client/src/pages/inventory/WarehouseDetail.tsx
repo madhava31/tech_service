@@ -270,7 +270,7 @@ export default function WarehouseDetail() {
                 placeholder="Search stock by part no or description..."
                 value={stockSearch}
                 onChange={(e) => setStockSearch(e.target.value)}
-                className="w-full bg-surface2 border border-line2 rounded-lg px-3.5 py-2 text-sm text-fg placeholder-faint focus:outline-none focus:border-fg"
+                className="w-full bg-surface2 border border-line2 rounded-lg px-3.5 py-2 text-sm text-fg placeholder-faint focus:outline-none focus:border-accent2"
               />
             </div>
             <div className="text-xs text-subtle">

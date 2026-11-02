@@ -148,7 +148,7 @@ export default function StockList() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg placeholder-faint focus:outline-none focus:border-fg"
+              className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg placeholder-faint focus:outline-none focus:border-accent2"
             />
           </div>
 
@@ -159,7 +159,7 @@ export default function StockList() {
               setSelectedWarehouse(e.target.value);
               setPage(1);
             }}
-            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
           >
             <option value="">All Warehouses</option>
             {warehouses.map((w) => (
@@ -176,7 +176,7 @@ export default function StockList() {
               setSelectedStatus(e.target.value);
               setPage(1);
             }}
-            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
           >
             <option value="">All Stock Statuses</option>
             <option value="healthy">Healthy Stock</option>

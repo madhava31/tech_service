@@ -682,7 +682,7 @@ export default function EngineerList() {
             </div>
 
             {/* File Input Box */}
-            <div className="border-2 border-dashed border-line2 hover:border-fg rounded-xl p-6 text-center space-y-3 bg-surface/50 transition-colors">
+            <div className="border-2 border-dashed border-line2 hover:border-accent2 rounded-xl p-6 text-center space-y-3 bg-surface/50 transition-colors">
               <Upload className="w-8 h-8 text-fg mx-auto" />
               <div>
                 <button

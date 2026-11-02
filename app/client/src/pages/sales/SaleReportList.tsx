@@ -310,7 +310,7 @@ export default function SaleReportList() {
               aria-controls="sale-report-filters"
               className={`inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
                 isFilterOpen || hasActiveFilters
-                  ? 'bg-tile border-fg text-fg shadow-card'
+                  ? 'bg-tile border-accent2 text-accent2 shadow-card'
                   : 'bg-surface2 border-line2 text-subtle hover:text-fg hover:border-line2'
               }`}
             >

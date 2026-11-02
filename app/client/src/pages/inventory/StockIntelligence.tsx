@@ -265,7 +265,7 @@ export default function StockIntelligence() {
   if (loading && !data) {
     return (
       <div className="p-8 max-w-[1400px] mx-auto text-center space-y-4 text-subtle">
-        <div className="animate-spin w-8 h-8 border-2 border-fg border-t-transparent rounded-full mx-auto" />
+        <div className="animate-spin w-8 h-8 border-2 border-accent2 border-t-transparent rounded-full mx-auto" />
         <p className="text-sm font-medium">Analyzing stock velocity & replenishment models...</p>
       </div>
     );
@@ -422,7 +422,7 @@ export default function StockIntelligence() {
           <p className="text-[12.5px] text-faint">Zero available inventory</p>
         </div>
 
-        <div className="ts-card ts-charcoal ts-kpi-sm space-y-1">
+        <div className="ts-card ts-white ts-kpi-sm space-y-1">
           <div className="flex items-center justify-between text-[13.5px] opacity-70">
             <span>Needs Restock</span>
             <Sparkles className="w-4 h-4" />

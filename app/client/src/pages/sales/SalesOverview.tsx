@@ -128,7 +128,7 @@ export default function SalesOverview() {
           <div className="text-[12.5px] text-faint pt-1">Draft Sale Reports</div>
         </div>
 
-        <div className="ts-card ts-charcoal ts-kpi-sm space-y-1">
+        <div className="ts-card ts-white ts-kpi-sm space-y-1">
           <div className="text-[13px] opacity-70">Confirmed Sales</div>
           <div className="ts-val num !mt-1.5 truncate">{showMoney(kpis.salesValue)}</div>
           <div className="text-[12.5px] opacity-60 pt-1">
