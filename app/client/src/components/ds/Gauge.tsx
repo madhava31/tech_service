@@ -36,7 +36,7 @@ export function Gauge({ value }: { value: number }) {
   return (
     <svg ref={svg} className="ts-gauge" viewBox="0 0 300 205" aria-hidden="true">
       <defs>
-        <linearGradient id="gg" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="rgb(var(--brand-blue))" /><stop offset=".55" stopColor="rgb(var(--brand-blue))" /><stop offset="1" stopColor="rgb(var(--surface-2))" /></linearGradient>
+        <linearGradient id="gg" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="rgb(var(--brand-blue))" /><stop offset=".55" stopColor="rgb(var(--brand-blue))" /><stop offset="1" stopColor="rgb(var(--chart-line))" /></linearGradient>
       </defs>
       {TICKS.map((t, i) => <line key={i} className="ts-tk" data-a={t.a} x1={t.x0.toFixed(1)} y1={t.y0.toFixed(1)} x2={t.x1.toFixed(1)} y2={t.y1.toFixed(1)} opacity=".22" />)}
       <path className="ts-track" d={arcD(1)} />

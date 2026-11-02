@@ -64,7 +64,7 @@ export default function StockAnalysisWidget({ warehouseId, items }: Props) {
 
       {loading && (
         <div className="text-xs text-subtle py-2 flex items-center space-x-2">
-          <div className="w-3 h-3 border-2 border-fg border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-3 h-3 border-2 border-accent2 border-t-transparent rounded-full animate-spin"></div>
           <span>Analyzing inventory availability...</span>
         </div>
       )}

@@ -311,7 +311,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
               disabled={loading}
               value={selectedWarehouseId}
               onChange={(e) => setSelectedWarehouseId(Number(e.target.value))}
-              className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2.5 text-xs text-fg font-medium focus:outline-none focus:border-fg focus:bg-surface2"
+              className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2.5 text-xs text-fg font-medium focus:outline-none focus:border-accent2 focus:bg-surface2"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -351,7 +351,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
               onChange={handleQuantityChange}
               className={`w-full bg-surface border ${
                 quantityError ? 'border-bad bg-badbg/20' : 'border-line2'
-              } rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-fg focus:outline-none focus:border-fg focus:bg-surface2`}
+              } rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-fg focus:outline-none focus:border-accent2 focus:bg-surface2`}
             />
             {quantityError && <span className="text-[11px] text-bad font-medium">{quantityError}</span>}
           </div>
@@ -364,7 +364,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                 disabled={loading}
                 value={sourceType}
                 onChange={(e) => setSourceType(e.target.value)}
-                className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
               >
                 <option value="MANUAL">Manual Restocking</option>
                 <option value="VENDOR_DELIVERY">Vendor Delivery</option>
@@ -380,7 +380,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
                 disabled={loading}
                 value={sourceReference}
                 onChange={(e) => setSourceReference(e.target.value)}
-                className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
               />
             </div>
           </div>
@@ -394,7 +394,7 @@ export const RestockModal: React.FC<RestockModalProps> = ({
               disabled={loading}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+              className="w-full bg-surface border border-line2 rounded-xl px-3.5 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
             />
           </div>
 

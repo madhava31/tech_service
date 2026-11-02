@@ -178,7 +178,7 @@ export default function WarehouseList() {
             placeholder="Search warehouse by name, code or city..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-surface2 border border-line2 rounded-lg px-3.5 py-2 text-sm text-fg placeholder-faint focus:outline-none focus:border-fg transition-colors"
+            className="w-full bg-surface2 border border-line2 rounded-lg px-3.5 py-2 text-sm text-fg placeholder-faint focus:outline-none focus:border-accent2 transition-colors"
           />
         </div>
         <div className="text-xs text-subtle">
@@ -332,7 +332,7 @@ export default function WarehouseList() {
                   placeholder="e.g. Hyderabad Central Warehouse"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                  className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent2"
                 />
               </div>
 
@@ -346,7 +346,7 @@ export default function WarehouseList() {
                   placeholder="e.g. HYD-01"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                  className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg font-mono focus:outline-none focus:border-fg"
+                  className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg font-mono focus:outline-none focus:border-accent2"
                 />
                 <span className="text-[11px] text-subtle">Short unique uppercase identifier</span>
               </div>
@@ -358,7 +358,7 @@ export default function WarehouseList() {
                   placeholder="Street address, industrial estate..."
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg resize-none"
+                  className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent2 resize-none"
                 />
               </div>
 
@@ -370,7 +370,7 @@ export default function WarehouseList() {
                     placeholder="e.g. Hyderabad"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent2"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -380,7 +380,7 @@ export default function WarehouseList() {
                     placeholder="e.g. Telangana"
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-fg"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent2"
                   />
                 </div>
               </div>

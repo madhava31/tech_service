@@ -88,12 +88,12 @@
 .ts-gauge-card{display:flex; flex-direction:column}
 .ts-gwrap{position:relative; width:min(330px,100%); margin:12px auto 4px}
 .ts-gwrap svg{width:100%; height:auto}
-.ts-gauge .ts-tk{stroke:rgb(var(--on-charcoal)); stroke-width:2; stroke-linecap:round; transition:opacity .2s}
-.ts-gauge .ts-track{fill:none; stroke:rgba(255,255,255,.07); stroke-width:22; stroke-linecap:round}
+.ts-gauge .ts-tk{stroke:rgb(var(--fg)); stroke-width:2; stroke-linecap:round; transition:opacity .2s}
+.ts-gauge .ts-track{fill:none; stroke:rgb(var(--line-rgb) / .07); stroke-width:22; stroke-linecap:round}
 .ts-gauge .ts-prog{fill:none; stroke:url(#gg); stroke-width:22; stroke-linecap:round}
 .ts-gauge .ts-knob{stroke:rgb(var(--brand-orange))}
 /* no closed quotations yet: no brand colour, so the gauge does not suggest performance */
-.ts-gauge[data-empty] .ts-prog{stroke:rgba(255,255,255,.18)} .ts-gauge[data-empty] .ts-knob{stroke:rgb(var(--on-charcoal) / .45)}
+.ts-gauge[data-empty] .ts-prog{stroke:rgb(var(--line-rgb) / .13)} .ts-gauge[data-empty] .ts-knob{stroke:rgb(var(--muted))}
 .ts-gval{position:absolute; left:0; right:0; top:56%; text-align:center}
 .ts-gval .ts-big{font-size:38px; font-weight:500; letter-spacing:-.02em; display:inline-flex; align-items:center; gap:8px}
 .ts-gval small{display:block; font-size:13px; opacity:.65}
@@ -179,7 +179,13 @@
 .ts-chrow .ts-amt .ts-pill{margin-top:4px}
 .ts-hbar{display:grid; grid-template-columns:minmax(90px,130px) minmax(0,1fr) 46px; gap:12px; align-items:center; padding:9px 0; font-size:13.5px}
 .ts-hbar .ts-t{height:10px; border-radius:999px; background:repeating-linear-gradient(135deg, rgb(var(--line-rgb) / .11) 0 1.5px, transparent 1.5px 6px), rgb(var(--line-rgb) / .025); overflow:hidden; box-shadow:inset 0 0 0 1px rgb(var(--line-rgb) / .07)}
-.ts-hbar .ts-t i{display:block; height:100%; width:0; border-radius:999px; background:rgb(var(--fg)); transition:width 1.2s var(--out)}
+.ts-hbar .ts-t i{display:block; height:100%; width:0; border-radius:999px; background:rgb(var(--chart-line)); transition:width 1.2s var(--out)}
+/* pipeline stages: brand blues for open work, orange for won, the existing red for lost */
+.ts-hbar[data-stage="draft"] .ts-t i{background:rgb(var(--brand-blue))}
+:root.dark .ts-hbar[data-stage="draft"] .ts-t i{background:rgb(var(--brand-blue) / .5)} /* dark: sent is bright blue too */
+.ts-hbar[data-stage="sent"] .ts-t i{background:rgb(var(--chart-line))}
+.ts-hbar[data-stage="accepted"] .ts-t i{background:rgb(var(--brand-orange))}
+.ts-hbar[data-stage="rejected"] .ts-t i{background:rgb(var(--bad))}
 .ts-hbar .ts-p{text-align:right; color:rgb(var(--muted))}
 @keyframes rise{from{opacity:0; transform:translateY(16px) scale(.985); filter:blur(5px)} to{opacity:1; transform:none; filter:none}}
 @keyframes fadeUp{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
@@ -379,7 +385,7 @@ textarea.ts-fi{resize:vertical; min-height:100px; line-height:1.5}
 .ts-sumrows .ts-sep{border-top:1px dashed rgba(127,127,127,.4); padding-top:11px}
 .ts-grand{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-top:16px; padding-top:16px; border-top:1px solid rgba(127,127,127,.4)}
 .ts-grand span{opacity:.75} .ts-grand b{font-size:28px; font-weight:500; letter-spacing:-.02em}
-.ts-qmeta{display:flex; flex-direction:column; gap:9px; margin:18px 0; padding:14px; border-radius:14px; background:rgba(255,255,255,.06); font-size:13px}
+.ts-qmeta{display:flex; flex-direction:column; gap:9px; margin:18px 0; padding:14px; border-radius:14px; background:rgb(var(--tile)); font-size:13px}
 .ts-qmeta div{display:flex; justify-content:space-between; gap:12px} .ts-qmeta span{opacity:.6; flex:none}
 .ts-qmeta b{font-weight:500; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
 @media (max-width:1100px){ .ts-qgrid{grid-template-columns:minmax(0,1fr)} .ts-qside{position:static} }

@@ -499,7 +499,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
 
       {/* KPI row */}
       <div className="ts-grid ts-kpis">
-        <div className="ts-card ts-charcoal" style={{ ['--i' as string]: 0 }}>
+        <div className="ts-card ts-white" style={{ ['--i' as string]: 0 }}>
           <div className="ts-ch">Revenue</div>
           <div className="ts-kbody"><div>
             {loading ? skel('70%') : <div className="ts-val num"><CountUp value={displayedRevenue} format={formatCurrency} /></div>}
@@ -544,7 +544,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
 
       {/* Gauge + revenue chart */}
       <div className="ts-grid ts-row2">
-        <div className="ts-card ts-charcoal ts-gauge-card" style={{ ['--i' as string]: 4 }}>
+        <div className="ts-card ts-white ts-gauge-card" style={{ ['--i' as string]: 4 }}>
           <div className="ts-ch">Quotation win rate</div>
           <div className="ts-gwrap">
             <Gauge value={winRate ?? 0} />
@@ -609,7 +609,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
           {pipelineError ? <div className="ts-dempty"><p>Pipeline could not load.</p></div>
           : stages.length ? <div style={{ marginTop: 10 }}>
             {stages.map((st) => (
-              <div key={st.key} className="ts-hbar"><span>{st.label}</span><div className="ts-t"><i style={{ width: `${(st.count / Math.max(1, ...stages.map((x) => x.count))) * 100}%` }} /></div><span className="ts-p num">{st.count}</span></div>
+              <div key={st.key} className="ts-hbar" data-stage={st.key}><span>{st.label}</span><div className="ts-t"><i style={{ width: `${(st.count / Math.max(1, ...stages.map((x) => x.count))) * 100}%` }} /></div><span className="ts-p num">{st.count}</span></div>
             ))}
             <p className="ts-muted" style={{ fontSize: 13, margin: '10px 0 0' }}>{formatCurrency(pipelineTotalValue)} across {pipeline!.summary.totalOpportunities} quotations · {acceptedRate.toFixed(1)}% accepted.</p>
           </div> : <div className="ts-dempty"><p>{pipeline ? 'No quotations in this period.' : 'Loading…'}</p></div>}

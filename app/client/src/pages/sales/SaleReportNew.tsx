@@ -912,7 +912,7 @@ export default function SaleReportNew() {
                           className={`w-20 px-2 py-1 bg-tile border rounded text-right font-mono text-xs focus:outline-none ${
                             isOverStock
                               ? 'border-bad text-bad focus:border-bad'
-                              : 'border-line2 text-fg focus:border-fg'
+                              : 'border-line2 text-fg focus:border-accent2'
                           }`}
                         />
                       </td>
@@ -930,7 +930,7 @@ export default function SaleReportNew() {
                               e.target.value === '' ? '' : Math.max(0, Number(e.target.value))
                             )
                           }
-                          className="w-24 px-2 py-1 bg-tile border border-line2 rounded text-right font-mono text-xs text-fg focus:outline-none focus:border-fg"
+                          className="w-24 px-2 py-1 bg-tile border border-line2 rounded text-right font-mono text-xs text-fg focus:outline-none focus:border-accent2"
                         />
                       </td>
                       <td className="px-3 py-3 text-right font-mono font-semibold text-fg whitespace-nowrap">

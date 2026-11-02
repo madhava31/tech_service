@@ -85,7 +85,7 @@ export default function EngineerDetail() {
           <select
             value={fiscalYear}
             onChange={(e) => setFiscalYear(e.target.value)}
-            className="bg-surface2 border border-line2 rounded-lg px-3 py-1.5 text-xs text-fg focus:outline-none focus:border-fg"
+            className="bg-surface2 border border-line2 rounded-lg px-3 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
           >
             <option value="2026-27">FY 2026-27</option>
             <option value="2025-26">FY 2025-26</option>

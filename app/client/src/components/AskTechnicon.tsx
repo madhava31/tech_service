@@ -233,7 +233,7 @@ export default function AskTechnicon({ embedded }: { embedded?: boolean }) {
           placeholder="Ask about revenue, quotations, customers or products"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          className="flex-1 min-w-0 h-[38px] px-3.25 rounded-[10px] bg-surface border border-line2 text-fg text-[13px] outline-none focus:border-fg placeholder-faint"
+          className="flex-1 min-w-0 h-[38px] px-3.25 rounded-[10px] bg-surface border border-line2 text-fg text-[13px] outline-none focus:border-accent2 placeholder-faint"
         />
         <button
           type="submit"

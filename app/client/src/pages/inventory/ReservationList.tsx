@@ -380,7 +380,7 @@ export default function ReservationList() {
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`inline-flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
  isFilterOpen || hasActiveFilters
- ? 'bg-surface border-fg text-fg'
+ ? 'bg-surface border-accent2 text-accent2'
  : 'bg-tile border-line2 text-subtle hover:text-fg'
  }`}
             >

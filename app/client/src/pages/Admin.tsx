@@ -332,7 +332,7 @@ export default function Admin() {
 
           {/* Reset Password Modal / Card */}
           {resetTarget != null && (
-            <div className="bg-surface2 border border-fg/50 rounded-xl p-6 shadow-card">
+            <div className="bg-surface2 border border-accent2/50 rounded-xl p-6 shadow-card">
               <h3 className="m-0 text-[15px] font-medium text-fg mb-3">Reset Password for User #{resetTarget}</h3>
               <div className="flex items-center gap-3 max-w-md">
                 <input

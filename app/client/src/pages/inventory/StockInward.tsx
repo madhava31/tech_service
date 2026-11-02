@@ -443,7 +443,7 @@ export default function StockInward() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && loadReceipts()}
-              className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg placeholder-faint focus:outline-none focus:border-fg"
+              className="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg placeholder-faint focus:outline-none focus:border-accent2"
             />
           </div>
 
@@ -454,7 +454,7 @@ export default function StockInward() {
               setSelectedWarehouse(e.target.value);
               setPage(1);
             }}
-            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
           >
             <option value="">All Warehouses</option>
             {warehouses.map((w) => (
@@ -471,7 +471,7 @@ export default function StockInward() {
               setSelectedStatus(e.target.value);
               setPage(1);
             }}
-            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
           >
             <option value="">All Statuses</option>
             <option value="CONFIRMED">Confirmed</option>
@@ -486,7 +486,7 @@ export default function StockInward() {
               setSelectedSource(e.target.value);
               setPage(1);
             }}
-            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+            className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
           >
             <option value="">All Sources</option>
             <option value="MANUAL">Manual Entry</option>
@@ -640,7 +640,7 @@ export default function StockInward() {
                     required
                     value={manualWarehouseId}
                     onChange={(e) => setManualWarehouseId(Number(e.target.value))}
-                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                   >
                     <option value="">-- Select Destination Facility --</option>
                     {warehouses.map((w) => (
@@ -660,7 +660,7 @@ export default function StockInward() {
                     required
                     value={manualReceiptNumber}
                     onChange={(e) => setManualReceiptNumber(e.target.value)}
-                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs font-mono text-fg focus:outline-none focus:border-fg"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs font-mono text-fg focus:outline-none focus:border-accent2"
                   />
                 </div>
 
@@ -669,7 +669,7 @@ export default function StockInward() {
                   <select
                     value={manualSourceType}
                     onChange={(e) => setManualSourceType(e.target.value)}
-                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                   >
                     <option value="MANUAL">Manual Restocking</option>
                     <option value="VENDOR_DELIVERY">Vendor Delivery</option>
@@ -686,7 +686,7 @@ export default function StockInward() {
                     placeholder="e.g. DC-9841 / INV-2024-01"
                     value={manualSourceRef}
                     onChange={(e) => setManualSourceRef(e.target.value)}
-                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                    className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                   />
                 </div>
               </div>
@@ -723,7 +723,7 @@ export default function StockInward() {
                             <select
                               value={item.productId}
                               onChange={(e) => updateManualItem(idx, 'productId', e.target.value)}
-                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-fg"
+                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
                             >
                               {products.map((p) => (
                                 <option key={p.id} value={p.id}>
@@ -740,7 +740,7 @@ export default function StockInward() {
                               required
                               value={item.quantity}
                               onChange={(e) => updateManualItem(idx, 'quantity', e.target.value)}
-                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs font-mono text-right text-good focus:outline-none focus:border-fg"
+                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs font-mono text-right text-good focus:outline-none focus:border-accent2"
                             />
                           </td>
                           <td className="py-2 px-3">
@@ -749,7 +749,7 @@ export default function StockInward() {
                               placeholder="Line note..."
                               value={item.notes}
                               onChange={(e) => updateManualItem(idx, 'notes', e.target.value)}
-                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-fg"
+                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
                             />
                           </td>
                           <td className="py-2 px-3 text-center">
@@ -930,7 +930,7 @@ export default function StockInward() {
                       <select
                         value={excelWarehouseId}
                         onChange={(e) => setExcelWarehouseId(Number(e.target.value))}
-                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                       >
                         <option value="">-- Select Destination Warehouse --</option>
                         {warehouses.map((w) => (
@@ -947,7 +947,7 @@ export default function StockInward() {
                       <select
                         value={excelSheetName}
                         onChange={(e) => setExcelSheetName(e.target.value)}
-                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                       >
                         {excelAnalysis.sheets.map((s) => (
                           <option key={s.name} value={s.name}>
@@ -965,7 +965,7 @@ export default function StockInward() {
                       <select
                         value={excelPartNoCol}
                         onChange={(e) => setExcelPartNoCol(e.target.value)}
-                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                       >
                         <option value="">-- Select Excel Column --</option>
                         {excelAnalysis.sheets
@@ -986,7 +986,7 @@ export default function StockInward() {
                       <select
                         value={excelQtyCol}
                         onChange={(e) => setExcelQtyCol(e.target.value)}
-                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-fg"
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                       >
                         <option value="">-- Select Excel Column --</option>
                         {excelAnalysis.sheets
@@ -1205,7 +1205,7 @@ export default function StockInward() {
                         type="text"
                         value={excelReceiptNumber}
                         onChange={(e) => setExcelReceiptNumber(e.target.value)}
-                        className="bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs font-mono text-fg focus:outline-none focus:border-fg"
+                        className="bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs font-mono text-fg focus:outline-none focus:border-accent2"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
@@ -1215,7 +1215,7 @@ export default function StockInward() {
                         placeholder="e.g. PO-8411 / Vendor Bill"
                         value={excelSourceRef}
                         onChange={(e) => setExcelSourceRef(e.target.value)}
-                        className="bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs text-fg focus:outline-none focus:border-fg"
+                        className="bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
                       />
                     </div>
                   </div>
