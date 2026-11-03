@@ -506,7 +506,7 @@ export default function Quotations() {
                       <td><span className={`ts-st ts-${q.status}`}>{String(q.status || '').replace(/_/g, ' ')}</span></td>
                       <td className="ts-r">
                         <div className="ts-racts">
-                          <Link to={`/quotations/${q.id}/preview`} className="ts-btn ts-ghost ts-xs">View</Link>
+                          <Link to={`/quotations/${q.id}`} className="ts-btn ts-ghost ts-xs">View</Link>
                           {['draft', 'sent'].includes(q.status) && (
                             <Link to={`/quotations/${q.id}/edit`} className="ts-btn ts-ghost ts-xs" aria-label={`Edit quotation ${q.number}`}><Pencil className="size-3.5" /> Edit</Link>
                           )}

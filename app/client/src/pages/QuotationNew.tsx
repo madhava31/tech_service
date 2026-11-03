@@ -364,15 +364,15 @@ export default function QuotationNew() {
                 const isWarranty = t.label.trim().toLowerCase() === 'warranty';
                 const bad = isWarranty && warrantyError && !t.text.trim();
                 return (
-                  <div key={i} className="flex flex-col md:flex-row md:items-start gap-2">
+                  <div key={i} className="grid grid-cols-1 md:grid-cols-[170px_minmax(0,1fr)_auto] gap-2 md:items-start">
                     <input
-                      className="ts-fi md:w-[170px]"
+                      className="ts-fi"
                       value={t.label}
                       onChange={(e) => setTerm(i, { label: e.target.value })}
                       placeholder="Label"
                       aria-label={`Term ${i + 1} label`}
                     />
-                    <div className={`ts-fld flex-1 ${bad ? 'ts-bad' : ''}`}>
+                    <div className={`ts-fld ${bad ? 'ts-bad' : ''}`}>
                       <input
                         className="ts-fi"
                         value={t.text}
@@ -382,10 +382,11 @@ export default function QuotationNew() {
                       />
                       {bad && <small className="text-bad text-[12px]">{WARRANTY_REQUIRED}</small>}
                     </div>
-                    <div className="flex gap-1">
-                      <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => moveTerm(i, -1)} disabled={i === 0} aria-label={`Move term ${i + 1} up`}><ArrowUpIcon /></button>
-                      <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => moveTerm(i, 1)} disabled={i === terms.length - 1} aria-label={`Move term ${i + 1} down`}><ArrowDownIcon /></button>
-                      <button type="button" className="ts-iconx" onClick={() => removeTerm(i)} aria-label={`Remove term ${i + 1}`}><Trash2Icon className="size-4" /></button>
+                    {/* Same height as the inputs so the icons sit centred on the row */}
+                    <div className="flex items-center gap-1 h-[44px]">
+                      <button type="button" className="ts-btn ts-ghost ts-xs !p-0 w-8 h-8 justify-center" onClick={() => moveTerm(i, -1)} disabled={i === 0} aria-label={`Move term ${i + 1} up`} title="Move up"><ArrowUpIcon className="size-4" /></button>
+                      <button type="button" className="ts-btn ts-ghost ts-xs !p-0 w-8 h-8 justify-center" onClick={() => moveTerm(i, 1)} disabled={i === terms.length - 1} aria-label={`Move term ${i + 1} down`} title="Move down"><ArrowDownIcon className="size-4" /></button>
+                      <button type="button" className="ts-iconx" onClick={() => removeTerm(i)} aria-label={`Remove term ${i + 1}`} title="Remove term"><Trash2Icon className="size-4" /></button>
                     </div>
                   </div>
                 );

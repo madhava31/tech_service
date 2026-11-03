@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
 import { nextNumber } from '../db/numbering.js';
-import { streamQuotationPdf } from '../pdf/documents.js';
 import { streamQuotationPdfV2 } from '../pdf/quotationPdf.js';
 import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValues, insertItems } from '../quotations/module.js';
 import apiCache from '../cache/apiCache.js';
@@ -966,6 +965,46 @@ router.post('/:quotationId/follow-ups/:followUpId/cancel', async (req, res) => {
   }
 });
 
+/**
+ * Maps a quotation saved before the quotation module onto the approved PDF layout:
+ *   terms        from the company settings the old PDF printed (payment, delivery, validity)
+ *   key features from the product's catalogue entry, when it has any
+ *   discount %   from the stored prices when the line used a flat amount
+ *   totals       the stored taxable amount, GST and grand total (old overall discounts included)
+ */
+async function legacyForApprovedLayout(quotation, items, settings = {}) {
+  const ids = [...new Set(items.map((it) => it.product_id).filter(Boolean))];
+  // to_jsonb(p) works whether or not migration 002 (product.key_features) has been applied.
+  const rows = ids.length
+    ? await db.prepare(`SELECT p.id, to_jsonb(p) -> 'key_features' AS key_features FROM product p WHERE p.id = ANY(?::int[])`).all(ids)
+    : [];
+  const featuresById = new Map(rows.map((r) => [r.id, Array.isArray(r.key_features) ? r.key_features : []]));
+  const lines = items.map((it) => {
+    const listPrice = Number(it.actual_unit_price ?? it.price ?? 0);
+    const unit = Number(it.final_unit_price ?? listPrice);
+    const qty = Number(it.qty || 0);
+    const pct = it.discount_type === 'percentage' ? Number(it.discount_value || 0) : listPrice > 0 ? Math.max(0, (1 - unit / listPrice) * 100) : 0;
+    return {
+      ...it,
+      product_name: it.product_name || it.description,
+      key_features: Array.isArray(it.key_features) && it.key_features.length ? it.key_features : featuresById.get(it.product_id) || [],
+      discount_value: Math.round(pct * 100) / 100,
+      final_unit_price: unit,
+      final_line_total: Number(it.final_line_total ?? it.amount ?? unit * qty),
+    };
+  });
+  const s = settings || {};
+  const terms = [
+    s.payment_terms ? { label: 'Payment', text: String(s.payment_terms) } : null,
+    s.delivery_time ? { label: 'Delivery', text: String(s.delivery_time) } : null,
+    { label: 'Validity', text: `${Number(s.quotation_validity_days) || 15} days from the quotation date` },
+  ].filter(Boolean);
+  return {
+    quotation: { ...quotation, terms, subtotal: Number(quotation.taxable_amount ?? quotation.subtotal ?? 0) },
+    items: lines,
+  };
+}
+
 router.get('/:id/pdf', async (req, res) => {
   try {
     const quotation = await db
@@ -984,12 +1023,16 @@ router.get('/:id/pdf', async (req, res) => {
     const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(req.params.id);
     const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
 
+    // Every quotation prints in the approved layout. A quotation saved before the quotation module
+    // has no terms or key-feature snapshot, so those are filled in for printing (nothing is saved).
+    const printable = Array.isArray(quotation.terms)
+      ? { quotation, items }
+      : await legacyForApprovedLayout(quotation, items, settings);
+
     res.setHeader('Content-Type', 'application/pdf');
     const disposition = req.query.download === '1' ? 'attachment' : 'inline';
     res.setHeader('Content-Disposition', `${disposition}; filename="${quotation.number.replace(/\//g, '-')}.pdf"`);
-    // Quotations made with the quotation module (terms saved) use the approved layout; older ones keep theirs.
-    if (Array.isArray(quotation.terms)) streamQuotationPdfV2(res, { quotation, items });
-    else streamQuotationPdf(res, { quotation, items, settings });
+    streamQuotationPdfV2(res, printable);
   } catch (err) {
     console.error('Error streaming quotation PDF:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
