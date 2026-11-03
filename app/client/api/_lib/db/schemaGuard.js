@@ -18,16 +18,16 @@ export async function missingColumns(required) {
   return Object.entries(required).flatMap(([t, cols]) => cols.filter((c) => !present.has(`${t}.${c}`)).map((c) => `${t}.${c}`));
 }
 
-export function createSchemaGuard(required, featureName, fallbackMessage) {
+export function createSchemaGuard(required, featureName, fallbackMessage, migration = '001') {
   let ready = false;
   return async (req, res, next) => {
     if (ready) return next();
     try {
       const missing = await missingColumns(required);
       if (missing.length) {
-        console.error(`[${featureName}] database migration 001 not applied; missing:`, missing.join(', '));
+        console.error(`[${featureName}] database migration ${migration} not applied; missing:`, missing.join(', '));
         return res.status(503).json({
-          error: `${featureName} features need a database update (migration 001) that has not been applied yet. Please contact your administrator.`,
+          error: `${featureName} features need a database update (migration ${migration}) that has not been applied yet. Please contact your administrator.`,
           code: 'MIGRATION_REQUIRED',
         });
       }

@@ -21,6 +21,7 @@ const ChatWithAI = lazy(() => import('./pages/ChatWithAI'));
 const Quotations = lazy(() => import('./pages/Quotations'));
 const QuotationNew = lazy(() => import('./pages/QuotationNew'));
 const QuotationDetail = lazy(() => import('./pages/QuotationDetail'));
+const QuotationPreview = lazy(() => import('./pages/QuotationPreview'));
 const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
 const PerformaInvoices = lazy(() => import('./pages/PerformaInvoices'));
 const Reports = lazy(() => import('./pages/Reports'));
@@ -115,6 +116,7 @@ export default function App() {
             <Route path="/quotations" element={<Quotations />} />
             <Route path="/quotations/new" element={<QuotationNew />} />
             <Route path="/quotations/:id/edit" element={<QuotationNew />} />
+            <Route path="/quotations/:id/preview" element={<QuotationPreview />} />
             <Route path="/quotations/:id" element={<QuotationDetail />} />
             <Route path="/purchase-orders" element={<PurchaseOrders />} />
             <Route path="/purchase-orders/:id" element={<PurchaseOrders />} />
