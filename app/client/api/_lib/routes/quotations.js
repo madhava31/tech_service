@@ -2,7 +2,7 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { nextNumber } from '../db/numbering.js';
 import { streamQuotationPdfV2 } from '../pdf/quotationPdf.js';
-import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValues, insertItems } from '../quotations/module.js';
+import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValues, insertItems, cleanFeatures } from '../quotations/module.js';
 import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
 
@@ -564,8 +564,8 @@ router.post('/', moduleGuard, async (req, res) => {
         `INSERT INTO quotation_item (
           quotation_id, product_id, part_no, description, hsn_sac, make, qty, price, amount,
           actual_unit_price, discount_type, discount_value, product_discount_amount,
-          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total, key_features
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)`
       );
 
       for (const it of processedItems) {
@@ -616,7 +616,9 @@ router.post('/', moduleGuard, async (req, res) => {
           it.after_product_discount_amount,
           Number(it.overall_discount_allocated) || 0,
           it.final_unit_price,
-          it.final_line_total
+          it.final_line_total,
+          // Key features typed on the form for this line; null when the caller sent none (older callers).
+          Array.isArray(it.key_features) || typeof it.key_features === 'string' ? JSON.stringify(cleanFeatures(it.key_features)) : null
         );
 
         // Update product master default price when modified in quotation
@@ -722,8 +724,8 @@ router.put('/:id', moduleGuard, async (req, res) => {
         `INSERT INTO quotation_item (
           quotation_id, product_id, part_no, description, hsn_sac, make, qty, price, amount,
           actual_unit_price, discount_type, discount_value, product_discount_amount,
-          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total, key_features
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)`
       );
 
       for (const it of processedItems) {
@@ -774,7 +776,9 @@ router.put('/:id', moduleGuard, async (req, res) => {
           it.after_product_discount_amount,
           Number(it.overall_discount_allocated) || 0,
           it.final_unit_price,
-          it.final_line_total
+          it.final_line_total,
+          // Key features typed on the form for this line; null when the caller sent none (older callers).
+          Array.isArray(it.key_features) || typeof it.key_features === 'string' ? JSON.stringify(cleanFeatures(it.key_features)) : null
         );
 
         // Update product master default price when modified in quotation
@@ -987,7 +991,7 @@ async function legacyForApprovedLayout(quotation, items, settings = {}) {
     return {
       ...it,
       product_name: it.product_name || it.description,
-      key_features: Array.isArray(it.key_features) && it.key_features.length ? it.key_features : featuresById.get(it.product_id) || [],
+      key_features: Array.isArray(it.key_features) ? it.key_features : featuresById.get(it.product_id) || [],
       discount_value: Math.round(pct * 100) / 100,
       final_unit_price: unit,
       final_line_total: Number(it.final_line_total ?? it.amount ?? unit * qty),

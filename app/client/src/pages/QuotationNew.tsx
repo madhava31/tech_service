@@ -18,8 +18,13 @@ function emptyItem(): QuotationItem {
     discount_type: 'none',
     discount_value: 0,
     price: 0,
+    key_features: [],
   };
 }
+
+// The key features box holds one feature per line; blank lines are dropped when saving.
+const featuresText = (it: QuotationItem) => (it as QuotationItem & { features_text?: string }).features_text ?? (it.key_features || []).join('\n');
+const featuresList = (text: string) => text.split('\n').map((f) => f.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, '').trim()).filter(Boolean);
 
 export default function QuotationNew() {
   const navigate = useNavigate();
@@ -153,6 +158,7 @@ export default function QuotationNew() {
         hsn_sac: p.hsn_sac || '',
         actual_unit_price: p.default_price,
         price: p.default_price,
+        ...(featuresText(items[idx]).trim() ? {} : { key_features: p.key_features || [], features_text: undefined }),
       });
     } else {
       updateItem(idx, { product_id: null, part_no: trimmed });
@@ -174,6 +180,7 @@ export default function QuotationNew() {
         hsn_sac: p.hsn_sac || '',
         actual_unit_price: p.default_price,
         price: p.default_price,
+        ...(featuresText(items[idx]).trim() ? {} : { key_features: p.key_features || [], features_text: undefined }),
       });
     } else {
       updateItem(idx, { product_id: null, description: trimmed });
@@ -384,6 +391,7 @@ export default function QuotationNew() {
             actual_unit_price: itemPrice,
             discount_type: it.discount_type || 'none',
             discount_value: Number(it.discount_value) || 0,
+            key_features: featuresList(featuresText(it)),
           };
         }),
       };
@@ -566,6 +574,18 @@ export default function QuotationNew() {
                         <div className="ts-ltot">{money2(it.after_product_discount_amount)}</div>
                         {it.product_discount_amount > 0 && <small className="ts-lalloc">Saves {money2(it.product_discount_amount)}</small>}
                       </div>
+                    </div>
+                    <div className="ts-fld" style={{ marginTop: 14 }}>
+                      <label>Key features of the product</label>
+                      <textarea
+                        className="ts-fi"
+                        rows={4}
+                        style={{ height: 'auto', minHeight: 96, resize: 'vertical', lineHeight: 1.5, paddingTop: 10, paddingBottom: 10 }}
+                        placeholder={'Write one feature per line, for example:\nAccuracy ±0.1 mg\nStainless steel body\n12 months warranty'}
+                        value={featuresText(it)}
+                        onChange={(e) => updateItem(idx, { features_text: e.target.value } as Partial<QuotationItem>)}
+                      />
+                      <small className="ts-muted ts-small">Printed in the quotation PDF below the part number, one point per line.</small>
                     </div>
                   </div>
                 );
