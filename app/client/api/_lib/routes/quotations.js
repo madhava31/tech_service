@@ -2,10 +2,36 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { nextNumber } from '../db/numbering.js';
 import { streamQuotationPdf } from '../pdf/documents.js';
+import { streamQuotationPdfV2 } from '../pdf/quotationPdf.js';
+import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValues, insertItems } from '../quotations/module.js';
 import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
+
+// Sales people see and change only the quotations they created; admins see all. One check for
+// every route that takes a quotation id, so no single route can forget it. A quotation that is not
+// yours answers 404, exactly like one that does not exist.
+const isAdmin = (req) => req.user?.role === 'admin';
+async function ownQuotationParam(req, res, next, id) {
+  try {
+    if (isAdmin(req) || !/^\d+$/.test(String(id))) return next();
+    const row = await db.prepare(`SELECT created_by_user_id FROM quotation WHERE id = ?`).get(id);
+    if (row && Number(row.created_by_user_id) !== Number(req.user.id)) return res.status(404).json({ error: 'Quotation not found' });
+    next();
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Something went wrong. Please try again.');
+  }
+}
+router.param('id', ownQuotationParam);
+router.param('quotationId', ownQuotationParam);
+
+/** Requests from the quotation module's form carry a `terms` list; older callers do not. */
+const isModuleRequest = (body) => Array.isArray(body?.terms);
+const moduleGuard = (req, res, next) => (isModuleRequest(req.body) ? requireQuotationModule(req, res, next) : next());
+
+const LIST_COLUMNS = `q.*, c.name AS company_name, e.name AS sales_engineer_name, u.username AS created_by_username,
+           (SELECT string_agg(qi.part_no, ', ' ORDER BY qi.id) FROM quotation_item qi WHERE qi.quotation_id = q.id) AS items_part_nos`;
 
 function getItemPrice(it) {
   if (it.price !== undefined && it.price !== null && it.price !== '') {
@@ -301,13 +327,15 @@ router.get('/', async (req, res) => {
     if (!isPaginated) {
       const rows = await db
         .prepare(
-          `SELECT q.*, c.name AS company_name, e.name AS sales_engineer_name
-           FROM quotation q 
+          `SELECT ${LIST_COLUMNS}
+           FROM quotation q
            JOIN company c ON c.id = q.company_id
            LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
+           LEFT JOIN app_user u ON u.id = q.created_by_user_id
+           ${isAdmin(req) ? '' : 'WHERE q.created_by_user_id = ?'}
            ORDER BY q.id DESC`
         )
-        .all();
+        .all(...(isAdmin(req) ? [] : [req.user.id]));
       return res.json(rows);
     }
 
@@ -332,6 +360,13 @@ router.get('/', async (req, res) => {
 
     const whereClauses = [];
     const params = [];
+    if (!isAdmin(req)) {
+      whereClauses.push(`q.created_by_user_id = ?`);
+      params.push(req.user.id);
+    } else if (req.query.createdBy && /^\d+$/.test(String(req.query.createdBy))) {
+      whereClauses.push(`q.created_by_user_id = ?`);
+      params.push(Number(req.query.createdBy));
+    }
 
     if (status && status !== 'all' && status !== '') {
       whereClauses.push(`q.status = ?`);
@@ -380,10 +415,11 @@ router.get('/', async (req, res) => {
     const itemsParams = [...params, pageSize, offset];
     const items = await db
       .prepare(
-        `SELECT q.*, c.name AS company_name, e.name AS sales_engineer_name
-         FROM quotation q 
+        `SELECT ${LIST_COLUMNS}
+         FROM quotation q
          JOIN company c ON c.id = q.company_id
          LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
+         LEFT JOIN app_user u ON u.id = q.created_by_user_id
          ${whereSql}
          ORDER BY q.id DESC
          LIMIT ? OFFSET ?`
@@ -392,7 +428,9 @@ router.get('/', async (req, res) => {
 
     // Global stage counts aggregated in database
     const stageCounts = { All: 0, Draft: 0, Sent: 0, Accepted: 0, Rejected: 0 };
-    const globalCountRows = await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation GROUP BY status`).all();
+    const globalCountRows = isAdmin(req)
+      ? await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation GROUP BY status`).all()
+      : await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation WHERE created_by_user_id = ? GROUP BY status`).all(req.user.id);
     let totalAll = 0;
     for (const r of globalCountRows) {
       const c = Number(r.count || 0);
@@ -425,10 +463,11 @@ router.get('/:id', async (req, res) => {
     const quotation = await db
       .prepare(
         `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state, c.gstin AS company_gstin,
-                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code
-         FROM quotation q 
-         JOIN company c ON c.id = q.company_id 
+                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code, u.username AS created_by_username
+         FROM quotation q
+         JOIN company c ON c.id = q.company_id
          LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
+         LEFT JOIN app_user u ON u.id = q.created_by_user_id
          WHERE q.id = ?`
       )
       .get(req.params.id);
@@ -441,7 +480,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', moduleGuard, async (req, res) => {
+  if (isModuleRequest(req.body)) return createModuleQuotation(req, res);
   try {
     const { company_id, company_name, date, items, tax_percent, notes, discount_type, discount_value, overall_discount_type, overall_discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
     let finalCompanyId = company_id ? Number(company_id) : null;
@@ -601,7 +641,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', moduleGuard, async (req, res) => {
+  if (isModuleRequest(req.body)) return updateModuleQuotation(req, res);
   try {
     const existing = await db.prepare(`SELECT * FROM quotation WHERE id = ?`).get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
@@ -931,10 +972,11 @@ router.get('/:id/pdf', async (req, res) => {
       .prepare(
         `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state,
                 c.gstin AS company_gstin, c.phone AS company_phone,
-                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code
+                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code, u.username AS created_by_username
          FROM quotation q
          JOIN company c ON c.id = q.company_id
          LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
+         LEFT JOIN app_user u ON u.id = q.created_by_user_id
          WHERE q.id = ?`
       )
       .get(req.params.id);
@@ -943,12 +985,73 @@ router.get('/:id/pdf', async (req, res) => {
     const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${quotation.number.replace(/\//g, '-')}.pdf"`);
-    streamQuotationPdf(res, { quotation, items, settings });
+    const disposition = req.query.download === '1' ? 'attachment' : 'inline';
+    res.setHeader('Content-Disposition', `${disposition}; filename="${quotation.number.replace(/\//g, '-')}.pdf"`);
+    // Quotations made with the quotation module (terms saved) use the approved layout; older ones keep theirs.
+    if (Array.isArray(quotation.terms)) streamQuotationPdfV2(res, { quotation, items });
+    else streamQuotationPdf(res, { quotation, items, settings });
   } catch (err) {
     console.error('Error streaming quotation PDF:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 });
+
+async function createModuleQuotation(req, res) {
+  try {
+    const q = await buildQuotation(req.body);
+    const id = await db.transaction(async () => {
+      const number = await nextQuotationNumber(q.date);
+      const info = await db
+        .prepare(
+          `INSERT INTO quotation (
+             number, status, created_by_user_id,
+             company_id, date, contact_person, opportunity_ref, terms,
+             gross_subtotal, product_discount_total, subtotal_after_product_discounts, net_subtotal, subtotal,
+             taxable_amount, tax_percent, tax_amount, total,
+             overall_discount_type, overall_discount_value, overall_discount_amount,
+             discount_type, discount_value, discount_percent, discount_amount, round_off, notes
+           ) VALUES (?, 'draft', ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'none', 0, 0, 'percentage', 0, 0, 0, 0, '') RETURNING id`
+        )
+        .run(number, req.user.id, ...headerValues(q));
+      await insertItems(info.lastInsertRowid, q.items);
+      return info.lastInsertRowid;
+    });
+    apiCache.invalidateTags(['dashboard', 'quotations', 'companies']);
+    res.status(201).json(await db.prepare(`SELECT * FROM quotation WHERE id = ?`).get(id));
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to create the quotation. Please try again.');
+  }
+}
+
+async function updateModuleQuotation(req, res) {
+  try {
+    const existing = await db.prepare(`SELECT id, status FROM quotation WHERE id = ?`).get(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Quotation not found' });
+    // Accepted/rejected quotations back purchase orders and invoices that print these lines.
+    if (!['draft', 'sent'].includes(existing.status)) {
+      return res.status(400).json({ error: `A quotation that is ${existing.status} cannot be edited.` });
+    }
+    const q = await buildQuotation(req.body);
+    await db.transaction(async () => {
+      await db
+        .prepare(
+          `UPDATE quotation SET
+             company_id = ?, date = ?, contact_person = ?, opportunity_ref = ?, terms = ?::jsonb,
+             gross_subtotal = ?, product_discount_total = ?, subtotal_after_product_discounts = ?, net_subtotal = ?, subtotal = ?,
+             taxable_amount = ?, tax_percent = ?, tax_amount = ?, total = ?,
+             overall_discount_type = 'none', overall_discount_value = 0, overall_discount_amount = 0,
+             discount_type = 'percentage', discount_value = 0, discount_percent = 0, discount_amount = 0, round_off = 0
+           WHERE id = ?`
+        )
+        .run(...headerValues(q), req.params.id);
+      await db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(req.params.id);
+      await insertItems(req.params.id, q.items);
+    });
+    apiCache.invalidateTags(['dashboard', 'quotations', 'companies']);
+    res.json(await db.prepare(`SELECT * FROM quotation WHERE id = ?`).get(req.params.id));
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to save the quotation. Please try again.');
+  }
+}
 
 export default router;

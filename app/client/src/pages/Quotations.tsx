@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { api, Quotation, QuotationPageResponse } from '../api';
+import { api, AdminUser, Quotation, QuotationPageResponse } from '../api';
+import { useAuth } from '../auth';
 import { queryClient } from '../lib/queryClient';
-import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, RefreshCw, Download, Plus } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, RefreshCw, Download, Plus, FileDown, Pencil } from 'lucide-react';
 import { Seg } from '../components/ds/Seg';
 import { fmtDay } from '../components/ds/format';
 
@@ -42,6 +43,15 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export default function Quotations() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  // Admin only: everyone who can create quotations, for the "Sales person" filter
+  const [salesPeople, setSalesPeople] = useState<AdminUser[]>([]);
+  const [salesPersonFilter, setSalesPersonFilter] = useState('');
+  useEffect(() => {
+    if (isAdmin) api.admin.listUsers().then(setSalesPeople).catch(() => setSalesPeople([]));
+  }, [isAdmin]);
+
   // Data & Pagination state
   const [rows, setRows] = useState<Quotation[]>([]);
   const [page, setPage] = useState(1);
@@ -112,6 +122,7 @@ export default function Quotations() {
         dateEnd: dateRange?.end,
         minAmount: debouncedMinAmount ? Number(debouncedMinAmount) : undefined,
         maxAmount: debouncedMaxAmount ? Number(debouncedMaxAmount) : undefined,
+        createdBy: isAdmin && salesPersonFilter ? Number(salesPersonFilter) : undefined,
         paginated: true,
       };
 
@@ -175,7 +186,7 @@ export default function Quotations() {
         }
       }
     },
-    [statusFilter, debouncedNumber, debouncedCompany, dateFilter, debouncedMinAmount, debouncedMaxAmount]
+    [statusFilter, debouncedNumber, debouncedCompany, dateFilter, debouncedMinAmount, debouncedMaxAmount, isAdmin, salesPersonFilter]
   );
 
   // Trigger reset load on filter or search changes
@@ -289,11 +300,13 @@ export default function Quotations() {
     searchCompany !== '' ||
     dateFilter !== 'all' ||
     minAmount !== '' ||
-    maxAmount !== '';
+    maxAmount !== '' ||
+    salesPersonFilter !== '';
 
   const hasAnyActiveFilters = hasSearchFilters || statusFilter !== '';
 
   function resetFilters() {
+    setSalesPersonFilter('');
     setSearchNumber('');
     setSearchCompany('');
     setStatusFilter('');
@@ -303,6 +316,7 @@ export default function Quotations() {
   }
 
   function clearSearchPanelFilters() {
+    setSalesPersonFilter('');
     setSearchNumber('');
     setSearchCompany('');
     setDateFilter('all');
@@ -336,8 +350,8 @@ export default function Quotations() {
     { name: 'Accepted', key: 'accepted' },
     { name: 'Rejected', key: 'rejected' },
   ];
-  const cols = isSelectionMode ? 7 : 6;
-  const money = (v: number) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  const cols = (isSelectionMode ? 1 : 0) + (isAdmin ? 8 : 7);
+  const money = (v: number) => '₹' + Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <div className="ts-page-pad">
@@ -394,6 +408,12 @@ export default function Quotations() {
             <Search className="size-4" />
             <input value={searchCompany} onChange={(e) => setSearchCompany(e.target.value)} placeholder="Search customer" aria-label="Search customer" />
           </label>
+          {isAdmin && (
+            <select className="ts-fi ts-sel" value={salesPersonFilter} onChange={(e) => setSalesPersonFilter(e.target.value)} aria-label="Filter by sales person">
+              <option value="">All sales people</option>
+              {salesPeople.map((u) => <option key={u.id} value={u.id}>{u.username}</option>)}
+            </select>
+          )}
           <button
             type="button"
             className="ts-btn ts-ghost ts-xs"
@@ -448,10 +468,12 @@ export default function Quotations() {
                     <input type="checkbox" className="ts-chk" checked={isAllRowsSelected} onChange={toggleSelectAll} aria-label="Select all loaded quotations" />
                   </th>
                 )}
-                <th>Number</th>
-                <th>Company</th>
+                <th>Quotation no.</th>
                 <th>Date</th>
-                <th className="ts-r">Value</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th className="ts-r">Grand total</th>
+                {isAdmin && <th>Sales person</th>}
                 <th>Status</th>
                 <th className="ts-r">Actions</th>
               </tr>
@@ -476,13 +498,19 @@ export default function Quotations() {
                         <td><input type="checkbox" className="ts-chk" checked={isSelected} onChange={() => toggleSelectRow(q.id)} aria-label={`Select quotation ${q.number}`} /></td>
                       )}
                       <td><Link to={`/quotations/${q.id}`} className="ts-lnk" style={{ color: 'inherit', fontWeight: 500 }}>{q.number}</Link></td>
-                      <td>{q.company_name || '—'}</td>
                       <td className="ts-muted">{fmtDay(q.date)}</td>
+                      <td>{q.company_name || '—'}</td>
+                      <td className="ts-muted font-mono text-[12px]" style={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.items_part_nos || ''}>{q.items_part_nos || '—'}</td>
                       <td className="ts-r num">{money(q.total)}</td>
+                      {isAdmin && <td className="ts-muted">{q.created_by_username || '—'}</td>}
                       <td><span className={`ts-st ts-${q.status}`}>{String(q.status || '').replace(/_/g, ' ')}</span></td>
                       <td className="ts-r">
                         <div className="ts-racts">
-                          <Link to={`/quotations/${q.id}`} className="ts-btn ts-ghost ts-xs">View</Link>
+                          <Link to={`/quotations/${q.id}/preview`} className="ts-btn ts-ghost ts-xs">View</Link>
+                          {['draft', 'sent'].includes(q.status) && (
+                            <Link to={`/quotations/${q.id}/edit`} className="ts-btn ts-ghost ts-xs" aria-label={`Edit quotation ${q.number}`}><Pencil className="size-3.5" /> Edit</Link>
+                          )}
+                          <a href={api.quotations.downloadPdfUrl(q.id)} className="ts-btn ts-ghost ts-xs" aria-label={`Download PDF of ${q.number}`}><FileDown className="size-3.5" /> PDF</a>
                           <button type="button" className="ts-iconx" onClick={() => handleDelete(q.id, q.number, q.status)} disabled={deletingId === q.id} aria-label={`Delete quotation ${q.number}`} title="Delete">
                             {deletingId === q.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                           </button>

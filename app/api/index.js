@@ -25,6 +25,7 @@ import analysisRouter from '../client/api/_lib/routes/analysis.js';
 import exportRouter from '../client/api/_lib/routes/export.js';
 import firmsRouter from '../client/api/_lib/routes/firms.js';
 import branchesRouter from '../client/api/_lib/routes/branches.js';
+import deliveryChallansRouter from '../client/api/_lib/routes/deliveryChallans.js';
 import { getSalesOverview } from '../client/api/_lib/sales/overview.js';
 import salesRouter from '../client/api/_lib/routes/sales.js';
 import procurementRouter from '../client/api/_lib/routes/procurement.js';
@@ -257,6 +258,7 @@ app.use('/api/search', requireAuth, searchRouter);
 
 app.use('/api/firms', requireAuth, firmsRouter);
 app.use('/api/branches', requireAuth, branchesRouter);
+app.use('/api/delivery-challans', requireAuth, deliveryChallansRouter);
 
 app.use((err, req, res, next) => {
   console.error('Unhandled API error:', err);

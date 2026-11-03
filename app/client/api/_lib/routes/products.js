@@ -4,6 +4,8 @@ import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { parseProductWorkbook, validateProductRows, MissingColumnError, TooManyRowsError } from '../db/productImporter.js';
 import apiCache from '../cache/apiCache.js';
+import { sendRouteError } from '../http/errors.js';
+import { requireQuotationModule, cleanFeatures } from '../quotations/module.js';
 
 const router = Router();
 
@@ -23,20 +25,63 @@ function handleUpload(req, res, next) {
 
 router.get('/', async (req, res) => {
   try {
-    const { q } = req.query;
-    let rows;
+    const q = String(req.query.q ?? '').trim();
+    const make = String(req.query.make ?? '').trim();
+    const where = [];
+    const params = [];
     if (q) {
-      rows = await db
-        .prepare(`SELECT * FROM product WHERE description ILIKE ? OR part_no ILIKE ? ORDER BY description`)
-        .all(`%${q}%`, `%${q}%`);
-    } else {
-      rows = await db.prepare(`SELECT * FROM product ORDER BY description`).all();
+      where.push(`(description ILIKE ? OR part_no ILIKE ?)`);
+      params.push(`%${q}%`, `%${q}%`);
     }
+    if (make) {
+      where.push(`make ILIKE ?`);
+      params.push(make);
+    }
+    const rows = await db
+      .prepare(`SELECT * FROM product ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY description`)
+      .all(...params);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 });
+
+router.get('/makes', requireQuotationModule, async (req, res) => {
+  try {
+    const rows = await db
+      .prepare(`SELECT DISTINCT make FROM product WHERE make IS NOT NULL AND TRIM(make) <> '' ORDER BY make`)
+      .all();
+    res.json(rows.map((r) => r.make));
+  } catch (err) {
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
+
+// Catalogue fields for the quotation module. Throws { status, message } on invalid input.
+function readCatalogueProduct(body) {
+  const fail = (message) => { throw Object.assign(new Error(message), { status: 400 }); };
+  const partNo = String(body.part_no ?? body.partNo ?? '').trim();
+  const name = String(body.description ?? body.name ?? '').trim();
+  if (!partNo) fail('Part number is required.');
+  if (!name) fail('Product name is required.');
+  const rawPrice = body.default_price ?? body.list_price;
+  const price = rawPrice === undefined || rawPrice === null || rawPrice === '' ? 0 : Number(rawPrice);
+  if (!Number.isFinite(price) || price < 0) fail('List price must be 0 or more.');
+  const features = cleanFeatures(body.key_features);
+  if (!features.length) fail('Add at least one key feature.');
+  return {
+    partNo,
+    name,
+    make: String(body.make ?? '').trim() || null,
+    price,
+    features,
+    hsn: String(body.hsn_sac ?? body.hsnSac ?? '').trim() || null,
+    unit: String(body.unit ?? '').trim() || 'Nos',
+  };
+}
+
+const adminOnly = (action) => (req, res, next) =>
+  req.user?.role === 'admin' ? next() : res.status(403).json({ error: `Only an admin can ${action} products.` });
 
 // Registered before /:id so the literal path "intelligence-summary" can never be swallowed by the
 // dynamic :id segment (Express matches routes in registration order).
@@ -108,7 +153,7 @@ router.get('/import/template', async (req, res) => {
 });
 
 // Parses + validates + classifies (new vs. update) but writes nothing to the database.
-router.post('/import/preview', handleUpload, async (req, res) => {
+router.post('/import/preview', adminOnly('import'), handleUpload, async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   let rawRows;
   try {
@@ -175,7 +220,7 @@ router.post('/import/preview', handleUpload, async (req, res) => {
 // Commit: takes the validRows echoed back from the preview response as JSON (the file itself is
 // never persisted or re-uploaded) and fully re-validates from scratch — the preview snapshot is
 // never trusted, since the database could have changed in between.
-router.post('/import', async (req, res) => {
+router.post('/import', adminOnly('import'), async (req, res) => {
   const rows = Array.isArray(req.body?.rows) ? req.body.rows : null;
   if (!rows || rows.length === 0) return res.status(400).json({ error: 'No rows to import.' });
   if (rows.length > 2000) return res.status(400).json({ error: 'Too many rows to import at once (max 2,000).' });
@@ -224,63 +269,46 @@ router.post('/import', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', adminOnly('add'), requireQuotationModule, async (req, res) => {
   try {
-    const { part_no, partNo, description, default_price, price, hsn_sac, hsnSac, unit } = req.body;
-    const finalPartNo = (part_no || partNo || description || '').trim();
-    const finalDesc = (description || part_no || partNo || '').trim();
-    if (!finalPartNo) return res.status(400).json({ error: 'Part number or description is required' });
-
-    // Check if product with this part_no already exists
-    const existing = await db.prepare(`SELECT * FROM product WHERE UPPER(part_no) = UPPER(?)`).get(finalPartNo);
-    if (existing) {
-      return res.status(200).json(existing);
-    }
+    const p = readCatalogueProduct(req.body);
+    const existing = await db.prepare(`SELECT id FROM product WHERE UPPER(part_no) = UPPER(?)`).get(p.partNo);
+    if (existing) return res.status(409).json({ error: `A product with part number ${p.partNo} already exists.` });
 
     const info = await db
       .prepare(
-        `INSERT INTO product (part_no, description, default_price, hsn_sac, unit)
-         VALUES (?, ?, ?, ?, ?) RETURNING id`
+        `INSERT INTO product (part_no, description, make, default_price, key_features, hsn_sac, unit)
+         VALUES (?, ?, ?, ?, ?::jsonb, ?, ?) RETURNING id`
       )
-      .run(finalPartNo, finalDesc, Number(default_price ?? price ?? 0), hsn_sac || hsnSac || null, unit || 'Nos');
+      .run(p.partNo, p.name, p.make, p.price, JSON.stringify(p.features), p.hsn, p.unit);
 
     const row = await db.prepare(`SELECT * FROM product WHERE id = ?`).get(info.lastInsertRowid);
     apiCache.invalidateTags(['dashboard', 'products']);
     res.status(201).json(row);
   } catch (err) {
-    if (err.code === '23505') {
-      const existing = await db.prepare(`SELECT * FROM product WHERE UPPER(part_no) = UPPER(?)`).get(req.body.part_no?.trim() || req.body.partNo?.trim());
-      if (existing) return res.status(200).json(existing);
-      return res.status(409).json({ error: 'A product with this part number already exists' });
-    }
-    console.error('Failed to create product:', err);
-    res.status(500).json({ error: 'Failed to create product. Please try again.' });
+    if (err.code === '23505') return res.status(409).json({ error: 'A product with this part number already exists.' });
+    sendRouteError(res, err, 500, 'Failed to create product. Please try again.');
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', adminOnly('edit'), requireQuotationModule, async (req, res) => {
   try {
     const existing = await db.prepare(`SELECT * FROM product WHERE id = ?`).get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Product not found' });
-    const { part_no, partNo, description, default_price, price, hsn_sac, hsnSac, unit } = req.body;
+    const p = readCatalogueProduct({ hsn_sac: existing.hsn_sac, unit: existing.unit, ...req.body });
+    const clash = await db.prepare(`SELECT id FROM product WHERE UPPER(part_no) = UPPER(?) AND id <> ?`).get(p.partNo, req.params.id);
+    if (clash) return res.status(409).json({ error: `A product with part number ${p.partNo} already exists.` });
     await db
       .prepare(
-        `UPDATE product SET part_no = ?, description = ?, default_price = ?, hsn_sac = ?, unit = ? WHERE id = ?`
+        `UPDATE product SET part_no = ?, description = ?, make = ?, default_price = ?, key_features = ?::jsonb, hsn_sac = ?, unit = ? WHERE id = ?`
       )
-      .run(
-        (part_no || partNo)?.trim() || existing.part_no,
-        description?.trim() || existing.description,
-        default_price !== undefined ? Number(default_price) : (price !== undefined ? Number(price) : existing.default_price),
-        hsn_sac ?? hsnSac ?? existing.hsn_sac,
-        unit ?? existing.unit,
-        req.params.id
-      );
+      .run(p.partNo, p.name, p.make, p.price, JSON.stringify(p.features), p.hsn, p.unit, req.params.id);
     const row = await db.prepare(`SELECT * FROM product WHERE id = ?`).get(req.params.id);
     apiCache.invalidateTags(['dashboard', 'products']);
     res.json(row);
   } catch (err) {
-    console.error('Failed to update product:', err);
-    res.status(500).json({ error: 'Failed to update product. Please try again.' });
+    if (err.code === '23505') return res.status(409).json({ error: 'A product with this part number already exists.' });
+    sendRouteError(res, err, 500, 'Failed to update product. Please try again.');
   }
 });
 

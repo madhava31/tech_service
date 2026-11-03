@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { api, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
 import { FileTextIcon, PencilIcon } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
 
@@ -24,6 +24,8 @@ export default function QuotationDetail() {
   const [quotation, setQuotation] = useState<Quotation | null>(null);
   const [pos, setPos] = useState<PurchaseOrder[]>([]);
   const [pis, setPis] = useState<PerformaInvoice[]>([]);
+  const [challans, setChallans] = useState<DeliveryChallanListRow[]>([]);
+  const navigate = useNavigate();
   const [error, setError] = useState('');
   const [clientPoRef, setClientPoRef] = useState('');
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -44,6 +46,13 @@ export default function QuotationDetail() {
     api.quotations.get(quotationId).then(setQuotation).catch((e) => setError(e.message));
     api.purchaseOrders.list().then((all) => setPos(all.filter((p) => p.quotation_id === quotationId)));
     api.performaInvoices.list().then((all) => setPis(all.filter((p) => p.quotation_id === quotationId)));
+    api.deliveryChallans.list({ quotationId }).then(setChallans).catch(() => setChallans([]));
+  }
+
+  function convertToChallan() {
+    // With no PO yet, carry over whatever is typed in the Client PO Reference box as the work order no.
+    const wo = !pos.length && clientPoRef.trim() ? `&wo=${encodeURIComponent(clientPoRef.trim())}` : '';
+    navigate(`/delivery-challans/new?quotation=${quotationId}${wo}`);
   }
 
   function loadFollowUps() {
@@ -442,6 +451,29 @@ export default function QuotationDetail() {
                     <span className="text-subtle ml-2">Date: {pi.date}</span>
                   </div>
                   <span className="text-fg text-[12px] capitalize">{pi.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Delivery Challans: one or more per quotation (part deliveries) */}
+        <div className="flex flex-col gap-3 border-t border-line2 pt-4">
+          <div className="flex justify-between items-center">
+            <span className="text-[12.5px] text-subtle font-medium">Delivery Challans</span>
+            <button type="button" onClick={convertToChallan} disabled={busyAction !== null} className="ts-btn ts-ghost ts-xs">
+              Convert to Delivery Challan
+            </button>
+          </div>
+          {challans.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {challans.map((dc) => (
+                <div key={dc.id} className="p-3 rounded-[14px] bg-surface flex justify-between items-center text-[13px]">
+                  <div>
+                    <Link to={`/delivery-challans/${dc.id}/preview`} className="font-bold text-fg hover:underline">{dc.number}</Link>
+                    <span className="text-subtle ml-2">Date: {fmtDay(dc.date)}</span>
+                  </div>
+                  <a href={api.deliveryChallans.downloadPdfUrl(dc.id)} className="ts-btn ts-ghost ts-xs">Download PDF</a>
                 </div>
               ))}
             </div>
