@@ -22,6 +22,9 @@ const Quotations = lazy(() => import('./pages/Quotations'));
 const QuotationNew = lazy(() => import('./pages/QuotationNew'));
 const QuotationDetail = lazy(() => import('./pages/QuotationDetail'));
 const QuotationPreview = lazy(() => import('./pages/QuotationPreview'));
+const DeliveryChallans = lazy(() => import('./pages/DeliveryChallans'));
+const DeliveryChallanForm = lazy(() => import('./pages/DeliveryChallanForm'));
+const DeliveryChallanPreview = lazy(() => import('./pages/DeliveryChallanPreview'));
 const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
 const PerformaInvoices = lazy(() => import('./pages/PerformaInvoices'));
 const Reports = lazy(() => import('./pages/Reports'));
@@ -117,6 +120,10 @@ export default function App() {
             <Route path="/quotations/new" element={<QuotationNew />} />
             <Route path="/quotations/:id/edit" element={<QuotationNew />} />
             <Route path="/quotations/:id/preview" element={<QuotationPreview />} />
+            <Route path="/delivery-challans" element={<DeliveryChallans />} />
+            <Route path="/delivery-challans/new" element={<DeliveryChallanForm />} />
+            <Route path="/delivery-challans/:id/edit" element={<DeliveryChallanForm />} />
+            <Route path="/delivery-challans/:id/preview" element={<DeliveryChallanPreview />} />
             <Route path="/quotations/:id" element={<QuotationDetail />} />
             <Route path="/purchase-orders" element={<PurchaseOrders />} />
             <Route path="/purchase-orders/:id" element={<PurchaseOrders />} />

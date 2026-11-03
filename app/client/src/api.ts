@@ -318,6 +318,71 @@ export interface Quotation {
   company_state?: string | null;
 }
 
+export type ChallanType = 'non_returnable' | 'returnable';
+
+export interface DeliveryChallanItem {
+  id?: number;
+  line_no?: number;
+  product_id?: number | null;
+  part_no: string | null;
+  description: string;
+  qty: number;
+}
+
+/** A delivery challan never carries a price: only part no, description and quantity. */
+export interface DeliveryChallan {
+  id: number;
+  number: string;
+  date: string;
+  challan_type: ChallanType;
+  invoice_no: string | null;
+  quotation_id: number | null;
+  quotation_number: string | null;
+  customer_name: string;
+  customer_address: string | null;
+  attention: string | null;
+  phone: string | null;
+  order_date: string | null;
+  work_order_no: string | null;
+  job: string | null;
+  remarks: string | null;
+  created_by_user_id: number | null;
+  created_by_username?: string | null;
+  items: DeliveryChallanItem[];
+}
+
+export interface DeliveryChallanListRow {
+  id: number;
+  number: string;
+  date: string;
+  challan_type: ChallanType;
+  customer_name: string;
+  quotation_id: number | null;
+  quotation_number: string | null;
+  created_by_user_id: number | null;
+  created_by_username: string | null;
+  /** e.g. "TS-PE-AAS × 1, TS-MT-ANBAL × 2" */
+  items_summary: string | null;
+}
+
+/** Body of POST/PUT /delivery-challans; also what /from-quotation returns to pre-fill the form. */
+export interface DeliveryChallanInput {
+  challan_type: ChallanType;
+  date: string;
+  invoice_no: string;
+  quotation_id?: number | null;
+  quotation_number?: string | null;
+  customer_name: string;
+  customer_address: string;
+  attention: string;
+  phone: string;
+  order_date: string;
+  work_order_no: string;
+  job: string;
+  remarks: string;
+  items: { part_no: string; description: string; qty: number | string }[];
+}
+
 export interface QuotationListParams {
   page?: number;
   pageSize?: number;
@@ -1231,6 +1296,22 @@ export const api = {
   ai: {
     ask: (question: string, history?: AiChatMessage[]) =>
       request<AiAskResponse>('/ai/ask', { method: 'POST', body: JSON.stringify({ question, history: history || [] }) }),
+  },
+  deliveryChallans: {
+    list: (params?: { quotationId?: number; createdBy?: number }) => {
+      const q = new URLSearchParams();
+      if (params?.quotationId) q.set('quotationId', String(params.quotationId));
+      if (params?.createdBy) q.set('createdBy', String(params.createdBy));
+      const qs = q.toString();
+      return request<DeliveryChallanListRow[]>(`/delivery-challans${qs ? `?${qs}` : ''}`);
+    },
+    get: (id: number) => request<DeliveryChallan>(`/delivery-challans/${id}`),
+    fromQuotation: (quotationId: number) => request<DeliveryChallanInput>(`/delivery-challans/from-quotation/${quotationId}`),
+    create: (data: DeliveryChallanInput) => request<DeliveryChallan>('/delivery-challans', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: DeliveryChallanInput) => request<DeliveryChallan>(`/delivery-challans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    pdfUrl: (id: number) => `${BASE}/delivery-challans/${id}/pdf`,
+    downloadPdfUrl: (id: number) => `${BASE}/delivery-challans/${id}/pdf?download=1`,
+    blankPdfUrl: () => `${BASE}/delivery-challans/blank/pdf`,
   },
   opportunities: {
     list: () => request<OpportunitiesData>('/opportunities'),

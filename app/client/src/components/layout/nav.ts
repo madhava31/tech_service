@@ -9,6 +9,7 @@ export const NAV: NavEntry[] = [
     { label: 'Quotations', path: '/quotations', desc: 'Proposals and their status', also: ['/draft-quotations', '/awaiting-customer-response'] },
     { label: 'Purchase orders', path: '/purchase-orders', desc: 'Raised against accepted quotes', also: ['/purchase-orders-not-invoiced'] },
     { label: 'Performa invoices', path: '/performa-invoices', desc: 'Invoices and collection' },
+    { label: 'Delivery challans', path: '/delivery-challans', desc: 'Dispatch documents, no prices' },
     { label: 'Sale reports', path: '/sale-reports', desc: 'Stock OUT and dispatch ledger', also: ['/flagged-sales-records'] },
     { label: 'Sales engineers', path: '/sales/engineers', desc: 'Targets and achievement' },
     { label: 'Companies', path: '/companies', desc: 'Customer accounts', also: ['/inactive-customers'] },
