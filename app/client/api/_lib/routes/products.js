@@ -269,7 +269,45 @@ router.post('/import', adminOnly('import'), async (req, res) => {
   }
 });
 
-router.post('/', adminOnly('add'), requireQuotationModule, async (req, res) => {
+// The original quotation form's "Save part to catalogue" (and its save step) posts a part number
+// and description without key features. That request keeps its original behaviour: any signed-in
+// user, and an existing part number returns the existing product. Requests carrying key_features
+// come from the Products page and go through the admin-only catalogue route below.
+async function createFromQuotationForm(req, res) {
+  try {
+    const { part_no, partNo, description, default_price, price, hsn_sac, hsnSac, unit } = req.body;
+    const finalPartNo = (part_no || partNo || description || '').trim();
+    const finalDesc = (description || part_no || partNo || '').trim();
+    if (!finalPartNo) return res.status(400).json({ error: 'Part number or description is required' });
+
+    // Check if product with this part_no already exists
+    const existing = await db.prepare(`SELECT * FROM product WHERE UPPER(part_no) = UPPER(?)`).get(finalPartNo);
+    if (existing) {
+      return res.status(200).json(existing);
+    }
+
+    const info = await db
+      .prepare(
+        `INSERT INTO product (part_no, description, default_price, hsn_sac, unit)
+         VALUES (?, ?, ?, ?, ?) RETURNING id`
+      )
+      .run(finalPartNo, finalDesc, Number(default_price ?? price ?? 0), hsn_sac || hsnSac || null, unit || 'Nos');
+
+    const row = await db.prepare(`SELECT * FROM product WHERE id = ?`).get(info.lastInsertRowid);
+    apiCache.invalidateTags(['dashboard', 'products']);
+    res.status(201).json(row);
+  } catch (err) {
+    if (err.code === '23505') {
+      const existing = await db.prepare(`SELECT * FROM product WHERE UPPER(part_no) = UPPER(?)`).get(req.body.part_no?.trim() || req.body.partNo?.trim());
+      if (existing) return res.status(200).json(existing);
+      return res.status(409).json({ error: 'A product with this part number already exists' });
+    }
+    console.error('Failed to create product:', err);
+    res.status(500).json({ error: 'Failed to create product. Please try again.' });
+  }
+}
+
+router.post('/', (req, res, next) => (Array.isArray(req.body?.key_features) ? next() : createFromQuotationForm(req, res)), adminOnly('add'), requireQuotationModule, async (req, res) => {
   try {
     const p = readCatalogueProduct(req.body);
     const existing = await db.prepare(`SELECT id FROM product WHERE UPPER(part_no) = UPPER(?)`).get(p.partNo);

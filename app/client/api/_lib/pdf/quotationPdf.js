@@ -34,7 +34,7 @@ const COL_X = COL_W.reduce((xs, w, i) => [...xs, xs[i] + w], [M]);
 const HEADERS = ['S.No.', 'PRODUCT DESCRIPTION', 'QTY', 'DISCOUNT', 'UNIT PRICE', 'TOTAL PRICE'];
 const PAD = 4;
 
-const money = (n) => `INR ${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (n) => `${Number(n) < 0 ? '- ' : ''}INR ${Math.abs(Number(n || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fixed2 = (n) => Number(n || 0).toFixed(2);
 function ddmmyyyy(d) {
   const s = String(d || '').slice(0, 10);
@@ -156,9 +156,18 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   });
 
   // ---- totals ----
+  // Overall discount and round off exist only on quotations from the original quotation form; the
+  // rows appear only when non-zero, so other quotations print exactly like the approved sample.
+  const pct = (n) => Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  const overall = Number(quotation.overall_discount_amount || 0);
+  const roundOff = Number(quotation.round_off || 0);
   const totals = [
     { label: 'Sub Total', value: quotation.subtotal, fill: SHADE, bold: false },
-    { label: `GST @ ${Number(quotation.tax_percent || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}%`, value: quotation.tax_amount, fill: SHADE, bold: false },
+    ...(overall > 0.004
+      ? [{ label: quotation.overall_discount_type === 'percentage' ? `Overall Discount @ ${pct(quotation.overall_discount_value)}%` : 'Overall Discount', value: -overall, fill: SHADE, bold: false }]
+      : []),
+    { label: `GST @ ${pct(quotation.tax_percent)}%`, value: quotation.tax_amount, fill: SHADE, bold: false },
+    ...(Math.abs(roundOff) > 0.004 ? [{ label: 'Round Off', value: roundOff, fill: SHADE, bold: false }] : []),
     { label: 'Grand Total', value: quotation.total, fill: SHADE_DARK, bold: true },
   ];
   const totH = 15;

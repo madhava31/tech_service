@@ -1000,7 +1000,7 @@ async function legacyForApprovedLayout(quotation, items, settings = {}) {
     { label: 'Validity', text: `${Number(s.quotation_validity_days) || 15} days from the quotation date` },
   ].filter(Boolean);
   return {
-    quotation: { ...quotation, terms, subtotal: Number(quotation.taxable_amount ?? quotation.subtotal ?? 0) },
+    quotation: { ...quotation, terms, subtotal: Number(quotation.subtotal_after_product_discounts ?? quotation.subtotal ?? 0) },
     items: lines,
   };
 }
