@@ -1,5 +1,7 @@
 # Feature Audit — Design Spec
 
+> **Later local-only load (7 Nov 2026):** see [docs/local-pe-funnel-import.md](../../local-pe-funnel-import.md). That load is SQLite-only and is separate from this Postgres audit.
+
 ## Context
 
 Sub-project 2 of 3 (Postgres migration done for local dev; Vercel deployment deferred to the very end

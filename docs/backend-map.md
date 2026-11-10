@@ -1,5 +1,7 @@
 # Backend map
 
+The PE Funnel workbook was loaded into this SQLite backend, not into Supabase. See [local-pe-funnel-import.md](local-pe-funnel-import.md). Start `app/server` on port 4000 so these pages read that file. Starting `app/api/local-dev.js` switches the same pages onto Postgres.
+
 Generated from `app/client/src/api.ts` and the page files on the current `main`. Every page reaches the backend only through the `api` object in `api.ts`, which calls the Express routes in `app/server/src/routes` under `/api`. **The redesign keeps all of these calls unchanged**: only markup and styling change.
 
 ## Pages and the calls they make

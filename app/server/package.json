@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "import": "node src/db/import.js"
+    "import": "node src/db/import.js",
+    "import:funnel": "node scripts/import-pe-funnel.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",

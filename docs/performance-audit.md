@@ -4,7 +4,9 @@
 **Auditor**: Antigravity Senior Engineering Team  
 **Project Root**: `d:\3-1\Projects\Tech_Services\tech_service`  
 **Current Branch**: `main` (Verified clean Git baseline; all pre-existing modifications preserved)  
-**Database**: PostgreSQL 16 (via `pg.Pool`, connection string `DATABASE_URL`)  
+**Database**: PostgreSQL 16 (via `pg.Pool`, connection string `DATABASE_URL`)
+
+> **Later local-only load (7 Nov 2026):** PE Funnel data was imported into SQLite (`app/server`), not into this Postgres database. See [local-pe-funnel-import.md](local-pe-funnel-import.md).  
 **Deployment Target**: Node.js Express API (`app/api/index.js` & `app/server/src/app.js`), React 18 SPA (`app/client/src`)
 
 ---

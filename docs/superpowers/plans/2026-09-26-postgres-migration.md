@@ -1,5 +1,7 @@
 # Postgres Migration Implementation Plan
 
+> **Later local-only load (7 Nov 2026):** `PE Funnel-26 (2).xlsx` was imported into `app/server` SQLite. Supabase was not updated. See [docs/local-pe-funnel-import.md](../../local-pe-funnel-import.md). This plan is unchanged.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Get the already-Postgres-ready backend actually connected to a real Postgres database (Supabase), in both local dev and Vercel production, and stop local dev from silently falling back to the legacy SQLite backend.

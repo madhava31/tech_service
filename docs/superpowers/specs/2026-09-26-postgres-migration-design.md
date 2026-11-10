@@ -1,5 +1,7 @@
 # Postgres Migration — Design Spec
 
+> **Later local-only load (7 Nov 2026):** the PE Funnel workbook was loaded into `app/server` SQLite (`app/server/data/technicon.db`, gitignored). That file now holds the funnel companies, quotations, and purchase orders used for local testing. Supabase was not modified. See [docs/local-pe-funnel-import.md](../../local-pe-funnel-import.md). The “legacy SQLite holds no real data” note below describes the state when this spec was written.
+
 ## Context
 
 This is sub-project 1 of 3 the user asked for in one request:

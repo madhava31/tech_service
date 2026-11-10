@@ -1,6 +1,8 @@
 
 # TECHNICON CRM — "Aurora" UI Rebuild
 
+> **Later local-only load (7 Nov 2026):** the screens can show PE Funnel data when `app/server` is running against the local SQLite file. See [local-pe-funnel-import.md](local-pe-funnel-import.md). This UI plan is unchanged.
+
 ## Context
 
 **Why this is happening.** The user supplied a reference dashboard (`image.pn

@@ -1,5 +1,7 @@
 # Not implemented: frontend calls with no backend route
 
+Local PE Funnel data is documented in [local-pe-funnel-import.md](local-pe-funnel-import.md). It does not add the endpoints below.
+
 **Status: out of scope, future work. These 10 endpoints are NOT implemented.**
 
 (The two company delete routes, `DELETE /api/companies/:id` and `POST /api/companies/bulk-delete`,

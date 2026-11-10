@@ -1,5 +1,7 @@
 # Technicon Services ERP — Smart Data Refresh & Caching Architecture
 
+> **Later local-only load (7 Nov 2026):** the cache still reads whatever API is on port 4000. The PE Funnel rows are in SQLite only. See [local-pe-funnel-import.md](local-pe-funnel-import.md).
+
 ## 1. Architectural Overview
 
 Technicon Services ERP implements a dual-tier, reactive smart data-refresh architecture combining:

@@ -1,5 +1,7 @@
 # Feature Audit Implementation Plan
 
+> **Later local-only load (7 Nov 2026):** funnel quotations, companies, and purchase orders were loaded into SQLite for local testing. See [docs/local-pe-funnel-import.md](../../local-pe-funnel-import.md). This audit plan still targets Postgres.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Verify every backend feature works against the new Postgres database via a scripted API

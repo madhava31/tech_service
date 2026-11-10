@@ -1,5 +1,7 @@
 # Migration 001: Supabase SQL Editor verification checklist
 
+> **Later local-only load (7 Nov 2026):** the PE Funnel import did not run this SQL and did not connect to Supabase. See [../local-pe-funnel-import.md](../local-pe-funnel-import.md).
+
 File: `app/client/api/_lib/db/migrations/001_erp_missing_tables.sql`
 
 The automated test (`app/client/scripts/test-migration-001.mjs`) sends this file to Postgres as one

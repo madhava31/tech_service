@@ -1,5 +1,7 @@
 # Sales Engineers Postgres Port Implementation Plan
 
+> **Later local-only load (7 Nov 2026):** the PE Funnel import filled `sales_engineer` on the SQLite backend from the workbook and removed the four sample engineers. Supabase was not changed. See [docs/local-pe-funnel-import.md](../../local-pe-funnel-import.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the "Sales Engineers" feature (engineer roster, annual targets, quoted/accepted performance tracking) work against the live Postgres backend (`app/client/api/_lib`), which currently 404s on every `/api/engineers*` request because the feature was never ported from the old SQLite backend (`app/server`).
