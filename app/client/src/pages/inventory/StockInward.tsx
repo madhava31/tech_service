@@ -367,7 +367,10 @@ export default function StockInward() {
       const items = excelPreview.validItems.map((item) => ({
         productId: item.productId,
         quantity: item.incomingQuantity,
-        notes: item.notes || undefined,
+        notes: item.isDamaged
+          ? (item.notes || '⚠️ Damaged Stock (from Excel)')
+          : (item.notes || undefined),
+        isDamaged: item.isDamaged || false,
       }));
 
       const receipt = await api.inventory.receipts.create({
@@ -1111,7 +1114,7 @@ export default function StockInward() {
               {excelStep === 'preview' && excelPreview && (
                 <div className="flex flex-col gap-4">
                   {/* Summary KPI Cards */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  <div className={`grid grid-cols-2 ${excelPreview.summary.damagedItemCount ? 'sm:grid-cols-3 md:grid-cols-6' : 'sm:grid-cols-5'} gap-3`}>
                     <div className="bg-surface border border-line2 rounded-xl p-3">
                       <span className="text-[11px] text-subtle">Total File Rows</span>
                       <div className="text-xl font-bold text-fg mt-1">
@@ -1124,6 +1127,16 @@ export default function StockInward() {
                         {excelPreview.summary.validItemCount}
                       </div>
                     </div>
+                    {Boolean(excelPreview.summary.damagedItemCount) && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 shadow-sm">
+                        <span className="text-[11px] text-red-600 font-bold flex items-center gap-1">
+                          <span>🔴</span> Damaged Stock
+                        </span>
+                        <div className="text-xl font-bold text-red-600 mt-1">
+                          {excelPreview.summary.damagedItemCount} SKUs
+                        </div>
+                      </div>
+                    )}
                     <div className="bg-surface border border-line2 rounded-xl p-3">
                       <span className="text-[11px] text-amber-500">Out of Stock (0 Qty)</span>
                       <div className="text-xl font-bold text-amber-500 mt-1">
@@ -1274,21 +1287,43 @@ export default function StockInward() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-line2">
-                          {excelPreview.validItems.map((item) => (
-                            <tr key={item.productId} className="hover:bg-surface">
-                              <td className="py-2 px-3 text-[11px] font-semibold text-good">
-                                ✓ VALID
+                          {excelPreview.validItems.map((item, idx) => (
+                            <tr
+                              key={`${item.productId}-${idx}`}
+                              className={`transition-colors ${
+                                item.isDamaged
+                                  ? 'bg-red-500/[0.08] hover:bg-red-500/[0.12] border-l-4 border-l-red-500'
+                                  : 'hover:bg-surface'
+                              }`}
+                            >
+                              <td className="py-2 px-3 text-[11px] font-semibold">
+                                {item.isDamaged ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-red-600 text-white shadow-sm">
+                                    🔴 DAMAGED
+                                  </span>
+                                ) : (
+                                  <span className="text-good">✓ VALID</span>
+                                )}
                               </td>
                               <td className="py-2 px-3 font-mono font-medium text-fg">
-                                {item.partNo}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span>{item.partNo}</span>
+                                  {item.isDamaged && (
+                                    <span className="text-[10px] uppercase font-bold tracking-wider text-red-600 bg-red-100 dark:bg-red-950/60 px-1 py-0.2 rounded border border-red-300 dark:border-red-800">
+                                      Damaged
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                               <td className="py-2 px-3 text-subtle max-w-[200px] truncate">
-                                {item.description}
+                                <span className={item.isDamaged ? 'text-red-700 dark:text-red-300 font-semibold' : ''}>
+                                  {item.description}
+                                </span>
                               </td>
                               <td className="py-2 px-3 font-mono text-right text-subtle">
                                 {item.currentOnHand} {item.unit}
                               </td>
-                              <td className="py-2 px-3 font-mono text-right font-bold text-good">
+                              <td className={`py-2 px-3 font-mono text-right font-bold ${item.isDamaged ? 'text-red-600' : 'text-good'}`}>
                                 +{item.incomingQuantity}
                               </td>
                               <td className="py-2 px-3 font-mono text-right font-semibold text-fg">
@@ -1379,6 +1414,14 @@ export default function StockInward() {
                         {excelPreview?.summary.validItemCount ?? 0} SKUs
                       </span>
                     </div>
+                    {excelPreview?.summary.damagedItemCount ? (
+                      <div className="flex justify-between py-1 border-b border-line2">
+                        <span className="text-subtle">Damaged Stock (Red-marked):</span>
+                        <span className="font-mono font-bold text-red-600">
+                          {excelPreview.summary.damagedItemCount} SKUs
+                        </span>
+                      </div>
+                    ) : null}
                     {excelPreview?.summary.zeroStockCount ? (
                       <div className="flex justify-between py-1 border-b border-line2">
                         <span className="text-subtle">Out of Stock (0 Qty):</span>

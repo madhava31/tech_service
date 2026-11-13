@@ -1355,10 +1355,16 @@ export function createStockReceipt({
       );
     }
 
+    const isDamaged = Boolean(
+      item.isDamaged || (item.notes && /\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(item.notes))
+    );
+    const itemNotes = item.notes ? String(item.notes).trim() : (isDamaged ? '⚠️ Damaged Stock' : null);
+
     validatedItems.push({
       productId: product.id,
       quantity: qty,
-      notes: item.notes ? String(item.notes).trim() : null,
+      notes: itemNotes,
+      isDamaged,
     });
   }
 
@@ -1759,8 +1765,15 @@ export function previewExcelStockInward({
       continue;
     }
 
-    // Validation 5: Description check
-    if (rawDesc && rawDesc.toLowerCase() !== matchedProduct.description.toLowerCase()) {
+    const isDamagedRow =
+      /\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(rawDesc) ||
+      /\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(String(rawRow.notes || ''));
+
+    if (isDamagedRow) {
+      warnings.push(
+        `🔴 Part '${matchedProduct.part_no}' in Row ${rowNumber} is identified as DAMAGED stock (Excel: "${rawDesc}"). Marked with a red DAMAGED badge.`
+      );
+    } else if (rawDesc && rawDesc.toLowerCase() !== matchedProduct.description.toLowerCase()) {
       warnings.push(
         `Description differs from catalogue for part '${matchedProduct.part_no}' (Excel: "${rawDesc}" vs Catalogue: "${matchedProduct.description}"). Catalogue description will be preserved.`
       );
@@ -1768,20 +1781,25 @@ export function previewExcelStockInward({
 
     // Accumulate / Aggregate duplicate rows
     const normalizedKey = matchedProduct.part_no.toLowerCase();
-    if (!partNoAggregator.has(normalizedKey)) {
-      partNoAggregator.set(normalizedKey, {
+    const key = isDamagedRow ? `${normalizedKey}::damaged` : normalizedKey;
+    const defaultDamagedNote = `⚠️ Damaged Stock (Row ${rowNumber}${rawDesc ? `: "${rawDesc}"` : ''})`;
+    const notes = rawRow.notes ? String(rawRow.notes).trim() : (isDamagedRow ? defaultDamagedNote : null);
+
+    if (!partNoAggregator.has(key)) {
+      partNoAggregator.set(key, {
         product: matchedProduct,
         totalQuantity: qty,
         sourceRows: [rowNumber],
-        notes: rawRow.notes ? String(rawRow.notes).trim() : null,
+        notes,
+        isDamaged: isDamagedRow,
       });
     } else {
-      const existing = partNoAggregator.get(normalizedKey);
+      const existing = partNoAggregator.get(key);
       if (duplicateHandling === 'combine') {
         existing.totalQuantity += qty;
         existing.sourceRows.push(rowNumber);
-        if (rawRow.notes && !existing.notes) {
-          existing.notes = String(rawRow.notes).trim();
+        if (notes && !existing.notes) {
+          existing.notes = notes;
         }
       } else if (duplicateHandling === 'remove') {
         // Discard duplicate row
@@ -1813,8 +1831,9 @@ export function previewExcelStockInward({
 
   for (const [_, entry] of partNoAggregator) {
     if (entry.sourceRows.length > 1 && duplicateHandling === 'combine') {
+      const tag = entry.isDamaged ? ' (Damaged)' : '';
       warnings.push(
-        `Duplicate product detected: '${entry.product.part_no}' appeared in multiple rows (${entry.sourceRows.join(', ')}) and was combined to +${entry.totalQuantity} units.`
+        `Duplicate product detected: '${entry.product.part_no}'${tag} appeared in multiple rows (${entry.sourceRows.join(', ')}) and was combined to +${entry.totalQuantity} units.`
       );
     }
 
@@ -1838,6 +1857,7 @@ export function previewExcelStockInward({
       projectedAvailable,
       aggregatedFromRows: entry.sourceRows,
       notes: entry.notes,
+      isDamaged: Boolean(entry.isDamaged),
     });
   }
 
@@ -1848,6 +1868,12 @@ export function previewExcelStockInward({
   return {
     summary: {
       totalRows: rows.length,
+      validItemCount: validItems.length,
+      zeroStockCount: zeroStockItems.length,
+      damagedItemCount: validItems.filter((i) => i.isDamaged).length,
+      invalidRowCount: invalidRows.length,
+      totalIncomingUnits,
+    },
       validItemCount: validItems.length,
       zeroStockCount: zeroStockItems.length,
       invalidRowCount: invalidRows.length,

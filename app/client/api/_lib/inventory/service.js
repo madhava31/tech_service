@@ -1397,17 +1397,34 @@ export async function previewExcelStockInward({
       continue;
     }
 
-    if (rawDesc && product.description && rawDesc.toLowerCase() !== product.description.toLowerCase()) {
+    const isDamagedRow =
+      /\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(rawDesc) ||
+      /\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(String(rawRow.notes || ''));
+
+    if (isDamagedRow) {
+      warnings.push(
+        `🔴 Part '${product.part_no}' in Row ${rowNumber} is identified as DAMAGED stock (Excel: "${rawDesc}"). Marked with a red DAMAGED badge.`
+      );
+    } else if (rawDesc && product.description && rawDesc.toLowerCase() !== product.description.toLowerCase()) {
       warnings.push(
         `Description differs from catalogue for part '${product.part_no}' (Excel: "${rawDesc}" vs Catalogue: "${product.description}"). Catalogue description will be preserved.`
       );
     }
 
-    const key = String(product.part_no).toLowerCase();
-    const notes = rawRow.notes ? String(rawRow.notes).trim() : null;
+    const baseKey = String(product.part_no).toLowerCase();
+    const key = isDamagedRow ? `${baseKey}::damaged` : baseKey;
+    const defaultDamagedNote = `⚠️ Damaged Stock (Row ${rowNumber}${rawDesc ? `: "${rawDesc}"` : ''})`;
+    const notes = rawRow.notes ? String(rawRow.notes).trim() : (isDamagedRow ? defaultDamagedNote : null);
+
     const existing = aggregator.get(key);
     if (!existing) {
-      aggregator.set(key, { product, totalQuantity: qty, sourceRows: [rowNumber], notes });
+      aggregator.set(key, {
+        product,
+        totalQuantity: qty,
+        sourceRows: [rowNumber],
+        notes,
+        isDamaged: isDamagedRow,
+      });
     } else if (duplicateHandling === 'remove') {
       warnings.push(`Duplicate row ${rowNumber} for part '${product.part_no}' discarded.`);
     } else {
@@ -1435,8 +1452,9 @@ export async function previewExcelStockInward({
   const validItems = [];
   for (const entry of aggregator.values()) {
     if (entry.sourceRows.length > 1 && duplicateHandling === 'combine') {
+      const tag = entry.isDamaged ? ' (Damaged)' : '';
       warnings.push(
-        `Duplicate product detected: '${entry.product.part_no}' appeared in multiple rows (${entry.sourceRows.join(', ')}) and was combined to +${entry.totalQuantity} units.`
+        `Duplicate product detected: '${entry.product.part_no}'${tag} appeared in multiple rows (${entry.sourceRows.join(', ')}) and was combined to +${entry.totalQuantity} units.`
       );
     }
     const stock = stockMap.get(entry.product.id);
@@ -1455,6 +1473,7 @@ export async function previewExcelStockInward({
       projectedAvailable: Math.max(0, projectedOnHand - currentReserved),
       aggregatedFromRows: entry.sourceRows,
       notes: entry.notes,
+      isDamaged: Boolean(entry.isDamaged),
     });
   }
 
@@ -1463,6 +1482,7 @@ export async function previewExcelStockInward({
       totalRows: rows.length,
       validItemCount: validItems.length,
       zeroStockCount: zeroStockItems.length,
+      damagedItemCount: validItems.filter((i) => i.isDamaged).length,
       invalidRowCount: invalidRows.length,
       totalIncomingUnits: validItems.reduce((acc, cur) => acc + cur.incomingQuantity, 0),
     },

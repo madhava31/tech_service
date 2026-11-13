@@ -1578,6 +1578,14 @@ router.post('/receipts', requireAuth, async (req, res) => {
       let beforeOnHand = 0;
       let afterOnHand = qty;
 
+      const isDamaged = Boolean(
+        it.isDamaged || (it.notes && /\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(it.notes))
+      );
+      const itemNotes = it.notes ? String(it.notes).trim() : (isDamaged ? '⚠️ Damaged Stock' : null);
+      const movReason = isDamaged
+        ? `⚠️ Damaged Stock Inward: ${itemNotes || 'Received Damaged'}`
+        : (notes || 'Stock Inward');
+
       if (confirmImmediately) {
         // Upsert stock in inventory_stock
         const stockRow = await db
@@ -1606,14 +1614,14 @@ router.post('/receipts', requireAuth, async (req, res) => {
             warehouse_id, product_id, movement_type, quantity,
             before_on_hand, after_on_hand, reference_type, reference_id, reason, created_by
           ) VALUES (?, ?, 'STOCK_IN', ?, ?, ?, 'STOCK_RECEIPT', ?, ?, ?)
-        `).run(whId, prodId, qty, beforeOnHand, afterOnHand, String(receiptId), notes || 'Stock Inward', validUserId);
+        `).run(whId, prodId, qty, beforeOnHand, afterOnHand, String(receiptId), movReason, validUserId);
       }
 
       await db.prepare(`
         INSERT INTO stock_receipt_item (
           receipt_id, product_id, quantity, before_on_hand, after_on_hand, notes
         ) VALUES (?, ?, ?, ?, ?, ?)
-      `).run(receiptId, prodId, qty, beforeOnHand, afterOnHand, it.notes || null);
+      `).run(receiptId, prodId, qty, beforeOnHand, afterOnHand, itemNotes);
     }
 
     const detail = await fetchStockReceiptDetail(receiptId);

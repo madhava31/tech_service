@@ -298,41 +298,69 @@ export default function StockReceiptDetail() {
               </tr>
             </thead>
             <tbody className="divide-y divide-line2">
-              {receipt.items.map((item) => (
-                <tr key={item.id} className="hover:bg-surface transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-medium text-xs text-fg">
-                    <Link
-                      to={`/inventory/stock/${item.product_id}`}
-                      className="text-fg hover:underline"
-                    >
-                      {item.part_no}
-                    </Link>
-                  </td>
-                  <td className="py-3.5 px-4 text-xs text-subtle max-w-[280px] truncate">
-                    {item.product_description}
-                  </td>
-                  <td className="py-3.5 px-4 text-xs font-mono font-bold text-right text-good">
-                    +{formatNumber(item.quantity)} <span className="text-subtle">{item.unit || 'Nos'}</span>
-                  </td>
-                  <td className="py-3.5 px-4 text-xs font-mono text-right text-subtle">
-                    {receipt.status === 'CONFIRMED' ? item.before_on_hand : '—'}
-                  </td>
-                  <td className="py-3.5 px-4 text-xs font-mono font-semibold text-right text-fg">
-                    {receipt.status === 'CONFIRMED' ? item.after_on_hand : '—'}
-                  </td>
-                  <td className="py-3.5 px-4 text-xs text-subtle max-w-[200px] truncate">
-                    {item.notes || '—'}
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <Link
-                      to={`/inventory/stock/${item.product_id}`}
-                      className="px-2.5 py-1 bg-tile hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
-                    >
-                      Ledger →
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {receipt.items.map((item) => {
+                const isDamaged = Boolean(
+                  (item as any).is_damaged ||
+                  (item.notes && /\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(item.notes))
+                );
+                return (
+                  <tr
+                    key={item.id}
+                    className={`transition-colors ${
+                      isDamaged
+                        ? 'bg-red-500/[0.08] hover:bg-red-500/[0.12] border-l-4 border-l-red-500'
+                        : 'hover:bg-surface'
+                    }`}
+                  >
+                    <td className="py-3.5 px-4 font-mono font-medium text-xs text-fg">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Link
+                          to={`/inventory/stock/${item.product_id}`}
+                          className="text-fg hover:underline"
+                        >
+                          {item.part_no}
+                        </Link>
+                        {isDamaged && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white shadow-sm">
+                            🔴 DAMAGED
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs text-subtle max-w-[280px] truncate">
+                      <span className={isDamaged ? 'text-red-700 dark:text-red-300 font-semibold' : ''}>
+                        {item.product_description}
+                      </span>
+                    </td>
+                    <td className={`py-3.5 px-4 text-xs font-mono font-bold text-right ${isDamaged ? 'text-red-600' : 'text-good'}`}>
+                      +{formatNumber(item.quantity)} <span className="text-subtle">{item.unit || 'Nos'}</span>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs font-mono text-right text-subtle">
+                      {receipt.status === 'CONFIRMED' ? item.before_on_hand : '—'}
+                    </td>
+                    <td className="py-3.5 px-4 text-xs font-mono font-semibold text-right text-fg">
+                      {receipt.status === 'CONFIRMED' ? item.after_on_hand : '—'}
+                    </td>
+                    <td className="py-3.5 px-4 text-xs max-w-[200px] truncate">
+                      {isDamaged ? (
+                        <span className="text-red-600 font-semibold flex items-center gap-1">
+                          <span>⚠️</span> {item.notes || 'Damaged Stock'}
+                        </span>
+                      ) : (
+                        <span className="text-subtle">{item.notes || '—'}</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <Link
+                        to={`/inventory/stock/${item.product_id}`}
+                        className="px-2.5 py-1 bg-tile hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
+                      >
+                        Ledger →
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

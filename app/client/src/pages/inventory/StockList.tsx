@@ -261,7 +261,14 @@ export default function StockList() {
                       </Link>
                     </td>
                     <td className="py-3.5 px-4 text-xs text-subtle max-w-[260px] truncate">
-                      {item.description}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span>{item.description}</span>
+                        {/\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(item.description || '') && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white shadow-sm">
+                            🔴 DAMAGED
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <span className="px-2 py-0.5 bg-tile border border-line2 rounded text-[11px] font-mono text-subtle">

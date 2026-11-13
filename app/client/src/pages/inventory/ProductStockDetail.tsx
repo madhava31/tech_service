@@ -361,7 +361,16 @@ export default function ProductStockDetail() {
                       </td>
                       <td className="py-3 px-4 text-xs text-subtle max-w-[200px] truncate">
                         {mov.created_by_username ? `${mov.created_by_username}: ` : ''}
-                        {mov.reason || '—'}
+                        {/\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(mov.reason || '') ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-red-600">
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-red-600 text-white">
+                              🔴 DAMAGED
+                            </span>
+                            <span>{mov.reason}</span>
+                          </span>
+                        ) : (
+                          mov.reason || '—'
+                        )}
                       </td>
                     </tr>
                   );

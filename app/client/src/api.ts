@@ -2111,6 +2111,7 @@ export interface ExcelPreviewItem {
   projectedAvailable: number;
   aggregatedFromRows: number[];
   notes: string | null;
+  isDamaged?: boolean;
 }
 
 export interface ExcelPreviewResponse {
@@ -2118,6 +2119,7 @@ export interface ExcelPreviewResponse {
     totalRows: number;
     validItemCount: number;
     zeroStockCount?: number;
+    damagedItemCount?: number;
     invalidRowCount: number;
     totalIncomingUnits: number;
   };

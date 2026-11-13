@@ -312,7 +312,16 @@ export default function Products() {
                         {p.part_no}
                       </Link>
                     </td>
-                    <td className="p-[11px_10px] text-fg font-medium">{p.description}</td>
+                    <td className="p-[11px_10px] text-fg font-medium">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span>{p.description}</span>
+                        {/\b(damag(?:e|ed)|defect(?:ive)?)\b/i.test(p.description || '') && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white shadow-sm">
+                            🔴 DAMAGED
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-[11px_10px] text-subtle">{p.make || '—'}</td>
                     <td className="p-[11px_10px] text-right font-medium text-fg">
                       ₹{Number(p.default_price || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
