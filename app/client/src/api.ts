@@ -1344,16 +1344,43 @@ export const api = {
       clearCache('warehouses');
       return res;
     },
-    getStockSummary: (params?: { warehouseId?: number; lowStock?: boolean; status?: string; q?: string; limit?: number; offset?: number }) => {
+    getStockSummary: (params?: { warehouseId?: number; lowStock?: boolean; status?: string; q?: string; make?: string; limit?: number; offset?: number }) => {
       const q = new URLSearchParams();
       if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
       if (params?.lowStock) q.set('lowStock', 'true');
       if (params?.status) q.set('status', params.status);
       if (params?.q) q.set('q', params.q);
+      if (params?.make) q.set('make', params.make);
       if (params?.limit) q.set('limit', String(params.limit));
       if (params?.offset) q.set('offset', String(params.offset));
       const qs = q.toString();
       return request<InventoryStockSummaryResponse>(`/inventory/stock${qs ? `?${qs}` : ''}`);
+    },
+    getStockMakes: () => request<string[]>('/inventory/stock/makes'),
+    setStockMake: (productIds: number[], make: string) =>
+      request<{ success: boolean; updated: number }>('/inventory/stock/set-make', {
+        method: 'POST',
+        body: JSON.stringify({ productIds, make }),
+      }),
+    // Downloads the stock ledger as .xlsx. `make` may be NO_MAKE for products without a company.
+    downloadStockExcel: async (params: { make?: string; warehouseId?: number; status?: string; q?: string }) => {
+      const q = new URLSearchParams();
+      if (params.make) q.set('make', params.make);
+      if (params.warehouseId) q.set('warehouseId', String(params.warehouseId));
+      if (params.status) q.set('status', params.status);
+      if (params.q) q.set('q', params.q);
+      const res = await fetch(`${BASE}/inventory/stock/export?${q.toString()}`, { credentials: 'include' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(body.error || `Failed to download stock (${res.status})`);
+      }
+      const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '')?.[1] || 'Stock_Ledger.xlsx';
+      const url = URL.createObjectURL(await res.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     },
     deleteStockItem: (productId: number) =>
       request<{ success: boolean; id: number; partNo?: string }>(`/inventory/stock/${productId}`, { method: 'DELETE' }),
@@ -1476,6 +1503,8 @@ export const api = {
         notes?: string;
         items: { productId?: number; partNo?: string; quantity: number; notes?: string }[];
         confirmImmediately?: boolean;
+        /** Company (product make) saved on every product in the receipt. */
+        make?: string;
       }) => request<StockReceiptDetailResponse>('/inventory/receipts', { method: 'POST', body: JSON.stringify(data) }),
       confirm: (id: number) =>
         request<StockReceiptDetailResponse>(`/inventory/receipts/${id}/confirm`, { method: 'POST' }),
@@ -1942,6 +1971,7 @@ export interface InventoryStockItem {
   productId: number;
   partNo: string;
   description: string;
+  make?: string;
   unit: string;
   onHandQuantity: number;
   reservedQuantity: number;

@@ -9,6 +9,7 @@ import {
   ExcelPreviewResponse,
 } from '../../api';
 import { Pagination } from '../../components/Pagination';
+import { CompanySelect } from '../../components/CompanySelect';
 
 const PAGE_SIZE = 20;
 
@@ -82,6 +83,7 @@ export default function StockInward() {
   const [manualNotes, setManualNotes] = useState('');
   const [manualItems, setManualItems] = useState<ManualLineItem[]>([]);
   const [manualConfirmImmediately, setManualConfirmImmediately] = useState(true);
+  const [manualMake, setManualMake] = useState('');
   const [manualSaving, setManualSaving] = useState(false);
   const [manualError, setManualError] = useState('');
 
@@ -97,6 +99,7 @@ export default function StockInward() {
   const [excelDescCol, setExcelDescCol] = useState('');
   const [excelNotesCol, setExcelNotesCol] = useState('');
   const [excelAutoCreate, setExcelAutoCreate] = useState(true);
+  const [excelMake, setExcelMake] = useState('');
   const [excelPreview, setExcelPreview] = useState<ExcelPreviewResponse | null>(null);
   const [excelReceiptNumber, setExcelReceiptNumber] = useState('');
   const [excelSourceRef, setExcelSourceRef] = useState('');
@@ -171,6 +174,7 @@ export default function StockInward() {
       { productId: products[0]?.id || 0, partNo: products[0]?.part_no || '', quantity: '10', notes: '' },
     ]);
     setManualConfirmImmediately(true);
+    setManualMake('');
     setManualError('');
     setManualModalOpen(true);
   };
@@ -207,6 +211,10 @@ export default function StockInward() {
     e.preventDefault();
     if (!manualWarehouseId) {
       setManualError('Please select a warehouse facility');
+      return;
+    }
+    if (!manualMake.trim()) {
+      setManualError('Please select the company these products belong to');
       return;
     }
     if (manualItems.length === 0) {
@@ -252,6 +260,7 @@ export default function StockInward() {
         notes: manualNotes.trim() || undefined,
         items: Array.from(aggregated.values()),
         confirmImmediately: manualConfirmImmediately,
+        make: manualMake.trim(),
       });
 
       setManualModalOpen(false);
@@ -278,6 +287,7 @@ export default function StockInward() {
     setExcelReceiptNumber(`SR-EXCEL-${today}-${rand}`);
     setExcelSourceRef('');
     setExcelNotes('');
+    setExcelMake('');
     setExcelModalOpen(true);
   };
 
@@ -323,6 +333,10 @@ export default function StockInward() {
   const handleExcelPreview = async (forceAutoCreate?: boolean) => {
     if (!excelFile || !excelWarehouseId || !excelPartNoCol || !excelQtyCol) {
       setExcelError('Please select warehouse, Part Number column, and Quantity column');
+      return;
+    }
+    if (!excelMake.trim()) {
+      setExcelError('Please select the company these products belong to');
       return;
     }
 
@@ -372,6 +386,10 @@ export default function StockInward() {
           : (item.notes || undefined),
         isDamaged: item.isDamaged || false,
       }));
+      // 0-quantity rows add no stock (the server skips them) but still get the chosen company.
+      for (const z of excelPreview.zeroStockItems || []) {
+        items.push({ productId: z.productId, quantity: 0, notes: undefined, isDamaged: false });
+      }
 
       const receipt = await api.inventory.receipts.create({
         warehouseId: Number(excelWarehouseId),
@@ -381,6 +399,7 @@ export default function StockInward() {
         notes: excelNotes.trim() || `Imported from ${excelFile?.name}`,
         items,
         confirmImmediately: true,
+        make: excelMake.trim(),
       });
 
       setCreatedReceiptId(receipt.id);
@@ -705,6 +724,14 @@ export default function StockInward() {
                     className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                   />
                 </div>
+
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label htmlFor="manual-company" className="text-xs font-medium text-subtle">
+                    Company <span className="text-bad">*</span>{' '}
+                    <span className="text-faint">(saved on every product in this receipt)</span>
+                  </label>
+                  <CompanySelect id="manual-company" value={manualMake} onChange={setManualMake} />
+                </div>
               </div>
 
               {/* Line Items Table */}
@@ -973,6 +1000,15 @@ export default function StockInward() {
                       </select>
                     </div>
 
+                    {/* Company for every product in this file */}
+                    <div className="flex flex-col gap-1.5 sm:col-span-2">
+                      <label htmlFor="excel-company" className="text-xs font-medium text-subtle">
+                        Company <span className="text-bad">*</span>{' '}
+                        <span className="text-faint">(saved on every product in this file)</span>
+                      </label>
+                      <CompanySelect id="excel-company" value={excelMake} onChange={setExcelMake} />
+                    </div>
+
                     {/* Part Number Column Mapping */}
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-medium text-subtle">
@@ -1100,7 +1136,7 @@ export default function StockInward() {
                     </button>
                     <button
                       type="button"
-                      disabled={excelBusy || !excelWarehouseId || !excelPartNoCol || !excelQtyCol}
+                      disabled={excelBusy || !excelWarehouseId || !excelPartNoCol || !excelQtyCol || !excelMake.trim()}
                       onClick={() => handleExcelPreview()}
                       className="px-4 py-2 bg-accent2 hover:bg-accent2/85 disabled:opacity-50 text-onaccent font-semibold text-xs rounded-lg transition-colors"
                     >
@@ -1435,6 +1471,10 @@ export default function StockInward() {
                       <span className="font-mono font-bold text-good">
                         +{formatNumber(excelPreview?.summary.totalIncomingUnits)} units
                       </span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-line2">
+                      <span className="text-subtle">Company:</span>
+                      <span className="font-semibold text-fg">{excelMake.trim()}</span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-line2">
                       <span className="text-subtle">Destination Warehouse:</span>

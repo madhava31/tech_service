@@ -7,6 +7,7 @@ import { requireAuth } from '../auth/middleware.js';
 import { ensureInventorySchema, getUserTable, resolveUserId } from '../db/inventorySchema.js';
 import * as inventory from '../inventory/service.js';
 import { sendRouteError } from '../http/errors.js';
+import apiCache from '../cache/apiCache.js';
 
 const router = Router();
 
@@ -558,12 +559,67 @@ router.get('/stock', requireAuth, async (req, res) => {
         lowStockOnly: req.query.lowStock === 'true',
         status: req.query.status ? String(req.query.status).trim() : null,
         q: req.query.q ? String(req.query.q).trim() : null,
+        make: req.query.make ? String(req.query.make).trim() : null,
         limit,
         offset,
       })
     );
   } catch (err) {
     sendError(res, err, 'Failed to load stock data');
+  }
+});
+
+/**
+ * GET /api/inventory/stock/makes
+ * Companies (product make) already saved on products
+ */
+router.get('/stock/makes', requireAuth, async (req, res) => {
+  try {
+    res.json(await inventory.getStockMakes());
+  } catch (err) {
+    sendError(res, err, 'Failed to load companies');
+  }
+});
+
+/**
+ * GET /api/inventory/stock/export?make=&warehouseId=&status=&q=
+ * Stock ledger as an Excel file (all matching rows)
+ */
+router.get('/stock/export', requireAuth, async (req, res) => {
+  try {
+    const make = req.query.make ? String(req.query.make).trim() : null;
+    const warehouseId = optionalId(req.query.warehouseId);
+    const warehouse = warehouseId ? await db.prepare('SELECT code, name FROM warehouse WHERE id = ?').get(warehouseId) : null;
+    const scopeLabel = !make ? 'Full stock' : make === inventory.NO_MAKE ? 'No company set' : make;
+    const { buffer } = await inventory.buildStockWorkbook({
+      warehouseId,
+      status: req.query.status ? String(req.query.status).trim() : null,
+      q: req.query.q ? String(req.query.q).trim() : null,
+      make,
+      scopeLabel,
+      warehouseLabel: warehouse ? `${warehouse.code} - ${warehouse.name}` : 'All warehouses',
+    });
+    const slug = scopeLabel.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'Stock';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="Stock_Ledger_${slug}_${new Date().toISOString().slice(0, 10)}.xlsx"`);
+    res.send(Buffer.from(buffer));
+  } catch (err) {
+    sendError(res, err, 'Failed to export stock');
+  }
+});
+
+/**
+ * POST /api/inventory/stock/set-make  { productIds: number[], make: string }
+ * Sets the company on products (admin only, like other product edits)
+ */
+router.post('/stock/set-make', requireAuth, async (req, res) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Only an admin can change product companies.' });
+  try {
+    const updated = await inventory.setProductsMake(req.body?.productIds, req.body?.make);
+    apiCache.invalidateTags(['products']);
+    res.json({ success: true, updated });
+  } catch (err) {
+    sendError(res, err, 'Failed to update company');
   }
 });
 
@@ -1622,6 +1678,14 @@ router.post('/receipts', requireAuth, async (req, res) => {
           receipt_id, product_id, quantity, before_on_hand, after_on_hand, notes
         ) VALUES (?, ?, ?, ?, ?, ?)
       `).run(receiptId, prodId, qty, beforeOnHand, afterOnHand, itemNotes);
+    }
+
+    // The company chosen on the inward form applies to every product on the receipt, including
+    // 0-quantity lines that were only catalogued.
+    const make = typeof req.body.make === 'string' ? req.body.make.trim() : '';
+    if (make) {
+      await inventory.setProductsMake(items.map((it) => it.productId), make);
+      apiCache.invalidateTags(['products']);
     }
 
     const detail = await fetchStockReceiptDetail(receiptId);
