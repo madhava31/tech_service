@@ -1111,7 +1111,7 @@ export default function StockInward() {
               {excelStep === 'preview' && excelPreview && (
                 <div className="flex flex-col gap-4">
                   {/* Summary KPI Cards */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="bg-surface border border-line2 rounded-xl p-3">
                       <span className="text-[11px] text-subtle">Total File Rows</span>
                       <div className="text-xl font-bold text-fg mt-1">
@@ -1119,14 +1119,20 @@ export default function StockInward() {
                       </div>
                     </div>
                     <div className="bg-surface border border-line2 rounded-xl p-3">
-                      <span className="text-[11px] text-good">Valid Products</span>
+                      <span className="text-[11px] text-good">Valid Restock</span>
                       <div className="text-xl font-bold text-good mt-1">
                         {excelPreview.summary.validItemCount}
                       </div>
                     </div>
                     <div className="bg-surface border border-line2 rounded-xl p-3">
-                      <span className="text-[11px] text-bad">Invalid Rows</span>
-                      <div className="text-xl font-bold text-bad mt-1">
+                      <span className="text-[11px] text-amber-500">Out of Stock (0 Qty)</span>
+                      <div className="text-xl font-bold text-amber-500 mt-1">
+                        {excelPreview.summary.zeroStockCount || 0}
+                      </div>
+                    </div>
+                    <div className="bg-surface border border-line2 rounded-xl p-3">
+                      <span className={`text-[11px] ${excelPreview.summary.invalidRowCount > 0 ? 'text-bad' : 'text-subtle'}`}>Invalid Rows</span>
+                      <div className={`text-xl font-bold mt-1 ${excelPreview.summary.invalidRowCount > 0 ? 'text-bad' : 'text-fg'}`}>
                         {excelPreview.summary.invalidRowCount}
                       </div>
                     </div>
@@ -1149,6 +1155,43 @@ export default function StockInward() {
                           • {w}
                         </p>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Out of Stock (0 Qty) Products - Catalogued as 0 Stock */}
+                  {excelPreview.zeroStockItems && excelPreview.zeroStockItems.length > 0 && (
+                    <div className="bg-surface border border-line2 rounded-xl p-3.5 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-fg flex items-center gap-1.5">
+                          <span>📦</span>
+                          <span>
+                            Out of Stock Products ({excelPreview.zeroStockItems.length}) — Catalogued & tracked as 0 on-hand
+                          </span>
+                        </span>
+                        <span className="text-[11px] text-amber-500 font-medium">0 incoming units</span>
+                      </div>
+                      <div className="max-h-32 overflow-y-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="text-subtle border-b border-line2 bg-surface">
+                              <th className="py-1 px-2">Row #</th>
+                              <th className="py-1 px-2">Part No</th>
+                              <th className="py-1 px-2">Description</th>
+                              <th className="py-1 px-2 ts-r">Stock Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-line2 text-subtle">
+                            {excelPreview.zeroStockItems.slice(0, 100).map((z, idx) => (
+                              <tr key={idx}>
+                                <td className="py-1 px-2 font-mono text-faint">{z.rowNumber}</td>
+                                <td className="py-1 px-2 font-mono text-fg font-medium">{z.partNo}</td>
+                                <td className="py-1 px-2 truncate max-w-[280px]">{z.description || '—'}</td>
+                                <td className="py-1 px-2 text-right font-medium text-amber-500">0 (Out of stock)</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
 
@@ -1331,11 +1374,19 @@ export default function StockInward() {
                       </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-line2">
-                      <span className="text-subtle">Products Updated:</span>
+                      <span className="text-subtle">Products Restocked:</span>
                       <span className="font-mono font-semibold text-fg">
                         {excelPreview?.summary.validItemCount ?? 0} SKUs
                       </span>
                     </div>
+                    {excelPreview?.summary.zeroStockCount ? (
+                      <div className="flex justify-between py-1 border-b border-line2">
+                        <span className="text-subtle">Out of Stock (0 Qty):</span>
+                        <span className="font-mono font-semibold text-amber-500">
+                          {excelPreview.summary.zeroStockCount} SKUs (Catalogued)
+                        </span>
+                      </div>
+                    ) : null}
                     <div className="flex justify-between py-1 border-b border-line2">
                       <span className="text-subtle">Units Added:</span>
                       <span className="font-mono font-bold text-good">

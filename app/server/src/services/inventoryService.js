@@ -1682,6 +1682,7 @@ export function previewExcelStockInward({
   const stockMap = new Map(stocks.map((s) => [s.product_id, s]));
 
   const invalidRows = [];
+  const zeroStockItems = [];
   const partNoAggregator = new Map();
 
   for (let i = 0; i < rows.length; i++) {
@@ -1703,14 +1704,16 @@ export function previewExcelStockInward({
       continue;
     }
 
-    // Validation 2: Quantity valid numeric > 0
+    const cleanQtyStr = String(rawQty != null ? rawQty : '').trim();
     const qty = Number(rawQty);
-    if (isNaN(qty) || qty <= 0 || !isFinite(qty)) {
+    const isZero = cleanQtyStr === '' || cleanQtyStr === '-' || cleanQtyStr === '0' || qty === 0;
+
+    if (!isZero && (isNaN(qty) || qty < 0 || !isFinite(qty))) {
       invalidRows.push({
         rowNumber,
         partNo: rawPartNo,
         quantity: rawQty,
-        reason: 'Quantity must be greater than zero.',
+        reason: 'Invalid quantity: must be 0 or a positive number.',
       });
       continue;
     }
@@ -1721,7 +1724,9 @@ export function previewExcelStockInward({
       invalidRows.push({
         rowNumber,
         partNo: rawPartNo,
-        quantity: qty,
+        description: rawDesc,
+        quantity: isZero ? 0 : qty,
+        canAutoCreate: true,
         reason: `Product ${rawPartNo} does not exist in the Product Catalogue.`,
       });
       continue;
@@ -1734,11 +1739,24 @@ export function previewExcelStockInward({
         invalidRows.push({
           rowNumber,
           partNo: rawPartNo,
-          quantity: qty,
+          quantity: isZero ? 0 : qty,
           reason: `Warehouse ${rawWh} is inactive.`,
         });
         continue;
       }
+    }
+
+    if (isZero) {
+      zeroStockItems.push({
+        rowNumber,
+        productId: matchedProduct.id,
+        partNo: matchedProduct.part_no,
+        description: matchedProduct.description,
+        unit: matchedProduct.unit || 'Nos',
+        quantity: 0,
+        status: 'OUT_OF_STOCK',
+      });
+      continue;
     }
 
     // Validation 5: Description check
@@ -1772,6 +1790,21 @@ export function previewExcelStockInward({
         // Keep separate
         existing.totalQuantity += qty;
         existing.sourceRows.push(rowNumber);
+      }
+    }
+  }
+
+  // Ensure all zero stock items have an inventory_stock row initialized in this warehouse
+  if (zeroStockItems.length > 0) {
+    for (const z of zeroStockItems) {
+      try {
+        db.prepare(`
+          INSERT INTO inventory_stock (warehouse_id, product_id, on_hand_quantity, reserved_quantity, incoming_quantity)
+          VALUES (?, ?, 0, 0, 0)
+          ON CONFLICT(warehouse_id, product_id) DO NOTHING
+        `).run(whId, z.productId);
+      } catch (e) {
+        // ignore conflict / already initialized
       }
     }
   }
@@ -1816,6 +1849,7 @@ export function previewExcelStockInward({
     summary: {
       totalRows: rows.length,
       validItemCount: validItems.length,
+      zeroStockCount: zeroStockItems.length,
       invalidRowCount: invalidRows.length,
       totalIncomingUnits,
     },
@@ -1825,6 +1859,7 @@ export function previewExcelStockInward({
       code: warehouse.code,
     },
     validItems,
+    zeroStockItems,
     invalidRows,
     warnings: uniqueWarnings,
   };

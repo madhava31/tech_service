@@ -2117,6 +2117,7 @@ export interface ExcelPreviewResponse {
   summary: {
     totalRows: number;
     validItemCount: number;
+    zeroStockCount?: number;
     invalidRowCount: number;
     totalIncomingUnits: number;
   };
@@ -2126,11 +2127,21 @@ export interface ExcelPreviewResponse {
     code: string;
   };
   validItems: ExcelPreviewItem[];
+  zeroStockItems?: {
+    rowNumber: number;
+    productId: number;
+    partNo: string;
+    description: string;
+    unit: string;
+    quantity: number;
+    status: string;
+  }[];
   invalidRows: {
     rowNumber: number;
     partNo: string;
     quantity: any;
     reason: string;
+    canAutoCreate?: boolean;
   }[];
   warnings: string[];
 }

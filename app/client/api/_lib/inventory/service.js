@@ -1337,9 +1337,11 @@ export async function previewExcelStockInward({
   const stockMap = new Map(stocks.map((s) => [s.product_id, s]));
 
   const invalidRows = [];
+  const zeroStockItems = [];
   const aggregator = new Map();
 
-  rows.forEach((rawRow, i) => {
+  for (let i = 0; i < rows.length; i++) {
+    const rawRow = rows[i];
     const rowNumber = rawRow.rowNumber || i + 2;
     const rawPartNo = rawRow.partNo != null ? String(rawRow.partNo).trim() : '';
     const rawQty = rawRow.quantity;
@@ -1348,32 +1350,53 @@ export async function previewExcelStockInward({
 
     if (!rawPartNo) {
       invalidRows.push({ rowNumber, partNo: rawPartNo, quantity: rawQty, reason: 'Missing Part Number' });
-      return;
+      continue;
     }
+
+    const cleanQtyStr = String(rawQty != null ? rawQty : '').trim();
     const qty = Number(rawQty);
-    if (!Number.isFinite(qty) || qty <= 0) {
-      invalidRows.push({ rowNumber, partNo: rawPartNo, quantity: rawQty, reason: 'Quantity must be greater than zero.' });
-      return;
+    const isZero = cleanQtyStr === '' || cleanQtyStr === '-' || cleanQtyStr === '0' || qty === 0;
+
+    if (!isZero && (!Number.isFinite(qty) || qty < 0)) {
+      invalidRows.push({ rowNumber, partNo: rawPartNo, quantity: rawQty, reason: 'Invalid quantity: must be 0 or a positive number.' });
+      continue;
     }
+
     const product = productMap.get(rawPartNo.toLowerCase());
     if (!product) {
       invalidRows.push({
         rowNumber,
         partNo: rawPartNo,
         description: rawDesc,
-        quantity: qty,
+        quantity: isZero ? 0 : qty,
         canAutoCreate: true,
         reason: `Product ${rawPartNo} does not exist in the Product Catalogue.`
       });
-      return;
+      continue;
     }
+
     if (rawWh) {
       const whMatch = warehouseMap.get(rawWh.toLowerCase());
       if (whMatch && Number(whMatch.is_active) === 0) {
-        invalidRows.push({ rowNumber, partNo: rawPartNo, quantity: qty, reason: `Warehouse ${rawWh} is inactive.` });
-        return;
+        invalidRows.push({ rowNumber, partNo: rawPartNo, quantity: isZero ? 0 : qty, reason: `Warehouse ${rawWh} is inactive.` });
+        continue;
       }
     }
+
+    if (isZero) {
+      // 0 means out of stock: catalogued and tracked with 0 on-hand units in the warehouse
+      zeroStockItems.push({
+        rowNumber,
+        productId: product.id,
+        partNo: product.part_no,
+        description: product.description,
+        unit: product.unit || 'Nos',
+        quantity: 0,
+        status: 'OUT_OF_STOCK',
+      });
+      continue;
+    }
+
     if (rawDesc && product.description && rawDesc.toLowerCase() !== product.description.toLowerCase()) {
       warnings.push(
         `Description differs from catalogue for part '${product.part_no}' (Excel: "${rawDesc}" vs Catalogue: "${product.description}"). Catalogue description will be preserved.`
@@ -1392,7 +1415,22 @@ export async function previewExcelStockInward({
       existing.sourceRows.push(rowNumber);
       if (notes && !existing.notes) existing.notes = notes;
     }
-  });
+  }
+
+  // Ensure all zero stock items have an inventory_stock row initialized in this warehouse
+  if (zeroStockItems.length > 0) {
+    for (const z of zeroStockItems) {
+      try {
+        await db.prepare(`
+          INSERT INTO inventory_stock (warehouse_id, product_id, on_hand_quantity, reserved_quantity, incoming_quantity)
+          VALUES (?, ?, 0, 0, 0)
+          ON CONFLICT (warehouse_id, product_id) DO NOTHING
+        `).run(whId, z.productId);
+      } catch (e) {
+        // ignore conflict / already initialized
+      }
+    }
+  }
 
   const validItems = [];
   for (const entry of aggregator.values()) {
@@ -1424,11 +1462,13 @@ export async function previewExcelStockInward({
     summary: {
       totalRows: rows.length,
       validItemCount: validItems.length,
+      zeroStockCount: zeroStockItems.length,
       invalidRowCount: invalidRows.length,
       totalIncomingUnits: validItems.reduce((acc, cur) => acc + cur.incomingQuantity, 0),
     },
     warehouse: { id: warehouse.id, name: warehouse.name, code: warehouse.code },
     validItems,
+    zeroStockItems,
     invalidRows,
     warnings: Array.from(new Set(warnings)),
   };
