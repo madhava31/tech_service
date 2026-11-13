@@ -1499,7 +1499,9 @@ export const api = {
         sheetName?: string;
         partNoColumn: string;
         quantityColumn: string;
+        descriptionColumn?: string;
         notesColumn?: string;
+        autoCreateProducts?: boolean;
       }) => {
         const formData = new FormData();
         formData.append('file', data.file);
@@ -1507,7 +1509,9 @@ export const api = {
         if (data.sheetName) formData.append('sheetName', data.sheetName);
         formData.append('partNoColumn', data.partNoColumn);
         formData.append('quantityColumn', data.quantityColumn);
+        if (data.descriptionColumn) formData.append('descriptionColumn', data.descriptionColumn);
         if (data.notesColumn) formData.append('notesColumn', data.notesColumn);
+        if (data.autoCreateProducts) formData.append('autoCreateProducts', 'true');
 
         const res = await fetch(`${BASE}/inventory/receipts/preview-excel`, {
           method: 'POST',

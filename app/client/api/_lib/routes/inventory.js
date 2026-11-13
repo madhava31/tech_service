@@ -2300,13 +2300,16 @@ router.post(
         partNoColumn,
         quantityColumn,
         notesColumn: req.body.notesColumn ? String(req.body.notesColumn).trim() : null,
+        descriptionColumn: req.body.descriptionColumn ? String(req.body.descriptionColumn).trim() : null,
       });
+      const autoCreateProducts = req.body.autoCreateProducts === true || req.body.autoCreateProducts === 'true';
       res.json(
         await inventory.previewExcelStockInward({
           warehouseId,
           rows,
           duplicateHandling: req.body.duplicateHandling || 'combine',
           sourceReference: req.body.sourceReference || null,
+          autoCreateProducts,
         })
       );
     } catch (err) {
@@ -2320,8 +2323,8 @@ router.post(
  */
 router.post('/receipts/preview-rows', requireAuth, async (req, res) => {
   try {
-    const { warehouseId, rows, duplicateHandling, sourceReference } = req.body;
-    res.json(await inventory.previewExcelStockInward({ warehouseId, rows, duplicateHandling, sourceReference }));
+    const { warehouseId, rows, duplicateHandling, sourceReference, autoCreateProducts } = req.body;
+    res.json(await inventory.previewExcelStockInward({ warehouseId, rows, duplicateHandling, sourceReference, autoCreateProducts }));
   } catch (err) {
     sendError(res, err, 'Failed to preview rows');
   }

@@ -94,7 +94,9 @@ export default function StockInward() {
   const [excelSheetName, setExcelSheetName] = useState('');
   const [excelPartNoCol, setExcelPartNoCol] = useState('');
   const [excelQtyCol, setExcelQtyCol] = useState('');
+  const [excelDescCol, setExcelDescCol] = useState('');
   const [excelNotesCol, setExcelNotesCol] = useState('');
+  const [excelAutoCreate, setExcelAutoCreate] = useState(true);
   const [excelPreview, setExcelPreview] = useState<ExcelPreviewResponse | null>(null);
   const [excelReceiptNumber, setExcelReceiptNumber] = useState('');
   const [excelSourceRef, setExcelSourceRef] = useState('');
@@ -304,6 +306,11 @@ export default function StockInward() {
       setExcelPartNoCol(analysis.suggestedPartNoColumn || analysis.sheets[0]?.headers[0] || '');
       setExcelQtyCol(analysis.suggestedQuantityColumn || analysis.sheets[0]?.headers[1] || '');
       setExcelNotesCol(analysis.suggestedNotesColumn || '');
+
+      const descRegex = /^(discription|description|material|product[_\s-]?name|item[_\s-]?name|desc)/i;
+      const foundDesc = analysis.sheets[0]?.headers.find((h) => descRegex.test(h)) || '';
+      setExcelDescCol(foundDesc);
+
       setExcelStep('mapping');
     } catch (err: any) {
       console.error('Failed to analyze Excel file:', err);
@@ -313,7 +320,7 @@ export default function StockInward() {
     }
   };
 
-  const handleExcelPreview = async () => {
+  const handleExcelPreview = async (forceAutoCreate?: boolean) => {
     if (!excelFile || !excelWarehouseId || !excelPartNoCol || !excelQtyCol) {
       setExcelError('Please select warehouse, Part Number column, and Quantity column');
       return;
@@ -322,6 +329,10 @@ export default function StockInward() {
     setExcelBusy(true);
     setExcelError('');
 
+    const isExplicitBool = typeof forceAutoCreate === 'boolean' ? forceAutoCreate : undefined;
+    const shouldAutoCreate = isExplicitBool !== undefined ? isExplicitBool : excelAutoCreate;
+    if (isExplicitBool) setExcelAutoCreate(true);
+
     try {
       const preview = await api.inventory.receipts.previewExcel({
         file: excelFile,
@@ -329,7 +340,9 @@ export default function StockInward() {
         sheetName: excelSheetName || undefined,
         partNoColumn: excelPartNoCol,
         quantityColumn: excelQtyCol,
+        descriptionColumn: excelDescCol || undefined,
         notesColumn: excelNotesCol || undefined,
+        autoCreateProducts: shouldAutoCreate,
       });
       setExcelPreview(preview);
       setExcelStep('preview');
@@ -998,6 +1011,42 @@ export default function StockInward() {
                           ))}
                       </select>
                     </div>
+
+                    {/* Description Column Mapping (Optional) */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-medium text-subtle">
+                        Description / Material Column <span className="text-faint">(Optional)</span>
+                      </label>
+                      <select
+                        value={excelDescCol}
+                        onChange={(e) => setExcelDescCol(e.target.value)}
+                        className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
+                      >
+                        <option value="">-- Auto-detect / None --</option>
+                        {excelAnalysis.sheets
+                          .find((s) => s.name === excelSheetName)
+                          ?.headers.map((h) => (
+                            <option key={h} value={h}>
+                              {h}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    {/* Auto-create Toggle */}
+                    <div className="flex flex-col justify-end pb-1">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-fg select-none p-2 bg-surface border border-line2 rounded-lg hover:border-accent2/50 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={excelAutoCreate}
+                          onChange={(e) => setExcelAutoCreate(e.target.checked)}
+                          className="rounded border-line2 text-accent2 focus:ring-accent2 h-4 w-4"
+                        />
+                        <span>
+                          Auto-add missing parts to <strong>Product Catalogue</strong> (List price ₹0)
+                        </span>
+                      </label>
+                    </div>
                   </div>
 
                   {/* Sample Data Table */}
@@ -1049,7 +1098,7 @@ export default function StockInward() {
                     <button
                       type="button"
                       disabled={excelBusy || !excelWarehouseId || !excelPartNoCol || !excelQtyCol}
-                      onClick={handleExcelPreview}
+                      onClick={() => handleExcelPreview()}
                       className="px-4 py-2 bg-accent2 hover:bg-accent2/85 disabled:opacity-50 text-onaccent font-semibold text-xs rounded-lg transition-colors"
                     >
                       {excelBusy ? 'Validating against Catalogue...' : 'Validate & Preview Impact →'}
@@ -1106,18 +1155,33 @@ export default function StockInward() {
                   {/* Invalid Rows Table */}
                   {excelPreview.invalidRows.length > 0 && (
                     <div className="bg-badbg border border-badbg rounded-xl p-3.5 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <span className="text-xs font-semibold text-bad">
                           ❌ Rejected Rows ({excelPreview.invalidRows.length}) — will NOT be imported:
                         </span>
-                        <Link
-                          to="/products"
-                          target="_blank"
-                          className="text-xs text-fg hover:underline flex items-center gap-1 font-medium"
-                        >
-                          <span>View Products</span>
-                          <span>→</span>
-                        </Link>
+                        <div className="flex items-center gap-3">
+                          {excelPreview.invalidRows.some((r) => (r as any).canAutoCreate || r.reason?.includes('Catalogue')) && (
+                            <button
+                              type="button"
+                              disabled={excelBusy}
+                              onClick={() => handleExcelPreview(true)}
+                              className="px-2.5 py-1 bg-good hover:bg-good/90 text-white font-medium rounded text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+                            >
+                              <span>✨</span>
+                              <span>
+                                {excelBusy ? 'Creating Products...' : `Auto-Create All ${excelPreview.invalidRows.length} Missing in Catalogue`}
+                              </span>
+                            </button>
+                          )}
+                          <Link
+                            to="/products"
+                            target="_blank"
+                            className="text-xs text-fg hover:underline flex items-center gap-1 font-medium"
+                          >
+                            <span>View Products</span>
+                            <span>→</span>
+                          </Link>
+                        </div>
                       </div>
                       <div className="max-h-36 overflow-y-auto">
                         <table className="w-full text-left text-xs border-collapse">

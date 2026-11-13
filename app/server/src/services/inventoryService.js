@@ -1598,6 +1598,7 @@ export function previewExcelStockInward({
   rows,
   duplicateHandling = 'combine',
   sourceReference = null,
+  autoCreateProducts = false,
 }) {
   const whId = Number(warehouseId);
   if (!whId) throw new Error('Warehouse selection is required');
@@ -1634,6 +1635,33 @@ export function previewExcelStockInward({
   const productMap = new Map();
   for (const p of allProducts) {
     productMap.set(p.part_no.trim().toLowerCase(), p);
+  }
+
+  if (autoCreateProducts) {
+    const missingItems = new Map();
+    for (const r of rows) {
+      const pNo = r.partNo != null ? String(r.partNo).trim() : '';
+      if (!pNo) continue;
+      if (!productMap.has(pNo.toLowerCase()) && !missingItems.has(pNo.toLowerCase())) {
+        const desc = (r.description != null && String(r.description).trim()) ? String(r.description).trim() : pNo;
+        missingItems.set(pNo.toLowerCase(), { partNo: pNo, description: desc });
+      }
+    }
+    for (const item of missingItems.values()) {
+      try {
+        db.prepare(`
+          INSERT INTO product (part_no, description, unit, default_price)
+          VALUES (?, ?, 'Nos', 0)
+        `).run(item.partNo, item.description);
+        const inserted = db.prepare('SELECT id, part_no, description, unit FROM product WHERE part_no = ?').get(item.partNo);
+        if (inserted) productMap.set(item.partNo.toLowerCase(), inserted);
+      } catch (e) {
+        // ignore duplicate
+      }
+    }
+    if (missingItems.size > 0) {
+      warnings.push(`Automatically registered ${missingItems.size} new product(s) in the Product Catalogue.`);
+    }
   }
 
   const allWarehouses = db.prepare('SELECT id, code, name, is_active FROM warehouse').all();

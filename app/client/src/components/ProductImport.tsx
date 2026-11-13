@@ -138,7 +138,7 @@ export default function ProductImport({ onImported, onClose }: ProductImportProp
         </div>
       ) : (
         <div>
-          <p className="muted">Upload an Excel file with columns Product Name, Part No, and Price. Download the template below if you're not sure of the format.</p>
+          <p className="muted">Upload an Excel file with columns Product Name (or Description), Part No, and Price (optional). Download the template below if you're not sure of the format.</p>
           <div className="row">
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>

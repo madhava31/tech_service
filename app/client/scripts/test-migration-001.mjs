@@ -21,6 +21,14 @@ if (!url) {
   console.log('- Migration 001 test: NOT RUN (set TEST_DATABASE_URL to a non-production database)');
   process.exit(0);
 }
+
+// Safety guard: never run this test against the known production Supabase project.
+const PRODUCTION_PROJECT_REF = 'cihuudfplqsbpnvntuym';
+if (url.includes(PRODUCTION_PROJECT_REF)) {
+  console.error('BLOCKED: TEST_DATABASE_URL points to the known production project.');
+  process.exit(1);
+}
+
 const pg = createRequire(path.join(APP, 'package.json'))('pg');
 
 const schemaSql = fs.readFileSync(`${APP}/api/_lib/db/schema.sql`, 'utf8');

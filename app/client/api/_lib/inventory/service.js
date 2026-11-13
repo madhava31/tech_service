@@ -1203,9 +1203,9 @@ export async function analyzeExcelStockWorkbook(buffer) {
 }
 
 /**
- * Extracts {rowNumber, partNo, quantity, notes} rows from a workbook using the user's column mapping.
+ * Extracts {rowNumber, partNo, quantity, description, notes} rows from a workbook using the user's column mapping.
  */
-export async function extractMappedRows(buffer, { sheetName, partNoColumn, quantityColumn, notesColumn }) {
+export async function extractMappedRows(buffer, { sheetName, partNoColumn, quantityColumn, notesColumn, descriptionColumn }) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   const worksheet = sheetName ? workbook.getWorksheet(sheetName) : workbook.worksheets[0];
@@ -1233,6 +1233,14 @@ export async function extractMappedRows(buffer, { sheetName, partNoColumn, quant
   const qtyIdx = colIdxMap[quantityColumn];
   const notesIdx = notesColumn ? colIdxMap[notesColumn] : null;
 
+  let descIdx = descriptionColumn ? colIdxMap[descriptionColumn] : null;
+  if (!descIdx) {
+    const descKey = Object.keys(colIdxMap).find((k) =>
+      /^(discription|description|material|product[_\s-]?name|name)/i.test(k)
+    );
+    if (descKey) descIdx = colIdxMap[descKey];
+  }
+
   const rows = [];
   for (let r = headerRowNumber + 1; r <= worksheet.rowCount; r++) {
     const row = worksheet.getRow(r);
@@ -1240,19 +1248,27 @@ export async function extractMappedRows(buffer, { sheetName, partNoColumn, quant
     let rawQty = row.getCell(qtyIdx).value;
     if (rawQty && typeof rawQty === 'object' && 'result' in rawQty) rawQty = rawQty.result;
     const rawNotes = notesIdx ? row.getCell(notesIdx).value : null;
+    const rawDesc = descIdx ? row.getCell(descIdx).value : null;
     if (rawPartNo == null && rawQty == null) continue;
 
     rows.push({
       rowNumber: r,
       partNo: cellText(rawPartNo).trim(),
       quantity: rawQty != null ? rawQty : '',
+      description: cellText(rawDesc).trim(),
       notes: cellText(rawNotes).trim(),
     });
   }
   return rows;
 }
 
-export async function previewExcelStockInward({ warehouseId, rows, duplicateHandling = 'combine', sourceReference = null }) {
+export async function previewExcelStockInward({
+  warehouseId,
+  rows,
+  duplicateHandling = 'combine',
+  sourceReference = null,
+  autoCreateProducts = false,
+}) {
   const whId = Number(warehouseId);
   if (!whId) throw httpError(400, 'Warehouse selection is required');
   const warehouse = await db.prepare(`SELECT * FROM warehouse WHERE id = ?`).get(whId);
@@ -1280,6 +1296,39 @@ export async function previewExcelStockInward({ warehouseId, rows, duplicateHand
     db.prepare('SELECT product_id, on_hand_quantity, reserved_quantity FROM inventory_stock WHERE warehouse_id = ?').all(whId),
   ]);
   const productMap = new Map(allProducts.map((p) => [String(p.part_no).trim().toLowerCase(), p]));
+
+  // Auto-create missing catalogue products if enabled
+  if (autoCreateProducts) {
+    const missingItems = new Map();
+    for (const r of rows) {
+      const pNo = r.partNo != null ? String(r.partNo).trim() : '';
+      if (!pNo) continue;
+      if (!productMap.has(pNo.toLowerCase()) && !missingItems.has(pNo.toLowerCase())) {
+        const desc = (r.description != null && String(r.description).trim()) ? String(r.description).trim() : pNo;
+        missingItems.set(pNo.toLowerCase(), { partNo: pNo, description: desc });
+      }
+    }
+
+    if (missingItems.size > 0) {
+      for (const item of missingItems.values()) {
+        try {
+          const inserted = await db.prepare(`
+            INSERT INTO product (part_no, description, unit, default_price)
+            VALUES (?, ?, 'Nos', 0)
+            ON CONFLICT (part_no) DO UPDATE SET description = EXCLUDED.description
+            RETURNING id, part_no, description, unit
+          `).get(item.partNo, item.description);
+          if (inserted) {
+            productMap.set(item.partNo.toLowerCase(), inserted);
+          }
+        } catch (e) {
+          console.warn('Could not auto-create product:', item.partNo, e.message);
+        }
+      }
+      warnings.push(`Automatically registered ${missingItems.size} new product(s) in the Product Catalogue.`);
+    }
+  }
+
   const warehouseMap = new Map();
   for (const w of allWarehouses) {
     warehouseMap.set(String(w.code).trim().toLowerCase(), w);
@@ -1308,7 +1357,14 @@ export async function previewExcelStockInward({ warehouseId, rows, duplicateHand
     }
     const product = productMap.get(rawPartNo.toLowerCase());
     if (!product) {
-      invalidRows.push({ rowNumber, partNo: rawPartNo, quantity: qty, reason: `Product ${rawPartNo} does not exist in the Product Catalogue.` });
+      invalidRows.push({
+        rowNumber,
+        partNo: rawPartNo,
+        description: rawDesc,
+        quantity: qty,
+        canAutoCreate: true,
+        reason: `Product ${rawPartNo} does not exist in the Product Catalogue.`
+      });
       return;
     }
     if (rawWh) {

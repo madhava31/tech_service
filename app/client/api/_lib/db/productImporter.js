@@ -5,15 +5,85 @@ import ExcelJS from 'exceljs';
 export const MAX_IMPORT_ROWS = 2000;
 export const MAX_FIELD_LENGTH = 200;
 
+function normalizeHeader(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .replace(/[_\-\/\\]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // Header text is matched case-insensitively against these aliases (not by column position —
 // unlike the sales-record importer, this format is small, named, and human-maintained, so
 // matching by header text is more forgiving of column reordering).
 const HEADER_ALIASES = {
-  productName: ['product name', 'name', 'description'],
-  partNo: ['part no', 'part number', 'partno', 'part_no'],
-  price: ['price', 'default price', 'unit price'],
+  productName: [
+    'product name',
+    'product_name',
+    'name',
+    'description',
+    'discription',
+    'discription material',
+    'description material',
+    'material',
+    'product description',
+    'item name',
+    'item description',
+    'product',
+    'item',
+    'part description',
+  ],
+  partNo: [
+    'part no',
+    'part_no',
+    'part number',
+    'part_number',
+    'partno',
+    'part#',
+    'part',
+    'sku',
+    'item code',
+    'item_code',
+    'product code',
+    'product_code',
+    'model no',
+    'model_no',
+    'code',
+  ],
+  price: [
+    'price',
+    'default price',
+    'default_price',
+    'unit price',
+    'unit_price',
+    'rate',
+    'mrp',
+    'list price',
+    'list_price',
+    'amount',
+    'standard price',
+  ],
+  hsnSac: [
+    'hsn',
+    'hsn/sac',
+    'hsn_sac',
+    'hsn sac',
+    'hsnsac',
+    'hsn code',
+    'hsn_code',
+    'sac',
+  ],
+  unit: [
+    'unit',
+    'uom',
+    'unit of measure',
+    'units',
+  ],
 };
-const REQUIRED_COLUMN_LABELS = { productName: 'Product Name', partNo: 'Part No', price: 'Price' };
+
+const REQUIRED_COLUMN_LABELS = { productName: 'Product Name', partNo: 'Part No' };
+const REQUIRED_KEYS = ['productName', 'partNo'];
 
 export class MissingColumnError extends Error {
   constructor(label) {
@@ -45,18 +115,21 @@ function cellTextValue(raw) {
 function findColumnIndexes(headerRow) {
   // headerRow.values is 1-indexed, values[0] is empty (ExcelJS convention).
   const indexes = {};
+  if (!headerRow) return indexes;
   for (let i = 1; i < headerRow.length; i++) {
     const raw = headerRow[i];
     if (raw == null) continue;
-    const text = cellTextValue(raw).trim().toLowerCase();
+    const rawText = cellTextValue(raw).trim().toLowerCase();
+    const normalizedText = normalizeHeader(rawText);
     for (const [key, aliases] of Object.entries(HEADER_ALIASES)) {
-      if (indexes[key] == null && aliases.includes(text)) indexes[key] = i;
+      if (indexes[key] == null && (aliases.includes(rawText) || aliases.includes(normalizedText))) {
+        indexes[key] = i;
+      }
     }
   }
   return indexes;
 }
 
-const REQUIRED_KEYS = Object.keys(REQUIRED_COLUMN_LABELS);
 // How many leading rows to check for the header — tolerates a title/logo row (e.g. "Product
 // Catalogue Export") sitting above the real header row, which real-world exports commonly have.
 const MAX_HEADER_SCAN_ROWS = 10;
@@ -65,7 +138,12 @@ const MAX_HEADER_SCAN_ROWS = 10;
 // treated as unusable rather than evaluated, so no spreadsheet formula is ever executed.
 function cellToPrimitive(value) {
   if (value == null) return null;
-  if (typeof value === 'object') return undefined; // signals "unusable", distinct from null/empty
+  if (typeof value === 'object') {
+    if ('result' in value && value.result != null) return value.result;
+    if (value.text != null) return value.text;
+    if (Array.isArray(value.richText)) return value.richText.map((t) => t.text || '').join('');
+    return undefined; // signals "unusable", distinct from null/empty
+  }
   return value;
 }
 
@@ -81,6 +159,8 @@ export function parseProductWorkbook(buffer) {
     let headerRowNumber = null;
     let columnIndexes = null;
     const lastRowToScan = Math.min(MAX_HEADER_SCAN_ROWS, sheet.rowCount || MAX_HEADER_SCAN_ROWS);
+
+    // 1. First, search for a single row that contains all required columns
     for (let r = 1; r <= lastRowToScan; r++) {
       const candidate = findColumnIndexes(sheet.getRow(r).values);
       if (REQUIRED_KEYS.every((key) => candidate[key] != null)) {
@@ -89,26 +169,52 @@ export function parseProductWorkbook(buffer) {
         break;
       }
     }
+
+    // 2. If not found in a single row, combine candidate columns across rows 1..r (handles split/multiline headers)
     if (!columnIndexes) {
-      // No row had every required column — report against row 1 so the error names the specific
-      // column that's missing there, same as before.
-      columnIndexes = findColumnIndexes(sheet.getRow(1).values);
+      const accumulated = {};
+      for (let r = 1; r <= lastRowToScan; r++) {
+        const candidate = findColumnIndexes(sheet.getRow(r).values);
+        for (const [k, v] of Object.entries(candidate)) {
+          if (accumulated[k] == null) accumulated[k] = v;
+        }
+        if (REQUIRED_KEYS.every((key) => accumulated[key] != null)) {
+          headerRowNumber = r;
+          columnIndexes = accumulated;
+          break;
+        }
+      }
+    }
+
+    if (!columnIndexes) {
+      // Collect best attempt to report accurately which required column is missing
+      const bestAttempt = {};
+      for (let r = 1; r <= lastRowToScan; r++) {
+        const candidate = findColumnIndexes(sheet.getRow(r).values);
+        for (const [k, v] of Object.entries(candidate)) {
+          if (bestAttempt[k] == null) bestAttempt[k] = v;
+        }
+      }
       for (const key of REQUIRED_KEYS) {
-        if (columnIndexes[key] == null) throw new MissingColumnError(REQUIRED_COLUMN_LABELS[key]);
+        if (bestAttempt[key] == null) throw new MissingColumnError(REQUIRED_COLUMN_LABELS[key]);
       }
       headerRowNumber = 1;
+      columnIndexes = bestAttempt;
     }
 
     const rows = [];
     sheet.eachRow((row, rowNumber) => {
       if (rowNumber <= headerRowNumber) return;
       const values = row.values;
-      const productName = cellToPrimitive(values[columnIndexes.productName]);
-      const partNo = cellToPrimitive(values[columnIndexes.partNo]);
-      const price = cellToPrimitive(values[columnIndexes.price]);
-      const isBlank = [productName, partNo, price].every((v) => v == null || v === '');
+      const productName = cellToPrimitive(columnIndexes.productName ? values[columnIndexes.productName] : null);
+      const partNo = cellToPrimitive(columnIndexes.partNo ? values[columnIndexes.partNo] : null);
+      const price = cellToPrimitive(columnIndexes.price ? values[columnIndexes.price] : null);
+      const hsnSac = cellToPrimitive(columnIndexes.hsnSac ? values[columnIndexes.hsnSac] : null);
+      const unit = cellToPrimitive(columnIndexes.unit ? values[columnIndexes.unit] : null);
+
+      const isBlank = [productName, partNo, price, hsnSac].every((v) => v == null || v === '');
       if (isBlank) return;
-      rows.push({ rowNumber, productName, partNo, price });
+      rows.push({ rowNumber, productName, partNo, price, hsnSac, unit });
     });
 
     if (rows.length > MAX_IMPORT_ROWS) throw new TooManyRowsError();
@@ -138,6 +244,8 @@ export function validateProductRows(rawRows) {
     const productName = r.productName === undefined ? null : r.productName;
     const partNoRaw = r.partNo === undefined ? null : r.partNo;
     const priceRaw = r.price === undefined ? null : r.price;
+    const hsnSacRaw = r.hsnSac === undefined ? null : r.hsnSac;
+    const unitRaw = r.unit === undefined ? null : r.unit;
 
     const nameStr = productName == null ? '' : String(productName).trim();
     if (!nameStr) errors.push('Product Name is required.');
@@ -147,13 +255,26 @@ export function validateProductRows(rawRows) {
     if (!partNoStr) errors.push('Part No is required.');
     else if (partNoStr.length > MAX_FIELD_LENGTH) errors.push(`Part No is too long (max ${MAX_FIELD_LENGTH} characters).`);
 
-    let price = null;
-    if (priceRaw == null || priceRaw === '') {
-      errors.push('Price is required.');
-    } else {
+    let price = 0;
+    if (priceRaw != null && priceRaw !== '') {
       const n = typeof priceRaw === 'number' ? priceRaw : Number(priceRaw);
-      if (!Number.isFinite(n)) errors.push(`Price "${priceRaw}" is not a valid number.`);
-      else price = n; // no negative-price rule — none exists for products today, so none is added here
+      if (!Number.isFinite(n) || n < 0) {
+        errors.push(`Price "${priceRaw}" is not a valid number.`);
+      } else {
+        price = n;
+      }
+    }
+
+    let hsnSac = null;
+    if (hsnSacRaw != null) {
+      const cleanHsn = String(hsnSacRaw).trim();
+      if (cleanHsn && cleanHsn !== '-') hsnSac = cleanHsn;
+    }
+
+    let unit = 'Nos';
+    if (unitRaw != null) {
+      const cleanUnit = String(unitRaw).trim();
+      if (cleanUnit) unit = cleanUnit;
     }
 
     if (partNoStr) {
@@ -164,9 +285,9 @@ export function validateProductRows(rawRows) {
     }
 
     if (errors.length > 0) {
-      errorRows.push({ rowNumber: r.rowNumber, productName: nameStr || null, partNo: partNoStr || null, price, errors });
+      errorRows.push({ rowNumber: r.rowNumber, productName: nameStr || null, partNo: partNoStr || null, price, hsnSac, unit, errors });
     } else {
-      okRows.push({ rowNumber: r.rowNumber, productName: nameStr, partNo: partNoStr, price });
+      okRows.push({ rowNumber: r.rowNumber, productName: nameStr, partNo: partNoStr, price, hsnSac, unit });
     }
   }
 

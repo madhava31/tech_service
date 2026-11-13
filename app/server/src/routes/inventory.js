@@ -665,6 +665,13 @@ router.post('/receipts/preview-excel', (req, res) => {
       const partNoIdx = colIdxMap[partNoCol];
       const qtyIdx = colIdxMap[qtyCol];
       const notesIdx = notesCol ? colIdxMap[notesCol] : null;
+      let descIdx = req.body.descriptionColumn ? colIdxMap[req.body.descriptionColumn] : null;
+      if (!descIdx) {
+        const descKey = Object.keys(colIdxMap).find((k) =>
+          /^(discription|description|material|product[_\s-]?name|name)/i.test(k)
+        );
+        if (descKey) descIdx = colIdxMap[descKey];
+      }
 
       const extractedRows = [];
       for (let r = headerRowNumber + 1; r <= worksheet.rowCount; r++) {
@@ -673,6 +680,7 @@ router.post('/receipts/preview-excel', (req, res) => {
         let rawQty = qtyIdx ? row.getCell(qtyIdx).value : null;
         if (rawQty && typeof rawQty === 'object' && 'result' in rawQty) rawQty = rawQty.result;
         let rawNotes = notesIdx ? row.getCell(notesIdx).value : null;
+        let rawDesc = descIdx ? row.getCell(descIdx).value : null;
 
         // Skip completely blank rows
         if (rawPartNo == null && rawQty == null) continue;
@@ -681,11 +689,13 @@ router.post('/receipts/preview-excel', (req, res) => {
           rowNumber: r,
           partNo: rawPartNo != null ? String(rawPartNo).trim() : '',
           quantity: rawQty != null ? rawQty : '',
+          description: rawDesc != null ? String(rawDesc).trim() : '',
           notes: rawNotes != null ? String(rawNotes).trim() : '',
         });
       }
 
-      const preview = previewExcelStockInward({ warehouseId, rows: extractedRows });
+      const autoCreateProducts = req.body.autoCreateProducts === true || req.body.autoCreateProducts === 'true';
+      const preview = previewExcelStockInward({ warehouseId, rows: extractedRows, autoCreateProducts });
       res.json(preview);
     } catch (parseErr) {
       console.error('Excel preview error:', parseErr);
