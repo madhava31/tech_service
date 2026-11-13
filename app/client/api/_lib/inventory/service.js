@@ -8,6 +8,8 @@ import { getUserTable } from '../db/inventorySchema.js';
 
 const DEFAULT_LOW_THRESHOLD = 10;
 const DEFAULT_CRITICAL_THRESHOLD = 5;
+// Stock ledger filter value meaning "products with no company (make) set".
+export const NO_MAKE = '__none__';
 
 function num(v) {
   return Number(v) || 0;
@@ -139,6 +141,7 @@ export async function getStockSummary({
   lowStockOnly = false,
   status = null,
   q = null,
+  make = null,
   limit = 50,
   offset = 0,
 } = {}) {
@@ -150,11 +153,19 @@ export async function getStockSummary({
   }
 
   const whereParams = [];
-  let whereSql = '';
+  const where = [];
   if (q) {
-    whereSql = 'WHERE (p.part_no ILIKE ? OR p.description ILIKE ?)';
+    where.push('(p.part_no ILIKE ? OR p.description ILIKE ?)');
     whereParams.push(`%${q}%`, `%${q}%`);
   }
+  // NO_MAKE selects products whose company (make) has not been set yet.
+  if (make === NO_MAKE) {
+    where.push(`(p.make IS NULL OR TRIM(p.make) = '')`);
+  } else if (make) {
+    where.push('LOWER(TRIM(p.make)) = LOWER(?)');
+    whereParams.push(make.trim());
+  }
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
   const avail = '(COALESCE(SUM(s.on_hand_quantity), 0) - COALESCE(SUM(s.reserved_quantity), 0))';
   const low = `COALESCE(MAX(s.low_stock_threshold), ${DEFAULT_LOW_THRESHOLD})`;
@@ -191,6 +202,7 @@ export async function getStockSummary({
         p.id AS product_id,
         p.part_no,
         p.description,
+        p.make,
         p.hsn_sac,
         p.unit,
         COALESCE(SUM(s.on_hand_quantity), 0) AS on_hand_quantity,
@@ -221,6 +233,7 @@ export async function getStockSummary({
       productId: r.product_id,
       partNo: r.part_no,
       description: r.description,
+      make: r.make ? String(r.make).trim() : '',
       hsnSac: r.hsn_sac || '',
       unit: r.unit || 'Nos',
       onHandQuantity: onHand,
@@ -238,6 +251,71 @@ export async function getStockSummary({
   });
 
   return { items, total: num(countRow?.total), limit: Number(limit), offset: Number(offset) };
+}
+
+/**
+ * Distinct companies (product.make) already saved on products, for the stock ledger filter.
+ */
+export async function getStockMakes() {
+  const rows = await db
+    .prepare(`SELECT DISTINCT TRIM(make) AS make FROM product WHERE make IS NOT NULL AND TRIM(make) <> '' ORDER BY 1`)
+    .all();
+  return rows.map((r) => r.make);
+}
+
+/**
+ * Sets (or clears, with a blank name) the company on the given products. Returns the number updated.
+ */
+export async function setProductsMake(productIds, make) {
+  const ids = (Array.isArray(productIds) ? productIds : []).map(Number).filter((id) => Number.isInteger(id) && id > 0);
+  if (!ids.length) throw httpError(400, 'Select at least one product.');
+  const name = String(make ?? '').trim();
+  if (name.length > 120) throw httpError(400, 'Company name is too long (max 120 characters).');
+  const result = await db.prepare('UPDATE product SET make = ? WHERE id = ANY(?)').run(name || null, ids);
+  return result.changes ?? ids.length;
+}
+
+const STATUS_LABELS = { healthy: 'Healthy', low_stock: 'Low stock', critical: 'Critical', out_of_stock: 'Out of stock' };
+
+/**
+ * Stock ledger as an .xlsx buffer, with the same filters as getStockSummary (all rows, no paging).
+ */
+export async function buildStockWorkbook({ warehouseId = null, status = null, q = null, make = null, scopeLabel = 'Full stock', warehouseLabel = 'All warehouses' } = {}) {
+  const { items } = await getStockSummary({ warehouseId, status, q, make, limit: 100000, offset: 0 });
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Stock Ledger');
+  sheet.columns = [
+    { header: 'Company', key: 'make', width: 26 },
+    { header: 'Part No', key: 'partNo', width: 18 },
+    { header: 'Description', key: 'description', width: 44 },
+    { header: 'HSN / SAC', key: 'hsnSac', width: 14 },
+    { header: 'Unit', key: 'unit', width: 9 },
+    // Widths leave room for the autofilter arrow after each header.
+    { header: 'Physical On Hand', key: 'onHandQuantity', width: 21 },
+    { header: 'Reserved', key: 'reservedQuantity', width: 13 },
+    { header: 'Available to Sell', key: 'availableQuantity', width: 21 },
+    { header: 'Incoming', key: 'incomingQuantity', width: 13 },
+    { header: 'Status', key: 'status', width: 15 },
+    { header: 'Warehouses', key: 'warehouseCount', width: 16 },
+  ];
+  // Two description rows above the header say what the file contains.
+  sheet.spliceRows(1, 0, [`Stock Ledger: ${scopeLabel}`], [`${warehouseLabel} · ${items.length} product${items.length === 1 ? '' : 's'} · exported ${new Date().toISOString().slice(0, 10)}`], []);
+  sheet.getRow(1).font = { bold: true, size: 13 };
+  sheet.getRow(2).font = { italic: true, color: { argb: 'FF666666' } };
+  const header = sheet.getRow(4);
+  header.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  header.eachCell((cell) => {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF141B34' } };
+  });
+
+  for (const item of items) {
+    sheet.addRow({ ...item, make: item.make || '', status: STATUS_LABELS[item.status] || item.status });
+  }
+  sheet.views = [{ state: 'frozen', ySplit: 4 }];
+  sheet.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: sheet.columns.length } };
+
+  return { buffer: await workbook.xlsx.writeBuffer(), count: items.length };
 }
 
 async function countStockHealth(warehouseId = null) {
