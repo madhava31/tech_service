@@ -17,3 +17,11 @@ app/scratch/
 app/server/scratch/
 *.pdf
 
+# Private, never commit: customer workbooks, environment audits, local backups.
+confidential_import/
+audit/
+*.safety-backup
+app/client/scripts/inventory-ddl-for-test.sql
+# Stray saved `git diff` output at the repo root
+/tech_service*
+
