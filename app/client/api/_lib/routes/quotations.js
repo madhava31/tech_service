@@ -510,7 +510,9 @@ const QUOTATION_DETAIL_SELECT = `
          b.city AS branch_city, b.state AS branch_state, b.pincode AS branch_pincode,
          b.phone AS branch_phone, b.email AS branch_email, b.gstin AS branch_gstin,
          b.quotation_prefix AS branch_quotation_prefix,
-         bds.document_header_title, bds.document_address AS branch_doc_address,
+         -- branch_document_settings has header_text (not document_header_title) and no address column;
+         -- the branch address is built from the branch/firm columns in enrichQuotationFirm().
+         bds.header_text AS document_header_title, NULL::text AS branch_doc_address,
          bds.authorized_signatory AS branch_signatory,
          bds.bank_name AS branch_bank_name, bds.account_number AS branch_bank_account_no,
          bds.ifsc_code AS branch_bank_ifsc, bds.terms_conditions AS branch_terms
