@@ -300,14 +300,17 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?:
 
       <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2 px-2.5 py-4">
         {/* Primary action */}
-        <Link
-          to="/quotations/new"
-          onClick={() => onMobileClose && onMobileClose()}
-          className="flex items-center justify-center gap-1.5 h-9 rounded-[8px] bg-ink text-fg text-[12.5px] font-bold no-underline shadow-[0_4px_14px_rgba(111,162,255,0.22)] hover:bg-ink transition-colors"
+        <button
+          type="button"
+          onClick={() => {
+            if (onMobileClose) onMobileClose();
+            window.dispatchEvent(new CustomEvent('open-new-quotation-modal'));
+          }}
+          className="flex items-center justify-center gap-1.5 h-9 rounded-[8px] bg-ink text-fg text-[12.5px] font-bold no-underline shadow-[0_4px_14px_rgba(111,162,255,0.22)] hover:bg-ink transition-colors cursor-pointer w-full border-0"
         >
           <PlusIcon className="size-4" />
           <span>New Quotation</span>
-        </Link>
+        </button>
 
         {renderNavGroup('MAIN', MAIN_NAV)}
         {renderNavGroup('INVENTORY', INVENTORY_NAV)}

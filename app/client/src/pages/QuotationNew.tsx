@@ -30,7 +30,7 @@ const featuresList = (text: string) => text.split('\n').map((f) => f.replace(/^\
 export default function QuotationNew() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isEdit = Boolean(id);
   const quotationId = Number(id);
 
@@ -539,6 +539,39 @@ export default function QuotationNew() {
           <p className="ts-muted" style={{ margin: '6px 0 0', fontSize: 14 }}>
             {isEdit ? 'Change terms, product discounts, the overall discount or line items.' : 'Build a formal pricing proposal with line and overall discounts.'}
           </p>
+          {!isEdit && (
+            <div className="flex items-center gap-1.5 mt-3 p-1 bg-surface border border-line2 rounded-xl w-fit">
+              <span className="text-[11px] font-semibold text-subtle px-2">Type:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInstrument(false);
+                  setSearchParams({});
+                }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                  !isInstrument
+                    ? 'bg-ink text-onink shadow-sm'
+                    : 'text-subtle hover:text-fg'
+                }`}
+              >
+                📦 Other / Standard
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInstrument(true);
+                  setSearchParams({ type: 'instrument' });
+                }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                  isInstrument
+                    ? 'bg-accent2 text-onaccent shadow-sm'
+                    : 'text-subtle hover:text-fg'
+                }`}
+              >
+                🔬 Instrument
+              </button>
+            </div>
+          )}
         </div>
         <span className="ts-grow" />
         <button type="button" onClick={submit} disabled={saving} className="ts-btn ts-dark"><CheckIcon /> {saveLabel}</button>

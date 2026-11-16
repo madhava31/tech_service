@@ -390,7 +390,13 @@ export default function Quotations() {
             </>
           )}
           <Link className="ts-btn ts-ghost" to="/quotations/new?type=instrument"><Plus /> Quotation for instruments</Link>
-          <Link className="ts-btn ts-dark" to="/quotations/new"><Plus /> New quotation</Link>
+          <button
+            type="button"
+            className="ts-btn ts-dark cursor-pointer"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-new-quotation-modal'))}
+          >
+            <Plus /> New quotation
+          </button>
         </div>
       </div>
 

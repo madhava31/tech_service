@@ -68,12 +68,13 @@ export default function SalesOverview() {
           >
             Pipeline board
           </Link>
-          <Link
-            to="/quotations/new"
-            className="ts-btn ts-dark ts-xs"
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-new-quotation-modal'))}
+            className="ts-btn ts-dark ts-xs cursor-pointer"
           >
             + New Quotation
-          </Link>
+          </button>
           <Link
             to="/sales/orders"
             className="ts-btn ts-ghost ts-xs"

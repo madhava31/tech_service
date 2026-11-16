@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { GlobalSearchModal } from './GlobalSearchModal';
+import { QuotationTypeModal } from './QuotationTypeModal';
 import {
   SearchIcon,
   RefreshCwIcon,
@@ -44,6 +45,7 @@ export function AppHeader({
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [quotationTypeModalOpen, setQuotationTypeModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRangePreset>(getStoredDateRange);
@@ -242,7 +244,13 @@ export function AppHeader({
     });
   }
 
-  // "N" opens a new quotation from anywhere, unless the person is typing.
+  useEffect(() => {
+    const handleOpenModal = () => setQuotationTypeModalOpen(true);
+    window.addEventListener('open-new-quotation-modal', handleOpenModal);
+    return () => window.removeEventListener('open-new-quotation-modal', handleOpenModal);
+  }, []);
+
+  // "N" opens the quotation type selector from anywhere, unless the person is typing.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.key !== 'n' && e.key !== 'N') || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -251,11 +259,11 @@ export function AppHeader({
       const openOverlay = [...document.querySelectorAll('[role="dialog"],[aria-modal="true"],[role="menu"]')].some((el) => el.getClientRects().length > 0);
       if (openOverlay) return;
       e.preventDefault();
-      navigate('/quotations/new');
+      setQuotationTypeModalOpen(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [navigate]);
+  }, []);
 
   const followUpCount = overdueCount + dueTodayCount;
 
@@ -269,11 +277,17 @@ export function AppHeader({
         <TopNav isAdmin={user?.role === 'admin'} badges={{ pipeline: followUpCount }} />
 
         <div className="ts-acts">
-          <Link to="/quotations/new" className="ts-newq" title="New quotation (press N)" aria-label="New quotation">
+          <button
+            type="button"
+            onClick={() => setQuotationTypeModalOpen(true)}
+            className="ts-newq cursor-pointer"
+            title="New quotation (press N)"
+            aria-label="New quotation"
+          >
             <PlusIcon aria-hidden="true" />
             <span>New quotation</span>
             <kbd>N</kbd>
-          </Link>
+          </button>
 
           {/* Notifications */}
           <div className="relative" ref={notifMenuRef}>
@@ -365,6 +379,9 @@ export function AppHeader({
 
       {/* Global command palette */}
       <GlobalSearchModal isOpen={searchModalOpen} onClose={() => setSearchModalOpen(false)} />
+
+      {/* Quotation type selector modal */}
+      <QuotationTypeModal isOpen={quotationTypeModalOpen} onClose={() => setQuotationTypeModalOpen(false)} />
     </>
   );
 }

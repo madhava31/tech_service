@@ -64,9 +64,13 @@ export default function SalesOrderList() {
           <Link to="/sales" className="ts-btn ts-ghost">
             ← Control Center
           </Link>
-          <Link to="/quotations/new" className="ts-btn ts-dark">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-new-quotation-modal'))}
+            className="ts-btn ts-dark cursor-pointer"
+          >
             + Create Order / Quotation
-          </Link>
+          </button>
         </div>
       </div>
 
