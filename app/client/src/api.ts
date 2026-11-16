@@ -319,6 +319,8 @@ export interface ProductImportResult {
 
 export interface QuotationItem {
   id?: number;
+  /** Instrument quotation: the line prints in bold as a main unit (migration 006). */
+  is_main?: boolean;
   product_id: number | null;
   part_no: string | null;
   description: string;
@@ -392,6 +394,9 @@ export interface Quotation {
   contact_person?: string | null;
   /** 'lump_sum': one total for all items, no per-item prices on the PDF (migration 005). */
   pricing_mode?: 'itemized' | 'lump_sum';
+  /** 'instrument' prints in the instrument format under instrument_title (migration 006). */
+  quotation_type?: 'standard' | 'instrument';
+  instrument_title?: string | null;
   lump_sum_amount?: number | string | null;
   /** Contact chosen for this quotation and a snapshot of its phone and email (migration 004). */
   contact_id?: number | null;

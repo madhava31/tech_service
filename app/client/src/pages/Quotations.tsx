@@ -389,6 +389,7 @@ export default function Quotations() {
               <button type="button" className="ts-btn ts-ghost" onClick={() => { setIsSelectionMode(false); setSelectedIds([]); }}>Cancel</button>
             </>
           )}
+          <Link className="ts-btn ts-ghost" to="/quotations/new?type=instrument"><Plus /> Quotation for instruments</Link>
           <Link className="ts-btn ts-dark" to="/quotations/new"><Plus /> New quotation</Link>
         </div>
       </div>
