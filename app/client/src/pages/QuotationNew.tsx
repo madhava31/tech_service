@@ -1,6 +1,6 @@
 import { CheckIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { CountUp } from '../components/ds/CountUp';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm, Branch } from '../api';
 import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
@@ -55,6 +55,10 @@ export default function QuotationNew() {
   const [prefix, setPrefix] = useState<string>('TSQOT');
   const [userEditedNumber, setUserEditedNumber] = useState(false);
   const [numberLoading, setNumberLoading] = useState(!isEdit);
+  // Counts number requests: only the newest answer may fill the number box, so a slow earlier
+  // request can never replace the number of the series the user picked last.
+  const numberReq = useRef(0);
+  const [seriesNote, setSeriesNote] = useState('');
   const [error, setError] = useState('');
   const [successToast, setSuccessToast] = useState('');
   const [savingItemIdx, setSavingItemIdx] = useState<number | null>(null);
@@ -207,6 +211,7 @@ export default function QuotationNew() {
   }, [isEdit, quotationId]);
 
   function fetchNextNumber(d: string, pref: string, fId?: number | '', bId?: number | '') {
+    const reqId = ++numberReq.current;
     setNumberLoading(true);
     api.quotations
       .nextNumber({
@@ -216,10 +221,13 @@ export default function QuotationNew() {
         branchId: bId ? Number(bId) : undefined,
       })
       .then((res) => {
+        if (reqId !== numberReq.current) return; // a newer request replaced this one
         if (res?.number) setQuotationNumber(res.number);
       })
       .catch((e) => console.error('Failed to fetch quotation number:', e))
-      .finally(() => setNumberLoading(false));
+      .finally(() => {
+        if (reqId === numberReq.current) setNumberLoading(false);
+      });
   }
 
   useEffect(() => {
@@ -231,6 +239,7 @@ export default function QuotationNew() {
   function handleFirmChange(newFirmId: number | '') {
     setFirmId(newFirmId);
     setBranchId('');
+    setSeriesNote('');
     const selectedFirm = firms.find((f) => f.id === newFirmId);
     let newPrefix = 'TSQOT';
     if (selectedFirm) {
@@ -269,6 +278,7 @@ export default function QuotationNew() {
 
   function handleBranchChange(newBranchId: number | '') {
     setBranchId(newBranchId);
+    setSeriesNote('');
     const selectedBranch = branches.find((b) => b.id === newBranchId);
     if (selectedBranch?.quotation_prefix) {
       const bPref = selectedBranch.quotation_prefix.trim().toUpperCase();
@@ -283,6 +293,26 @@ export default function QuotationNew() {
     setPrefix(newPref);
     setUserEditedNumber(false);
     fetchNextNumber(date, newPref, firmId, branchId);
+    void rememberSeries(newPref);
+  }
+
+  // A series the user picks is remembered as the quotation format of the selected branch, or of the
+  // firm when no branch is chosen, so the same firm or branch loads it next time.
+  async function rememberSeries(newPref: string) {
+    setSeriesNote('');
+    try {
+      if (branchId) {
+        const saved = await api.firms.updateBranch(Number(branchId), { quotation_prefix: newPref });
+        setBranches((prev) => prev.map((b) => (b.id === saved.id ? { ...b, quotation_prefix: saved.quotation_prefix ?? newPref } : b)));
+        setSeriesNote(`Saved as the quotation format for ${saved.name || 'this branch'}.`);
+      } else if (firmId) {
+        const saved = await api.firms.update(Number(firmId), { quotation_prefix: newPref });
+        setFirms((prev) => prev.map((f) => (f.id === saved.id ? { ...f, quotation_prefix: saved.quotation_prefix ?? newPref } : f)));
+        setSeriesNote(`Saved as the quotation format for ${saved.name || 'this firm'}.`);
+      }
+    } catch (e) {
+      setSeriesNote(`This quotation uses ${newPref}, but the format could not be saved: ${e instanceof Error ? e.message : 'try again'}.`);
+    }
   }
 
   function handleHeaderSeriesChange(newPref: string) {
@@ -848,8 +878,14 @@ export default function QuotationNew() {
                           {f.quotation_prefix} ({f.name})
                         </option>
                       ))}
+                    {/* a format saved on a branch that is not in the list above */}
+                    {prefix && !['TSQOT', 'TSAPQOT', ...firms.map((f) => f.quotation_prefix)].includes(prefix) && (
+                      <option value={prefix}>{prefix}</option>
+                    )}
                   </select>
-                  <small className="ts-hint">Picking a series loads its next number.</small>
+                  <small className="ts-hint">
+                    {seriesNote || `Picking a series loads its next number and remembers it for the selected ${branchId ? 'branch' : 'firm'}.`}
+                  </small>
                 </div>
               )}
               <div className="ts-fld ts-span2">

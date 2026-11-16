@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { sendRouteError } from '../http/errors.js';
 import { createSchemaGuard } from '../db/schemaGuard.js';
+import { cleanSeriesPrefix, seriesFromBody } from '../quotations/series.js';
 
 const router = Router();
 
@@ -154,6 +155,9 @@ router.put('/:id', async (req, res) => {
     const { code, firmCode, name, firmName, legal_name, legalName, gstin, pan, email, phone, isDefault, isActive } = req.body;
     const cVal = code || firmCode;
     const nVal = name || firmName;
+    // The firm's quotation number series (e.g. TSQOT). Left as it is when the request does not send one.
+    const sentSeries = seriesFromBody(req.body);
+    const series = sentSeries !== undefined ? cleanSeriesPrefix(sentSeries) : existing.quotation_prefix;
 
     if (isDefault) {
       await db.prepare(`UPDATE firm SET is_default = 0 WHERE id <> ?`).run(firmId);
@@ -170,6 +174,7 @@ router.put('/:id', async (req, res) => {
           phone = ?,
           is_default = ?,
           is_active = ?,
+          quotation_prefix = ?,
           updated_at = NOW()
       WHERE id = ?
     `).run(
@@ -182,12 +187,13 @@ router.put('/:id', async (req, res) => {
       phone !== undefined ? (phone ? String(phone).trim() : null) : existing.phone,
       isDefault !== undefined ? (isDefault ? 1 : 0) : existing.is_default,
       isActive !== undefined ? (isActive ? 1 : 0) : existing.is_active,
+      series,
       firmId
     );
 
     const updated = await db.prepare(`
       SELECT id, firm_code AS code, firm_code, firm_name AS name, firm_name, legal_name,
-             gstin, pan, email, phone, is_active AS active, is_active, is_default AS "default", is_default
+             gstin, pan, email, phone, quotation_prefix, is_active AS active, is_active, is_default AS "default", is_default
       FROM firm WHERE id = ?
     `).get(firmId);
 

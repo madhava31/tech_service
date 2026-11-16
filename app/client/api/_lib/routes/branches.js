@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { sendRouteError } from '../http/errors.js';
 import { createSchemaGuard } from '../db/schemaGuard.js';
+import { cleanSeriesPrefix, seriesFromBody } from '../quotations/series.js';
 
 const router = Router();
 
@@ -307,6 +308,9 @@ router.put('/:id', async (req, res) => {
     const cVal = data.code || data.branchCode;
     const nVal = data.name || data.branchName;
     const addr1 = data.address || data.addressLine1;
+    // The branch's quotation number series. Empty means "follow the firm"; left as it is when not sent.
+    const sentSeries = seriesFromBody(data);
+    const series = sentSeries !== undefined ? cleanSeriesPrefix(sentSeries, { allowEmpty: true }) : existing.quotation_prefix;
 
     if (data.isDefault) {
       await db.prepare(`UPDATE branch SET is_default = 0 WHERE firm_id = ? AND id <> ?`).run(existing.firm_id, branchId);
@@ -327,6 +331,7 @@ router.put('/:id', async (req, res) => {
           pan = ?,
           is_default = ?,
           is_active = ?,
+          quotation_prefix = ?,
           updated_at = NOW()
       WHERE id = ?
     `).run(
@@ -343,6 +348,7 @@ router.put('/:id', async (req, res) => {
       data.pan !== undefined ? (data.pan ? String(data.pan).trim().toUpperCase() : null) : existing.pan,
       data.isDefault !== undefined ? (data.isDefault ? 1 : 0) : existing.is_default,
       data.isActive !== undefined ? (data.isActive ? 1 : 0) : existing.is_active,
+      series,
       branchId
     );
 
