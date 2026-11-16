@@ -16,6 +16,12 @@ const EDITABLE_FIELDS = [
 router.get('/', async (req, res) => {
   try {
     const row = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
+    // ?lite=1 leaves out the logo and signature images (data URIs of up to ~1 MB), for pages that only
+    // need the defaults (tax %, validity, payment terms).
+    if (row && req.query.lite === '1') {
+      delete row.logo_image;
+      delete row.signature_image;
+    }
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });

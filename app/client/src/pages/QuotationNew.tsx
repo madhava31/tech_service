@@ -166,7 +166,7 @@ export default function QuotationNew() {
         .catch((e) => setError(e.message))
         .finally(() => setLoading(false));
     } else {
-      api.settings.get().then((s) => {
+      api.settings.get({ lite: true }).then((s) => {
         setTaxPercent(s.default_tax_percent);
         if (s.default_advance_percent !== undefined) applyAdvance(s.default_advance_percent);
         if (s.default_payment_due_days !== undefined) setDueDays(String(s.default_payment_due_days));

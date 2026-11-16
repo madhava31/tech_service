@@ -113,7 +113,7 @@ export default function Reports() {
     else if (t === 'products') api.reports.products({ startDate: productDateFrom || undefined, endDate: productDateTo || undefined, companyName: productCompanyFilter || undefined }).then(setProductRows).catch((e) => setError(e.message)).finally(done);
     else if (t === 'review') api.reports.reviewQueue().then(setReviewRows).catch((e) => setError(e.message)).finally(done);
     else if (t === 'lapsed') {
-      api.settings.get().then((s) => {
+      api.settings.get({ lite: true }).then((s) => {
         setLapsedMonths(s.default_lapse_months);
         return loadLapsed(s.default_lapse_months);
       }).catch((e) => setError(e.message)).finally(done);

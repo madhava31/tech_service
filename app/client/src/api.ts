@@ -1314,7 +1314,8 @@ export const api = {
       }),
   },
   settings: {
-    get: () => request<CompanySettings>('/settings'),
+    /** lite leaves out the logo and signature images, which make the full response about 1 MB. */
+    get: (opts?: { lite?: boolean }) => request<CompanySettings>(opts?.lite ? '/settings?lite=1' : '/settings'),
     update: (data: Partial<CompanySettings>) => request<CompanySettings>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
   },
   imports: {
