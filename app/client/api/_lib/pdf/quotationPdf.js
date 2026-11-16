@@ -251,13 +251,18 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   ];
   const totH = 15;
   if (y + totH * totals.length > BOTTOM) { doc.addPage(); y = M; }
+  // Totals sit in a compact box on the right (name | amount) under the price columns; the left
+  // side stays blank.
   const valueX = COL_X[5];
+  const labelW = 150;
+  const boxX = valueX - labelW;
+  const boxW = M + W - boxX;
   for (const t of totals) {
-    doc.rect(M, y, W, totH).fill(t.fill);
-    doc.lineWidth(0.6).strokeColor('#000').rect(M, y, W, totH).stroke();
+    doc.rect(boxX, y, boxW, totH).fill(t.fill);
+    doc.lineWidth(0.6).strokeColor('#000').rect(boxX, y, boxW, totH).stroke();
     doc.moveTo(valueX, y).lineTo(valueX, y + totH).stroke();
-    doc.font(B).fontSize(8).fillColor('#000').text(t.label, M, y + 4, { width: valueX - M - 6, align: 'right', lineBreak: false });
-    doc.font(t.bold ? B : R).text(money(t.value), valueX, y + 4, { width: COL_W[5], align: 'center', lineBreak: false });
+    doc.font(B).fontSize(8).fillColor('#000').text(t.label, boxX + PAD + 2, y + 4, { width: labelW - 2 * PAD - 2, align: 'left', lineBreak: false });
+    doc.font(t.bold ? B : R).text(money(t.value), valueX + PAD, y + 4, { width: COL_W[5] - 2 * PAD, align: 'right', lineBreak: false });
     y += totH;
   }
 
