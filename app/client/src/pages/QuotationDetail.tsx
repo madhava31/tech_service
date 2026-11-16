@@ -282,8 +282,23 @@ export default function QuotationDetail() {
           <div><span>Date</span><b>{fmtDay(quotation.date)}</b></div>
           <div><span>Grand total</span><b className="num" style={{ fontSize: 18 }}>₹{Number(quotation.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</b></div>
           {quotation.sales_engineer_name && <div><span>Sales engineer</span><b>{quotation.sales_engineer_name}{quotation.sales_engineer_code ? ` (${quotation.sales_engineer_code})` : ''}</b></div>}
-          {quotation.firm_name && <div><span>Issued by</span><b>{quotation.firm_name}</b></div>}
-          {quotation.branch_name && <div><span>Branch</span><b>{quotation.branch_name}</b></div>}
+          {quotation.firm_name && (
+            <div>
+              <span>Issued by</span>
+              <b>{quotation.firm_name}</b>
+              {quotation.branch_name && <small className="block text-[12px] text-subtle">{quotation.branch_name}</small>}
+              {quotation.firm_address && (
+                <small className="block text-[11.5px] text-subtle normal-case tracking-normal mt-0.5 whitespace-pre-line">
+                  📍 {quotation.firm_address}
+                </small>
+              )}
+              {quotation.firm_gstin && (
+                <small className="block text-[11px] font-mono text-subtle mt-0.5">
+                  GSTIN: {quotation.firm_gstin}
+                </small>
+              )}
+            </div>
+          )}
           {quotation.contact_person && (
             <div>
               <span>Contact person</span>

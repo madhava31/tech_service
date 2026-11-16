@@ -34,6 +34,13 @@ router.get('/', async (req, res) => {
         f.pan,
         f.email,
         f.phone,
+        f.address_line_1,
+        f.address_line_2,
+        f.city,
+        f.state,
+        f.pincode,
+        f.country,
+        f.quotation_prefix,
         f.is_active AS active,
         f.is_active,
         f.is_default AS "default",
@@ -65,7 +72,8 @@ router.get('/:id', async (req, res) => {
     const firm = await db.prepare(`
       SELECT 
         id, firm_code AS code, firm_code, firm_name AS name, firm_name, legal_name,
-        gstin, pan, email, phone, is_active AS active, is_active, is_default AS "default", is_default,
+        gstin, pan, email, phone, address_line_1, address_line_2, city, state, pincode, country, quotation_prefix,
+        is_active AS active, is_active, is_default AS "default", is_default,
         created_at, updated_at
       FROM firm WHERE id = ?
     `).get(firmId);
@@ -75,7 +83,7 @@ router.get('/:id', async (req, res) => {
     const branches = await db.prepare(`
       SELECT 
         id, firm_id, branch_code AS code, branch_code, branch_name AS name, branch_name,
-        address_line_1 AS address, address_line_1, city, state, pincode, phone, email, gstin, pan,
+        address_line_1 AS address, address_line_1, city, state, pincode, phone, email, gstin, pan, quotation_prefix,
         is_active AS active, is_active, is_default AS "default", is_default, created_at, updated_at
       FROM branch WHERE firm_id = ? ORDER BY is_default DESC, branch_name ASC
     `).all(firmId);

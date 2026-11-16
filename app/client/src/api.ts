@@ -369,8 +369,11 @@ export interface Quotation {
   sales_engineer_code?: string | null;
   firm_id?: number | null;
   firm_name?: string | null;
+  firm_address?: string | null;
+  firm_gstin?: string | null;
   branch_id?: number | null;
   branch_name?: string | null;
+  branch_address?: string | null;
   status: string;
   gross_subtotal?: number;
   product_discount_total?: number;
@@ -610,6 +613,13 @@ export interface Firm {
   legal_name: string | null;
   gstin: string | null;
   pan: string | null;
+  address_line_1?: string | null;
+  address_line_2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  country?: string | null;
+  quotation_prefix?: string | null;
   is_active: number;
   is_default: number;
   created_at: string;
@@ -627,6 +637,9 @@ export interface Branch {
   state: string | null;
   phone: string | null;
   email: string | null;
+  gstin?: string | null;
+  pan?: string | null;
+  quotation_prefix?: string | null;
   is_active: number;
   is_default: number;
   created_at: string;
@@ -1157,8 +1170,21 @@ export const api = {
       (params?: undefined, signal?: AbortSignal): Promise<Quotation[]>;
     },
     get: (id: number) => request<Quotation>(`/quotations/${id}`),
-    nextNumber: (date?: string) =>
-      request<{ number: string }>(`/quotations/next-number${date ? `?date=${encodeURIComponent(date)}` : ''}`),
+    nextNumber: (params?: string | { date?: string; prefix?: string; firmId?: number; branchId?: number }) => {
+      let qs = '';
+      if (typeof params === 'string') {
+        qs = params ? `?date=${encodeURIComponent(params)}` : '';
+      } else if (params) {
+        const q = new URLSearchParams();
+        if (params.date) q.set('date', params.date);
+        if (params.prefix) q.set('prefix', params.prefix);
+        if (params.firmId) q.set('firmId', String(params.firmId));
+        if (params.branchId) q.set('branchId', String(params.branchId));
+        const s = q.toString();
+        if (s) qs = `?${s}`;
+      }
+      return request<{ number: string; prefix?: string }>(`/quotations/next-number${qs}`);
+    },
     payments: (id: number) => request<QuotationPaymentsData>(`/quotations/${id}/payments`),
     recordPayment: (id: number, data: { amount: number; paid_on: string; mode?: string; reference?: string; note?: string }) =>
       request<QuotationPaymentsData>(`/quotations/${id}/payments`, { method: 'POST', body: JSON.stringify(data) }),

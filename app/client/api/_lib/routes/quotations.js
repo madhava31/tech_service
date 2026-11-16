@@ -325,11 +325,32 @@ router.post('/stock-analysis', async (req, res) => {
 // GET /api/quotations/next-number - preview next sequential quotation number
 router.get('/next-number', async (req, res) => {
   try {
-    const settings = await db.prepare(`SELECT quotation_prefix FROM company_settings WHERE id = 1`).get();
-    const prefix = settings ? settings.quotation_prefix : 'QTN';
+    let prefix = req.query.prefix ? String(req.query.prefix).trim().toUpperCase() : null;
+    const firmId = req.query.firmId ? Number(req.query.firmId) : null;
+    const branchId = req.query.branchId ? Number(req.query.branchId) : null;
+
+    if (!prefix && branchId) {
+      const branch = await db.prepare(`SELECT quotation_prefix FROM branch WHERE id = ?`).get(branchId);
+      if (branch?.quotation_prefix) prefix = branch.quotation_prefix.trim().toUpperCase();
+    }
+    if (!prefix && firmId) {
+      const firm = await db.prepare(`SELECT quotation_prefix, firm_code, firm_name FROM firm WHERE id = ?`).get(firmId);
+      if (firm?.quotation_prefix) {
+        prefix = firm.quotation_prefix.trim().toUpperCase();
+      } else if (
+        (firm?.firm_code && firm.firm_code.toUpperCase().includes('AP')) ||
+        (firm?.firm_name && firm.firm_name.toUpperCase().includes('AP'))
+      ) {
+        prefix = 'TSAPQOT';
+      }
+    }
+    if (!prefix) {
+      const settings = await db.prepare(`SELECT quotation_prefix FROM company_settings WHERE id = 1`).get();
+      prefix = settings?.quotation_prefix || 'TSQOT';
+    }
     const date = req.query.date ? String(req.query.date).slice(0, 10) : undefined;
     const number = await nextNumber(prefix, 'quotation', date);
-    res.json({ number });
+    res.json({ number, prefix });
   } catch (err) {
     sendRouteError(res, err, 500, 'Unable to get next quotation number');
   }
@@ -473,21 +494,55 @@ router.get('/', async (req, res) => {
   }
 });
 
+const QUOTATION_DETAIL_SELECT = `
+  SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state, c.gstin AS company_gstin,
+         c.phone AS company_phone, c.email AS company_email,
+         e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code,
+         e.phone AS sales_engineer_phone, e.email AS sales_engineer_email,
+         u.username AS created_by_username,
+         f.firm_name, f.firm_code, f.legal_name AS firm_legal_name,
+         f.address_line_1 AS firm_address_line_1, f.address_line_2 AS firm_address_line_2,
+         f.city AS firm_city, f.state AS firm_state, f.pincode AS firm_pincode,
+         f.gstin AS firm_gstin, f.pan AS firm_pan, f.email AS firm_email, f.phone AS firm_phone,
+         f.quotation_prefix AS firm_quotation_prefix,
+         b.branch_name, b.branch_code,
+         b.address_line_1 AS branch_address_line_1, b.address_line_2 AS branch_address_line_2,
+         b.city AS branch_city, b.state AS branch_state, b.pincode AS branch_pincode,
+         b.phone AS branch_phone, b.email AS branch_email, b.gstin AS branch_gstin,
+         b.quotation_prefix AS branch_quotation_prefix,
+         bds.document_header_title, bds.document_address AS branch_doc_address,
+         bds.authorized_signatory AS branch_signatory,
+         bds.bank_name AS branch_bank_name, bds.account_number AS branch_bank_account_no,
+         bds.ifsc_code AS branch_bank_ifsc, bds.terms_conditions AS branch_terms
+  FROM quotation q
+  JOIN company c ON c.id = q.company_id
+  LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
+  LEFT JOIN app_user u ON u.id = q.created_by_user_id
+  LEFT JOIN firm f ON f.id = q.firm_id
+  LEFT JOIN branch b ON b.id = q.branch_id
+  LEFT JOIN branch_document_settings bds ON bds.branch_id = b.id
+`;
+
+function enrichQuotationFirm(quotation) {
+  if (!quotation) return quotation;
+  const parts = [
+    quotation.branch_doc_address,
+    [quotation.branch_address_line_1, quotation.branch_address_line_2, quotation.branch_city, quotation.branch_state, quotation.branch_pincode].filter(Boolean).join(', '),
+    [quotation.firm_address_line_1, quotation.firm_address_line_2, quotation.firm_city, quotation.firm_state, quotation.firm_pincode].filter(Boolean).join(', ')
+  ].filter(Boolean);
+  return {
+    ...quotation,
+    firm_address: parts[0] || null,
+  };
+}
+
 router.get('/:id', async (req, res) => {
   try {
-    const quotation = await db
-      .prepare(
-        `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state, c.gstin AS company_gstin,
-                c.phone AS company_phone, c.email AS company_email,
-                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code, u.username AS created_by_username
-         FROM quotation q
-         JOIN company c ON c.id = q.company_id
-         LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
-         LEFT JOIN app_user u ON u.id = q.created_by_user_id
-         WHERE q.id = ?`
-      )
+    const rawQuotation = await db
+      .prepare(`${QUOTATION_DETAIL_SELECT} WHERE q.id = ?`)
       .get(req.params.id);
-    if (!quotation) return res.status(404).json({ error: 'Quotation not found' });
+    if (!rawQuotation) return res.status(404).json({ error: 'Quotation not found' });
+    const quotation = enrichQuotationFirm(rawQuotation);
     const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(req.params.id);
     // Payment schedule and payments received, once migration 004 has been applied.
     const payment = (await paymentsReady()) ? await getQuotationPayments(req.params.id) : null;
@@ -556,8 +611,26 @@ router.post('/', moduleGuard, async (req, res) => {
           throw Object.assign(new Error(`Quotation number ${number} is already used by another quotation`), { status: 409 });
         }
       } else {
-        const settings = await db.prepare(`SELECT quotation_prefix FROM company_settings WHERE id = 1`).get();
-        const prefix = settings ? settings.quotation_prefix : 'QTN';
+        let prefix = null;
+        if (branch_id) {
+          const br = await db.prepare(`SELECT quotation_prefix FROM branch WHERE id = ?`).get(branch_id);
+          if (br?.quotation_prefix) prefix = br.quotation_prefix.trim().toUpperCase();
+        }
+        if (!prefix && firm_id) {
+          const fm = await db.prepare(`SELECT quotation_prefix, firm_code, firm_name FROM firm WHERE id = ?`).get(firm_id);
+          if (fm?.quotation_prefix) {
+            prefix = fm.quotation_prefix.trim().toUpperCase();
+          } else if (
+            (fm?.firm_code && fm.firm_code.toUpperCase().includes('AP')) ||
+            (fm?.firm_name && fm.firm_name.toUpperCase().includes('AP'))
+          ) {
+            prefix = 'TSAPQOT';
+          }
+        }
+        if (!prefix) {
+          const settings = await db.prepare(`SELECT quotation_prefix FROM company_settings WHERE id = 1`).get();
+          prefix = settings?.quotation_prefix || 'TSQOT';
+        }
         number = await nextNumber(prefix, 'quotation', date);
       }
       const info = await db
@@ -1113,20 +1186,11 @@ async function legacyForApprovedLayout(quotation, items, settings = {}) {
 
 router.get('/:id/pdf', async (req, res) => {
   try {
-    const quotation = await db
-      .prepare(
-        `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state,
-                c.gstin AS company_gstin, c.phone AS company_phone,
-                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code,
-                e.phone AS sales_engineer_phone, e.email AS sales_engineer_email, u.username AS created_by_username
-         FROM quotation q
-         JOIN company c ON c.id = q.company_id
-         LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
-         LEFT JOIN app_user u ON u.id = q.created_by_user_id
-         WHERE q.id = ?`
-      )
+    const rawQuotation = await db
+      .prepare(`${QUOTATION_DETAIL_SELECT} WHERE q.id = ?`)
       .get(req.params.id);
-    if (!quotation) return res.status(404).json({ error: 'Quotation not found' });
+    if (!rawQuotation) return res.status(404).json({ error: 'Quotation not found' });
+    const quotation = enrichQuotationFirm(rawQuotation);
     const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(req.params.id);
     const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
 

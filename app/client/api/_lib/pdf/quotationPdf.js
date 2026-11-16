@@ -29,6 +29,47 @@ const COMPANY = {
   signatory: 'Y. Prem Chand',
 };
 
+function resolveCompanyDetails(q) {
+  const name = q?.firm_legal_name || q?.firm_name || COMPANY.name;
+  const signatory = q?.branch_signatory || COMPANY.signatory;
+
+  // 1. Branch document settings address if configured
+  if (q?.branch_doc_address && String(q.branch_doc_address).trim()) {
+    const lines = String(q.branch_doc_address).split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    const gstin = q.branch_gstin || q.firm_gstin;
+    if (gstin && !lines.some((l) => l.toUpperCase().includes('GSTIN'))) {
+      lines.push(`GSTIN: ${gstin}`);
+    }
+    return { name, address: lines, signatory };
+  }
+
+  // 2. Branch address fields
+  const bLines = [];
+  if (q?.branch_address_line_1) bLines.push(String(q.branch_address_line_1).trim());
+  if (q?.branch_address_line_2) bLines.push(String(q.branch_address_line_2).trim());
+  const bCityState = [q?.branch_city, q?.branch_state, q?.branch_pincode].filter(Boolean).join(', ');
+  if (bCityState) bLines.push(bCityState);
+  if (bLines.length > 0) {
+    const gstin = q?.branch_gstin || q?.firm_gstin;
+    if (gstin) bLines.push(`GSTIN: ${gstin}`);
+    return { name, address: bLines, signatory };
+  }
+
+  // 3. Firm address fields
+  const fLines = [];
+  if (q?.firm_address_line_1) fLines.push(String(q.firm_address_line_1).trim());
+  if (q?.firm_address_line_2) fLines.push(String(q.firm_address_line_2).trim());
+  const fCityState = [q?.firm_city, q?.firm_state, q?.firm_pincode].filter(Boolean).join(', ');
+  if (fCityState) fLines.push(fCityState);
+  if (fLines.length > 0) {
+    const gstin = q?.firm_gstin;
+    if (gstin) fLines.push(`GSTIN: ${gstin}`);
+    return { name, address: fLines, signatory };
+  }
+
+  return { name, address: COMPANY.address, signatory };
+}
+
 // S.No | PRODUCT DESCRIPTION | QTY | DISCOUNT | UNIT PRICE | TOTAL PRICE (widths add up to W)
 const COL_W = [32, 245, 41, 49, 80, 88];
 const COL_X = COL_W.reduce((xs, w, i) => [...xs, xs[i] + w], [M]);
@@ -51,12 +92,14 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   const R = 'Arimo', B = 'Arimo-Bold', MONO = 'Courier-Bold';
   doc.pipe(res);
 
+  const company = resolveCompanyDetails(quotation);
+
   // ---- letterhead ----
   if (fs.existsSync(LOGO_PATH)) doc.image(LOGO_PATH, M, M + 2, { fit: [170, 40] });
-  doc.font(B).fontSize(8.5).fillColor('#000').text(COMPANY.name, M, M + 6, { width: W, align: 'right' });
+  doc.font(B).fontSize(8.5).fillColor('#000').text(company.name, M, M + 6, { width: W, align: 'right' });
   doc.font(R).fontSize(8).fillColor('#333');
-  for (const line of COMPANY.address) doc.text(line, M, doc.y + 1, { width: W, align: 'right' });
-  const ruleY = M + 48;
+  for (const line of company.address) doc.text(line, M, doc.y + 1, { width: W, align: 'right' });
+  const ruleY = Math.max(M + 48, doc.y + 6);
   doc.moveTo(M, ruleY).lineTo(M + W, ruleY).lineWidth(1.5).strokeColor(ORANGE).stroke();
 
   // ---- title, number, date ----
@@ -291,12 +334,12 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   doc.fontSize(8.5).fillColor('#000');
   const forLabel = 'For ';
   doc.font(B);
-  const nameW = doc.widthOfString(COMPANY.name);
+  const nameW = doc.widthOfString(company.name);
   doc.font(R);
   const forW = doc.widthOfString(forLabel);
   doc.text(forLabel, M + W - nameW - forW, y, { lineBreak: false });
-  doc.font(B).text(COMPANY.name, M + W - nameW, y, { lineBreak: false });
-  doc.font(B).fontSize(8.5).text(COMPANY.signatory, rx, y + 42, { width: rightW, align: 'right' });
+  doc.font(B).text(company.name, M + W - nameW, y, { lineBreak: false });
+  doc.font(B).fontSize(8.5).text(company.signatory, rx, y + 42, { width: rightW, align: 'right' });
   doc.font(R).fontSize(8.5).text('Authorised Signatory', rx, doc.y + 1, { width: rightW, align: 'right' });
 
   doc.end();

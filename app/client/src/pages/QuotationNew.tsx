@@ -52,6 +52,7 @@ export default function QuotationNew() {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<QuotationItem[]>([emptyItem()]);
   const [quotationNumber, setQuotationNumber] = useState('');
+  const [prefix, setPrefix] = useState<string>('TSQOT');
   const [userEditedNumber, setUserEditedNumber] = useState(false);
   const [numberLoading, setNumberLoading] = useState(!isEdit);
   const [error, setError] = useState('');
@@ -127,6 +128,18 @@ export default function QuotationNew() {
       if (fList.length > 0 && !isEdit) {
         const defFirm = fList.find((f) => f.is_default === 1) || fList[0];
         setFirmId(defFirm.id);
+        let initPref = 'TSQOT';
+        if (defFirm.quotation_prefix) {
+          initPref = defFirm.quotation_prefix.trim().toUpperCase();
+        } else if (
+          defFirm.code?.toUpperCase().includes('AP') ||
+          defFirm.name?.toUpperCase().includes('AP')
+        ) {
+          initPref = 'TSAPQOT';
+        }
+        setPrefix(initPref);
+        fetchNextNumber(date, initPref, defFirm.id);
+
         api.firms.branches(defFirm.id).then((bList) => {
           setBranches(bList);
           if (bList.length > 0 && !isEdit) {
@@ -137,15 +150,8 @@ export default function QuotationNew() {
       }
     });
 
-    if (!isEdit) {
-      setNumberLoading(true);
-      api.quotations
-        .nextNumber(date)
-        .then((res) => {
-          if (res?.number) setQuotationNumber(res.number);
-        })
-        .catch((e) => console.error('Failed to fetch next quotation number:', e))
-        .finally(() => setNumberLoading(false));
+    if (!isEdit && !quotationNumber) {
+      fetchNextNumber(date, prefix);
     }
 
     if (isEdit && quotationId) {
@@ -200,28 +206,83 @@ export default function QuotationNew() {
     }
   }, [isEdit, quotationId]);
 
+  function fetchNextNumber(d: string, pref: string, fId?: number | '', bId?: number | '') {
+    setNumberLoading(true);
+    api.quotations
+      .nextNumber({
+        date: d,
+        prefix: pref,
+        firmId: fId ? Number(fId) : undefined,
+        branchId: bId ? Number(bId) : undefined,
+      })
+      .then((res) => {
+        if (res?.number) setQuotationNumber(res.number);
+      })
+      .catch((e) => console.error('Failed to fetch quotation number:', e))
+      .finally(() => setNumberLoading(false));
+  }
+
   useEffect(() => {
     if (!isEdit && !userEditedNumber && date) {
-      api.quotations
-        .nextNumber(date)
-        .then((res) => {
-          if (res?.number) setQuotationNumber(res.number);
-        })
-        .catch(() => {});
+      fetchNextNumber(date, prefix, firmId, branchId);
     }
   }, [date, isEdit, userEditedNumber]);
 
   function handleFirmChange(newFirmId: number | '') {
     setFirmId(newFirmId);
     setBranchId('');
+    const selectedFirm = firms.find((f) => f.id === newFirmId);
+    let newPrefix = 'TSQOT';
+    if (selectedFirm) {
+      if (selectedFirm.quotation_prefix) {
+        newPrefix = selectedFirm.quotation_prefix.trim().toUpperCase();
+      } else if (
+        selectedFirm.code?.toUpperCase().includes('AP') ||
+        selectedFirm.name?.toUpperCase().includes('AP')
+      ) {
+        newPrefix = 'TSAPQOT';
+      }
+    }
+    setPrefix(newPrefix);
+    if (!isEdit && !userEditedNumber) {
+      fetchNextNumber(date, newPrefix, newFirmId);
+    }
     if (newFirmId) {
       api.firms.branches(newFirmId).then((bList) => {
         setBranches(bList);
-        if (bList.length > 0) setBranchId(bList[0].id);
+        if (bList.length > 0) {
+          const defBranch = bList.find((b) => b.is_default === 1) || bList[0];
+          setBranchId(defBranch.id);
+          if (defBranch.quotation_prefix) {
+            const bPref = defBranch.quotation_prefix.trim().toUpperCase();
+            setPrefix(bPref);
+            if (!isEdit && !userEditedNumber) {
+              fetchNextNumber(date, bPref, newFirmId, defBranch.id);
+            }
+          }
+        }
       });
     } else {
       setBranches([]);
     }
+  }
+
+  function handleBranchChange(newBranchId: number | '') {
+    setBranchId(newBranchId);
+    const selectedBranch = branches.find((b) => b.id === newBranchId);
+    if (selectedBranch?.quotation_prefix) {
+      const bPref = selectedBranch.quotation_prefix.trim().toUpperCase();
+      setPrefix(bPref);
+      if (!isEdit && !userEditedNumber) {
+        fetchNextNumber(date, bPref, firmId, newBranchId);
+      }
+    }
+  }
+
+  function handlePrefixChange(newPref: string) {
+    setPrefix(newPref);
+    setUserEditedNumber(false);
+    fetchNextNumber(date, newPref, firmId, branchId);
   }
 
   function updateItem(idx: number, patch: Partial<QuotationItem>) {
@@ -663,14 +724,38 @@ export default function QuotationNew() {
                 <small className="ts-hint">Select an existing customer or type a new name to save it.</small>
               </div>
               <div className="ts-fld">
-                <label htmlFor="q-number">
-                  Quotation number
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="q-number" className="m-0">
+                    Quotation number
+                    {!isEdit && (
+                      <span className="ts-hint" style={{ fontWeight: 400, marginLeft: 6, display: 'inline' }}>
+                        (Auto-generated)
+                      </span>
+                    )}
+                  </label>
                   {!isEdit && (
-                    <span className="ts-hint" style={{ fontWeight: 400, marginLeft: 6, display: 'inline' }}>
-                      (Auto-generated)
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-subtle uppercase">Format:</span>
+                      <select
+                        id="q-format"
+                        className="text-xs font-semibold px-2 py-0.5 rounded bg-tile border border-line2 text-fg cursor-pointer"
+                        value={prefix}
+                        onChange={(e) => handlePrefixChange(e.target.value)}
+                        title="Choose quotation number format / series"
+                      >
+                        <option value="TSQOT">TSQOT (Telangana / Main)</option>
+                        <option value="TSAPQOT">TSAPQOT (Andhra Pradesh — AP)</option>
+                        {firms
+                          .filter((f) => f.quotation_prefix && f.quotation_prefix !== 'TSQOT' && f.quotation_prefix !== 'TSAPQOT')
+                          .map((f) => (
+                            <option key={f.id} value={f.quotation_prefix!}>
+                              {f.quotation_prefix} ({f.name})
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   )}
-                </label>
+                </div>
                 <input
                   id="q-number"
                   type="text"
@@ -681,11 +766,11 @@ export default function QuotationNew() {
                     setQuotationNumber(e.target.value);
                     setUserEditedNumber(true);
                   }}
-                  placeholder={isEdit ? 'e.g. TSQOT2627/2' : numberLoading ? 'Generating number…' : 'e.g. TSQOT2627/2'}
+                  placeholder={isEdit ? 'e.g. TSQOT2627/2' : numberLoading ? 'Generating number…' : 'e.g. TSAPQOT2627/125'}
                 />
                 {!isEdit && (
                   <small className="ts-hint">
-                    This quotation number is reserved for this proposal upon saving.
+                    Series: <b>{prefix}</b>. Select format or firm to automatically load next sequence number.
                   </small>
                 )}
               </div>
@@ -720,12 +805,35 @@ export default function QuotationNew() {
               </div>
               <div className="ts-fld">
                 <label htmlFor="q-branch">Issuing branch</label>
-                <select id="q-branch" className="ts-fi" value={branchId} onChange={(e) => setBranchId(e.target.value ? Number(e.target.value) : '')}>
+                <select id="q-branch" className="ts-fi" value={branchId} onChange={(e) => handleBranchChange(e.target.value ? Number(e.target.value) : '')}>
                   <option value="">Select branch…</option>
                   {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
                 </select>
               </div>
             </div>
+            {(() => {
+              const currentBranch = branches.find((b) => b.id === branchId);
+              const currentFirm = firms.find((f) => f.id === firmId);
+              const addr = currentBranch?.address
+                ? [currentBranch.address, currentBranch.city, currentBranch.state].filter(Boolean).join(', ')
+                : currentFirm?.address_line_1
+                ? [currentFirm.address_line_1, currentFirm.city, currentFirm.state].filter(Boolean).join(', ')
+                : null;
+              const gstin = currentBranch?.gstin || currentFirm?.gstin;
+              const pan = currentBranch?.pan || currentFirm?.pan;
+              if (!addr && !gstin && !pan && !currentFirm) return null;
+              return (
+                <div className="text-xs text-subtle bg-tile px-3.5 py-2.5 rounded-xl border border-line2 flex items-start gap-2.5 mt-3">
+                  <span className="text-sm">📍</span>
+                  <div className="flex-1">
+                    <span className="font-semibold text-fg">{currentFirm?.name || 'Selected Firm'}: </span>
+                    <span>{addr || 'Address configured in Multi-Firm setup'}</span>
+                    {gstin && <span className="ml-3 font-mono text-[11px] font-semibold text-fg">GSTIN: {gstin}</span>}
+                    {pan && <span className="ml-2 font-mono text-[11px] text-subtle">PAN: {pan}</span>}
+                  </div>
+                </div>
+              );
+            })()}
           </section>
 
           {/* Contact person and payment terms (migration 004) */}
