@@ -864,7 +864,13 @@ export default function QuotationNew() {
               <div><span>Branch</span><b>{br ? `${br.name} (${br.code})` : 'Not selected'}</b></div>
               <div><span>Line items</span><b>{items.length}</b></div>
             </div>
-            <button type="button" onClick={submit} disabled={saving} className="ts-btn" style={{ width: '100%', justifyContent: 'center', background: 'rgb(var(--on-charcoal))', color: 'rgb(var(--charcoal))' }}>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={saving}
+              className="ts-btn ts-dark cursor-pointer font-bold shadow-md"
+              style={{ width: '100%', justifyContent: 'center', background: 'rgb(var(--accent))', color: 'rgb(var(--on-accent))' }}
+            >
               <CheckIcon /> {saving ? 'Saving…' : isEdit ? 'Save quotation' : 'Save and generate quotation'}
             </button>
           </div>
