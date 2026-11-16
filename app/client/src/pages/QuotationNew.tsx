@@ -285,6 +285,40 @@ export default function QuotationNew() {
     fetchNextNumber(date, newPref, firmId, branchId);
   }
 
+  function handleHeaderSeriesChange(newPref: string) {
+    setPrefix(newPref);
+    setUserEditedNumber(false);
+
+    let targetFirm = null;
+    if (newPref === 'TSAPQOT') {
+      targetFirm = firms.find(
+        (f) =>
+          f.quotation_prefix === 'TSAPQOT' ||
+          f.code?.toUpperCase().includes('AP') ||
+          f.name?.toUpperCase().includes('AP')
+      );
+    } else if (newPref === 'TSQOT') {
+      targetFirm =
+        firms.find((f) => f.quotation_prefix === 'TSQOT' || f.is_default === 1) ||
+        firms.find((f) => !f.code?.toUpperCase().includes('AP')) ||
+        firms[0];
+    } else {
+      targetFirm = firms.find((f) => f.quotation_prefix === newPref);
+    }
+
+    if (targetFirm) {
+      setFirmId(targetFirm.id);
+      api.firms.branches(targetFirm.id).then((bList) => {
+        setBranches(bList);
+        const defB = bList.find((b) => b.is_default === 1) || bList[0];
+        if (defB) setBranchId(defB.id);
+      });
+      fetchNextNumber(date, newPref, targetFirm.id);
+    } else {
+      fetchNextNumber(date, newPref, firmId, branchId);
+    }
+  }
+
   function updateItem(idx: number, patch: Partial<QuotationItem>) {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   }
@@ -628,7 +662,69 @@ export default function QuotationNew() {
                 ? 'New instrument quotation'
                 : 'New quotation'}
             </h1>
-            {quotationNumber ? (
+            {!isEdit ? (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '3px 8px 3px 12px',
+                  borderRadius: 10,
+                  backgroundColor: 'rgba(var(--accent), 0.08)',
+                  color: 'rgb(var(--accent))',
+                  border: '1px solid rgba(var(--accent), 0.3)',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    letterSpacing: '0.02em',
+                  }}
+                  title="Assigned quotation number"
+                >
+                  <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75, marginRight: 6 }}>NO.</span>
+                  {numberLoading ? 'Generating…' : quotationNumber || '—'}
+                </span>
+                <div style={{ height: 18, width: 1, backgroundColor: 'rgba(var(--accent), 0.25)' }} />
+                <select
+                  aria-label="Select quotation series / firm"
+                  value={prefix}
+                  onChange={(e) => handleHeaderSeriesChange(e.target.value)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'rgb(var(--accent))',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    borderRadius: 6,
+                  }}
+                  title="Select which firm you are creating this quotation for"
+                >
+                  <option value="TSQOT" style={{ color: '#111827', backgroundColor: '#ffffff' }}>
+                    🏢 TSQOT (Technicon Services)
+                  </option>
+                  <option value="TSAPQOT" style={{ color: '#111827', backgroundColor: '#ffffff' }}>
+                    🏛️ TSAPQOT (Technicon Services_AP)
+                  </option>
+                  {firms
+                    .filter((f) => {
+                      const p = f.quotation_prefix?.trim().toUpperCase();
+                      return p && p !== 'TSQOT' && p !== 'TSAPQOT';
+                    })
+                    .map((f) => (
+                      <option key={f.id} value={f.quotation_prefix!} style={{ color: '#111827', backgroundColor: '#ffffff' }}>
+                        🏢 {f.quotation_prefix} ({f.name})
+                      </option>
+                    ))}
+                </select>
+              </div>
+            ) : quotationNumber ? (
               <span
                 style={{
                   display: 'inline-flex',
@@ -643,14 +739,10 @@ export default function QuotationNew() {
                   color: 'rgb(var(--accent))',
                   border: '1px solid rgba(var(--accent), 0.3)',
                 }}
-                title={isEdit ? 'Current quotation number' : 'Quotation number assigned to this draft'}
+                title="Current quotation number"
               >
                 <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75, letterSpacing: '0.05em' }}>NO.</span>
                 {quotationNumber}
-              </span>
-            ) : numberLoading ? (
-              <span className="ts-muted" style={{ fontSize: 13, fontStyle: 'italic' }}>
-                Fetching quotation number…
               </span>
             ) : null}
           </div>
