@@ -816,37 +816,46 @@ export default function QuotationNew() {
                 <small className="ts-hint">Select an existing customer or type a new name to save it.</small>
               </div>
               <div className="ts-fld">
-                <div className="flex items-center justify-between mb-1">
-                  <label htmlFor="q-number" className="m-0">
-                    Quotation number
-                    {!isEdit && (
-                      <span className="ts-hint" style={{ fontWeight: 400, marginLeft: 6, display: 'inline' }}>
-                        (Auto-generated)
-                      </span>
-                    )}
-                  </label>
-                  {!isEdit && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-subtle uppercase">Format:</span>
-                      <select
-                        id="q-format"
-                        className="text-xs font-semibold px-2 py-0.5 rounded bg-tile border border-line2 text-fg cursor-pointer"
-                        value={prefix}
-                        onChange={(e) => handlePrefixChange(e.target.value)}
-                        title="Choose quotation number format / series"
-                      >
-                        <option value="TSQOT">TSQOT (Telangana / Main)</option>
-                        <option value="TSAPQOT">TSAPQOT (Andhra Pradesh — AP)</option>
-                        {firms
-                          .filter((f) => f.quotation_prefix && f.quotation_prefix !== 'TSQOT' && f.quotation_prefix !== 'TSAPQOT')
-                          .map((f) => (
-                            <option key={f.id} value={f.quotation_prefix!}>
-                              {f.quotation_prefix} ({f.name})
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  )}
+                <label htmlFor="q-date">Quotation date</label>
+                <input id="q-date" type="date" className="ts-fi" value={date} onChange={(e) => setDate(e.target.value)} />
+              </div>
+              <div className="ts-fld">
+                <label htmlFor="q-gst">GST rate</label>
+                <div className="ts-suffix">
+                  <input id="q-gst" type="number" className="ts-fi ts-r" value={!taxPercent || taxPercent === 0 ? '' : taxPercent} onFocus={(e) => e.target.select()} onChange={(e) => setTaxPercent(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="18" />
+                  <span>%</span>
+                </div>
+              </div>
+            </div>
+            {/* Quotation number: its own row, so the series picker and the number each get room */}
+            <div className="ts-fgrid ts-g4">
+              {!isEdit && (
+                <div className="ts-fld ts-span2">
+                  <label htmlFor="q-format">Number series</label>
+                  <select
+                    id="q-format"
+                    className="ts-fi"
+                    value={prefix}
+                    onChange={(e) => handlePrefixChange(e.target.value)}
+                    title="Choose the quotation number series"
+                  >
+                    <option value="TSQOT">TSQOT (Telangana / Main)</option>
+                    <option value="TSAPQOT">TSAPQOT (Andhra Pradesh — AP)</option>
+                    {firms
+                      .filter((f) => f.quotation_prefix && f.quotation_prefix !== 'TSQOT' && f.quotation_prefix !== 'TSAPQOT')
+                      .map((f) => (
+                        <option key={f.id} value={f.quotation_prefix!}>
+                          {f.quotation_prefix} ({f.name})
+                        </option>
+                      ))}
+                  </select>
+                  <small className="ts-hint">Picking a series loads its next number.</small>
+                </div>
+              )}
+              <div className="ts-fld ts-span2">
+                <div className="ts-fl">
+                  <label htmlFor="q-number">Quotation number</label>
+                  {!isEdit && <span>{numberLoading ? 'Generating…' : 'Auto-generated'}</span>}
                 </div>
                 <input
                   id="q-number"
@@ -860,22 +869,9 @@ export default function QuotationNew() {
                   }}
                   placeholder={isEdit ? 'e.g. TSQOT2627/2' : numberLoading ? 'Generating number…' : 'e.g. TSAPQOT2627/125'}
                 />
-                {!isEdit && (
-                  <small className="ts-hint">
-                    Series: <b>{prefix}</b>. Select format or firm to automatically load next sequence number.
-                  </small>
-                )}
-              </div>
-              <div className="ts-fld">
-                <label htmlFor="q-date">Quotation date</label>
-                <input id="q-date" type="date" className="ts-fi" value={date} onChange={(e) => setDate(e.target.value)} />
-              </div>
-              <div className="ts-fld">
-                <label htmlFor="q-gst">GST rate</label>
-                <div className="ts-suffix">
-                  <input id="q-gst" type="number" className="ts-fi ts-r" value={!taxPercent || taxPercent === 0 ? '' : taxPercent} onFocus={(e) => e.target.select()} onChange={(e) => setTaxPercent(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="18" />
-                  <span>%</span>
-                </div>
+                <small className="ts-hint">
+                  {isEdit ? 'You can change the number. It must be unique.' : 'The next number in this series. You can edit it.'}
+                </small>
               </div>
             </div>
             <div className="ts-fgrid ts-g3 ts-issuer">
