@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
-import { FileTextIcon, PencilIcon } from 'lucide-react';
+import { FileTextIcon, PencilIcon, Trash2 } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
 import { QuotationPayments } from '../components/QuotationPayments';
 
@@ -56,6 +56,18 @@ export default function QuotationDetail() {
     // With no PO yet, carry over whatever is typed in the Client PO Reference box as the work order no.
     const wo = !pos.length && clientPoRef.trim() ? `&wo=${encodeURIComponent(clientPoRef.trim())}` : '';
     navigate(`/delivery-challans/new?quotation=${quotationId}${wo}`);
+  }
+
+  async function handleDeleteChallan(challanId: number, challanNumber: string) {
+    if (!window.confirm(`Are you sure you want to delete Delivery Challan "${challanNumber}"? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.deliveryChallans.delete(challanId);
+      setChallans((prev) => prev.filter((c) => c.id !== challanId));
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete delivery challan.');
+    }
   }
 
   function loadFollowUps() {
@@ -535,7 +547,18 @@ export default function QuotationDetail() {
                     <Link to={`/delivery-challans/${dc.id}/preview`} className="font-bold text-fg hover:underline">{dc.number}</Link>
                     <span className="text-subtle ml-2">Date: {fmtDay(dc.date)}</span>
                   </div>
-                  <a href={api.deliveryChallans.downloadPdfUrl(dc.id)} className="ts-btn ts-ghost ts-xs">Download PDF</a>
+                  <div className="flex items-center gap-1.5">
+                    <a href={api.deliveryChallans.downloadPdfUrl(dc.id)} className="ts-btn ts-ghost ts-xs">Download PDF</a>
+                    <button
+                      type="button"
+                      className="ts-btn ts-ghost ts-xs text-bad hover:bg-bad/10 cursor-pointer p-1.5"
+                      onClick={() => handleDeleteChallan(dc.id, dc.number)}
+                      title="Delete delivery challan"
+                      aria-label={`Delete delivery challan ${dc.number}`}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

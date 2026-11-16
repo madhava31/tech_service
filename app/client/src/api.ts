@@ -1426,6 +1426,8 @@ export const api = {
     fromQuotation: (quotationId: number) => request<DeliveryChallanInput>(`/delivery-challans/from-quotation/${quotationId}`),
     create: (data: DeliveryChallanInput) => request<DeliveryChallan>('/delivery-challans', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: DeliveryChallanInput) => request<DeliveryChallan>(`/delivery-challans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => request<{ success: boolean; id: number }>(`/delivery-challans/${id}`, { method: 'DELETE' }),
+    bulkDelete: (ids: number[]) => request<{ success: boolean; deletedCount: number }>('/delivery-challans/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
     pdfUrl: (id: number) => `${BASE}/delivery-challans/${id}/pdf`,
     downloadPdfUrl: (id: number) => `${BASE}/delivery-challans/${id}/pdf?download=1`,
     blankPdfUrl: () => `${BASE}/delivery-challans/blank/pdf`,

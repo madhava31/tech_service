@@ -262,4 +262,52 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/delivery-challans/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const existing = await findChallan(req, req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Delivery challan not found' });
+    if (!isAdmin(req) && existing.created_by_user_id !== req.user.id) {
+      return res.status(403).json({ error: 'You do not have permission to delete this delivery challan.' });
+    }
+    await db.transaction(async () => {
+      await db.prepare('DELETE FROM delivery_challan_item WHERE delivery_challan_id = ?').run(existing.id);
+      await db.prepare('DELETE FROM delivery_challan WHERE id = ?').run(existing.id);
+    });
+    res.json({ success: true, id: existing.id });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to delete the delivery challan. Please try again.');
+  }
+});
+
+// POST /api/delivery-challans/bulk-delete
+router.post('/bulk-delete', async (req, res) => {
+  try {
+    const { ids } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids array is required' });
+    }
+    const cleanIds = ids.map((n) => Number(n)).filter((n) => Number.isFinite(n) && n > 0);
+    if (cleanIds.length === 0) {
+      return res.status(400).json({ error: 'No valid ids provided' });
+    }
+
+    let deletedCount = 0;
+    await db.transaction(async () => {
+      for (const id of cleanIds) {
+        const dc = await findChallan(req, id);
+        if (dc && (isAdmin(req) || dc.created_by_user_id === req.user.id)) {
+          await db.prepare('DELETE FROM delivery_challan_item WHERE delivery_challan_id = ?').run(id);
+          await db.prepare('DELETE FROM delivery_challan WHERE id = ?').run(id);
+          deletedCount++;
+        }
+      }
+    });
+
+    res.json({ success: true, deletedCount });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to delete the selected delivery challans.');
+  }
+});
+
 export default router;
