@@ -1,5 +1,10 @@
 import db from './index.js';
 
+// Sales-person figures (quoted value, accepted value, target achievement) are counted before GST:
+// the taxable amount, i.e. after discounts and without tax. Quotations without a stored taxable
+// amount fall back to the total minus its GST.
+const PRE_GST = 'COALESCE(taxable_amount, total - COALESCE(tax_amount, 0), total)';
+
 function normalizeFy(yearStr) {
   if (!yearStr) return 'FY 2026-27';
   const str = String(yearStr).trim();
@@ -46,9 +51,9 @@ export async function getEngineerById(id, { financialYear = 'FY 2026-27' } = {})
 
   const quoteStats = await db.prepare(`
     SELECT COUNT(*) AS total_quotations,
-           COALESCE(SUM(total), 0) AS total_quoted_value,
+           COALESCE(SUM(${PRE_GST}), 0) AS total_quoted_value,
            SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
-           COALESCE(SUM(CASE WHEN status = 'accepted' THEN total ELSE 0 END), 0) AS accepted_value
+           COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${PRE_GST} ELSE 0 END), 0) AS accepted_value
     FROM quotation WHERE sales_engineer_id = ?
   `).get(engId);
 
@@ -190,9 +195,9 @@ export async function getEngineerPerformance({ financialYear, branchId = null, e
   for (const eng of engineers) {
     const quoteStats = await db.prepare(`
       SELECT COUNT(*) AS total_quotations,
-             COALESCE(SUM(total), 0) AS total_quoted_value,
+             COALESCE(SUM(${PRE_GST}), 0) AS total_quoted_value,
              SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
-             COALESCE(SUM(CASE WHEN status = 'accepted' THEN total ELSE 0 END), 0) AS accepted_value
+             COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${PRE_GST} ELSE 0 END), 0) AS accepted_value
       FROM quotation WHERE sales_engineer_id = ?
     `).get(eng.id);
 
