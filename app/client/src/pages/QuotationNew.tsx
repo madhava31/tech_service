@@ -2,7 +2,8 @@ import { CheckIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { CountUp } from '../components/ds/CountUp';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { api, Company, Product, QuotationItem, SalesEngineer, Firm, Branch } from '../api';
+import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm, Branch } from '../api';
+import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
 import SearchableSelect from '../components/SearchableSelect';
 import StockAnalysisWidget from '../components/StockAnalysisWidget';
 
@@ -59,6 +60,51 @@ export default function QuotationNew() {
   // "Add total amount": the items have no prices; one total covers them all (migration 005).
   const [lumpSum, setLumpSum] = useState(false);
   const [lumpSumAmount, setLumpSumAmount] = useState('');
+  // Contact person and payment terms (migration 004). contactsEnabled turns false when the database
+  // has not been updated yet; the form then saves without them, as before.
+  const [contactsEnabled, setContactsEnabled] = useState(true);
+  const [contacts, setContacts] = useState<CompanyContact[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactId, setContactId] = useState<number | ''>('');
+  const [addingContact, setAddingContact] = useState(false);
+  const [contactDraft, setContactDraft] = useState<NewContactDraft>({ name: '', phone: '', email: '' });
+  const [advancePercent, setAdvancePercent] = useState('100');
+  const [customAdvance, setCustomAdvance] = useState(false);
+  const [dueDays, setDueDays] = useState('30');
+
+  useEffect(() => {
+    if (!companyId || !contactsEnabled) {
+      setContacts([]);
+      return;
+    }
+    let cancelled = false;
+    setContactsLoading(true);
+    api.companies
+      .contacts(Number(companyId))
+      .then((list) => {
+        if (cancelled) return;
+        setContacts(list);
+        // A contact of another company (the customer was changed) is dropped.
+        setContactId((cur) => (cur && list.some((c) => c.id === cur) ? cur : ''));
+        if (list.length === 0) setAddingContact(true);
+      })
+      .catch((e: Error & { status?: number }) => {
+        if (cancelled) return;
+        if (e.status === 503) setContactsEnabled(false);
+        else setError(e.message);
+      })
+      .finally(() => !cancelled && setContactsLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [companyId, contactsEnabled]);
+
+  function applyAdvance(value: unknown) {
+    const n = Number(value ?? 100);
+    const v = Number.isFinite(n) ? String(Math.round(n * 100) / 100) : '100';
+    setAdvancePercent(v);
+    setCustomAdvance(!ADVANCE_PRESETS.includes(Number(v)));
+  }
 
   useEffect(() => {
     api.companies.list().then(setCompanies);
@@ -99,6 +145,10 @@ export default function QuotationNew() {
             setLumpSum(true);
             setLumpSumAmount(q.lump_sum_amount != null ? String(Number(q.lump_sum_amount)) : '');
           }
+          setContactId(q.contact_id || '');
+          setAddingContact(false);
+          if (q.advance_percent !== undefined && q.advance_percent !== null) applyAdvance(q.advance_percent);
+          if (q.payment_due_days !== undefined && q.payment_due_days !== null) setDueDays(String(q.payment_due_days));
           if (q.items && q.items.length > 0) {
             setItems(
               q.items.map((it) => ({
@@ -116,7 +166,11 @@ export default function QuotationNew() {
         .catch((e) => setError(e.message))
         .finally(() => setLoading(false));
     } else {
-      api.settings.get().then((s) => setTaxPercent(s.default_tax_percent));
+      api.settings.get().then((s) => {
+        setTaxPercent(s.default_tax_percent);
+        if (s.default_advance_percent !== undefined) applyAdvance(s.default_advance_percent);
+        if (s.default_payment_due_days !== undefined) setDueDays(String(s.default_payment_due_days));
+      });
     }
   }, [isEdit, quotationId]);
 
@@ -336,6 +390,21 @@ export default function QuotationNew() {
       return setError('Every line item needs a description and quantity');
     }
     if (lumpSum && !(Number(lumpSumAmount) > 0)) return setError('Please enter the total amount for all the items');
+    if (contactsEnabled) {
+      if (addingContact) {
+        if (!contactDraft.name.trim()) return setError('Please enter the contact person name');
+        if (!contactDraft.phone.trim()) return setError('Please enter the contact number');
+        if (contactDraft.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactDraft.email.trim())) {
+          return setError('Please enter a valid email ID');
+        }
+      } else if (!contactId) {
+        return setError('Please select a contact person, or add a new one');
+      }
+      const adv = Number(advancePercent);
+      if (advancePercent === '' || !Number.isFinite(adv) || adv < 0 || adv > 100) return setError('Advance payment must be between 0% and 100%');
+      const days = Number(dueDays === '' ? 30 : dueDays);
+      if (!Number.isInteger(days) || days < 0 || days > 365) return setError('Payment due days must be a whole number from 0 to 365');
+    }
     setSaving(true);
     try {
       // Auto-save any custom products into catalogue before creating/updating quotation
@@ -390,6 +459,16 @@ export default function QuotationNew() {
         notes,
         pricing_mode: lumpSum ? 'lump_sum' : 'itemized',
         lump_sum_amount: lumpSum ? Number(lumpSumAmount) : null,
+        ...(contactsEnabled
+          ? {
+              contact_id: addingContact ? null : Number(contactId) || null,
+              new_contact: addingContact
+                ? { name: contactDraft.name.trim(), phone: contactDraft.phone.trim(), email: contactDraft.email.trim() }
+                : null,
+              advance_percent: Number(advancePercent),
+              payment_due_days: Number(dueDays === '' ? 30 : dueDays),
+            }
+          : {}),
         items: currentItems.map((it) => {
           const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
           return {
@@ -508,6 +587,29 @@ export default function QuotationNew() {
               </div>
             </div>
           </section>
+
+          {/* Contact person and payment terms (migration 004) */}
+          {contactsEnabled ? (
+            <QuotationContactPayment
+              hasCompany={Boolean(companyId)}
+              contacts={contacts}
+              contactsLoading={contactsLoading}
+              contactId={contactId}
+              onContactIdChange={setContactId}
+              adding={addingContact}
+              onAddingChange={setAddingContact}
+              draft={contactDraft}
+              onDraftChange={setContactDraft}
+              advancePercent={advancePercent}
+              onAdvancePercentChange={setAdvancePercent}
+              customAdvance={customAdvance}
+              onCustomAdvanceChange={setCustomAdvance}
+              dueDays={dueDays}
+              onDueDaysChange={setDueDays}
+            />
+          ) : (
+            <div className="ts-warnbox"><span>Contact persons and payment terms need a database update (migration 004). Ask your administrator to apply it.</span></div>
+          )}
 
           {/* Line items */}
           <section className="ts-card ts-white" style={{ ['--i' as string]: 1 }}>
@@ -678,6 +780,12 @@ export default function QuotationNew() {
             <div className="ts-grand"><span>Grand total</span><b className="num"><CountUp value={total} format={money2} duration={500} /></b></div>
             <div className="ts-qmeta">
               <div><span>Customer</span><b>{custName || 'Not selected'}</b></div>
+              {contactsEnabled && (
+                <>
+                  <div><span>Contact</span><b>{addingContact ? contactDraft.name.trim() || 'New contact' : contacts.find((c) => c.id === contactId)?.name || 'Not selected'}</b></div>
+                  <div><span>Advance</span><b>{advancePercent || 0}% · due in {dueDays || 30} days</b></div>
+                </>
+              )}
               <div><span>Engineer</span><b>{eng ? `${eng.name} (${eng.code})` : 'Not assigned'}</b></div>
               <div><span>Branch</span><b>{br ? `${br.name} (${br.code})` : 'Not selected'}</b></div>
               <div><span>Line items</span><b>{items.length}</b></div>

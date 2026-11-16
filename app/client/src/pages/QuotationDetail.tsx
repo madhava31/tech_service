@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
 import { FileTextIcon, PencilIcon } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
+import { QuotationPayments } from '../components/QuotationPayments';
 
 function formatDate(d: string | null) {
   if (!d) return '-';
@@ -233,6 +234,16 @@ export default function QuotationDetail() {
           {quotation.sales_engineer_name && <div><span>Sales engineer</span><b>{quotation.sales_engineer_name}{quotation.sales_engineer_code ? ` (${quotation.sales_engineer_code})` : ''}</b></div>}
           {quotation.firm_name && <div><span>Issued by</span><b>{quotation.firm_name}</b></div>}
           {quotation.branch_name && <div><span>Branch</span><b>{quotation.branch_name}</b></div>}
+          {quotation.contact_person && (
+            <div>
+              <span>Contact person</span>
+              <b>{quotation.contact_person}</b>
+              {(quotation.contact_phone || quotation.contact_email) && (
+                <span className="block text-[12.5px] text-subtle">{[quotation.contact_phone, quotation.contact_email].filter(Boolean).join(' · ')}</span>
+              )}
+            </div>
+          )}
+          {quotation.payment_schedule && <div><span>Payment terms</span><b>{quotation.payment_schedule.terms_text}</b></div>}
         </div>
 
         {/* Items Table */}
@@ -486,6 +497,16 @@ export default function QuotationDetail() {
           )}
         </div>
       </section>
+
+      {/* Payments: advance due after the PO, balance after the PI (migration 004) */}
+      {quotation.payment_schedule && (
+        <QuotationPayments
+          quotationId={quotationId}
+          schedule={quotation.payment_schedule}
+          payments={quotation.payments || []}
+          onChanged={load}
+        />
+      )}
 
       {/* Follow-Ups Section */}
       <section className="ts-card ts-white flex flex-col ga">

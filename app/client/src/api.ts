@@ -67,6 +67,89 @@ export interface Company {
   email: string | null;
 }
 
+/** One contact person of a company (migration 004). A quotation picks one, or adds a new one. */
+export interface CompanyContact {
+  id: number;
+  company_id: number;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  created_at?: string;
+}
+
+export type PaymentStatus = 'paid' | 'partly_paid' | 'due' | 'overdue' | 'not_started';
+
+/** One part of a quotation's payment schedule: the advance (due after the PO) or the balance (due after the PI). */
+export interface PaymentPart {
+  key: 'advance' | 'balance';
+  label: string;
+  amount: number;
+  starts_on: string | null;
+  starts_with: string;
+  due_date: string | null;
+  received: number;
+  outstanding: number;
+  status: PaymentStatus;
+  status_label: string;
+  days_overdue: number;
+}
+
+export interface PaymentSchedule {
+  total: number;
+  advance_percent: number;
+  payment_due_days: number;
+  terms_text: string;
+  received: number;
+  outstanding: number;
+  parts: PaymentPart[];
+  next_due_date: string | null;
+  days_overdue: number;
+  status: PaymentStatus;
+  status_label: string;
+}
+
+export interface QuotationPayment {
+  id: number;
+  amount: number;
+  paid_on: string;
+  mode: string | null;
+  reference: string | null;
+  note: string | null;
+  created_by_username?: string | null;
+}
+
+export interface QuotationPaymentsData {
+  schedule: PaymentSchedule;
+  payments: QuotationPayment[];
+}
+
+export interface PaymentDueItem {
+  quotation_id: number;
+  quotation_number: string;
+  company_id: number;
+  company_name: string;
+  contact_person: string | null;
+  contact_phone: string | null;
+  po_date: string | null;
+  pi_date: string | null;
+  total: number;
+  advance_percent: number;
+  received: number;
+  outstanding: number;
+  /** Unpaid amount of the parts already past their due date. */
+  overdue_amount: number;
+  next_due_date: string | null;
+  days_overdue: number;
+  status: PaymentStatus;
+  status_label: string;
+}
+
+export interface PaymentsDueData {
+  today: string;
+  items: PaymentDueItem[];
+  totals: { count: number; outstanding: number; overdue_count: number; overdue_amount: number };
+}
+
 export type CustomerHealthStatus = 'new' | 'strong' | 'active' | 'at_risk' | 'inactive' | 'no_history';
 
 export interface CompanyHealthData {
@@ -310,6 +393,19 @@ export interface Quotation {
   /** 'lump_sum': one total for all items, no per-item prices on the PDF (migration 005). */
   pricing_mode?: 'itemized' | 'lump_sum';
   lump_sum_amount?: number | string | null;
+  /** Contact chosen for this quotation and a snapshot of its phone and email (migration 004). */
+  contact_id?: number | null;
+  contact_phone?: string | null;
+  contact_email?: string | null;
+  /** Saved contact to use, or a new contact to add to the company, when saving (request only). */
+  new_contact?: { name: string; phone?: string; email?: string } | null;
+  /** Advance payment %, default 100. Due payment_due_days after the PO; the balance after the PI. */
+  advance_percent?: number | string | null;
+  payment_due_days?: number | null;
+  payment_schedule?: PaymentSchedule | null;
+  payments?: QuotationPayment[];
+  company_phone?: string | null;
+  company_email?: string | null;
   opportunity_ref?: string | null;
   /** Ordered terms printed on the PDF; null for quotations made before the quotation module. */
   terms?: QuotationTerm[] | null;
@@ -618,6 +714,9 @@ export interface CompanySettings {
   pi_prefix: string;
   default_tax_percent: number;
   default_lapse_months: number;
+  /** Defaults for new quotations (migration 004). */
+  default_advance_percent?: number | string;
+  default_payment_due_days?: number;
   stale_quotation_days?: number;
   high_value_threshold?: number;
 }
@@ -966,6 +1065,9 @@ export const api = {
         ? request<Company[]>(`/companies?q=${encodeURIComponent(q)}`, { signal })
         : cachedFetch('companies_all', (s) => request<Company[]>('/companies', { signal: signal || s }), 60000, signal),
     get: (id: number) => request<Company>(`/companies/${id}`),
+    contacts: (companyId: number) => request<CompanyContact[]>(`/companies/${companyId}/contacts`),
+    addContact: (companyId: number, data: { name: string; phone?: string; email?: string }) =>
+      request<CompanyContact>(`/companies/${companyId}/contacts`, { method: 'POST', body: JSON.stringify(data) }),
     create: async (data: Partial<Company>) => {
       const res = await request<Company>('/companies', { method: 'POST', body: JSON.stringify(data) });
       clearCache('companies');
@@ -1050,6 +1152,11 @@ export const api = {
       (params?: undefined, signal?: AbortSignal): Promise<Quotation[]>;
     },
     get: (id: number) => request<Quotation>(`/quotations/${id}`),
+    payments: (id: number) => request<QuotationPaymentsData>(`/quotations/${id}/payments`),
+    recordPayment: (id: number, data: { amount: number; paid_on: string; mode?: string; reference?: string; note?: string }) =>
+      request<QuotationPaymentsData>(`/quotations/${id}/payments`, { method: 'POST', body: JSON.stringify(data) }),
+    deletePayment: (id: number, paymentId: number) =>
+      request<QuotationPaymentsData>(`/quotations/${id}/payments/${paymentId}`, { method: 'DELETE' }),
     create: async (data: Partial<Quotation> | QuotationModulePayload) => {
       const res = await request<Quotation>('/quotations', { method: 'POST', body: JSON.stringify(data) });
       clearCache('quotations');
@@ -1142,6 +1249,7 @@ export const api = {
     awaitingCustomerResponse: () => request<AwaitingCustomerResponseData>('/dashboard/awaiting-customer-response'),
     draftQuotations: () => request<DraftQuotationsData>('/dashboard/draft-quotations'),
     purchaseOrdersNotInvoiced: () => request<PurchaseOrdersNotInvoicedData>('/dashboard/purchase-orders-not-invoiced'),
+    paymentsDue: () => request<PaymentsDueData>('/dashboard/payments-due'),
     flaggedSalesRecords: () => request<FlaggedSalesRecordsData>('/dashboard/flagged-sales-records'),
     followUps: () => request<DashboardFollowUpsData>('/dashboard/follow-ups'),
     overdueFollowUps: () => request<OverdueFollowUpsData>('/dashboard/overdue-follow-ups'),

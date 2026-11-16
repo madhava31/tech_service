@@ -9,6 +9,8 @@ const EDITABLE_FIELDS = [
   'bank_name', 'bank_account_no', 'bank_ifsc', 'bank_account_holder',
   'quotation_validity_days', 'payment_terms', 'delivery_time',
   'quotation_prefix', 'po_prefix', 'pi_prefix',
+  // Defaults for new quotations (migration 004). Skipped below until the columns exist.
+  'default_advance_percent', 'default_payment_due_days',
 ];
 
 router.get('/', async (req, res) => {
@@ -24,13 +26,21 @@ router.put('/', async (req, res) => {
   try {
     const existing = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
     const merged = { ...existing };
-    for (const f of EDITABLE_FIELDS) {
+    // Only columns this database has, so the page keeps working before a migration is applied.
+    const fields = EDITABLE_FIELDS.filter((f) => f in existing);
+    for (const f of fields) {
       if (req.body[f] !== undefined) merged[f] = req.body[f];
     }
-    const setClause = EDITABLE_FIELDS.map((f) => `${f} = ?`).join(', ');
+    if ('default_advance_percent' in existing) {
+      const adv = Number(merged.default_advance_percent);
+      if (!Number.isFinite(adv) || adv < 0 || adv > 100) return res.status(400).json({ error: 'Default advance must be between 0% and 100%' });
+      const days = Number(merged.default_payment_due_days);
+      if (!Number.isInteger(days) || days < 0 || days > 365) return res.status(400).json({ error: 'Default payment due days must be a whole number from 0 to 365' });
+    }
+    const setClause = fields.map((f) => `${f} = ?`).join(', ');
     await db
       .prepare(`UPDATE company_settings SET ${setClause} WHERE id = 1`)
-      .run(...EDITABLE_FIELDS.map((f) => merged[f]));
+      .run(...fields.map((f) => merged[f]));
     res.json(await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get());
   } catch (err) {
     res.status(500).json({ error: 'Unable to save settings. Please try again.' });
