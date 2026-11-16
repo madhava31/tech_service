@@ -6,6 +6,7 @@ import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValu
 import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
+import { readInstrument, saveInstrument } from '../quotations/instrument.js';
 import { applyQuotationContactAndTerms, paymentsReady, requirePayments, getQuotationPayments, recordPayment, paymentTermsText } from '../payments/service.js';
 
 const router = Router();
@@ -495,6 +496,7 @@ router.post('/', moduleGuard, async (req, res) => {
     const { company_id, company_name, date, tax_percent, notes, discount_type, discount_value, overall_discount_type, overall_discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
     // "Add total amount": one total for all items, split across the lines (quotations/lumpSum.js).
     const lumpSum = await readLumpSum(req.body);
+    await readInstrument(req.body);
     const items = lumpSum && Array.isArray(req.body.items) && req.body.items.length ? splitLumpSum(req.body.items, lumpSum) : req.body.items;
     let finalCompanyId = company_id ? Number(company_id) : null;
     if ((!finalCompanyId || isNaN(finalCompanyId)) && (company_name || typeof company_id === 'string')) {
@@ -646,6 +648,7 @@ router.post('/', moduleGuard, async (req, res) => {
           }
         }
       }
+      await saveInstrument(qId, req.body);
       return qId;
     });
 
@@ -668,6 +671,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
 
     const { company_id, company_name, date, tax_percent, notes, discount_type, discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
     const lumpSum = await readLumpSum(req.body);
+    await readInstrument(req.body);
     const items = lumpSum && Array.isArray(req.body.items) && req.body.items.length ? splitLumpSum(req.body.items, lumpSum) : req.body.items;
     let finalCompanyId = company_id ? Number(company_id) : null;
     if ((!finalCompanyId || isNaN(finalCompanyId)) && (company_name || typeof company_id === 'string')) {
@@ -812,6 +816,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
           }
         }
       }
+      await saveInstrument(req.params.id, req.body);
     });
 
     apiCache.invalidateTags(['dashboard', 'products', 'companies']);
@@ -1076,7 +1081,8 @@ router.get('/:id/pdf', async (req, res) => {
       .prepare(
         `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state,
                 c.gstin AS company_gstin, c.phone AS company_phone,
-                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code, u.username AS created_by_username
+                e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code,
+                e.phone AS sales_engineer_phone, e.email AS sales_engineer_email, u.username AS created_by_username
          FROM quotation q
          JOIN company c ON c.id = q.company_id
          LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id

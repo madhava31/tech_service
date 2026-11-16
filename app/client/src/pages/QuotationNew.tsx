@@ -1,7 +1,7 @@
 import { CheckIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { CountUp } from '../components/ds/CountUp';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm, Branch } from '../api';
 import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
 import SearchableSelect from '../components/SearchableSelect';
@@ -30,6 +30,7 @@ const featuresList = (text: string) => text.split('\n').map((f) => f.replace(/^\
 export default function QuotationNew() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const isEdit = Boolean(id);
   const quotationId = Number(id);
 
@@ -60,6 +61,14 @@ export default function QuotationNew() {
   // "Add total amount": the items have no prices; one total covers them all (migration 005).
   const [lumpSum, setLumpSum] = useState(false);
   const [lumpSumAmount, setLumpSumAmount] = useState('');
+
+  // Instrument quotation ("Quotation for instruments" button, migration 006): a title, bold main
+  // items, and always one total amount for all the items.
+  const [isInstrument, setIsInstrument] = useState(!isEdit && searchParams.get('type') === 'instrument');
+  const [instrumentTitle, setInstrumentTitle] = useState('');
+  useEffect(() => {
+    if (isInstrument) setLumpSum(true);
+  }, [isInstrument]);
   // Contact person and payment terms (migration 004). contactsEnabled turns false when the database
   // has not been updated yet; the form then saves without them, as before.
   const [contactsEnabled, setContactsEnabled] = useState(true);
@@ -141,6 +150,10 @@ export default function QuotationNew() {
           setDiscountValue(q.overall_discount_value ?? q.discount_value ?? q.discount_percent ?? 0);
           setNotes(q.notes || '');
           setQuotationNumber(q.number || '');
+          if (q.quotation_type === 'instrument') {
+            setIsInstrument(true);
+            setInstrumentTitle(q.instrument_title || '');
+          }
           if (q.pricing_mode === 'lump_sum') {
             setLumpSum(true);
             setLumpSumAmount(q.lump_sum_amount != null ? String(Number(q.lump_sum_amount)) : '');
@@ -389,6 +402,7 @@ export default function QuotationNew() {
     if (items.length === 0 || items.some((it) => !it.description || !it.qty)) {
       return setError('Every line item needs a description and quantity');
     }
+    if (isInstrument && !instrumentTitle.trim()) return setError('Please enter the instrument title, e.g. PerkinElmer make FTIR-Spectrum Two with UATR');
     if (lumpSum && !(Number(lumpSumAmount) > 0)) return setError('Please enter the total amount for all the items');
     if (contactsEnabled) {
       if (addingContact) {
@@ -457,7 +471,9 @@ export default function QuotationNew() {
         discount_type: discountType,
         discount_value: numOverallDiscountVal,
         notes,
-        pricing_mode: lumpSum ? 'lump_sum' : 'itemized',
+        pricing_mode: lumpSum || isInstrument ? 'lump_sum' : 'itemized',
+        quotation_type: isInstrument ? 'instrument' : 'standard',
+        instrument_title: isInstrument ? instrumentTitle.trim() : null,
         lump_sum_amount: lumpSum ? Number(lumpSumAmount) : null,
         ...(contactsEnabled
           ? {
@@ -483,6 +499,7 @@ export default function QuotationNew() {
             discount_type: it.discount_type || 'none',
             discount_value: Number(it.discount_value) || 0,
             key_features: featuresList(featuresText(it)),
+            is_main: isInstrument && it.is_main === true,
           };
         }),
       };
@@ -516,7 +533,7 @@ export default function QuotationNew() {
       <div className="ts-phead">
         <div style={{ minWidth: 0 }}>
           <Link to={isEdit ? `/quotations/${quotationId}` : '/quotations'} className="ts-back">← {isEdit ? 'Back to quotation' : 'Quotations'}</Link>
-          <h1>{isEdit ? `Edit quotation${quotationNumber ? ` ${quotationNumber}` : ''}` : 'New quotation'}</h1>
+          <h1>{isEdit ? `Edit ${isInstrument ? 'instrument ' : ''}quotation${quotationNumber ? ` ${quotationNumber}` : ''}` : isInstrument ? 'New instrument quotation' : 'New quotation'}</h1>
           <p className="ts-muted" style={{ margin: '6px 0 0', fontSize: 14 }}>
             {isEdit ? 'Change terms, product discounts, the overall discount or line items.' : 'Build a formal pricing proposal with line and overall discounts.'}
           </p>
@@ -614,6 +631,15 @@ export default function QuotationNew() {
           {/* Line items */}
           <section className="ts-card ts-white" style={{ ['--i' as string]: 1 }}>
             <div className="ts-rhead"><div className="ts-ch"><b>{lumpSum ? 'Line items' : 'Line items and product discounts'}</b></div><span className="ts-muted" style={{ fontSize: 13 }}>{items.length} {items.length === 1 ? 'item' : 'items'}</span></div>
+            {isInstrument ? (
+              <div className="mt-3 flex flex-col gap-2 rounded-lg border border-line2 bg-surface px-3 py-3">
+                <div className="ts-fld">
+                  <label htmlFor="q-inst-title">Instrument title (printed in the middle of the quotation) *</label>
+                  <input id="q-inst-title" className="ts-fi" maxLength={200} value={instrumentTitle} onChange={(e) => setInstrumentTitle(e.target.value)} placeholder="e.g. PerkinElmer make FTIR-Spectrum Two with UATR" />
+                </div>
+                <small className="text-[12.5px] text-subtle">Instrument format: Part Number, Quantity and Description for each line, and one total amount for all the items. Tick "Main item" to print a line in bold.</small>
+              </div>
+            ) : (
             <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-lg border border-line2 bg-surface px-3 py-2 text-[13px]">
               <input type="checkbox" className="mt-0.5" checked={lumpSum} onChange={(e) => setLumpSum(e.target.checked)} />
               <span>
@@ -621,6 +647,7 @@ export default function QuotationNew() {
                 <span className="block text-subtle">No price for each item: enter one total for all the items. The PDF shows the items and only the total price.</span>
               </span>
             </label>
+            )}
             <div className="flex flex-col gap-3 mt-4">
               {computedItems.map((it, idx) => {
                 const noDisc = !it.discount_type || it.discount_type === 'none';
@@ -628,6 +655,12 @@ export default function QuotationNew() {
                   <div key={idx} className="ts-qline">
                     <div className="ts-ql-h">
                       <b>Line item {idx + 1}</b>
+                      {isInstrument && (
+                        <label className="flex cursor-pointer items-center gap-1.5 text-[12.5px] text-subtle">
+                          <input type="checkbox" checked={it.is_main === true} onChange={(e) => updateItem(idx, { is_main: e.target.checked })} />
+                          Main item (bold)
+                        </label>
+                      )}
                       {it.product_id ? <span className="ts-lb ts-saved">In catalogue</span> : <span className="ts-lb ts-new">New item</span>}
                       <span style={{ flex: 1 }} />
                       {!it.product_id && (

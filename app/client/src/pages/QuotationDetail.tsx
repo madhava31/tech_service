@@ -284,6 +284,13 @@ export default function QuotationDetail() {
           {quotation.payment_schedule && <div><span>Payment terms</span><b>{quotation.payment_schedule.terms_text}</b></div>}
         </div>
 
+        {quotation.quotation_type === 'instrument' && (
+          <div className="text-center">
+            <span className="text-[12px] uppercase tracking-[.07em] text-subtle">Instrument quotation</span>
+            {quotation.instrument_title && <div className="mt-1 text-[16px] font-semibold text-fg underline underline-offset-4">{quotation.instrument_title}</div>}
+          </div>
+        )}
+
         {/* Items Table */}
         <div className="ts-tbl ts-tblwrap">
           <table className="w-full min-w-[750px] border-collapse text-[12.5px]">
@@ -312,7 +319,7 @@ export default function QuotationDetail() {
                   <tr key={it.id} className="border-b border-line">
                     <td className="p-2.5 font-mono text-[12px] text-subtle">{it.part_no || '-'}</td>
                     <td className="p-2.5 text-fg">
-                      <div>{it.description}</div>
+                      <div className={it.is_main ? 'font-semibold' : undefined}>{it.description}</div>
                       {it.make && <div className="text-[11px] text-faint">Make: {it.make}</div>}
                     </td>
                     <td className="p-2.5 text-subtle">{it.hsn_sac || '-'}</td>

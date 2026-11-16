@@ -21,6 +21,7 @@ const ORANGE = '#E8620F';
 const HEADER_GREY = '#808080';
 const SHADE = '#F2F2F2';
 const SHADE_DARK = '#D9D9D9';
+const TITLE_BLUE = '#1F4E9A'; // instrument title, as in the instrument quotation format
 
 const COMPANY = {
   name: 'TECHNICON SERVICES',
@@ -61,19 +62,29 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   // ---- title, number, date ----
   doc.font(B).fontSize(14).fillColor('#000').text('QUOTATION', M, ruleY + 12, { width: W, align: 'center' });
   const metaY = ruleY + 38;
-  doc.fontSize(8.5);
-  doc.font(B).text('Quotation No: ', M, metaY, { continued: true }).font(R).fillColor('#333').text(`# ${quotation.number}`);
-  const dateLabel = 'Quotation Date: ';
-  const dateText = ddmmyyyy(quotation.date);
-  doc.font(B);
-  const labelW = doc.widthOfString(dateLabel);
-  doc.font(R);
-  const dateW = doc.widthOfString(dateText);
-  doc.font(B).fillColor('#000').text(dateLabel, M + W - labelW - dateW, metaY, { lineBreak: false });
-  doc.font(R).fillColor('#333').text(dateText, M + W - dateW, metaY, { lineBreak: false });
 
-  // ---- To block ----
-  let y = metaY + 20;
+  // ---- right column: date, then the number under it, then the assigned sales person ----
+  const metaLines = [
+    ['Quotation Date: ', ddmmyyyy(quotation.date)],
+    ['Quotation No: ', `#${quotation.number}`],
+    quotation.sales_engineer_name ? ['Sales Person: ', String(quotation.sales_engineer_name)] : null,
+    quotation.sales_engineer_name && quotation.sales_engineer_phone ? ['Phone: ', String(quotation.sales_engineer_phone)] : null,
+    quotation.sales_engineer_name && quotation.sales_engineer_email ? ['Email: ', String(quotation.sales_engineer_email)] : null,
+  ].filter(Boolean);
+  doc.fontSize(8.5);
+  let my = metaY;
+  for (const [label, value] of metaLines) {
+    doc.font(B);
+    const lw = doc.widthOfString(label);
+    doc.font(R);
+    const vw = doc.widthOfString(value);
+    doc.font(B).fillColor('#000').text(label, M + W - lw - vw, my, { lineBreak: false });
+    doc.font(R).fillColor('#333').text(value, M + W - vw, my, { lineBreak: false });
+    my += 12;
+  }
+
+  // ---- To block (left, beside the right column) ----
+  let y = metaY;
   doc.font(R).fontSize(8.5).fillColor('#000');
   const toLines = ['To'];
   toLines.push(String(quotation.company_name || '').toUpperCase());
@@ -84,10 +95,10 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   if (quotation.contact_phone) toLines.push(`Phone: ${quotation.contact_phone}`);
   if (quotation.contact_email) toLines.push(`Email: ${quotation.contact_email}`);
   for (const l of toLines) {
-    doc.text(l, M, y, { width: W * 0.6 });
+    doc.text(l, M, y, { width: W * 0.58 });
     y = doc.y + 1.5;
   }
-  y += 6;
+  y = Math.max(y, my) + 6;
 
   // ---- product table ----
   const lumpSum = quotation.pricing_mode === 'lump_sum';
@@ -151,16 +162,68 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
     }
   }
 
-  y = drawHeaderRow(y);
-  items.forEach((it, idx) => {
-    const h = rowHeight(it);
-    if (y + h > BOTTOM) {
-      doc.addPage();
-      y = drawHeaderRow(M);
+  if (quotation.quotation_type === 'instrument') {
+    y = drawInstrumentTable(y);
+  } else {
+    y = drawHeaderRow(y);
+    items.forEach((it, idx) => {
+      const h = rowHeight(it);
+      if (y + h > BOTTOM) {
+        doc.addPage();
+        y = drawHeaderRow(M);
+      }
+      drawRow(it, idx, y, h);
+      y += h;
+    });
+  }
+
+  // Instrument format (migration 006): a centred, underlined title, then
+  // Part Number | Quantity | Description | INR Total. Main units print in bold. There are no
+  // per-line prices: the total rows below hold the one total. The last column lines up with the
+  // total rows' value column.
+  function drawInstrumentTable(startY) {
+    let ty = startY + 4;
+    const title = String(quotation.instrument_title || '').trim();
+    if (title) {
+      doc.font(B).fontSize(11).fillColor(TITLE_BLUE);
+      const tw = Math.min(doc.widthOfString(title), W);
+      const th = doc.heightOfString(title, { width: W });
+      doc.text(title, M, ty, { width: W, align: 'center' });
+      const lineY = ty + th + 1;
+      doc.moveTo(M + (W - tw) / 2, lineY).lineTo(M + (W + tw) / 2, lineY).lineWidth(0.8).strokeColor(TITLE_BLUE).stroke();
+      ty = lineY + 10;
     }
-    drawRow(it, idx, y, h);
-    y += h;
-  });
+    const IW = [95, 55, W - 95 - 55 - COL_W[5], COL_W[5]];
+    const IX = IW.reduce((xs, w, i) => [...xs, xs[i] + w], [M]);
+    const grid = (atY, h) => {
+      doc.lineWidth(0.6).strokeColor('#000').rect(M, atY, W, h).stroke();
+      for (let i = 1; i < IX.length - 1; i++) doc.moveTo(IX[i], atY).lineTo(IX[i], atY + h).stroke();
+    };
+    const header = (atY) => {
+      const h = 17;
+      grid(atY, h);
+      doc.font(B).fontSize(8.5).fillColor('#000');
+      ['Part Number', 'Quantity', 'Description', 'INR Total'].forEach((t, i) =>
+        doc.text(t, IX[i] + PAD, atY + 5, { width: IW[i] - 2 * PAD, align: i === 3 ? 'right' : 'left', lineBreak: false })
+      );
+      return atY + h;
+    };
+    ty = header(ty);
+    for (const it of items) {
+      const font = it.is_main ? B : R;
+      doc.font(font).fontSize(8.5);
+      const desc = String(it.product_name || it.description || '');
+      const h = Math.max(doc.heightOfString(desc, { width: IW[2] - 2 * PAD }), doc.heightOfString(String(it.part_no || ''), { width: IW[0] - 2 * PAD })) + 2 * PAD + 2;
+      if (ty + h > BOTTOM) { doc.addPage(); ty = header(M); }
+      grid(ty, h);
+      doc.font(font).fontSize(8.5).fillColor('#000');
+      doc.text(String(it.part_no || ''), IX[0] + PAD, ty + PAD + 1, { width: IW[0] - 2 * PAD });
+      doc.text(String(Number(it.qty) % 1 === 0 ? Number(it.qty) : fixed2(it.qty)), IX[1] + PAD, ty + PAD + 1, { width: IW[1] - 2 * PAD });
+      doc.text(desc, IX[2] + PAD, ty + PAD + 1, { width: IW[2] - 2 * PAD });
+      ty += h;
+    }
+    return ty;
+  }
 
   // ---- totals ----
   // Overall discount and round off exist only on quotations from the original quotation form; the
@@ -177,6 +240,10 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
     },
     ...(overall > 0.004
       ? [{ label: quotation.overall_discount_type === 'percentage' ? `Overall Discount @ ${pct(quotation.overall_discount_value)}%` : 'Overall Discount', value: -overall, fill: SHADE, bold: false }]
+      : []),
+    // Same rows as the quotation page: after a discount, the taxable amount GST is worked out on.
+    ...(overall > 0.004
+      ? [{ label: 'Net Taxable Subtotal', value: Number(quotation.taxable_amount ?? quotation.net_subtotal ?? 0), fill: SHADE, bold: true }]
       : []),
     { label: `GST @ ${pct(quotation.tax_percent)}%`, value: quotation.tax_amount, fill: SHADE, bold: false },
     ...(Math.abs(roundOff) > 0.004 ? [{ label: 'Round Off', value: roundOff, fill: SHADE, bold: false }] : []),
