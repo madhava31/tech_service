@@ -672,6 +672,14 @@ router.put('/:id', moduleGuard, async (req, res) => {
     const { company_id, company_name, date, tax_percent, notes, discount_type, discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
     const lumpSum = await readLumpSum(req.body);
     await readInstrument(req.body);
+    // The quotation number can be changed while editing; it must stay unique.
+    const newNumber = req.body.number !== undefined && req.body.number !== null ? String(req.body.number).trim() : null;
+    if (newNumber !== null) {
+      if (!newNumber) return res.status(400).json({ error: 'Please enter the quotation number' });
+      if (newNumber.length > 40) return res.status(400).json({ error: 'The quotation number can be at most 40 characters' });
+      const clash = await db.prepare(`SELECT id FROM quotation WHERE UPPER(number) = UPPER(?) AND id <> ?`).get(newNumber, req.params.id);
+      if (clash) return res.status(409).json({ error: `Quotation number ${newNumber} is already used by another quotation` });
+    }
     const items = lumpSum && Array.isArray(req.body.items) && req.body.items.length ? splitLumpSum(req.body.items, lumpSum) : req.body.items;
     let finalCompanyId = company_id ? Number(company_id) : null;
     if ((!finalCompanyId || isNaN(finalCompanyId)) && (company_name || typeof company_id === 'string')) {
@@ -742,6 +750,9 @@ router.put('/:id', moduleGuard, async (req, res) => {
           req.params.id
         );
       await savePricingMode(req.params.id, req.body, lumpSum);
+      if (newNumber && newNumber !== existing.number) {
+        await db.prepare(`UPDATE quotation SET number = ? WHERE id = ?`).run(newNumber, req.params.id);
+      }
       await applyQuotationContactAndTerms(req.params.id, finalCompanyId, req.body, req.user.id);
 
       await db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(req.params.id);
@@ -824,6 +835,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
     res.json(row);
   } catch (err) {
     console.error('Unable to save the quotation:', err);
+    if (err?.code === '23505') return res.status(409).json({ error: 'That quotation number is already used by another quotation' });
     if (err?.status === 503) return res.status(503).json({ error: err.message, code: 'MIGRATION_REQUIRED' });
     sendRouteError(res, err, 500, 'Unable to save the quotation. Please try again.');
   }

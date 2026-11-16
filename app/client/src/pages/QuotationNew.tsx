@@ -402,6 +402,7 @@ export default function QuotationNew() {
     if (items.length === 0 || items.some((it) => !it.description || !it.qty)) {
       return setError('Every line item needs a description and quantity');
     }
+    if (isEdit && !quotationNumber.trim()) return setError('Please enter the quotation number');
     if (isInstrument && !instrumentTitle.trim()) return setError('Please enter the instrument title, e.g. PerkinElmer make FTIR-Spectrum Two with UATR');
     if (lumpSum && !(Number(lumpSumAmount) > 0)) return setError('Please enter the total amount for all the items');
     if (contactsEnabled) {
@@ -473,6 +474,7 @@ export default function QuotationNew() {
         notes,
         pricing_mode: lumpSum || isInstrument ? 'lump_sum' : 'itemized',
         quotation_type: isInstrument ? 'instrument' : 'standard',
+        ...(isEdit ? { number: quotationNumber.trim() } : {}),
         instrument_title: isInstrument ? instrumentTitle.trim() : null,
         lump_sum_amount: lumpSum ? Number(lumpSumAmount) : null,
         ...(contactsEnabled
@@ -566,6 +568,12 @@ export default function QuotationNew() {
                 />
                 <small className="ts-hint">Select an existing customer or type a new name to save it.</small>
               </div>
+              {isEdit && (
+                <div className="ts-fld">
+                  <label htmlFor="q-number">Quotation number</label>
+                  <input id="q-number" type="text" className="ts-fi" maxLength={40} value={quotationNumber} onChange={(e) => setQuotationNumber(e.target.value)} placeholder="e.g. TSQOT2627/2" />
+                </div>
+              )}
               <div className="ts-fld">
                 <label htmlFor="q-date">Quotation date</label>
                 <input id="q-date" type="date" className="ts-fi" value={date} onChange={(e) => setDate(e.target.value)} />
