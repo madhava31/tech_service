@@ -324,6 +324,33 @@ export default function Settings() {
               className="ts-fi"
             />
           </div>
+          {/* Defaults for new quotations; shown once migration 004 has added the columns. */}
+          {settings.default_advance_percent !== undefined && (
+            <div>
+              <label className="ts-lbl">Default Advance (%)</label>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={settings.default_advance_percent}
+                onChange={(e) => setSettings({ ...settings, default_advance_percent: e.target.value })}
+                className="ts-fi"
+              />
+            </div>
+          )}
+          {settings.default_payment_due_days !== undefined && (
+            <div>
+              <label className="ts-lbl">Default Payment Due (Days)</label>
+              <input
+                type="number"
+                min={0}
+                max={365}
+                value={settings.default_payment_due_days}
+                onChange={(e) => setSettings({ ...settings, default_payment_due_days: Number(e.target.value) })}
+                className="ts-fi"
+              />
+            </div>
+          )}
         </div>
       </div>
 

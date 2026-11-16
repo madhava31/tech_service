@@ -132,6 +132,9 @@ if (process.env.DATABASE_URL && process.env.NODE_ENV !== 'test') {
 }
 
 app.set('trust proxy', 1);
+// API responses are never cached (Cache-Control: no-store below), so ETags only produce 304 replies.
+// Turn them off so every successful API call answers 200.
+app.set('etag', false);
 
 const allowedOrigin = process.env.CLIENT_ORIGIN || true;
 

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
 import { FileTextIcon, PencilIcon } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
+import { QuotationPayments } from '../components/QuotationPayments';
 
 function formatDate(d: string | null) {
   if (!d) return '-';
@@ -41,6 +42,8 @@ export default function QuotationDetail() {
   const [completingId, setCompletingId] = useState<number | null>(null);
   const [outcome, setOutcome] = useState('');
   const [outcomeNotes, setOutcomeNotes] = useState('');
+  // Bumped by the workflow's "Payment received" button: opens the record-payment form on the Payments card.
+  const [paymentFormSignal, setPaymentFormSignal] = useState(0);
 
   function load() {
     api.quotations.get(quotationId).then(setQuotation).catch((e) => setError(e.message));
@@ -201,14 +204,36 @@ export default function QuotationDetail() {
         const st = quotation.status;
         const sentOrLater = st !== 'draft';
         const accepted = st === 'accepted' || st === 'po_created' || st === 'pi_created' || pos.length > 0;
-        let steps: [string, boolean, string?][] = [
+        // [label, done, extra class, small status line under the label]
+        let steps: [string, boolean, string?, string?][] = [
           ['Drafted', true],
           ['Sent', sentOrLater],
           ['Accepted', accepted],
           [pos.length ? `PO ${pos[0].number}` : 'Purchase order', pos.length > 0],
-          [pis.length ? `PI ${pis[0].number}` : 'Performa invoice', pis.length > 0],
         ];
+        // Payment steps (migration 004): the advance follows the PO and the balance follows the PI.
+        // An overdue payment shows in red.
+        const sched = quotation.payment_schedule;
+        const advance = sched?.parts.find((p) => p.key === 'advance');
+        const balance = sched?.parts.find((p) => p.key === 'balance');
+        const payStep = (label: string, part?: NonNullable<typeof sched>['parts'][number]): [string, boolean, string?, string?] => {
+          if (!part) return [label, false];
+          const paid = part.status === 'paid';
+          const note = paid
+            ? 'Received'
+            : part.status === 'overdue'
+              ? `Overdue ${part.days_overdue} days`
+              : part.due_date
+                ? `Due ${fmtDay(part.due_date)}`
+                : undefined;
+          return [label, paid, part.status === 'overdue' ? 'ts-lost' : undefined, note];
+        };
+        const partial = sched && advance && balance;
+        if (partial) steps.push(payStep(`Advance ${sched.advance_percent}% received`, advance));
+        steps.push([pis.length ? `PI ${pis[0].number}` : 'Performa invoice', pis.length > 0]);
+        if (sched) steps.push(payStep('Payment received', partial ? balance : advance || balance));
         if (st === 'rejected') steps = [['Drafted', true], ['Sent', true], ['Rejected', true, 'ts-lost']];
+        const canRecordPayment = st !== 'rejected' && !!sched && sched.outstanding > 0 && pos.length > 0;
         const last = steps.reduce((acc, x, i) => (x[1] ? i : acc), 0), n = steps.length, inset = 50 / n, fillW = (last / (n - 1)) * (100 - 2 * inset);
         return (
           <div className="ts-card ts-white" style={{ ['--i' as string]: 0, marginBottom: 16 }}>
@@ -217,9 +242,23 @@ export default function QuotationDetail() {
               <span className="ts-rail" style={{ left: `${inset}%`, right: `${inset}%` }} />
               <span className="ts-fill" style={{ left: `${inset}%`, width: `${fillW}%` }} />
               {steps.map((x, i) => (
-                <div key={i} className={`ts-step ${x[2] || (x[1] ? 'ts-done' : '')} ${i === last ? 'ts-cur' : ''}`}><b />{x[0]}</div>
+                <div key={i} className={`ts-step ${x[2] || (x[1] ? 'ts-done' : '')} ${i === last ? 'ts-cur' : ''}`}>
+                  <b />
+                  {x[0]}
+                  {x[3] && <small className="text-[11px] opacity-80">{x[3]}</small>}
+                </div>
               ))}
             </div>
+            {canRecordPayment && (
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-line2 pt-3">
+                <span className="text-[12.5px] text-subtle">
+                  ₹{Number(sched!.outstanding).toLocaleString('en-IN', { minimumFractionDigits: 2 })} still to be received
+                </span>
+                <button type="button" className="ts-btn ts-dark ts-xs" onClick={() => setPaymentFormSignal((n) => n + 1)}>
+                  ✓ Payment received
+                </button>
+              </div>
+            )}
           </div>
         );
       })()}
@@ -233,6 +272,16 @@ export default function QuotationDetail() {
           {quotation.sales_engineer_name && <div><span>Sales engineer</span><b>{quotation.sales_engineer_name}{quotation.sales_engineer_code ? ` (${quotation.sales_engineer_code})` : ''}</b></div>}
           {quotation.firm_name && <div><span>Issued by</span><b>{quotation.firm_name}</b></div>}
           {quotation.branch_name && <div><span>Branch</span><b>{quotation.branch_name}</b></div>}
+          {quotation.contact_person && (
+            <div>
+              <span>Contact person</span>
+              <b>{quotation.contact_person}</b>
+              {(quotation.contact_phone || quotation.contact_email) && (
+                <small className="block text-[12.5px] text-subtle normal-case tracking-normal">{[quotation.contact_phone, quotation.contact_email].filter(Boolean).join(' · ')}</small>
+              )}
+            </div>
+          )}
+          {quotation.payment_schedule && <div><span>Payment terms</span><b>{quotation.payment_schedule.terms_text}</b></div>}
         </div>
 
         {/* Items Table */}
@@ -486,6 +535,17 @@ export default function QuotationDetail() {
           )}
         </div>
       </section>
+
+      {/* Payments: advance due after the PO, balance after the PI (migration 004) */}
+      {quotation.payment_schedule && (
+        <QuotationPayments
+          quotationId={quotationId}
+          schedule={quotation.payment_schedule}
+          payments={quotation.payments || []}
+          onChanged={load}
+          openFormSignal={paymentFormSignal}
+        />
+      )}
 
       {/* Follow-Ups Section */}
       <section className="ts-card ts-white flex flex-col ga">

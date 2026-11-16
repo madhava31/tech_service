@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import db from '../db/index.js';
+import { requirePayments, listContacts, addContact } from '../payments/service.js';
+import apiCache from '../cache/apiCache.js';
+import { sendRouteError } from '../http/errors.js';
 
 const router = Router();
 
@@ -226,6 +229,27 @@ router.get('/:id/health', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
+
+// ---------- Contact persons ----------
+// A company can have several contact persons. Quotations pick one of them, or add a new one.
+// Contacts are only ever added here, never changed, so an earlier quotation keeps its contact.
+router.get('/:id/contacts', requirePayments, async (req, res) => {
+  try {
+    res.json(await listContacts(Number(req.params.id)));
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to load the contact persons. Please try again.');
+  }
+});
+
+router.post('/:id/contacts', requirePayments, async (req, res) => {
+  try {
+    const { contact, created } = await addContact(Number(req.params.id), req.body, req.user?.id ?? null);
+    if (created) apiCache.invalidateTags(['companies']);
+    res.status(created ? 201 : 200).json(contact);
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to save the contact person. Please try again.');
   }
 });
 

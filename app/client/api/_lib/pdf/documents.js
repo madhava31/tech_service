@@ -2,6 +2,7 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { paymentTermsText } from '../payments/service.js';
 
 const MARGIN = 36;
 const PAGE_WIDTH = 595.28; // A4 pt
@@ -221,6 +222,13 @@ function drawEstimateBlock(doc, { billTo, number, date, createdByUsername, extra
     doc.text(`Contact No. : ${billTo.company_phone}`, { width: colWidth });
   }
   if (billTo.company_gstin) doc.text(`GSTIN : ${billTo.company_gstin}`, { width: colWidth });
+  // The contact person chosen on the quotation (migration 004).
+  if (billTo.contact_person) {
+    doc.moveDown(0.2);
+    doc.text(`Kind Attn : ${billTo.contact_person}`, { width: colWidth });
+    if (billTo.contact_phone) doc.text(`Phone : ${billTo.contact_phone}`, { width: colWidth });
+    if (billTo.contact_email) doc.text(`Email : ${billTo.contact_email}`, { width: colWidth });
+  }
   const leftEndY = doc.y;
 
   // Right Column
@@ -314,7 +322,7 @@ function drawItemsTable(doc, items, defaultTaxPercent, fonts) {
   return { totalTaxable, totalGst, totalAmount };
 }
 
-function drawLowerSection(doc, { items, settings, subtotal, taxPercent, sameState, calcTotals, discountType, discountPercent, discountAmount, taxableAmount, roundOff: passedRoundOff, total: passedTotal }, fonts) {
+function drawLowerSection(doc, { items, settings, subtotal, taxPercent, sameState, calcTotals, discountType, discountPercent, discountAmount, taxableAmount, roundOff: passedRoundOff, total: passedTotal, paymentTerms }, fonts) {
   if (doc.y > 640) {
     doc.addPage();
     doc.y = MARGIN + 10;
@@ -338,7 +346,8 @@ function drawLowerSection(doc, { items, settings, subtotal, taxPercent, sameStat
   doc.font(fonts.bold).fontSize(9).text('Terms and Conditions:', MARGIN, doc.y, { width: colWidth });
   doc.font(fonts.reg).fontSize(8.5);
   const valDays = settings.quotation_validity_days || 15;
-  const payTerms = settings.payment_terms || '100% Advance';
+  // Payment terms set on the quotation (migration 004) win over the global text in settings.
+  const payTerms = paymentTerms || settings.payment_terms || '100% Advance';
   const delTime = settings.delivery_time || 'Ready stock';
   doc.text(`Quotation Validity: ${valDays} days`, MARGIN, doc.y, { width: colWidth });
   doc.text(`Payment terms: ${payTerms}`, MARGIN, doc.y, { width: colWidth });
@@ -448,6 +457,13 @@ function drawLowerSection(doc, { items, settings, subtotal, taxPercent, sameStat
   doc.y = Math.max(leftEndY, rightY) + 10;
 }
 
+// The quotation's own payment terms (advance %, due days) when migration 004 is applied, else null.
+function quotationPaymentTerms(row) {
+  return row && row.advance_percent !== undefined && row.advance_percent !== null
+    ? paymentTermsText(row.advance_percent, row.payment_due_days)
+    : null;
+}
+
 function buildDocument(res, { title, number, date, billTo, items, subtotal, taxPercent, settings, createdByUsername, extraDetailLines, discountType, discountPercent, discountAmount, taxableAmount, roundOff, total }) {
   const doc = new PDFDocument({ size: 'A4', margin: MARGIN });
   doc.pipe(res);
@@ -477,6 +493,7 @@ function buildDocument(res, { title, number, date, billTo, items, subtotal, taxP
     taxableAmount,
     roundOff,
     total,
+    paymentTerms: quotationPaymentTerms(billTo),
   }, fonts);
 
   doc.end();

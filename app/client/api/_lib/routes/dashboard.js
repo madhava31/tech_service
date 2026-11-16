@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
+import { paymentsReady, listOutstanding } from '../payments/service.js';
 import { classifyHealthStatus } from './companies.js';
 
 const router = Router();
@@ -212,6 +213,9 @@ router.get('/attention', async (req, res) => {
 
     const rowsNeedingReview = (await getSalesRecordsNeedingReview()).length;
 
+    // Payments overdue: a PO's advance or a PI's balance not received within the quotation's due days (migration 004).
+    const payments = (await paymentsReady()) ? (await listOutstanding()).totals : null;
+
     const { overdue, dueToday } = await getGroupedFollowUps();
     const overdueFollowUps = overdue.length;
     const dueTodayFollowUps = dueToday.length;
@@ -252,6 +256,18 @@ router.get('/attention', async (req, res) => {
         description: 'Sent to the customer but not yet accepted or rejected — follow up to move these forward.',
         count: sentQuotations,
         route: '/awaiting-customer-response',
+      });
+    }
+
+    if (payments && payments.overdue_count > 0) {
+      const amount = `₹${Math.round(payments.overdue_amount).toLocaleString('en-IN')}`;
+      items.push({
+        type: 'payment_overdue',
+        priority: 'high',
+        title: `${plural(payments.overdue_count, 'payment')} overdue (${amount})`,
+        description: 'Advance or balance not received within the agreed days after the PO or PI.',
+        count: payments.overdue_count,
+        route: '/payments-due',
       });
     }
 
@@ -308,6 +324,22 @@ router.get('/attention', async (req, res) => {
     };
 
     res.json({ summary, items });
+  } catch (err) {
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
+
+// Drill-down behind the "Needs Your Attention" payment_overdue item: every quotation with a PO that
+// still has money to come (overdue first), from the same listOutstanding() as that item's count.
+router.get('/payments-due', async (req, res) => {
+  try {
+    if (!(await paymentsReady())) {
+      return res.status(503).json({
+        error: 'Payment tracking needs a database update (migration 004) that has not been applied yet. Please contact your administrator.',
+        code: 'MIGRATION_REQUIRED',
+      });
+    }
+    res.json(await listOutstanding());
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }

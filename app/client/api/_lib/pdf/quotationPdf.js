@@ -76,10 +76,13 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   let y = metaY + 20;
   doc.font(R).fontSize(8.5).fillColor('#000');
   const toLines = ['To'];
-  if (quotation.contact_person) toLines.push(quotation.contact_person);
   toLines.push(String(quotation.company_name || '').toUpperCase());
   for (const l of String(quotation.company_address || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean)) toLines.push(l);
   if (quotation.company_state) toLines.push(quotation.company_state);
+  // The contact person chosen for this quotation (a snapshot, see migration 004).
+  if (quotation.contact_person) toLines.push(`Kind Attn: ${quotation.contact_person}`);
+  if (quotation.contact_phone) toLines.push(`Phone: ${quotation.contact_phone}`);
+  if (quotation.contact_email) toLines.push(`Email: ${quotation.contact_email}`);
   for (const l of toLines) {
     doc.text(l, M, y, { width: W * 0.6 });
     y = doc.y + 1.5;

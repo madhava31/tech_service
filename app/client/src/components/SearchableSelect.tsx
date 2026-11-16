@@ -7,7 +7,7 @@ export interface SearchableOption {
 }
 
 export default function SearchableSelect({
-  options,
+  options: rawOptions,
   value,
   onChange,
   placeholder = 'Search…',
@@ -32,6 +32,12 @@ export default function SearchableSelect({
   const [highlight, setHighlight] = useState(0);
   const optionSelectedRef = useRef(false);
 
+  // Two records can share a value (e.g. products with the same description). Keep the first, so the list
+  // has unique React keys and never shows the same choice twice.
+  const options = useMemo(() => {
+    const seen = new Set<string>();
+    return rawOptions.filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+  }, [rawOptions]);
   const selected = options.find((o) => o.value === value || o.label === value);
 
   const filtered = useMemo(() => {

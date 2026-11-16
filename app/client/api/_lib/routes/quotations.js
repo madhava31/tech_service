@@ -6,6 +6,7 @@ import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValu
 import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
+import { applyQuotationContactAndTerms, paymentsReady, requirePayments, getQuotationPayments, recordPayment, paymentTermsText } from '../payments/service.js';
 
 const router = Router();
 
@@ -463,6 +464,7 @@ router.get('/:id', async (req, res) => {
     const quotation = await db
       .prepare(
         `SELECT q.*, c.name AS company_name, c.address AS company_address, c.state AS company_state, c.gstin AS company_gstin,
+                c.phone AS company_phone, c.email AS company_email,
                 e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code, u.username AS created_by_username
          FROM quotation q
          JOIN company c ON c.id = q.company_id
@@ -473,7 +475,14 @@ router.get('/:id', async (req, res) => {
       .get(req.params.id);
     if (!quotation) return res.status(404).json({ error: 'Quotation not found' });
     const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(req.params.id);
-    res.json({ ...quotation, items });
+    // Payment schedule and payments received, once migration 004 has been applied.
+    const payment = (await paymentsReady()) ? await getQuotationPayments(req.params.id) : null;
+    res.json({
+      ...quotation,
+      items,
+      payment_schedule: payment?.schedule ?? null,
+      payments: payment?.payments ?? [],
+    });
   } catch (err) {
     console.error('Error fetching quotation by ID:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
@@ -565,6 +574,7 @@ router.post('/', moduleGuard, async (req, res) => {
 
       const qId = info.lastInsertRowid;
       await savePricingMode(qId, req.body, lumpSum);
+      await applyQuotationContactAndTerms(qId, finalCompanyId, req.body, req.user.id, { isNew: true });
       const insertItem = db.prepare(
         `INSERT INTO quotation_item (
           quotation_id, product_id, part_no, description, hsn_sac, make, qty, price, amount,
@@ -728,6 +738,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
           req.params.id
         );
       await savePricingMode(req.params.id, req.body, lumpSum);
+      await applyQuotationContactAndTerms(req.params.id, finalCompanyId, req.body, req.user.id);
 
       await db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(req.params.id);
       const insertItem = db.prepare(
@@ -879,6 +890,41 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// ---------- Payments received ----------
+// The schedule (advance due after the PO, balance after the PI) is worked out in payments/service.js.
+router.get('/:id/payments', requirePayments, async (req, res) => {
+  try {
+    const result = await getQuotationPayments(req.params.id);
+    if (!result) return res.status(404).json({ error: 'Quotation not found' });
+    res.json(result);
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to load the payments. Please try again.');
+  }
+});
+
+router.post('/:id/payments', requirePayments, async (req, res) => {
+  try {
+    const quotation = await db.prepare(`SELECT id FROM quotation WHERE id = ?`).get(req.params.id);
+    if (!quotation) return res.status(404).json({ error: 'Quotation not found' });
+    await recordPayment(req.params.id, req.body, req.user.id);
+    res.status(201).json(await getQuotationPayments(req.params.id));
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to record the payment. Please try again.');
+  }
+});
+
+router.delete('/:id/payments/:paymentId', requirePayments, async (req, res) => {
+  try {
+    if (!isAdmin(req)) return res.status(403).json({ error: 'Only an administrator can delete a payment' });
+    const info = await db
+      .prepare(`DELETE FROM quotation_payment WHERE id = ? AND quotation_id = ?`)
+      .run(Number(req.params.paymentId), req.params.id);
+    if (!info.changes) return res.status(404).json({ error: 'Payment not found' });
+    res.json(await getQuotationPayments(req.params.id));
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to delete the payment. Please try again.');
+  }
+});
 
 router.post('/:id/follow-ups', async (req, res) => {
   try {
@@ -1011,7 +1057,10 @@ async function legacyForApprovedLayout(quotation, items, settings = {}) {
   });
   const s = settings || {};
   const terms = [
-    s.payment_terms ? { label: 'Payment', text: String(s.payment_terms) } : null,
+    // Payment terms set on the quotation (migration 004) win over the global text in settings.
+    quotation.advance_percent !== undefined && quotation.advance_percent !== null
+      ? { label: 'Payment', text: paymentTermsText(quotation.advance_percent, quotation.payment_due_days) }
+      : s.payment_terms ? { label: 'Payment', text: String(s.payment_terms) } : null,
     s.delivery_time ? { label: 'Delivery', text: String(s.delivery_time) } : null,
     { label: 'Validity', text: `${Number(s.quotation_validity_days) || 15} days from the quotation date` },
   ].filter(Boolean);

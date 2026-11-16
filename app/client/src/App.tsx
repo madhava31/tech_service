@@ -32,6 +32,7 @@ const InactiveCustomers = lazy(() => import('./pages/InactiveCustomers'));
 const AwaitingCustomerResponse = lazy(() => import('./pages/AwaitingCustomerResponse'));
 const DraftQuotations = lazy(() => import('./pages/DraftQuotations'));
 const PurchaseOrdersNotInvoiced = lazy(() => import('./pages/PurchaseOrdersNotInvoiced'));
+const PaymentsDue = lazy(() => import('./pages/PaymentsDue'));
 const FlaggedSalesRecords = lazy(() => import('./pages/FlaggedSalesRecords'));
 const OverdueFollowUps = lazy(() => import('./pages/OverdueFollowUps'));
 const FollowUpsDueToday = lazy(() => import('./pages/FollowUpsDueToday'));
@@ -169,6 +170,7 @@ export default function App() {
             <Route path="/awaiting-customer-response" element={<AwaitingCustomerResponse />} />
             <Route path="/draft-quotations" element={<DraftQuotations />} />
             <Route path="/purchase-orders-not-invoiced" element={<PurchaseOrdersNotInvoiced />} />
+            <Route path="/payments-due" element={<PaymentsDue />} />
             <Route path="/flagged-sales-records" element={<FlaggedSalesRecords />} />
             <Route path="/overdue-follow-ups" element={<OverdueFollowUps />} />
             <Route path="/follow-ups/overdue" element={<OverdueFollowUps />} />

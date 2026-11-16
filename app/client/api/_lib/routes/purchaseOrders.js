@@ -10,7 +10,11 @@ async function fullPO(id) {
     .prepare(
       `SELECT po.*, q.number AS quotation_number, q.subtotal, q.tax_percent, q.tax_amount, q.total,
               c.name AS company_name, c.address AS company_address, c.state AS company_state,
-              c.gstin AS company_gstin, c.phone AS company_phone, u.username AS created_by_username
+              c.gstin AS company_gstin, c.phone AS company_phone, u.username AS created_by_username,
+              -- Contact and payment terms chosen on the quotation (migration 004); NULL before it is applied.
+              to_jsonb(q) ->> 'contact_person' AS contact_person, to_jsonb(q) ->> 'contact_phone' AS contact_phone,
+              to_jsonb(q) ->> 'contact_email' AS contact_email, to_jsonb(q) ->> 'advance_percent' AS advance_percent,
+              to_jsonb(q) ->> 'payment_due_days' AS payment_due_days
        FROM purchase_order po
        JOIN quotation q ON q.id = po.quotation_id
        JOIN company c ON c.id = q.company_id
