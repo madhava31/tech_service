@@ -52,6 +52,8 @@ export default function QuotationNew() {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<QuotationItem[]>([emptyItem()]);
   const [quotationNumber, setQuotationNumber] = useState('');
+  const [userEditedNumber, setUserEditedNumber] = useState(false);
+  const [numberLoading, setNumberLoading] = useState(!isEdit);
   const [error, setError] = useState('');
   const [successToast, setSuccessToast] = useState('');
   const [savingItemIdx, setSavingItemIdx] = useState<number | null>(null);
@@ -135,6 +137,17 @@ export default function QuotationNew() {
       }
     });
 
+    if (!isEdit) {
+      setNumberLoading(true);
+      api.quotations
+        .nextNumber(date)
+        .then((res) => {
+          if (res?.number) setQuotationNumber(res.number);
+        })
+        .catch((e) => console.error('Failed to fetch next quotation number:', e))
+        .finally(() => setNumberLoading(false));
+    }
+
     if (isEdit && quotationId) {
       api.quotations
         .get(quotationId)
@@ -186,6 +199,17 @@ export default function QuotationNew() {
       });
     }
   }, [isEdit, quotationId]);
+
+  useEffect(() => {
+    if (!isEdit && !userEditedNumber && date) {
+      api.quotations
+        .nextNumber(date)
+        .then((res) => {
+          if (res?.number) setQuotationNumber(res.number);
+        })
+        .catch(() => {});
+    }
+  }, [date, isEdit, userEditedNumber]);
 
   function handleFirmChange(newFirmId: number | '') {
     setFirmId(newFirmId);
@@ -402,7 +426,7 @@ export default function QuotationNew() {
     if (items.length === 0 || items.some((it) => !it.description || !it.qty)) {
       return setError('Every line item needs a description and quantity');
     }
-    if (isEdit && !quotationNumber.trim()) return setError('Please enter the quotation number');
+    if (!quotationNumber.trim()) return setError('Please enter the quotation number');
     if (isInstrument && !instrumentTitle.trim()) return setError('Please enter the instrument title, e.g. PerkinElmer make FTIR-Spectrum Two with UATR');
     if (lumpSum && !(Number(lumpSumAmount) > 0)) return setError('Please enter the total amount for all the items');
     if (contactsEnabled) {
@@ -474,7 +498,7 @@ export default function QuotationNew() {
         notes,
         pricing_mode: lumpSum || isInstrument ? 'lump_sum' : 'itemized',
         quotation_type: isInstrument ? 'instrument' : 'standard',
-        ...(isEdit ? { number: quotationNumber.trim() } : {}),
+        ...(quotationNumber.trim() ? { number: quotationNumber.trim() } : {}),
         instrument_title: isInstrument ? instrumentTitle.trim() : null,
         lump_sum_amount: lumpSum ? Number(lumpSumAmount) : null,
         ...(contactsEnabled
@@ -535,9 +559,46 @@ export default function QuotationNew() {
       <div className="ts-phead">
         <div style={{ minWidth: 0 }}>
           <Link to={isEdit ? `/quotations/${quotationId}` : '/quotations'} className="ts-back">← {isEdit ? 'Back to quotation' : 'Quotations'}</Link>
-          <h1>{isEdit ? `Edit ${isInstrument ? 'instrument ' : ''}quotation${quotationNumber ? ` ${quotationNumber}` : ''}` : isInstrument ? 'New instrument quotation' : 'New quotation'}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <h1 style={{ margin: 0 }}>
+              {isEdit
+                ? `Edit ${isInstrument ? 'instrument ' : ''}quotation`
+                : isInstrument
+                ? 'New instrument quotation'
+                : 'New quotation'}
+            </h1>
+            {quotationNumber ? (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontFamily: 'monospace',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  padding: '4px 12px',
+                  borderRadius: 8,
+                  backgroundColor: 'rgba(var(--accent), 0.1)',
+                  color: 'rgb(var(--accent))',
+                  border: '1px solid rgba(var(--accent), 0.3)',
+                }}
+                title={isEdit ? 'Current quotation number' : 'Quotation number assigned to this draft'}
+              >
+                <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75, letterSpacing: '0.05em' }}>NO.</span>
+                {quotationNumber}
+              </span>
+            ) : numberLoading ? (
+              <span className="ts-muted" style={{ fontSize: 13, fontStyle: 'italic' }}>
+                Fetching quotation number…
+              </span>
+            ) : null}
+          </div>
           <p className="ts-muted" style={{ margin: '6px 0 0', fontSize: 14 }}>
-            {isEdit ? 'Change terms, product discounts, the overall discount or line items.' : 'Build a formal pricing proposal with line and overall discounts.'}
+            {isEdit
+              ? 'Change terms, product discounts, the overall discount or line items.'
+              : quotationNumber
+              ? `Creating quotation ${quotationNumber}. Build a formal pricing proposal with line and overall discounts.`
+              : 'Build a formal pricing proposal with line and overall discounts.'}
           </p>
           {!isEdit && (
             <div className="flex items-center gap-1.5 mt-3 p-1 bg-surface border border-line2 rounded-xl w-fit">
@@ -601,12 +662,33 @@ export default function QuotationNew() {
                 />
                 <small className="ts-hint">Select an existing customer or type a new name to save it.</small>
               </div>
-              {isEdit && (
-                <div className="ts-fld">
-                  <label htmlFor="q-number">Quotation number</label>
-                  <input id="q-number" type="text" className="ts-fi" maxLength={40} value={quotationNumber} onChange={(e) => setQuotationNumber(e.target.value)} placeholder="e.g. TSQOT2627/2" />
-                </div>
-              )}
+              <div className="ts-fld">
+                <label htmlFor="q-number">
+                  Quotation number
+                  {!isEdit && (
+                    <span className="ts-hint" style={{ fontWeight: 400, marginLeft: 6, display: 'inline' }}>
+                      (Auto-generated)
+                    </span>
+                  )}
+                </label>
+                <input
+                  id="q-number"
+                  type="text"
+                  className="ts-fi font-mono"
+                  maxLength={40}
+                  value={quotationNumber}
+                  onChange={(e) => {
+                    setQuotationNumber(e.target.value);
+                    setUserEditedNumber(true);
+                  }}
+                  placeholder={isEdit ? 'e.g. TSQOT2627/2' : numberLoading ? 'Generating number…' : 'e.g. TSQOT2627/2'}
+                />
+                {!isEdit && (
+                  <small className="ts-hint">
+                    This quotation number is reserved for this proposal upon saving.
+                  </small>
+                )}
+              </div>
               <div className="ts-fld">
                 <label htmlFor="q-date">Quotation date</label>
                 <input id="q-date" type="date" className="ts-fi" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -842,7 +924,7 @@ export default function QuotationNew() {
         <aside className="ts-qside">
           <div className="ts-card ts-white ts-qsum" style={{ ['--i' as string]: 1 }}>
             <div className="ts-ch">Quotation summary</div>
-            <div className="ts-qno">{isEdit ? quotationNumber || 'Quotation' : 'New quotation'} <span className="ts-pill ts-up">{isEdit ? 'Editing' : 'Draft'}</span></div>
+            <div className="ts-qno">{quotationNumber || (isEdit ? 'Quotation' : 'New quotation')} <span className="ts-pill ts-up">{isEdit ? 'Editing' : 'Draft'}</span></div>
             <dl className="ts-sumrows">
               <div><dt>{lumpSum ? `Total amount (${items.length} ${items.length === 1 ? 'item' : 'items'})` : 'Gross subtotal'}</dt><dd>{money2(grossSubtotal)}</dd></div>
               {!lumpSum && <div><dt>Product discounts</dt><dd>− {money2(productDiscountTotal)}</dd></div>}

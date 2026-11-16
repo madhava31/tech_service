@@ -322,6 +322,19 @@ router.post('/stock-analysis', async (req, res) => {
   }
 });
 
+// GET /api/quotations/next-number - preview next sequential quotation number
+router.get('/next-number', async (req, res) => {
+  try {
+    const settings = await db.prepare(`SELECT quotation_prefix FROM company_settings WHERE id = 1`).get();
+    const prefix = settings ? settings.quotation_prefix : 'QTN';
+    const date = req.query.date ? String(req.query.date).slice(0, 10) : undefined;
+    const number = await nextNumber(prefix, 'quotation', date);
+    res.json({ number });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to get next quotation number');
+  }
+});
+
 router.get('/', async (req, res) => {
   try {
     const isPaginated = req.query.page !== undefined || req.query.pageSize !== undefined || req.query.paginated === 'true';
@@ -533,9 +546,20 @@ router.post('/', moduleGuard, async (req, res) => {
     const { processedItems, grossSubtotal, productDiscountTotal, subtotalAfterProductDiscounts, subtotal, discountType, discountValue, discountPercent, discountAmount, taxableAmount, taxAmount, roundOff, total } = calcResult;
 
     const quotationId = await db.transaction(async () => {
-      const settings = await db.prepare(`SELECT quotation_prefix FROM company_settings WHERE id = 1`).get();
-      const prefix = settings ? settings.quotation_prefix : 'QTN';
-      const number = await nextNumber(prefix, 'quotation');
+      let number = req.body.number !== undefined && req.body.number !== null ? String(req.body.number).trim() : '';
+      if (number) {
+        if (number.length > 40) {
+          throw Object.assign(new Error('The quotation number can be at most 40 characters'), { status: 400 });
+        }
+        const clash = await db.prepare(`SELECT id FROM quotation WHERE UPPER(number) = UPPER(?)`).get(number);
+        if (clash) {
+          throw Object.assign(new Error(`Quotation number ${number} is already used by another quotation`), { status: 409 });
+        }
+      } else {
+        const settings = await db.prepare(`SELECT quotation_prefix FROM company_settings WHERE id = 1`).get();
+        const prefix = settings ? settings.quotation_prefix : 'QTN';
+        number = await nextNumber(prefix, 'quotation', date);
+      }
       const info = await db
         .prepare(
           `INSERT INTO quotation (
@@ -1126,7 +1150,18 @@ async function createModuleQuotation(req, res) {
   try {
     const q = await buildQuotation(req.body);
     const id = await db.transaction(async () => {
-      const number = await nextQuotationNumber(q.date);
+      let number = req.body.number !== undefined && req.body.number !== null ? String(req.body.number).trim() : '';
+      if (number) {
+        if (number.length > 40) {
+          throw Object.assign(new Error('The quotation number can be at most 40 characters'), { status: 400 });
+        }
+        const clash = await db.prepare(`SELECT id FROM quotation WHERE UPPER(number) = UPPER(?)`).get(number);
+        if (clash) {
+          throw Object.assign(new Error(`Quotation number ${number} is already used by another quotation`), { status: 409 });
+        }
+      } else {
+        number = await nextQuotationNumber(q.date);
+      }
       const info = await db
         .prepare(
           `INSERT INTO quotation (

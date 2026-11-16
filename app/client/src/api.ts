@@ -1157,6 +1157,8 @@ export const api = {
       (params?: undefined, signal?: AbortSignal): Promise<Quotation[]>;
     },
     get: (id: number) => request<Quotation>(`/quotations/${id}`),
+    nextNumber: (date?: string) =>
+      request<{ number: string }>(`/quotations/next-number${date ? `?date=${encodeURIComponent(date)}` : ''}`),
     payments: (id: number) => request<QuotationPaymentsData>(`/quotations/${id}/payments`),
     recordPayment: (id: number, data: { amount: number; paid_on: string; mode?: string; reference?: string; note?: string }) =>
       request<QuotationPaymentsData>(`/quotations/${id}/payments`, { method: 'POST', body: JSON.stringify(data) }),

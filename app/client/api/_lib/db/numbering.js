@@ -2,8 +2,12 @@ import db from './index.js';
 
 // Generates sequential numbers like TSQOT2627/446 based on Indian FY (Apr-Mar) — prefix and FY
 // tag run together with no separator, then a single slash before an unpadded sequence number.
-export async function nextNumber(prefix, table) {
-  const now = new Date();
+export async function nextNumber(prefix, table, isoDate) {
+  let now = new Date();
+  if (isoDate) {
+    const parsed = new Date(isoDate);
+    if (!isNaN(parsed.getTime())) now = parsed;
+  }
   const fyStartYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
   const fyTag = `${String(fyStartYear).slice(2)}${String(fyStartYear + 1).slice(2)}`;
   const likePattern = `${prefix}${fyTag}/%`;

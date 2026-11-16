@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Microscope, Package, X, ArrowRight } from 'lucide-react';
+import { api } from '../api';
 
 interface QuotationTypeModalProps {
   isOpen: boolean;
@@ -9,9 +10,13 @@ interface QuotationTypeModalProps {
 
 export const QuotationTypeModal: React.FC<QuotationTypeModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const [nextNo, setNextNo] = useState<string>('');
 
   useEffect(() => {
     if (!isOpen) return;
+    api.quotations.nextNumber().then((res) => {
+      if (res?.number) setNextNo(res.number);
+    }).catch(() => {});
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -47,6 +52,11 @@ export const QuotationTypeModal: React.FC<QuotationTypeModalProps> = ({ isOpen, 
           <div>
             <h3 id="quotation-type-modal-title" className="text-lg font-bold text-fg flex items-center gap-2">
               <span>📄</span> Create New Quotation
+              {nextNo && (
+                <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-accent/10 text-accent border border-accent/20">
+                  {nextNo}
+                </span>
+              )}
             </h3>
             <p className="text-xs text-subtle mt-1">
               Select whether this quotation is for an <b>Instrument</b> or <b>Other items</b>:
