@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { api, type PaymentSchedule, type PaymentStatus, type QuotationPayment } from '../api';
 import { fmtDay } from './ds/format';
 import { useAuth } from '../auth';
@@ -24,13 +24,17 @@ export function QuotationPayments({
   schedule,
   payments,
   onChanged,
+  openFormSignal = 0,
 }: {
   quotationId: number;
   schedule: PaymentSchedule;
   payments: QuotationPayment[];
   onChanged: () => void;
+  /** Each change opens the record-payment form and scrolls it into view (the workflow's "Payment received" button). */
+  openFormSignal?: number;
 }) {
   const { user } = useAuth();
+  const cardRef = useRef<HTMLElement>(null);
   const [showForm, setShowForm] = useState(false);
   const [amount, setAmount] = useState('');
   const [paidOn, setPaidOn] = useState(todayIso());
@@ -46,6 +50,14 @@ export function QuotationPayments({
     setError('');
     setShowForm(true);
   }
+
+  useEffect(() => {
+    if (!openFormSignal) return;
+    openForm();
+    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // openForm reads the latest schedule; only a new signal should reopen the form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openFormSignal]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -76,7 +88,7 @@ export function QuotationPayments({
   }
 
   return (
-    <section className="ts-card ts-white flex flex-col gap-4">
+    <section ref={cardRef} className="ts-card ts-white flex flex-col gap-4" style={{ scrollMarginTop: 90 }}>
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
           <h3 className="m-0 text-[17px] font-medium">Payments</h3>
