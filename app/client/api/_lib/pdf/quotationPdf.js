@@ -87,6 +87,7 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   y += 6;
 
   // ---- product table ----
+  const lumpSum = quotation.pricing_mode === 'lump_sum';
   const headerH = 17;
   function drawHeaderRow(atY) {
     doc.rect(M, atY, W, headerH).fill(HEADER_GREY);
@@ -125,9 +126,12 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
     doc.font(R).fontSize(8).fillColor('#000');
     doc.text(String(idx + 1), COL_X[0], top, { width: COL_W[0], align: 'center' });
     doc.text(fixed2(it.qty), COL_X[2], top, { width: COL_W[2], align: 'center' });
-    doc.text(`${fixed2(it.discount_value)}%`, COL_X[3], top, { width: COL_W[3], align: 'center' });
-    doc.text(money(it.final_unit_price), COL_X[4] + PAD, top, { width: COL_W[4] - 2 * PAD, align: 'center' });
-    doc.text(money(it.final_line_total), COL_X[5] + PAD, top, { width: COL_W[5] - 2 * PAD, align: 'center' });
+    // A total-amount quotation (migration 005) prints no per-item prices, only the total below.
+    if (!lumpSum) {
+      doc.text(`${fixed2(it.discount_value)}%`, COL_X[3], top, { width: COL_W[3], align: 'center' });
+      doc.text(money(it.final_unit_price), COL_X[4] + PAD, top, { width: COL_W[4] - 2 * PAD, align: 'center' });
+      doc.text(money(it.final_line_total), COL_X[5] + PAD, top, { width: COL_W[5] - 2 * PAD, align: 'center' });
+    }
 
     const x = COL_X[1] + PAD;
     doc.font(B).fontSize(8.5).text(it.product_name || it.description || '', x, top, { width: descW });
@@ -162,7 +166,12 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   const overall = Number(quotation.overall_discount_amount || 0);
   const roundOff = Number(quotation.round_off || 0);
   const totals = [
-    { label: 'Sub Total', value: quotation.subtotal, fill: SHADE, bold: false },
+    {
+      label: lumpSum ? `Total Price (${items.length} item${items.length === 1 ? '' : 's'})` : 'Sub Total',
+      value: quotation.subtotal,
+      fill: SHADE,
+      bold: lumpSum,
+    },
     ...(overall > 0.004
       ? [{ label: quotation.overall_discount_type === 'percentage' ? `Overall Discount @ ${pct(quotation.overall_discount_value)}%` : 'Overall Discount', value: -overall, fill: SHADE, bold: false }]
       : []),

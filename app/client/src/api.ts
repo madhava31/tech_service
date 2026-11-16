@@ -307,6 +307,9 @@ export interface Quotation {
   notes: string;
   items?: QuotationItem[];
   contact_person?: string | null;
+  /** 'lump_sum': one total for all items, no per-item prices on the PDF (migration 005). */
+  pricing_mode?: 'itemized' | 'lump_sum';
+  lump_sum_amount?: number | string | null;
   opportunity_ref?: string | null;
   /** Ordered terms printed on the PDF; null for quotations made before the quotation module. */
   terms?: QuotationTerm[] | null;

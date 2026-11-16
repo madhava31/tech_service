@@ -56,6 +56,10 @@ export default function QuotationNew() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
 
+  // "Add total amount": the items have no prices; one total covers them all (migration 005).
+  const [lumpSum, setLumpSum] = useState(false);
+  const [lumpSumAmount, setLumpSumAmount] = useState('');
+
   useEffect(() => {
     api.companies.list().then(setCompanies);
     api.products.list().then(setProducts);
@@ -91,6 +95,10 @@ export default function QuotationNew() {
           setDiscountValue(q.overall_discount_value ?? q.discount_value ?? q.discount_percent ?? 0);
           setNotes(q.notes || '');
           setQuotationNumber(q.number || '');
+          if (q.pricing_mode === 'lump_sum') {
+            setLumpSum(true);
+            setLumpSumAmount(q.lump_sum_amount != null ? String(Number(q.lump_sum_amount)) : '');
+          }
           if (q.items && q.items.length > 0) {
             setItems(
               q.items.map((it) => ({
@@ -301,8 +309,9 @@ export default function QuotationNew() {
     };
   });
 
-  const grossSubtotal = computedItems.reduce((sum, it) => sum + it.gross_line_total, 0);
-  const productDiscountTotal = computedItems.reduce((sum, it) => sum + it.product_discount_amount, 0);
+  const grossSubtotal = lumpSum ? Number(lumpSumAmount) || 0 : computedItems.reduce((sum, it) => sum + it.gross_line_total, 0);
+  const productDiscountTotal = lumpSum ? 0 : computedItems.reduce((sum, it) => sum + it.product_discount_amount, 0);
+  const totalUnits = items.reduce((sum, it) => sum + (Number(it.qty) || 0), 0);
   const subtotalAfterProductDiscounts = Math.max(0, grossSubtotal - productDiscountTotal);
 
   const numOverallDiscountVal = Number(discountValue) || 0;
@@ -326,6 +335,7 @@ export default function QuotationNew() {
     if (items.length === 0 || items.some((it) => !it.description || !it.qty)) {
       return setError('Every line item needs a description and quantity');
     }
+    if (lumpSum && !(Number(lumpSumAmount) > 0)) return setError('Please enter the total amount for all the items');
     setSaving(true);
     try {
       // Auto-save any custom products into catalogue before creating/updating quotation
@@ -378,6 +388,8 @@ export default function QuotationNew() {
         discount_type: discountType,
         discount_value: numOverallDiscountVal,
         notes,
+        pricing_mode: lumpSum ? 'lump_sum' : 'itemized',
+        lump_sum_amount: lumpSum ? Number(lumpSumAmount) : null,
         items: currentItems.map((it) => {
           const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
           return {
@@ -499,7 +511,14 @@ export default function QuotationNew() {
 
           {/* Line items */}
           <section className="ts-card ts-white" style={{ ['--i' as string]: 1 }}>
-            <div className="ts-rhead"><div className="ts-ch"><b>Line items and product discounts</b></div><span className="ts-muted" style={{ fontSize: 13 }}>{items.length} {items.length === 1 ? 'item' : 'items'}</span></div>
+            <div className="ts-rhead"><div className="ts-ch"><b>{lumpSum ? 'Line items' : 'Line items and product discounts'}</b></div><span className="ts-muted" style={{ fontSize: 13 }}>{items.length} {items.length === 1 ? 'item' : 'items'}</span></div>
+            <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-lg border border-line2 bg-surface px-3 py-2 text-[13px]">
+              <input type="checkbox" className="mt-0.5" checked={lumpSum} onChange={(e) => setLumpSum(e.target.checked)} />
+              <span>
+                <b className="text-fg">Add total amount</b>
+                <span className="block text-subtle">No price for each item: enter one total for all the items. The PDF shows the items and only the total price.</span>
+              </span>
+            </label>
             <div className="flex flex-col gap-3 mt-4">
               {computedItems.map((it, idx) => {
                 const noDisc = !it.discount_type || it.discount_type === 'none';
@@ -553,6 +572,7 @@ export default function QuotationNew() {
                         <label>Qty</label>
                         <input type="number" min="1" className="ts-fi ts-r" value={!it.qty || it.qty === 0 ? '' : it.qty} onFocus={(e) => e.target.select()} onChange={(e) => updateItem(idx, { qty: e.target.value === '' ? 0 : Number(e.target.value) })} placeholder="1" />
                       </div>
+                      {!lumpSum && (<>
                       <div className="ts-fld">
                         <label>Price per unit (₹)</label>
                         <input type="number" min="0" step="0.01" className="ts-fi ts-r" value={!it.actual_unit_price || it.actual_unit_price === 0 ? '' : it.actual_unit_price} onFocus={(e) => e.target.select()} onChange={(e) => updateItem(idx, { actual_unit_price: e.target.value === '' ? 0 : Number(e.target.value), price: e.target.value === '' ? 0 : Number(e.target.value) })} placeholder="0.00" />
@@ -574,6 +594,7 @@ export default function QuotationNew() {
                         <div className="ts-ltot">{money2(it.after_product_discount_amount)}</div>
                         {it.product_discount_amount > 0 && <small className="ts-lalloc">Saves {money2(it.product_discount_amount)}</small>}
                       </div>
+                      </>)}
                     </div>
                     <div className="ts-fld" style={{ marginTop: 14 }}>
                       <label>Key features of the product</label>
@@ -592,6 +613,17 @@ export default function QuotationNew() {
               })}
             </div>
             <button type="button" className="ts-btn ts-ghost ts-addline" onClick={addItem}><PlusIcon /> Add line item</button>
+            {lumpSum && (
+              <div className="mt-4 flex flex-wrap items-end gap-4 rounded-lg border border-line2 bg-surface2 p-3">
+                <div className="ts-fld" style={{ minWidth: 220 }}>
+                  <label htmlFor="q-lump">Total amount for all items (₹)</label>
+                  <input id="q-lump" type="number" min="0" step="0.01" className="ts-fi ts-r" value={lumpSumAmount} onFocus={(e) => e.target.select()} onChange={(e) => setLumpSumAmount(e.target.value)} placeholder="0.00" />
+                </div>
+                <div className="pb-2 text-[13px] text-subtle">
+                  Covers <b className="text-fg">{items.length} {items.length === 1 ? 'item' : 'items'}</b> ({totalUnits} {totalUnits === 1 ? 'unit' : 'units'}). Before overall discount and GST.
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Live stock check */}
@@ -636,8 +668,8 @@ export default function QuotationNew() {
             <div className="ts-ch">Quotation summary</div>
             <div className="ts-qno">{isEdit ? quotationNumber || 'Quotation' : 'New quotation'} <span className="ts-pill ts-up">{isEdit ? 'Editing' : 'Draft'}</span></div>
             <dl className="ts-sumrows">
-              <div><dt>Gross subtotal</dt><dd>{money2(grossSubtotal)}</dd></div>
-              <div><dt>Product discounts</dt><dd>− {money2(productDiscountTotal)}</dd></div>
+              <div><dt>{lumpSum ? `Total amount (${items.length} ${items.length === 1 ? 'item' : 'items'})` : 'Gross subtotal'}</dt><dd>{money2(grossSubtotal)}</dd></div>
+              {!lumpSum && <div><dt>Product discounts</dt><dd>− {money2(productDiscountTotal)}</dd></div>}
               <div><dt>Overall discount</dt><dd>− {money2(overallDiscountAmount)}</dd></div>
               <div className="ts-sep"><dt>Net taxable subtotal</dt><dd>{money2(netSubtotal)}</dd></div>
               <div><dt>GST ({taxPercent}%)</dt><dd>{money2(taxAmount)}</dd></div>

@@ -252,6 +252,8 @@ export default function QuotationDetail() {
             </thead>
             <tbody>
               {quotation.items?.map((it) => {
+                // Total-amount quotation (migration 005): items have no prices of their own.
+                const lumpSum = quotation.pricing_mode === 'lump_sum';
                 const actualPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : it.price);
                 const finalUnitPrice = Number(it.final_unit_price !== undefined ? it.final_unit_price : (it.amount ? it.amount / it.qty : actualPrice));
                 const lineTotal = Number(it.final_line_total !== undefined ? it.final_line_total : (it.amount || actualPrice * it.qty));
@@ -266,6 +268,9 @@ export default function QuotationDetail() {
                     </td>
                     <td className="p-2.5 text-subtle">{it.hsn_sac || '-'}</td>
                     <td className="p-2.5 text-right font-medium">{it.qty}</td>
+                    {lumpSum ? (
+                      <td colSpan={4} className="p-2.5 text-right text-[12px] text-faint">Included in total</td>
+                    ) : (<>
                     <td className="p-2.5 text-right font-medium">₹{actualPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td className="p-2.5 text-center font-medium text-[12px]">
                       {hasProductDisc ? (
@@ -278,6 +283,7 @@ export default function QuotationDetail() {
                     </td>
                     <td className="p-2.5 text-right font-medium text-fg">₹{finalUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td className="p-2.5 text-right font-medium text-fg">₹{lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </>)}
                   </tr>
                 );
               })}
@@ -304,7 +310,7 @@ export default function QuotationDetail() {
             </>
           ) : (
             <div className="flex justify-between w-72 text-subtle">
-              <span>Subtotal:</span>
+              <span>{quotation.pricing_mode === 'lump_sum' ? `Total amount (${quotation.items?.length || 0} items):` : 'Subtotal:'}</span>
               <span>₹{Number(quotation.gross_subtotal || quotation.subtotal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
           )}

@@ -5,6 +5,7 @@ import { streamQuotationPdfV2 } from '../pdf/quotationPdf.js';
 import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValues, insertItems, cleanFeatures } from '../quotations/module.js';
 import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
+import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
 
 const router = Router();
 
@@ -482,7 +483,10 @@ router.get('/:id', async (req, res) => {
 router.post('/', moduleGuard, async (req, res) => {
   if (isModuleRequest(req.body)) return createModuleQuotation(req, res);
   try {
-    const { company_id, company_name, date, items, tax_percent, notes, discount_type, discount_value, overall_discount_type, overall_discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
+    const { company_id, company_name, date, tax_percent, notes, discount_type, discount_value, overall_discount_type, overall_discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
+    // "Add total amount": one total for all items, split across the lines (quotations/lumpSum.js).
+    const lumpSum = await readLumpSum(req.body);
+    const items = lumpSum && Array.isArray(req.body.items) && req.body.items.length ? splitLumpSum(req.body.items, lumpSum) : req.body.items;
     let finalCompanyId = company_id ? Number(company_id) : null;
     if ((!finalCompanyId || isNaN(finalCompanyId)) && (company_name || typeof company_id === 'string')) {
       const cName = String(company_name || company_id).trim();
@@ -560,6 +564,7 @@ router.post('/', moduleGuard, async (req, res) => {
         );
 
       const qId = info.lastInsertRowid;
+      await savePricingMode(qId, req.body, lumpSum);
       const insertItem = db.prepare(
         `INSERT INTO quotation_item (
           quotation_id, product_id, part_no, description, hsn_sac, make, qty, price, amount,
@@ -571,7 +576,8 @@ router.post('/', moduleGuard, async (req, res) => {
       for (const it of processedItems) {
         let pId = it.product_id ? Number(it.product_id) : null;
         const partNo = it.part_no ? String(it.part_no).trim() : null;
-        const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
+        // A split of a lump-sum total is not a real unit price, so it never becomes the catalogue price.
+        const itemPrice = lumpSum ? 0 : Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
 
         if (partNo || it.description) {
           const finalPart = partNo || (it.description.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).slice(0, 2).map((w) => w.toUpperCase().slice(0, 4)).join('-') + `-${Math.floor(1000 + Math.random() * 9000)}`);
@@ -638,6 +644,7 @@ router.post('/', moduleGuard, async (req, res) => {
     res.status(201).json(row);
   } catch (err) {
     console.error('Unable to create the quotation:', err);
+    if (err?.status === 503) return res.status(503).json({ error: err.message, code: 'MIGRATION_REQUIRED' });
     sendRouteError(res, err, 500, 'Unable to create the quotation. Please try again.');
   }
 });
@@ -649,7 +656,9 @@ router.put('/:id', moduleGuard, async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
     if (existing.status !== 'draft') return res.status(400).json({ error: 'Only draft quotations can be edited' });
 
-    const { company_id, company_name, date, items, tax_percent, notes, discount_type, discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
+    const { company_id, company_name, date, tax_percent, notes, discount_type, discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
+    const lumpSum = await readLumpSum(req.body);
+    const items = lumpSum && Array.isArray(req.body.items) && req.body.items.length ? splitLumpSum(req.body.items, lumpSum) : req.body.items;
     let finalCompanyId = company_id ? Number(company_id) : null;
     if ((!finalCompanyId || isNaN(finalCompanyId)) && (company_name || typeof company_id === 'string')) {
       const cName = String(company_name || company_id).trim();
@@ -718,6 +727,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
           notes ?? existing.notes,
           req.params.id
         );
+      await savePricingMode(req.params.id, req.body, lumpSum);
 
       await db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(req.params.id);
       const insertItem = db.prepare(
@@ -731,7 +741,8 @@ router.put('/:id', moduleGuard, async (req, res) => {
       for (const it of processedItems) {
         let pId = it.product_id ? Number(it.product_id) : null;
         const partNo = it.part_no ? String(it.part_no).trim() : null;
-        const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
+        // A split of a lump-sum total is not a real unit price, so it never becomes the catalogue price.
+        const itemPrice = lumpSum ? 0 : Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
 
         if (partNo || it.description) {
           const finalPart = partNo || (it.description.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).slice(0, 2).map((w) => w.toUpperCase().slice(0, 4)).join('-') + `-${Math.floor(1000 + Math.random() * 9000)}`);
@@ -797,6 +808,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
     res.json(row);
   } catch (err) {
     console.error('Unable to save the quotation:', err);
+    if (err?.status === 503) return res.status(503).json({ error: err.message, code: 'MIGRATION_REQUIRED' });
     sendRouteError(res, err, 500, 'Unable to save the quotation. Please try again.');
   }
 });
