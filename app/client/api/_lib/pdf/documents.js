@@ -124,17 +124,13 @@ function amountInWords(amount) {
   return parts.join(' ') + ' Rupees only';
 }
 
-function imageBuffer(dataUri) {
-  if (!dataUri) return null;
-  if (dataUri.startsWith('data:')) {
-    const base64 = dataUri.split(',')[1];
-    if (!base64) return null;
-    try { return Buffer.from(base64, 'base64'); } catch { return null; }
-  }
-  if (fs.existsSync(dataUri)) {
-    try { return fs.readFileSync(dataUri); } catch { return null; }
-  }
-  return null;
+// Logo and signature uploaded in Settings are stored as data: URIs. Only those are read: a plain
+// file path in the setting is ignored, so a setting can never make the server read its own files.
+export function imageBuffer(dataUri) {
+  if (!dataUri || typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return null;
+  const base64 = dataUri.split(',')[1];
+  if (!base64) return null;
+  try { return Buffer.from(base64, 'base64'); } catch { return null; }
 }
 
 // The built-in Helvetica only covers WinAnsi, so '₹' (U+20B9) came out as a space plus '¹'

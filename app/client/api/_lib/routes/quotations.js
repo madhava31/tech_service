@@ -1205,7 +1205,7 @@ router.get('/:id/pdf', async (req, res) => {
     res.setHeader('Content-Type', 'application/pdf');
     const disposition = req.query.download === '1' ? 'attachment' : 'inline';
     res.setHeader('Content-Disposition', `${disposition}; filename="${quotation.number.replace(/\//g, '-')}.pdf"`);
-    streamQuotationPdfV2(res, printable);
+    streamQuotationPdfV2(res, { ...printable, settings });
   } catch (err) {
     console.error('Error streaming quotation PDF:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });

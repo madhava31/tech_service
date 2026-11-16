@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { FONT_REGULAR_PATH, FONT_BOLD_PATH } from './documents.js';
+import { FONT_REGULAR_PATH, FONT_BOLD_PATH, imageBuffer } from './documents.js';
 
 // Quotation PDF in the approved Technicon format (Technicon_Quotation_Sample_TS-26-27-000001.pdf):
 // letterhead, title, number/date, "To" block, bordered product table with a grey header, totals,
@@ -29,45 +29,49 @@ const COMPANY = {
   signatory: 'Y. Prem Chand',
 };
 
-function resolveCompanyDetails(q) {
-  const name = q?.firm_legal_name || q?.firm_name || COMPANY.name;
-  const signatory = q?.branch_signatory || COMPANY.signatory;
+const text = (v) => (v === undefined || v === null ? '' : String(v).trim());
 
-  // 1. Branch document settings address if configured
-  if (q?.branch_doc_address && String(q.branch_doc_address).trim()) {
-    const lines = String(q.branch_doc_address).split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    const gstin = q.branch_gstin || q.firm_gstin;
-    if (gstin && !lines.some((l) => l.toUpperCase().includes('GSTIN'))) {
-      lines.push(`GSTIN: ${gstin}`);
-    }
-    return { name, address: lines, signatory };
-  }
+// The letterhead details. For each one the firm / branch of the quotation comes first (multi-firm
+// setup), then System > Settings, then the built-in Technicon text, so a value added in Settings shows
+// on every quotation whose firm or branch has not got its own.
+function resolveCompanyDetails(q, s = {}) {
+  const name = text(q?.firm_legal_name) || text(q?.firm_name) || text(s.company_name) || COMPANY.name;
+  const signatory = text(q?.branch_signatory) || COMPANY.signatory;
+  const split = (v) => String(v || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = (a1, a2, city, state, pin) => [text(a1), text(a2), [city, state, pin].filter(Boolean).join(', ')].filter(Boolean);
 
-  // 2. Branch address fields
-  const bLines = [];
-  if (q?.branch_address_line_1) bLines.push(String(q.branch_address_line_1).trim());
-  if (q?.branch_address_line_2) bLines.push(String(q.branch_address_line_2).trim());
-  const bCityState = [q?.branch_city, q?.branch_state, q?.branch_pincode].filter(Boolean).join(', ');
-  if (bCityState) bLines.push(bCityState);
-  if (bLines.length > 0) {
-    const gstin = q?.branch_gstin || q?.firm_gstin;
-    if (gstin) bLines.push(`GSTIN: ${gstin}`);
-    return { name, address: bLines, signatory };
-  }
+  let address = split(q?.branch_doc_address);
+  if (!address.length) address = lines(q?.branch_address_line_1, q?.branch_address_line_2, q?.branch_city, q?.branch_state, q?.branch_pincode);
+  if (!address.length) address = lines(q?.firm_address_line_1, q?.firm_address_line_2, q?.firm_city, q?.firm_state, q?.firm_pincode);
+  if (!address.length) address = text(s.address) ? [text(s.address)] : COMPANY.address;
 
-  // 3. Firm address fields
-  const fLines = [];
-  if (q?.firm_address_line_1) fLines.push(String(q.firm_address_line_1).trim());
-  if (q?.firm_address_line_2) fLines.push(String(q.firm_address_line_2).trim());
-  const fCityState = [q?.firm_city, q?.firm_state, q?.firm_pincode].filter(Boolean).join(', ');
-  if (fCityState) fLines.push(fCityState);
-  if (fLines.length > 0) {
-    const gstin = q?.firm_gstin;
-    if (gstin) fLines.push(`GSTIN: ${gstin}`);
-    return { name, address: fLines, signatory };
-  }
+  const gstin = text(q?.branch_gstin) || text(q?.firm_gstin) || text(s.gstin);
+  if (gstin && !address.some((l) => l.toUpperCase().includes('GSTIN'))) address = [...address, `GSTIN: ${gstin}`];
 
-  return { name, address: COMPANY.address, signatory };
+  const phone = text(q?.branch_phone) || text(q?.firm_phone) || text(s.phone);
+  const email = text(q?.branch_email) || text(q?.firm_email) || text(s.email);
+  const contact = [phone && `Phone: ${phone}`, text(s.landline) && `Landline: ${text(s.landline)}`, email && `Email: ${email}`].filter(Boolean).join('  |  ');
+
+  // Bank details: what is typed in System > Settings comes first; the branch's own bank is used only
+  // when Settings has none (a branch gets placeholder bank text when it is created, which must never
+  // beat the real details entered in Settings).
+  const settingsBank = !!(text(s.bank_name) || text(s.bank_account_no));
+  const bank = (settingsBank
+    ? [
+        ['Bank Name', text(s.bank_name)],
+        ['Account No.', text(s.bank_account_no)],
+        ['IFSC Code', text(s.bank_ifsc)],
+        ['Account Holder', text(s.bank_account_holder)],
+      ]
+    : [
+        ['Bank Name', text(q?.branch_bank_name)],
+        ['Account No.', text(q?.branch_bank_account_no)],
+        ['IFSC Code', text(q?.branch_bank_ifsc)],
+        ['Account Holder', text(q?.branch_bank_name) ? name : ''],
+      ]
+  ).filter(([, v]) => v);
+
+  return { name, address, contact, bank, signatory };
 }
 
 // S.No | PRODUCT DESCRIPTION | QTY | DISCOUNT | UNIT PRICE | TOTAL PRICE (widths add up to W)
@@ -85,20 +89,26 @@ function ddmmyyyy(d) {
 }
 const features = (it) => (Array.isArray(it.key_features) ? it.key_features : []).map((f) => String(f).trim()).filter(Boolean);
 
-export function streamQuotationPdfV2(res, { quotation, items }) {
+export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
   const doc = new PDFDocument({ size: 'A4', margin: M, bufferPages: false });
   doc.registerFont('Arimo', FONT_REGULAR_PATH);
   doc.registerFont('Arimo-Bold', FONT_BOLD_PATH);
   const R = 'Arimo', B = 'Arimo-Bold', MONO = 'Courier-Bold';
   doc.pipe(res);
 
-  const company = resolveCompanyDetails(quotation);
+  const s = settings || {};
+  const company = resolveCompanyDetails(quotation, s);
 
-  // ---- letterhead ----
-  if (fs.existsSync(LOGO_PATH)) doc.image(LOGO_PATH, M, M + 2, { fit: [170, 40] });
-  doc.font(B).fontSize(8.5).fillColor('#000').text(company.name, M, M + 6, { width: W, align: 'right' });
+  // ---- letterhead: the logo uploaded in Settings, else the built-in one ----
+  const logo = imageBuffer(s.logo_image) || (fs.existsSync(LOGO_PATH) ? LOGO_PATH : null);
+  if (logo) {
+    try { doc.image(logo, M, M + 2, { fit: [170, 40] }); } catch { /* unreadable logo: print without it */ }
+  }
+  const headX = M + 185, headW = W - 185;
+  doc.font(B).fontSize(8.5).fillColor('#000').text(company.name, headX, M + 4, { width: headW, align: 'right' });
   doc.font(R).fontSize(8).fillColor('#333');
-  for (const line of company.address) doc.text(line, M, doc.y + 1, { width: W, align: 'right' });
+  for (const line of company.address) doc.text(line, headX, doc.y + 1, { width: headW, align: 'right' });
+  if (company.contact) doc.text(company.contact, headX, doc.y + 1, { width: headW, align: 'right' });
   const ruleY = Math.max(M + 48, doc.y + 6);
   doc.moveTo(M, ruleY).lineTo(M + W, ruleY).lineWidth(1.5).strokeColor(ORANGE).stroke();
 
@@ -316,6 +326,7 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   const leftW = W * 0.62;
   let termsH = 14;
   for (const t of terms) termsH += doc.heightOfString(`: ${t.text || ''}`, { width: leftW - termLabelW }) + 1.5;
+  if (company.bank.length) termsH += 16 + company.bank.length * 11;
   const footerH = Math.max(termsH, 70);
   y += 12;
   if (y + footerH > BOTTOM) { doc.addPage(); y = M; }
@@ -328,6 +339,19 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
     doc.text(`: ${t.text || ''}`, M + termLabelW, ty, { width: leftW - termLabelW });
     ty = doc.y + 1.5;
   }
+  // Bank details (the branch's, else Settings), under the terms.
+  if (company.bank.length) {
+    ty += 6;
+    doc.font(B).fontSize(8.5).fillColor('#000').text('Bank Details', M, ty, { width: leftW });
+    ty = doc.y + 2;
+    const bankLabelW = 80;
+    doc.font(R).fontSize(8).fillColor('#222');
+    for (const [label, value] of company.bank) {
+      doc.text(label, M, ty, { width: bankLabelW, lineBreak: false });
+      doc.text(`: ${value}`, M + bankLabelW, ty, { width: leftW - bankLabelW });
+      ty = doc.y + 1.5;
+    }
+  }
 
   const rightW = W - leftW;
   const rx = M + leftW;
@@ -339,7 +363,12 @@ export function streamQuotationPdfV2(res, { quotation, items }) {
   const forW = doc.widthOfString(forLabel);
   doc.text(forLabel, M + W - nameW - forW, y, { lineBreak: false });
   doc.font(B).text(company.name, M + W - nameW, y, { lineBreak: false });
-  doc.font(B).fontSize(8.5).text(company.signatory, rx, y + 42, { width: rightW, align: 'right' });
+  // Signature / stamp uploaded in Settings, above the signatory's name.
+  const sig = imageBuffer(s.signature_image);
+  if (sig) {
+    try { doc.image(sig, M + W - 120, y + 12, { fit: [120, 30], align: 'right' }); } catch { /* unreadable image: skip */ }
+  }
+  doc.font(B).fontSize(8.5).text(company.signatory, rx, y + 44, { width: rightW, align: 'right' });
   doc.font(R).fontSize(8.5).text('Authorised Signatory', rx, doc.y + 1, { width: rightW, align: 'right' });
 
   doc.end();
