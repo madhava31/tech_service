@@ -8,16 +8,18 @@ export async function nextNumber(prefix, table) {
   const fyTag = `${String(fyStartYear).slice(2)}${String(fyStartYear + 1).slice(2)}`;
   const likePattern = `${prefix}${fyTag}/%`;
 
+  // Continue from the highest number used this financial year, not from the latest row: a user can
+  // edit a quotation's number (e.g. to TSQOT2627/639), and every new one must then follow it (640),
+  // even if an older quotation is later renumbered lower.
   const row = await db
-    .prepare(`SELECT number FROM ${table} WHERE number LIKE ? ORDER BY id DESC LIMIT 1`)
+    .prepare(
+      `SELECT MAX(CAST(substring(number from '/([0-9]+)$') AS INTEGER)) AS max_seq
+       FROM ${table} WHERE number LIKE ?`
+    )
     .get(likePattern);
 
-  let nextSeq = 1;
-  if (row) {
-    const parts = row.number.split('/');
-    const lastSeq = parseInt(parts[parts.length - 1], 10);
-    if (!Number.isNaN(lastSeq)) nextSeq = lastSeq + 1;
-  }
+  const maxSeq = Number(row?.max_seq);
+  const nextSeq = Number.isFinite(maxSeq) && maxSeq > 0 ? maxSeq + 1 : 1;
 
   return `${prefix}${fyTag}/${nextSeq}`;
 }
