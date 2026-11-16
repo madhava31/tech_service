@@ -97,7 +97,7 @@ export function QuotationPayments({
         <span className="flex-1" />
         <PaymentStatusPill status={schedule.status} label={schedule.days_overdue > 0 ? `${schedule.status_label} · ${schedule.days_overdue} days` : schedule.status_label} />
         {schedule.outstanding > 0 && !showForm && (
-          <button type="button" className="ts-btn ts-ghost ts-xs" onClick={openForm}>+ Record payment</button>
+          <button type="button" className="ts-btn ts-dark ts-xs" onClick={openForm}>+ Record payment</button>
         )}
       </div>
 

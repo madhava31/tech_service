@@ -445,7 +445,7 @@ export default function QuotationDetail() {
               type="button"
               disabled={busyAction !== null}
               onClick={() => setStatus('sent')}
-              className="ts-btn ts-ghost ts-xs"
+              className="ts-btn ts-dark ts-xs"
             >
               {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
             </button>
@@ -456,7 +456,7 @@ export default function QuotationDetail() {
                 type="button"
                 disabled={busyAction !== null}
                 onClick={() => setStatus('accepted')}
-                className="ts-btn ts-ghost ts-xs"
+                className="ts-btn ts-dark ts-xs"
               >
                 {busyAction === 'accepted' ? 'Marking as Accepted…' : 'Mark as Accepted'}
               </button>
@@ -464,7 +464,7 @@ export default function QuotationDetail() {
                 type="button"
                 disabled={busyAction !== null}
                 onClick={() => setStatus('rejected')}
-                className="ts-btn ts-ghost ts-xs text-bad"
+                className="ts-btn ts-dark ts-xs"
               >
                 {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
               </button>
@@ -493,7 +493,7 @@ export default function QuotationDetail() {
                     type="button"
                     onClick={() => createPI(po.id)}
                     disabled={busyAction !== null}
-                    className="ts-btn ts-ghost ts-xs"
+                    className="ts-btn ts-dark ts-xs"
                   >
                     Generate PI from PO
                   </button>
@@ -513,7 +513,7 @@ export default function QuotationDetail() {
                 type="button"
                 onClick={createPO}
                 disabled={busyAction !== null}
-                className="ts-btn ts-ghost ts-xs"
+                className="ts-btn ts-dark ts-xs"
               >
                 {busyAction === 'po' ? 'Converting to PO...' : 'Convert to Purchase Order'}
               </button>
@@ -529,7 +529,7 @@ export default function QuotationDetail() {
               type="button"
               onClick={() => createPI()}
               disabled={busyAction !== null}
-              className="ts-btn ts-ghost ts-xs"
+              className="ts-btn ts-dark ts-xs"
             >
               {busyAction === 'pi' ? 'Generating PI...' : '+ Create Direct PI'}
             </button>
@@ -553,7 +553,7 @@ export default function QuotationDetail() {
         <div className="flex flex-col gap-3 border-t border-line2 pt-4">
           <div className="flex justify-between items-center">
             <span className="text-[12.5px] text-subtle font-medium">Delivery Challans</span>
-            <button type="button" onClick={convertToChallan} disabled={busyAction !== null} className="ts-btn ts-ghost ts-xs">
+            <button type="button" onClick={convertToChallan} disabled={busyAction !== null} className="ts-btn ts-dark ts-xs">
               Convert to Delivery Challan
             </button>
           </div>
