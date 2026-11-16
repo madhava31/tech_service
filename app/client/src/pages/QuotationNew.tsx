@@ -548,6 +548,7 @@ export default function QuotationNew() {
   async function submit() {
     setError('');
     if (!companyId) return setError('Please select a company');
+    if (branches.length > 0 && !branchId) return setError('Please select the issuing branch');
     if (items.length === 0 || items.some((it) => !it.description || !it.qty)) {
       return setError('Every line item needs a description and quantity');
     }
@@ -930,7 +931,8 @@ export default function QuotationNew() {
               <div className="ts-fld">
                 <label htmlFor="q-branch">Issuing branch</label>
                 <select id="q-branch" className="ts-fi" value={branchId} onChange={(e) => handleBranchChange(e.target.value ? Number(e.target.value) : '')}>
-                  <option value="">Select branch…</option>
+                  {/* only a placeholder while nothing is chosen: hidden, so it is never a choice in the list */}
+                  {branchId === '' && <option value="" disabled hidden>{branches.length ? 'Select branch…' : 'No branches for this firm'}</option>}
                   {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
                 </select>
               </div>
