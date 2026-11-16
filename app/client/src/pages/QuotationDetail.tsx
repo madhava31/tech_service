@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
-import { FileTextIcon, PencilIcon, Trash2 } from 'lucide-react';
+import { DownloadPdfButton } from '../components/DownloadPdfButton';
+import { pdfFileName } from '../lib/savePdf';
+import { DownloadIcon, FileTextIcon, PencilIcon, Trash2 } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
 import { QuotationPayments } from '../components/QuotationPayments';
 
@@ -206,6 +208,7 @@ export default function QuotationDetail() {
             <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-ghost"><PencilIcon /> Edit quotation</Link>
           )}
           <a className="ts-btn ts-dark" href={api.quotations.pdfUrl(quotationId)} target="_blank" rel="noreferrer"><FileTextIcon /> View PDF</a>
+          <DownloadPdfButton url={api.quotations.downloadPdfUrl(quotationId)} fileName={pdfFileName(quotation?.number, `quotation-${quotationId}`)} kind="quotation" className="ts-btn ts-ghost"><DownloadIcon /> Download PDF</DownloadPdfButton>
         </div>
       </div>
 
@@ -563,7 +566,7 @@ export default function QuotationDetail() {
                     <span className="text-subtle ml-2">Date: {fmtDay(dc.date)}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <a href={api.deliveryChallans.downloadPdfUrl(dc.id)} className="ts-btn ts-ghost ts-xs">Download PDF</a>
+                    <DownloadPdfButton url={api.deliveryChallans.downloadPdfUrl(dc.id)} fileName={pdfFileName(dc.number)} kind="delivery-challan" className="ts-btn ts-ghost ts-xs">Download PDF</DownloadPdfButton>
                     <button
                       type="button"
                       className="ts-btn ts-ghost ts-xs text-bad hover:bg-bad/10 cursor-pointer p-1.5"

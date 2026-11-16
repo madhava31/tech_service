@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, FileDown, Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { api, AdminUser, DeliveryChallanListRow } from '../api';
+import { DownloadPdfButton } from '../components/DownloadPdfButton';
+import { pdfFileName } from '../lib/savePdf';
 import { useAuth } from '../auth';
 import { fmtDay } from '../components/ds/format';
 
@@ -156,9 +158,9 @@ export default function DeliveryChallans() {
               </button>
             </>
           )}
-          <a className="ts-btn ts-ghost" href={api.deliveryChallans.blankPdfUrl()}>
+          <DownloadPdfButton url={api.deliveryChallans.blankPdfUrl()} fileName="Blank-Delivery-Challan.pdf" kind="delivery-challan" className="ts-btn ts-ghost">
             <Download /> Download blank challan
-          </a>
+          </DownloadPdfButton>
           <Link className="ts-btn ts-dark" to="/delivery-challans/new">
             <Plus /> New delivery challan
           </Link>
@@ -247,7 +249,7 @@ export default function DeliveryChallans() {
                         <div className="ts-racts">
                           <Link to={`/delivery-challans/${r.id}/preview`} className="ts-btn ts-ghost ts-xs">View</Link>
                           <Link to={`/delivery-challans/${r.id}/edit`} className="ts-btn ts-ghost ts-xs" aria-label={`Edit ${r.number}`}><Pencil className="size-3.5" /> Edit</Link>
-                          <a href={api.deliveryChallans.downloadPdfUrl(r.id)} className="ts-btn ts-ghost ts-xs" aria-label={`Download PDF of ${r.number}`}><FileDown className="size-3.5" /> PDF</a>
+                          <DownloadPdfButton url={api.deliveryChallans.downloadPdfUrl(r.id)} fileName={pdfFileName(r.number)} kind="delivery-challan" className="ts-btn ts-ghost ts-xs" ariaLabel={`Download PDF of ${r.number}`}><FileDown className="size-3.5" /> PDF</DownloadPdfButton>
                           <button
                             type="button"
                             className="ts-btn ts-ghost ts-xs text-bad hover:bg-bad/10 cursor-pointer"

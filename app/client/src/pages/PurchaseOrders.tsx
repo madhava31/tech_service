@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fmtDay } from '../components/ds/format';
 import { api, PurchaseOrder } from '../api';
+import { DownloadPdfButton } from '../components/DownloadPdfButton';
+import { pdfFileName } from '../lib/savePdf';
 import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
 
@@ -235,6 +237,9 @@ export default function PurchaseOrders() {
                       >
                         PDF →
                       </a>
+                      <DownloadPdfButton url={api.purchaseOrders.pdfUrl(po.id)} fileName={pdfFileName(po.number)} kind="purchase-order" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline" title="Save the PDF to a folder">
+                        Save
+                      </DownloadPdfButton>
                     </td>
                   </tr>
                 );

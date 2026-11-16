@@ -2,6 +2,8 @@ import { DownloadIcon, PencilIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, Quotation } from '../api';
+import { DownloadPdfButton } from '../components/DownloadPdfButton';
+import { pdfFileName } from '../lib/savePdf';
 
 /** Shown after "Generate quotation": the PDF exactly as it will be downloaded. */
 export default function QuotationPreview() {
@@ -34,7 +36,7 @@ export default function QuotationPreview() {
           {editable && (
             <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-ghost"><PencilIcon /> Edit</Link>
           )}
-          <a href={api.quotations.downloadPdfUrl(quotationId)} className="ts-btn ts-dark"><DownloadIcon /> Download PDF</a>
+          <DownloadPdfButton url={api.quotations.downloadPdfUrl(quotationId)} fileName={pdfFileName(quotation?.number, `quotation-${quotationId}`)} kind="quotation" className="ts-btn ts-dark"><DownloadIcon /> Download PDF</DownloadPdfButton>
         </div>
       </div>
 

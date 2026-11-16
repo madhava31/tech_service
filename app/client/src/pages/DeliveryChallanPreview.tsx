@@ -2,6 +2,8 @@ import { DownloadIcon, Loader2, PencilIcon, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, DeliveryChallan } from '../api';
+import { DownloadPdfButton } from '../components/DownloadPdfButton';
+import { pdfFileName } from '../lib/savePdf';
 
 /** Shown after "Generate delivery challan": the PDF exactly as it will be downloaded. */
 export default function DeliveryChallanPreview() {
@@ -48,7 +50,7 @@ export default function DeliveryChallanPreview() {
         <span className="ts-grow" />
         <div className="flex gap-2 flex-wrap items-center">
           {dc && <Link to={`/delivery-challans/${challanId}/edit`} className="ts-btn ts-ghost"><PencilIcon className="size-4" /> Edit</Link>}
-          <a href={api.deliveryChallans.downloadPdfUrl(challanId)} className="ts-btn ts-dark"><DownloadIcon className="size-4" /> Download PDF</a>
+          <DownloadPdfButton url={api.deliveryChallans.downloadPdfUrl(challanId)} fileName={pdfFileName(dc?.number, `delivery-challan-${challanId}`)} kind="delivery-challan" className="ts-btn ts-dark"><DownloadIcon className="size-4" /> Download PDF</DownloadPdfButton>
           {dc && (
             <button
               type="button"

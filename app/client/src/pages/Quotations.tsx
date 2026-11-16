@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, AdminUser, Quotation, QuotationPageResponse } from '../api';
+import { DownloadPdfButton } from '../components/DownloadPdfButton';
+import { pdfFileName } from '../lib/savePdf';
 import { useAuth } from '../auth';
 import { queryClient } from '../lib/queryClient';
 import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, RefreshCw, Download, Plus, FileDown, Pencil } from 'lucide-react';
@@ -517,7 +519,7 @@ export default function Quotations() {
                           {['draft', 'sent'].includes(q.status) && (
                             <Link to={`/quotations/${q.id}/edit`} className="ts-btn ts-ghost ts-xs" aria-label={`Edit quotation ${q.number}`}><Pencil className="size-3.5" /> Edit</Link>
                           )}
-                          <a href={api.quotations.downloadPdfUrl(q.id)} className="ts-btn ts-ghost ts-xs" aria-label={`Download PDF of ${q.number}`}><FileDown className="size-3.5" /> PDF</a>
+                          <DownloadPdfButton url={api.quotations.downloadPdfUrl(q.id)} fileName={pdfFileName(q.number)} kind="quotation" className="ts-btn ts-ghost ts-xs" ariaLabel={`Download PDF of ${q.number}`}><FileDown className="size-3.5" /> PDF</DownloadPdfButton>
                           <button type="button" className="ts-iconx" onClick={() => handleDelete(q.id, q.number, q.status)} disabled={deletingId === q.id} aria-label={`Delete quotation ${q.number}`} title="Delete">
                             {deletingId === q.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                           </button>

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fmtDay } from '../components/ds/format';
 import { api, PerformaInvoice } from '../api';
+import { DownloadPdfButton } from '../components/DownloadPdfButton';
+import { pdfFileName } from '../lib/savePdf';
 import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
 
@@ -231,6 +233,9 @@ export default function PerformaInvoices() {
                       >
                         PDF →
                       </a>
+                      <DownloadPdfButton url={api.performaInvoices.pdfUrl(pi.id)} fileName={pdfFileName(pi.number)} kind="performa-invoice" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline" title="Save the PDF to a folder">
+                        Save
+                      </DownloadPdfButton>
                     </td>
                   </tr>
                 );
