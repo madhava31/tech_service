@@ -44,8 +44,9 @@ router.get('/me', async (req, res) => {
     if (Number(userCount) === 0) return res.json({ needsSetup: true });
 
     const user = await getSessionUser(req.cookies?.session);
-    if (!user) return res.status(401).json({ error: 'Not authenticated' });
-    res.json({ user });
+    // Signed out is a normal answer to "who am I?", not an error: 200 with user null, so the
+    // browser console stays clean on the login page. Protected routes still answer 401.
+    res.json({ user: user || null });
   } catch (err) {
     sendRouteError(res, err, 500, 'Unable to check authentication status. Please try again.');
   }
