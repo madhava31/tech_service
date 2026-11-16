@@ -72,6 +72,37 @@ async function withAcquireRetry(acquire) {
   }
 }
 
+// Right after a deploy or a cold start the pooler sometimes drops or refuses the first connections
+// for a moment ("Connection terminated", "Tenant or user not found", resets). A read-only statement
+// can be repeated safely, so plain SELECTs get two more tries with a short pause; this is what keeps
+// a brief blip from turning into a 500 on every request. Statements that change data are never
+// retried here (a failure part-way could repeat a write), except the "no connection yet" case above.
+const TRANSIENT_CODES = new Set(['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EPIPE', '57P01', '57P02', '57P03', '08000', '08001', '08003', '08004', '08006', '53300', 'XX000']);
+const TRANSIENT_TEXT = /Connection terminated|timeout exceeded when trying to connect|Tenant or user not found|terminating connection|too many clients|no more connections|max client|server closed the connection/i;
+const READ_RETRY_DELAYS_MS = [250, 800];
+
+export function isTransientConnectionError(err) {
+  return TRANSIENT_CODES.has(err?.code) || (typeof err?.message === 'string' && TRANSIENT_TEXT.test(err.message));
+}
+
+function isReadOnlySql(sql) {
+  return /^\s*(select|with)\b/i.test(sql) && !/\b(insert|update|delete|merge)\b/i.test(sql);
+}
+
+async function runWithRetry(run, readOnly) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await run();
+    } catch (err) {
+      const retryable = readOnly ? isTransientConnectionError(err) : isAcquireFailure(err);
+      const delay = readOnly ? READ_RETRY_DELAYS_MS[attempt] : attempt === 0 ? ACQUIRE_RETRY_DELAY_MS : undefined;
+      if (!retryable || delay === undefined) throw err;
+      console.warn(`[db] transient connection error; retry ${attempt + 1}:`, err.message);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 // better-sqlite3 (and this codebase's existing call sites) use `?` placeholders; pg needs
 // `$1, $2, ...`. Converting here means every existing query string keeps working unchanged.
 function toPgSql(sql) {
@@ -93,7 +124,7 @@ function prepare(sql) {
     const ex = executor();
     // Inside a transaction the client is already checked out: nothing to acquire, no retry.
     if (ex !== pool) return ex.query(pgSql, normalizeArgs(params));
-    return withAcquireRetry(() => pool.query(pgSql, normalizeArgs(params)));
+    return runWithRetry(() => pool.query(pgSql, normalizeArgs(params)), isReadOnlySql(pgSql));
   }
   return {
     async get(...params) {

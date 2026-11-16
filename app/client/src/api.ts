@@ -3,19 +3,34 @@
 // resolves correctly there too. VITE_API_URL is only needed if the API is split to another domain.
 const BASE = import.meta.env.VITE_API_URL || '/api';
 
+// Right after a deploy or a cold start the server can answer a few requests with a 500 while it
+// reconnects to the database. Reads (GET) are safe to repeat, so they are retried quietly twice
+// before the user sees an error. Writes are never repeated. A 503 MIGRATION_REQUIRED is a real
+// answer, not a blip, so it is not retried either.
+const RETRY_DELAYS_MS = [400, 1200];
+const RETRYABLE_STATUSES = new Set([500, 502, 503, 504]);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    ...options,
-  });
-  if (!res.ok) {
+  const isRead = (options?.method || 'GET').toUpperCase() === 'GET';
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      ...options,
+    });
+    if (res.ok) {
+      if (res.status === 204) return undefined as T;
+      return res.json();
+    }
     const body = await res.json().catch(() => ({ error: res.statusText }));
+    if (isRead && attempt < RETRY_DELAYS_MS.length && RETRYABLE_STATUSES.has(res.status) && body?.code !== 'MIGRATION_REQUIRED') {
+      await sleep(RETRY_DELAYS_MS[attempt]);
+      continue;
+    }
     // status lets callers tell e.g. "already deleted" (404) apart from real failures
     throw Object.assign(new Error(body.error || `Request failed: ${res.status}`), { status: res.status });
   }
-  if (res.status === 204) return undefined as T;
-  return res.json();
 }
 
 export async function openPdfDocument(path: string): Promise<void> {
@@ -1392,9 +1407,18 @@ export const api = {
   },
   auth: {
     me: async (): Promise<{ needsSetup?: boolean; user?: AuthUser }> => {
-      const res = await fetch(`${BASE}/auth/me`, { credentials: 'include' });
-      if (res.status === 401) return {};
-      return res.json();
+      // A server error here would otherwise look like "signed out" and show the login page, so it is
+      // retried (same quiet retries as other reads) before giving up.
+      for (let attempt = 0; ; attempt++) {
+        const res = await fetch(`${BASE}/auth/me`, { credentials: 'include' });
+        if (res.status === 401) return {};
+        if (res.ok) return res.json();
+        if (attempt < RETRY_DELAYS_MS.length && RETRYABLE_STATUSES.has(res.status)) {
+          await sleep(RETRY_DELAYS_MS[attempt]);
+          continue;
+        }
+        throw Object.assign(new Error(`Request failed: ${res.status}`), { status: res.status });
+      }
     },
     setup: (username: string, password: string) =>
       request<{ user: AuthUser }>('/auth/setup', { method: 'POST', body: JSON.stringify({ username, password }) }),

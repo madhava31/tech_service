@@ -209,8 +209,16 @@ app.use((req, res, next) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+app.get('/api/health', async (req, res) => {
+  // /api/health?db=1 also checks the database link. On failure only a short error code is returned
+  // (e.g. 28P01 wrong password, ECONNRESET, XX000 pooler), never the message or any connection detail.
+  if (req.query.db !== '1') return res.json({ ok: true });
+  try {
+    await db.prepare('SELECT 1 AS ok').get();
+    res.json({ ok: true, db: 'ok' });
+  } catch (err) {
+    res.status(503).json({ ok: false, db: 'error', code: String(err?.code || err?.name || 'unknown').slice(0, 40) });
+  }
 });
 
 // Real-time Server-Sent Events stream for cache invalidation
