@@ -309,7 +309,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       doc.moveTo(M + (W - tw) / 2, lineY).lineTo(M + (W + tw) / 2, lineY).lineWidth(0.8).strokeColor(TITLE_BLUE).stroke();
       ty = lineY + 10;
     }
-    const IW = [95, 55, W - 95 - 55 - COL_W[5], COL_W[5]];
+    const IW = [32, 88, 50, W - 32 - 88 - 50 - COL_W[5], COL_W[5]];
     const IX = IW.reduce((xs, w, i) => [...xs, xs[i] + w], [M]);
     const grid = (atY, h) => {
       doc.lineWidth(0.6).strokeColor('#000').rect(M, atY, W, h).stroke();
@@ -319,23 +319,24 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       const h = 17;
       grid(atY, h);
       doc.font(B).fontSize(8.5).fillColor('#000');
-      ['Part Number', 'Quantity', 'Description', 'INR Total'].forEach((t, i) =>
-        doc.text(t, IX[i] + PAD, atY + 5, { width: IW[i] - 2 * PAD, align: i === 3 ? 'right' : 'left', lineBreak: false })
+      ['S.No.', 'Part Number', 'Quantity', 'Description', 'INR Total'].forEach((t, i) =>
+        doc.text(t, IX[i] + PAD, atY + 5, { width: IW[i] - 2 * PAD, align: i === 4 ? 'right' : 'left', lineBreak: false })
       );
       return atY + h;
     };
     ty = header(ty);
-    for (const it of items) {
+    for (const [n, it] of items.entries()) {
       const font = it.is_main ? B : R;
       doc.font(font).fontSize(8.5);
       const desc = String(it.product_name || it.description || '');
-      const h = Math.max(doc.heightOfString(desc, { width: IW[2] - 2 * PAD }), doc.heightOfString(String(it.part_no || ''), { width: IW[0] - 2 * PAD })) + 2 * PAD + 2;
+      const h = Math.max(doc.heightOfString(desc, { width: IW[3] - 2 * PAD }), doc.heightOfString(String(it.part_no || ''), { width: IW[1] - 2 * PAD })) + 2 * PAD + 2;
       if (ty + h > BOTTOM) { doc.addPage(); ty = header(M); }
       grid(ty, h);
       doc.font(font).fontSize(8.5).fillColor('#000');
-      doc.text(String(it.part_no || ''), IX[0] + PAD, ty + PAD + 1, { width: IW[0] - 2 * PAD });
-      doc.text(String(Number(it.qty) % 1 === 0 ? Number(it.qty) : fixed2(it.qty)), IX[1] + PAD, ty + PAD + 1, { width: IW[1] - 2 * PAD });
-      doc.text(desc, IX[2] + PAD, ty + PAD + 1, { width: IW[2] - 2 * PAD });
+      doc.text(String(n + 1), IX[0] + PAD, ty + PAD + 1, { width: IW[0] - 2 * PAD });
+      doc.text(String(it.part_no || ''), IX[1] + PAD, ty + PAD + 1, { width: IW[1] - 2 * PAD });
+      doc.text(String(Number(it.qty) % 1 === 0 ? Number(it.qty) : fixed2(it.qty)), IX[2] + PAD, ty + PAD + 1, { width: IW[2] - 2 * PAD });
+      doc.text(desc, IX[3] + PAD, ty + PAD + 1, { width: IW[3] - 2 * PAD });
       ty += h;
     }
     return ty;

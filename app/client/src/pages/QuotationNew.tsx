@@ -56,7 +56,7 @@ export default function QuotationNew() {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<QuotationItem[]>([emptyItem()]);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
-  const [dragOver, setDragOver] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<{ idx: number; after: boolean } | null>(null);
   const [quotationNumber, setQuotationNumber] = useState('');
   const [prefix, setPrefix] = useState<string>('TSQOT');
   const [userEditedNumber, setUserEditedNumber] = useState(false);
@@ -967,9 +967,29 @@ export default function QuotationNew() {
                   <div
                     key={lineKey(it) || idx}
                     className="ts-qline"
-                    style={dragOver === idx && dragFrom !== null && dragFrom !== idx ? { outline: '2px dashed var(--accent2, #2563eb)', outlineOffset: 2, opacity: dragFrom === idx ? 0.5 : 1 } : dragFrom === idx ? { opacity: 0.5 } : undefined}
-                    onDragOver={(e) => { if (dragFrom !== null) { e.preventDefault(); if (dragOver !== idx) setDragOver(idx); } }}
-                    onDrop={(e) => { e.preventDefault(); if (dragFrom !== null) moveItem(dragFrom, idx); setDragFrom(null); setDragOver(null); }}
+                    style={(() => {
+                      if (dragFrom === idx) return { opacity: 0.5 };
+                      if (dragFrom === null || !dragOver || dragOver.idx !== idx) return undefined;
+                      // A blue bar shows where the dragged line will be inserted: above or below this line.
+                      return { boxShadow: dragOver.after ? '0 4px 0 0 #2563eb' : '0 -4px 0 0 #2563eb' };
+                    })()}
+                    onDragOver={(e) => {
+                      if (dragFrom === null) return;
+                      e.preventDefault();
+                      const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      const after = e.clientY > r.top + r.height / 2;
+                      if (!dragOver || dragOver.idx !== idx || dragOver.after !== after) setDragOver({ idx, after });
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragFrom !== null && dragOver) {
+                        // Insert, like Excel: the line is taken out and put at the chosen place, the lines in between move up or down.
+                        const slot = dragOver.after ? dragOver.idx + 1 : dragOver.idx;
+                        moveItem(dragFrom, slot > dragFrom ? slot - 1 : slot);
+                      }
+                      setDragFrom(null);
+                      setDragOver(null);
+                    }}
                   >
                     <div className="ts-ql-h">
                       {items.length > 1 && (
@@ -1005,6 +1025,16 @@ export default function QuotationNew() {
                         </button>
                       )}
                       {items.length > 1 && (<>
+                        <select
+                          className="ts-fi"
+                          style={{ width: 'auto', padding: '2px 6px', fontSize: 12 }}
+                          value={idx}
+                          onChange={(e) => moveItem(idx, Number(e.target.value))}
+                          aria-label={`Move line item ${idx + 1} to position`}
+                          title="Insert this line at another position; the lines in between shift"
+                        >
+                          {items.map((_, p) => <option key={p} value={p}>Position {p + 1}</option>)}
+                        </select>
                         <button type="button" className="ts-iconx" onClick={() => moveItem(idx, idx - 1)} disabled={idx === 0} aria-label={`Move line item ${idx + 1} up`} title="Move up"><ChevronUpIcon className="size-4" /></button>
                         <button type="button" className="ts-iconx" onClick={() => moveItem(idx, idx + 1)} disabled={idx === items.length - 1} aria-label={`Move line item ${idx + 1} down`} title="Move down"><ChevronDownIcon className="size-4" /></button>
                       </>)}
