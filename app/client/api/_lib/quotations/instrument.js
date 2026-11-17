@@ -21,7 +21,7 @@ export async function readInstrument(body) {
   if (!(await instrumentReady())) {
     throw httpError(503, 'Instrument quotations need a database update (migration 006) that has not been applied yet. Please contact your administrator.');
   }
-  if (!String(body.instrument_title || '').trim()) throw httpError(400, 'Please enter the instrument title, e.g. PerkinElmer make FTIR-Spectrum Two with UATR');
+  // The title is optional: without one, the PDF simply has no title line.
   if (body.pricing_mode !== 'lump_sum') throw httpError(400, 'An instrument quotation uses one total amount for all the items');
   return true;
 }
@@ -35,7 +35,7 @@ export async function saveInstrument(quotationId, body) {
   const instrument = body.quotation_type === 'instrument';
   await db
     .prepare(`UPDATE quotation SET quotation_type = ?, instrument_title = ? WHERE id = ?`)
-    .run(instrument ? 'instrument' : 'standard', instrument ? String(body.instrument_title).trim().slice(0, 200) : null, quotationId);
+    .run(instrument ? 'instrument' : 'standard', instrument ? String(body.instrument_title || '').trim().slice(0, 200) || null : null, quotationId);
   // Lines are inserted in the order sent, so the n-th line by id is the n-th item of the request.
   const lines = await db.prepare(`SELECT id FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(quotationId);
   const items = Array.isArray(body.items) ? body.items : [];

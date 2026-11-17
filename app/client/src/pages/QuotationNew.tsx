@@ -596,7 +596,6 @@ export default function QuotationNew() {
       return setError('Every line item needs a description and quantity');
     }
     if (!quotationNumber.trim()) return setError('Please enter the quotation number');
-    if (isInstrument && !instrumentTitle.trim()) return setError('Please enter the instrument title, e.g. PerkinElmer make FTIR-Spectrum Two with UATR');
     if (lumpSum && !(Number(lumpSumAmount) > 0)) return setError('Please enter the total amount for all the items');
     if (contactsEnabled) {
       if (addingContact) {
@@ -671,7 +670,7 @@ export default function QuotationNew() {
         pricing_mode: lumpSum || isInstrument ? 'lump_sum' : 'itemized',
         quotation_type: isInstrument ? 'instrument' : 'standard',
         ...(quotationNumber.trim() ? { number: quotationNumber.trim() } : {}),
-        instrument_title: isInstrument ? instrumentTitle.trim() : null,
+        instrument_title: isInstrument ? instrumentTitle.trim() || null : null,
         lump_sum_amount: lumpSum ? Number(lumpSumAmount) : null,
         ...(contactsEnabled
           ? {
@@ -1047,7 +1046,7 @@ export default function QuotationNew() {
             {isInstrument ? (
               <div className="mt-3 flex flex-col gap-2 rounded-lg border border-line2 bg-surface px-3 py-3">
                 <div className="ts-fld">
-                  <label htmlFor="q-inst-title">Instrument title (printed in the middle of the quotation) *</label>
+                  <label htmlFor="q-inst-title">Instrument title (printed in the middle of the quotation, optional)</label>
                   <input id="q-inst-title" className="ts-fi" maxLength={200} value={instrumentTitle} onChange={(e) => setInstrumentTitle(e.target.value)} placeholder="e.g. PerkinElmer make FTIR-Spectrum Two with UATR" />
                 </div>
                 <small className="text-[12.5px] text-subtle">Instrument format: Part Number, Quantity and Description for each line, and one total amount for all the items. Tick "Main item" to print a line in bold.</small>
