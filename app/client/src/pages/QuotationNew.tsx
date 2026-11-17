@@ -2,7 +2,7 @@ import { CheckIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { CountUp } from '../components/ds/CountUp';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm, Branch } from '../api';
+import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm } from '../api';
 import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
 import SearchableSelect from '../components/SearchableSelect';
 import StockAnalysisWidget from '../components/StockAnalysisWidget';
@@ -38,7 +38,6 @@ export default function QuotationNew() {
   const [products, setProducts] = useState<Product[]>([]);
   const [engineers, setEngineers] = useState<SalesEngineer[]>([]);
   const [firms, setFirms] = useState<Firm[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
 
   const [companyId, setCompanyId] = useState<number | ''>('');
   const [salesEngineerId, setSalesEngineerId] = useState<number | ''>('');
@@ -143,14 +142,6 @@ export default function QuotationNew() {
         }
         setPrefix(initPref);
         fetchNextNumber(date, initPref, defFirm.id);
-
-        api.firms.branches(defFirm.id).then((bList) => {
-          setBranches(bList);
-          if (bList.length > 0 && !isEdit) {
-            const defBranch = bList.find((b) => b.is_default === 1) || bList[0];
-            setBranchId(defBranch.id);
-          }
-        });
       }
     });
 
@@ -194,9 +185,6 @@ export default function QuotationNew() {
                 discount_value: it.discount_value || 0,
               }))
             );
-          }
-          if (q.firm_id) {
-            api.firms.branches(q.firm_id).then(setBranches);
           }
         })
         .catch((e) => setError(e.message))
@@ -256,37 +244,6 @@ export default function QuotationNew() {
     if (!isEdit && !userEditedNumber) {
       fetchNextNumber(date, newPrefix, newFirmId);
     }
-    if (newFirmId) {
-      api.firms.branches(newFirmId).then((bList) => {
-        setBranches(bList);
-        if (bList.length > 0) {
-          const defBranch = bList.find((b) => b.is_default === 1) || bList[0];
-          setBranchId(defBranch.id);
-          if (defBranch.quotation_prefix) {
-            const bPref = defBranch.quotation_prefix.trim().toUpperCase();
-            setPrefix(bPref);
-            if (!isEdit && !userEditedNumber) {
-              fetchNextNumber(date, bPref, newFirmId, defBranch.id);
-            }
-          }
-        }
-      });
-    } else {
-      setBranches([]);
-    }
-  }
-
-  function handleBranchChange(newBranchId: number | '') {
-    setBranchId(newBranchId);
-    setSeriesNote('');
-    const selectedBranch = branches.find((b) => b.id === newBranchId);
-    if (selectedBranch?.quotation_prefix) {
-      const bPref = selectedBranch.quotation_prefix.trim().toUpperCase();
-      setPrefix(bPref);
-      if (!isEdit && !userEditedNumber) {
-        fetchNextNumber(date, bPref, firmId, newBranchId);
-      }
-    }
   }
 
   function handlePrefixChange(newPref: string) {
@@ -296,16 +253,12 @@ export default function QuotationNew() {
     void rememberSeries(newPref);
   }
 
-  // A series the user picks is remembered as the quotation format of the selected branch, or of the
-  // firm when no branch is chosen, so the same firm or branch loads it next time.
+  // A series the user picks is remembered as the quotation format of the selected firm, so the
+  // same firm loads it next time.
   async function rememberSeries(newPref: string) {
     setSeriesNote('');
     try {
-      if (branchId) {
-        const saved = await api.firms.updateBranch(Number(branchId), { quotation_prefix: newPref });
-        setBranches((prev) => prev.map((b) => (b.id === saved.id ? { ...b, quotation_prefix: saved.quotation_prefix ?? newPref } : b)));
-        setSeriesNote(`Saved as the quotation format for ${saved.name || 'this branch'}.`);
-      } else if (firmId) {
+      if (firmId) {
         const saved = await api.firms.update(Number(firmId), { quotation_prefix: newPref });
         setFirms((prev) => prev.map((f) => (f.id === saved.id ? { ...f, quotation_prefix: saved.quotation_prefix ?? newPref } : f)));
         setSeriesNote(`Saved as the quotation format for ${saved.name || 'this firm'}.`);
@@ -338,11 +291,7 @@ export default function QuotationNew() {
 
     if (targetFirm) {
       setFirmId(targetFirm.id);
-      api.firms.branches(targetFirm.id).then((bList) => {
-        setBranches(bList);
-        const defB = bList.find((b) => b.is_default === 1) || bList[0];
-        if (defB) setBranchId(defB.id);
-      });
+      setBranchId('');
       fetchNextNumber(date, newPref, targetFirm.id);
     } else {
       fetchNextNumber(date, newPref, firmId, branchId);
@@ -548,7 +497,6 @@ export default function QuotationNew() {
   async function submit() {
     setError('');
     if (!companyId) return setError('Please select a company');
-    if (branches.length > 0 && !branchId) return setError('Please select the issuing branch');
     if (items.length === 0 || items.some((it) => !it.description || !it.qty)) {
       return setError('Every line item needs a description and quantity');
     }
@@ -677,7 +625,6 @@ export default function QuotationNew() {
   const money2 = (v: number) => '₹' + Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const custName = companies.find((c) => c.id === companyId)?.name;
   const eng = engineers.find((e) => e.id === salesEngineerId);
-  const br = branches.find((b) => b.id === branchId);
   const saveLabel = saving ? 'Saving…' : isEdit ? 'Save quotation' : 'Save and generate';
 
   return (
@@ -885,7 +832,7 @@ export default function QuotationNew() {
                     )}
                   </select>
                   <small className="ts-hint">
-                    {seriesNote || `Picking a series loads its next number and remembers it for the selected ${branchId ? 'branch' : 'firm'}.`}
+                    {seriesNote || `Picking a series loads its next number and remembers it for the selected firm.`}
                   </small>
                 </div>
               )}
@@ -911,7 +858,7 @@ export default function QuotationNew() {
                 </small>
               </div>
             </div>
-            <div className="ts-fgrid ts-g3 ts-issuer">
+            <div className="ts-fgrid ts-g2 ts-issuer">
               <div className="ts-fld">
                 <label>Assigned sales engineer</label>
                 <SearchableSelect
@@ -928,25 +875,14 @@ export default function QuotationNew() {
                   {firms.map((f) => <option key={f.id} value={f.id}>{f.name} ({f.code})</option>)}
                 </select>
               </div>
-              <div className="ts-fld">
-                <label htmlFor="q-branch">Issuing branch</label>
-                <select id="q-branch" className="ts-fi" value={branchId} onChange={(e) => handleBranchChange(e.target.value ? Number(e.target.value) : '')}>
-                  {/* only a placeholder while nothing is chosen: hidden, so it is never a choice in the list */}
-                  {branchId === '' && <option value="" disabled hidden>{branches.length ? 'Select branch…' : 'No branches for this firm'}</option>}
-                  {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
-                </select>
-              </div>
             </div>
             {(() => {
-              const currentBranch = branches.find((b) => b.id === branchId);
               const currentFirm = firms.find((f) => f.id === firmId);
-              const addr = currentBranch?.address
-                ? [currentBranch.address, currentBranch.city, currentBranch.state].filter(Boolean).join(', ')
-                : currentFirm?.address_line_1
+              const addr = currentFirm?.address_line_1
                 ? [currentFirm.address_line_1, currentFirm.city, currentFirm.state].filter(Boolean).join(', ')
                 : null;
-              const gstin = currentBranch?.gstin || currentFirm?.gstin;
-              const pan = currentBranch?.pan || currentFirm?.pan;
+              const gstin = currentFirm?.gstin;
+              const pan = currentFirm?.pan;
               if (!addr && !gstin && !pan && !currentFirm) return null;
               return (
                 <div className="text-xs text-subtle bg-tile px-3.5 py-2.5 rounded-xl border border-line2 flex items-start gap-2.5 mt-3">
@@ -1179,7 +1115,6 @@ export default function QuotationNew() {
                 </>
               )}
               <div><span>Engineer</span><b>{eng ? `${eng.name} (${eng.code})` : 'Not assigned'}</b></div>
-              <div><span>Branch</span><b>{br ? `${br.name} (${br.code})` : 'Not selected'}</b></div>
               <div><span>Line items</span><b>{items.length}</b></div>
             </div>
             <button
