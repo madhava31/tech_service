@@ -545,7 +545,8 @@ router.get('/:id', async (req, res) => {
       .get(req.params.id);
     if (!rawQuotation) return res.status(404).json({ error: 'Quotation not found' });
     const quotation = enrichQuotationFirm(rawQuotation);
-    const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(req.params.id);
+    // unit comes from the product (Nos, Pkt, ...), for the Unit column of the quotation table and PDF.
+    const items = await db.prepare(`SELECT qi.*, p.unit AS unit FROM quotation_item qi LEFT JOIN product p ON p.id = qi.product_id WHERE qi.quotation_id = ? ORDER BY qi.id`).all(req.params.id);
     // Payment schedule and payments received, once migration 004 has been applied.
     const payment = (await paymentsReady()) ? await getQuotationPayments(req.params.id) : null;
     res.json({
@@ -1193,7 +1194,8 @@ router.get('/:id/pdf', async (req, res) => {
       .get(req.params.id);
     if (!rawQuotation) return res.status(404).json({ error: 'Quotation not found' });
     const quotation = enrichQuotationFirm(rawQuotation);
-    const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(req.params.id);
+    // unit comes from the product (Nos, Pkt, ...), for the Unit column of the quotation table and PDF.
+    const items = await db.prepare(`SELECT qi.*, p.unit AS unit FROM quotation_item qi LEFT JOIN product p ON p.id = qi.product_id WHERE qi.quotation_id = ? ORDER BY qi.id`).all(req.params.id);
     const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
 
     // Every quotation prints in the approved layout. A quotation saved before the quotation module

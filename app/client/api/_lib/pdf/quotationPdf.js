@@ -74,6 +74,29 @@ function resolveCompanyDetails(q, s = {}) {
   return { name, address, contact, bank, signatory };
 }
 
+// Standard quotation table: the same columns, names and order as the PO and PI PDFs
+// (S.NO. | Item code | HSN/SAC | Description | Quantity | Unit | Price/Unit | Taxable amount | GST | Amount).
+// Widths add up to W. The instrument format has its own table (see drawInstrumentTable).
+const STD_COLS = [
+  { key: 'sno', label: 'S.NO.', w: 30, align: 'left' },
+  { key: 'code', label: 'Item code', w: 56, align: 'left' },
+  { key: 'hsn', label: 'HSN/\nSAC', w: 42, align: 'left' },
+  { key: 'desc', label: 'Description', w: 94, align: 'left' },
+  { key: 'qty', label: 'Quantity', w: 36, align: 'right' },
+  { key: 'unit', label: 'Unit', w: 28, align: 'center' },
+  { key: 'price', label: 'Price/\nUnit', w: 62, align: 'right' },
+  { key: 'taxable', label: 'Taxable\namount', w: 62, align: 'right' },
+  { key: 'gst', label: 'GST', w: 60, align: 'right' },
+  { key: 'amount', label: 'Amount', w: 65.28, align: 'right' },
+];
+{
+  let x = M;
+  for (const c of STD_COLS) { c.x = x; x += c.w; }
+}
+const STD = Object.fromEntries(STD_COLS.map((c) => [c.key, c]));
+const rupees = (n) => `${Number(n) < 0 ? '- ' : ''}₹ ${Math.abs(Number(n || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const normState = (v) => String(v || '').trim().toLowerCase().replace(/^\d{2}-/, '');
+
 // S.No | PRODUCT DESCRIPTION | QTY | DISCOUNT | UNIT PRICE | TOTAL PRICE (widths add up to W)
 const COL_W = [32, 245, 41, 49, 80, 88];
 const COL_X = COL_W.reduce((xs, w, i) => [...xs, xs[i] + w], [M]);
@@ -155,79 +178,90 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
 
   // ---- product table ----
   const lumpSum = quotation.pricing_mode === 'lump_sum';
-  const headerH = 17;
-  function drawHeaderRow(atY) {
-    doc.rect(M, atY, W, headerH).fill(HEADER_GREY);
-    doc.font(B).fontSize(7.8).fillColor('#fff');
-    HEADERS.forEach((h, i) => doc.text(h, COL_X[i], atY + 5, { width: COL_W[i], align: 'center', lineBreak: false }));
-    gridBox(atY, headerH);
-    return atY + headerH;
-  }
-  function gridBox(atY, h) {
-    doc.lineWidth(0.6).strokeColor('#000');
-    doc.rect(M, atY, W, h).stroke();
-    for (let i = 1; i < COL_X.length - 1; i++) doc.moveTo(COL_X[i], atY).lineTo(COL_X[i], atY + h).stroke();
-  }
-  const descW = COL_W[1] - 2 * PAD;
-  const bulletIndent = 9;
-  function rowHeight(it) {
-    let h = PAD;
-    doc.font(B).fontSize(8.5); h += doc.heightOfString(it.product_name || it.description || '', { width: descW });
-    doc.font(MONO).fontSize(9.5); h += doc.heightOfString(`Part No: ${it.part_no || ''}`, { width: descW }) + 4;
-    const feats = features(it);
-    if (feats.length) {
-      doc.font(B).fontSize(8); h += doc.heightOfString('Key Features', { width: descW }) + 1;
-      doc.font(R).fontSize(8);
-      for (const f of feats) h += doc.heightOfString(f, { width: descW - bulletIndent });
-    }
-    doc.font(R).fontSize(8);
-    const moneyH = Math.max(
-      doc.heightOfString(money(it.final_unit_price), { width: COL_W[4] - 2 * PAD }),
-      doc.heightOfString(money(it.final_line_total), { width: COL_W[5] - 2 * PAD })
-    ) + PAD;
-    return Math.max(h + PAD + 2, moneyH + PAD);
-  }
-  function drawRow(it, idx, atY, h) {
-    gridBox(atY, h);
-    const top = atY + PAD;
-    doc.font(R).fontSize(8).fillColor('#000');
-    doc.text(String(idx + 1), COL_X[0], top, { width: COL_W[0], align: 'center' });
-    doc.text(fixed2(it.qty), COL_X[2], top, { width: COL_W[2], align: 'center' });
-    // A total-amount quotation (migration 005) prints no per-item prices, only the total below.
-    if (!lumpSum) {
-      doc.text(`${fixed2(it.discount_value)}%`, COL_X[3], top, { width: COL_W[3], align: 'center' });
-      doc.text(money(it.final_unit_price), COL_X[4] + PAD, top, { width: COL_W[4] - 2 * PAD, align: 'center' });
-      doc.text(money(it.final_line_total), COL_X[5] + PAD, top, { width: COL_W[5] - 2 * PAD, align: 'center' });
-    }
+  const isInstrument = quotation.quotation_type === 'instrument';
+  const taxRate = Number(quotation.tax_percent || 0);
 
-    const x = COL_X[1] + PAD;
-    doc.font(B).fontSize(8.5).text(it.product_name || it.description || '', x, top, { width: descW });
-    doc.font(MONO).fontSize(9.5).text(`Part No: ${it.part_no || ''}`, x, doc.y + 1, { width: descW });
+  // Standard format: the PO / PI columns. Each line shows its taxable amount (after the product
+  // discount), the GST on it and the amount; the overall discount is taken in the totals below.
+  const stdHeader = (atY) => {
+    const h = 24;
+    doc.rect(M, atY, W, h).fill(HEADER_GREY);
+    doc.font(B).fontSize(7.5).fillColor('#fff');
+    for (const c of STD_COLS) doc.text(c.label, c.x + 2, c.label.includes('\n') ? atY + 2 : atY + 8, { width: c.w - 4, align: c.align });
+    return atY + h;
+  };
+  const featSize = 7;
+  const stdRowHeight = (it) => {
+    doc.font(R).fontSize(8);
+    const dw = STD.desc.w - 4;
+    let h = doc.heightOfString(String(it.product_name || it.description || ''), { width: dw });
     const feats = features(it);
     if (feats.length) {
-      doc.font(B).fontSize(8).text('Key Features', x, doc.y + 3, { width: descW });
-      doc.font(R).fontSize(8);
+      h += 4;
+      doc.fontSize(featSize);
+      for (const f of feats) h += doc.heightOfString(`• ${f}`, { width: dw });
+      doc.fontSize(8);
+    }
+    doc.font(B);
+    const hCode = doc.heightOfString(String(it.part_no || '-'), { width: STD.code.w - 4 });
+    doc.font(R);
+    const hHsn = doc.heightOfString(String(it.hsn_sac || ''), { width: STD.hsn.w - 4 });
+    return Math.max(30, h + 10, hCode + 10, hHsn + 10);
+  };
+  const discountNote = (it) => {
+    const v = Number(it.discount_value || 0);
+    if (!(v > 0)) return '';
+    return it.discount_type === 'amount' ? `(${rupees(v)} off)` : `(${v.toLocaleString('en-IN', { maximumFractionDigits: 2 })}% off)`;
+  };
+  const stdRow = (it, idx, atY, h) => {
+    const top = atY + 4;
+    const cell = (key, text, font = R, size = 8) => doc.font(font).fontSize(size).fillColor('#000').text(text, STD[key].x + 2, top, { width: STD[key].w - 4, align: STD[key].align });
+    cell('sno', String(idx + 1));
+    cell('code', String(it.part_no || '-'), B);
+    cell('hsn', String(it.hsn_sac || ''));
+    const qty = Number(it.qty);
+    cell('qty', Number.isInteger(qty) ? String(qty) : fixed2(qty));
+    cell('unit', String(it.unit || 'Nos'));
+    if (!lumpSum) {
+      const taxable = Number(it.final_line_total ?? it.amount ?? 0);
+      const gstAmt = (taxable * taxRate) / 100;
+      cell('price', rupees(it.final_unit_price));
+      const note = discountNote(it);
+      if (note) doc.font(R).fontSize(6.5).fillColor('#666').text(note, STD.price.x + 2, doc.y, { width: STD.price.w - 4, align: 'right' });
+      cell('taxable', rupees(taxable));
+      doc.font(R).fontSize(8).fillColor('#000').text(`${rupees(gstAmt)}\n(${taxRate.toLocaleString('en-IN', { maximumFractionDigits: 2 })}%)`, STD.gst.x + 2, top, { width: STD.gst.w - 4, align: 'right' });
+      cell('amount', rupees(taxable + gstAmt));
+    }
+    // Description (name, then the key features below it in small type)
+    const dx = STD.desc.x + 2, dw = STD.desc.w - 4;
+    doc.font(R).fontSize(8).fillColor('#000').text(String(it.product_name || it.description || ''), dx, top, { width: dw });
+    const feats = features(it);
+    if (feats.length) {
+      doc.font(R).fontSize(featSize).fillColor('#333');
+      let fy = doc.y + 4;
       for (const f of feats) {
-        const fy = doc.y + 0.5;
-        doc.text('•', x + 1, fy, { width: bulletIndent, lineBreak: false });
-        doc.text(f, x + bulletIndent, fy, { width: descW - bulletIndent });
+        doc.text(`• ${f}`, dx, fy, { width: dw });
+        fy = doc.y;
       }
     }
-  }
+    doc.moveTo(M, atY + h - 1).lineTo(M + W, atY + h - 1).lineWidth(0.4).strokeColor('#cfcfcf').stroke();
+  };
 
-  if (quotation.quotation_type === 'instrument') {
+  if (isInstrument) {
     y = drawInstrumentTable(y);
   } else {
-    y = drawHeaderRow(y);
+    y = stdHeader(y) + 4;
     items.forEach((it, idx) => {
-      const h = rowHeight(it);
-      if (y + h > BOTTOM) {
+      const h = stdRowHeight(it);
+      if (y + h > BOTTOM - 30) {
         doc.addPage();
-        y = drawHeaderRow(M);
+        y = stdHeader(M) + 4;
       }
-      drawRow(it, idx, y, h);
+      stdRow(it, idx, y, h);
       y += h;
     });
+    doc.moveTo(M, y + 2).lineTo(M + W, y + 2).lineWidth(0.8).strokeColor('#555').stroke();
+    y += 8;
   }
 
   // Instrument format (migration 006): a centred, underlined title, then
@@ -284,39 +318,78 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
   const pct = (n) => Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
   const overall = Number(quotation.overall_discount_amount || 0);
   const roundOff = Number(quotation.round_off || 0);
-  const totals = [
-    {
-      label: lumpSum ? `Total Price (${items.length} item${items.length === 1 ? '' : 's'})` : 'Sub Total',
-      value: quotation.subtotal,
-      fill: SHADE,
-      bold: lumpSum,
-    },
-    ...(overall > 0.004
-      ? [{ label: quotation.overall_discount_type === 'percentage' ? `Overall Discount @ ${pct(quotation.overall_discount_value)}%` : 'Overall Discount', value: -overall, fill: SHADE, bold: false }]
-      : []),
-    // Same rows as the quotation page: after a discount, the taxable amount GST is worked out on.
-    ...(overall > 0.004
-      ? [{ label: 'Net Taxable Subtotal', value: Number(quotation.taxable_amount ?? quotation.net_subtotal ?? 0), fill: SHADE, bold: true }]
-      : []),
-    { label: `GST @ ${pct(quotation.tax_percent)}%`, value: quotation.tax_amount, fill: SHADE, bold: false },
-    ...(Math.abs(roundOff) > 0.004 ? [{ label: 'Round Off', value: roundOff, fill: SHADE, bold: false }] : []),
-    { label: 'Grand Total', value: quotation.total, fill: SHADE_DARK, bold: true },
-  ];
-  const totH = 15;
-  if (y + totH * totals.length > BOTTOM) { doc.addPage(); y = M; }
-  // Totals sit in a compact box on the right (name | amount) under the price columns; the left
-  // side stays blank.
-  const valueX = COL_X[5];
-  const labelW = 150;
-  const boxX = valueX - labelW;
-  const boxW = M + W - boxX;
-  for (const t of totals) {
-    doc.rect(boxX, y, boxW, totH).fill(t.fill);
-    doc.lineWidth(0.6).strokeColor('#000').rect(boxX, y, boxW, totH).stroke();
-    doc.moveTo(valueX, y).lineTo(valueX, y + totH).stroke();
-    doc.font(B).fontSize(8).fillColor('#000').text(t.label, boxX + PAD + 2, y + 4, { width: labelW - 2 * PAD - 2, align: 'left', lineBreak: false });
-    doc.font(t.bold ? B : R).text(money(t.value), valueX + PAD, y + 4, { width: COL_W[5] - 2 * PAD, align: 'right', lineBreak: false });
-    y += totH;
+  if (isInstrument) {
+    const totals = [
+      {
+        label: lumpSum ? `Total Price (${items.length} item${items.length === 1 ? '' : 's'})` : 'Sub Total',
+        value: quotation.subtotal,
+        fill: SHADE,
+        bold: lumpSum,
+      },
+      ...(overall > 0.004
+        ? [{ label: quotation.overall_discount_type === 'percentage' ? `Overall Discount @ ${pct(quotation.overall_discount_value)}%` : 'Overall Discount', value: -overall, fill: SHADE, bold: false }]
+        : []),
+      // Same rows as the quotation page: after a discount, the taxable amount GST is worked out on.
+      ...(overall > 0.004
+        ? [{ label: 'Net Taxable Subtotal', value: Number(quotation.taxable_amount ?? quotation.net_subtotal ?? 0), fill: SHADE, bold: true }]
+        : []),
+      { label: `GST @ ${pct(quotation.tax_percent)}%`, value: quotation.tax_amount, fill: SHADE, bold: false },
+      ...(Math.abs(roundOff) > 0.004 ? [{ label: 'Round Off', value: roundOff, fill: SHADE, bold: false }] : []),
+      { label: 'Grand Total', value: quotation.total, fill: SHADE_DARK, bold: true },
+    ];
+    const totH = 15;
+    if (y + totH * totals.length > BOTTOM) { doc.addPage(); y = M; }
+    // Totals sit in a compact box on the right (name | amount) under the price columns; the left
+    // side stays blank.
+    const valueX = COL_X[5];
+    const labelW = 150;
+    const boxX = valueX - labelW;
+    const boxW = M + W - boxX;
+    for (const t of totals) {
+      doc.rect(boxX, y, boxW, totH).fill(t.fill);
+      doc.lineWidth(0.6).strokeColor('#000').rect(boxX, y, boxW, totH).stroke();
+      doc.moveTo(valueX, y).lineTo(valueX, y + totH).stroke();
+      doc.font(B).fontSize(8).fillColor('#000').text(t.label, boxX + PAD + 2, y + 4, { width: labelW - 2 * PAD - 2, align: 'left', lineBreak: false });
+      doc.font(t.bold ? B : R).text(money(t.value), valueX + PAD, y + 4, { width: COL_W[5] - 2 * PAD, align: 'right', lineBreak: false });
+      y += totH;
+    }
+  } else {
+    // Standard format: right-hand totals like the PO / PI (Sub Total, discount, GST, Round off, Total).
+    // GST splits into CGST + SGST when the issuer and the customer are in the same state, IGST when
+    // not, and one GST line when either state is unknown.
+    const issuerState = String(quotation.branch_state || quotation.firm_state || s.state || '').trim();
+    const customerState = String(quotation.company_state || '').trim();
+    const sameState = issuerState && customerState ? normState(issuerState) === normState(customerState) : null;
+    const taxAmount = Number(quotation.tax_amount || 0);
+    const rate = taxRate.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    const half = (taxRate / 2).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    const rows = [[lumpSum ? `Total Price (${items.length} item${items.length === 1 ? '' : 's'})` : 'Sub Total', Number(quotation.subtotal || 0)]];
+    if (overall > 0.004) {
+      rows.push([quotation.overall_discount_type === 'percentage' ? `Discount (${pct(quotation.overall_discount_value)}%)` : 'Discount', -overall]);
+      rows.push(['Taxable Amount', Number(quotation.taxable_amount ?? quotation.net_subtotal ?? 0)]);
+    }
+    if (sameState === null) rows.push([`GST@${rate}%`, taxAmount]);
+    else if (sameState) rows.push([`CGST@${half}%`, taxAmount / 2], [`SGST@${half}%`, taxAmount / 2]);
+    else rows.push([`IGST@${rate}%`, taxAmount]);
+    rows.push(['Round off', roundOff]);
+
+    const sumW = 200;
+    const sumX = M + W - sumW;
+    const rowH = 15;
+    if (y + rowH * (rows.length + 2) > BOTTOM) { doc.addPage(); y = M; }
+    doc.fontSize(8.5).fillColor('#000');
+    for (const [label, value] of rows) {
+      doc.font(R).text(label, sumX + 6, y + 3, { width: 100, align: 'left', lineBreak: false });
+      doc.font(R).text(rupees(value), sumX + 100, y + 3, { width: sumW - 106, align: 'right', lineBreak: false });
+      y += rowH;
+    }
+    y += 3;
+    doc.rect(sumX, y, sumW, 19).fill(HEADER_GREY);
+    doc.fillColor('#fff').font(B).fontSize(9);
+    doc.text('Total', sumX + 6, y + 5, { width: 90, align: 'left', lineBreak: false });
+    doc.text(rupees(quotation.total), sumX + 100, y + 5, { width: sumW - 106, align: 'right', lineBreak: false });
+    doc.fillColor('#000');
+    y += 19;
   }
 
   // ---- terms (left) and signatory (right) ----

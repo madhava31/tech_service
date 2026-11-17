@@ -979,7 +979,6 @@ export default function QuotationNew() {
               customAdvance={customAdvance}
               onCustomAdvanceChange={setCustomAdvance}
               dueDays={dueDays}
-              onDueDaysChange={setDueDays}
             />
           ) : (
             <div className="ts-warnbox"><span>Contact persons and payment terms need a database update (migration 004). Ask your administrator to apply it.</span></div>
@@ -1029,7 +1028,7 @@ export default function QuotationNew() {
                     </div>
                     <div className="ts-fgrid ts-ql-a">
                       <div className="ts-fld">
-                        <label>Product description</label>
+                        <label>Description</label>
                         <SearchableSelect
                           options={products.map((p) => ({ value: p.description, label: p.description }))}
                           value={it.description || ''}
@@ -1042,7 +1041,7 @@ export default function QuotationNew() {
                         />
                       </div>
                       <div className="ts-fld">
-                        <label>Part no (catalogue)</label>
+                        <label>Item code</label>
                         <SearchableSelect
                           options={products.map((p) => ({ value: p.part_no, label: `${p.part_no} — ${p.description}` }))}
                           value={it.part_no || ''}
@@ -1061,12 +1060,13 @@ export default function QuotationNew() {
                     </div>
                     <div className="ts-fgrid ts-ql-b">
                       <div className="ts-fld">
-                        <label>Qty</label>
+                        <label>Quantity</label>
                         <input type="number" min="1" className="ts-fi ts-r" value={!it.qty || it.qty === 0 ? '' : it.qty} onFocus={(e) => e.target.select()} onChange={(e) => updateItem(idx, { qty: e.target.value === '' ? 0 : Number(e.target.value) })} placeholder="1" />
+                        <small className="ts-hint">Unit: {products.find((p) => p.id === it.product_id)?.unit || 'Nos'}</small>
                       </div>
                       {!lumpSum && (<>
                       <div className="ts-fld">
-                        <label>Price per unit (₹)</label>
+                        <label>Price/Unit (₹)</label>
                         <input type="number" min="0" step="0.01" className="ts-fi ts-r" value={!it.actual_unit_price || it.actual_unit_price === 0 ? '' : it.actual_unit_price} onFocus={(e) => e.target.select()} onChange={(e) => updateItem(idx, { actual_unit_price: e.target.value === '' ? 0 : Number(e.target.value), price: e.target.value === '' ? 0 : Number(e.target.value) })} placeholder="0.00" />
                       </div>
                       <div className="ts-fld">
@@ -1082,9 +1082,11 @@ export default function QuotationNew() {
                         <input type="number" min="0" step="0.01" className="ts-fi ts-r" disabled={noDisc} value={!it.discount_value || it.discount_value === 0 ? '' : it.discount_value} onFocus={(e) => e.target.select()} onChange={(e) => updateItem(idx, { discount_value: e.target.value === '' ? 0 : Number(e.target.value) })} placeholder="0" />
                       </div>
                       <div className="ts-fld ts-ltotw">
-                        <span className="ts-lbl" style={{ fontSize: 11.5, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgb(var(--muted))', fontWeight: 500 }}>Line total</span>
+                        <span className="ts-lbl" style={{ fontSize: 11.5, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgb(var(--muted))', fontWeight: 500 }}>Taxable amount</span>
                         <div className="ts-ltot">{money2(it.after_product_discount_amount)}</div>
                         {it.product_discount_amount > 0 && <small className="ts-lalloc">Saves {money2(it.product_discount_amount)}</small>}
+                        <small className="ts-lalloc">GST ({taxPercent}%): {money2((it.after_product_discount_amount * taxPercent) / 100)}</small>
+                        <small className="ts-lalloc">Amount: <b>{money2(it.after_product_discount_amount + (it.after_product_discount_amount * taxPercent) / 100)}</b></small>
                       </div>
                       </>)}
                     </div>
@@ -1098,7 +1100,7 @@ export default function QuotationNew() {
                         value={featuresText(it)}
                         onChange={(e) => updateItem(idx, { features_text: e.target.value } as Partial<QuotationItem>)}
                       />
-                      <small className="ts-muted ts-small">Printed in the quotation PDF below the part number, one point per line.</small>
+                      <small className="ts-muted ts-small">Printed in the quotation PDF below the description, one point per line.</small>
                     </div>
                   </div>
                 );

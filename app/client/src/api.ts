@@ -336,6 +336,8 @@ export interface QuotationItem {
   id?: number;
   /** Instrument quotation: the line prints in bold as a main unit (migration 006). */
   is_main?: boolean;
+  /** Unit of the product (Nos, Pkt, ...), joined in by the quotation endpoints. */
+  unit?: string | null;
   product_id: number | null;
   part_no: string | null;
   description: string;

@@ -30,7 +30,6 @@ export function QuotationContactPayment({
   customAdvance,
   onCustomAdvanceChange,
   dueDays,
-  onDueDaysChange,
 }: {
   hasCompany: boolean;
   contacts: CompanyContact[];
@@ -45,8 +44,8 @@ export function QuotationContactPayment({
   onAdvancePercentChange: (value: string) => void;
   customAdvance: boolean;
   onCustomAdvanceChange: (custom: boolean) => void;
+  /** Not editable on the form any more: the days come from Settings (or the saved quotation) and only feed the hint below. */
   dueDays: string;
-  onDueDaysChange: (value: string) => void;
 }) {
   const adv = Number(advancePercent);
   const balance = Number.isFinite(adv) ? Math.max(0, Math.round((100 - adv) * 100) / 100) : 0;
@@ -166,13 +165,6 @@ export function QuotationContactPayment({
             </div>
           </div>
         )}
-        <div className="ts-fld">
-          <label htmlFor="q-due">Payment due within</label>
-          <div className="ts-suffix">
-            <input id="q-due" type="number" min="0" max="365" step="1" className="ts-fi ts-r" value={dueDays} onChange={(e) => onDueDaysChange(e.target.value)} placeholder="30" />
-            <span>days</span>
-          </div>
-        </div>
       </div>
       <small className="ts-hint">
         {adv >= 100

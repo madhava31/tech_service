@@ -339,52 +339,62 @@ export default function QuotationDetail() {
 
         {/* Items Table */}
         <div className="ts-tbl ts-tblwrap">
-          <table className="w-full min-w-[750px] border-collapse text-[12.5px]">
+          <table className="w-full min-w-[900px] border-collapse text-[12.5px]">
             <thead>
               <tr className="border-b border-line2">
-                <th>Part no</th>
-                <th>Description</th>
+                <th>S.NO.</th>
+                <th>Item code</th>
                 <th>HSN/SAC</th>
-                <th className="ts-r">Qty</th>
-                <th className="ts-r">Actual price</th>
-                <th className="text-center">Product disc</th>
-                <th className="ts-r">Final price</th>
-                <th className="ts-r">Line total</th>
+                <th>Description</th>
+                <th className="ts-r">Quantity</th>
+                <th className="text-center">Unit</th>
+                <th className="ts-r">Price/Unit</th>
+                <th className="ts-r">Taxable amount</th>
+                <th className="ts-r">GST</th>
+                <th className="ts-r">Amount</th>
               </tr>
             </thead>
             <tbody>
-              {quotation.items?.map((it) => {
+              {quotation.items?.map((it, rowIdx) => {
                 // Total-amount quotation (migration 005): items have no prices of their own.
                 const lumpSum = quotation.pricing_mode === 'lump_sum';
                 const actualPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : it.price);
                 const finalUnitPrice = Number(it.final_unit_price !== undefined ? it.final_unit_price : (it.amount ? it.amount / it.qty : actualPrice));
                 const lineTotal = Number(it.final_line_total !== undefined ? it.final_line_total : (it.amount || actualPrice * it.qty));
                 const hasProductDisc = Number(it.discount_value || 0) > 0;
+                // Same columns as the PO / PI: the GST on the line and the line amount (taxable + GST).
+                const taxRate = Number(quotation.tax_percent || 0);
+                const gstAmt = (lineTotal * taxRate) / 100;
+                const inr = (n: number) => `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
                 return (
                   <tr key={it.id} className="border-b border-line">
-                    <td className="p-2.5 font-mono text-[12px] text-subtle">{it.part_no || '-'}</td>
+                    <td className="p-2.5 text-subtle">{rowIdx + 1}</td>
+                    <td className="p-2.5 font-mono text-[12px] text-fg">{it.part_no || '-'}</td>
+                    <td className="p-2.5 text-subtle">{it.hsn_sac || '-'}</td>
                     <td className="p-2.5 text-fg">
                       <div className={it.is_main ? 'font-semibold' : undefined}>{it.description}</div>
                       {it.make && <div className="text-[11px] text-faint">Make: {it.make}</div>}
                     </td>
-                    <td className="p-2.5 text-subtle">{it.hsn_sac || '-'}</td>
                     <td className="p-2.5 text-right font-medium">{it.qty}</td>
+                    <td className="p-2.5 text-center text-subtle">{it.unit || 'Nos'}</td>
                     {lumpSum ? (
                       <td colSpan={4} className="p-2.5 text-right text-[12px] text-faint">Included in total</td>
                     ) : (<>
-                    <td className="p-2.5 text-right font-medium">₹{actualPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="p-2.5 text-center font-medium text-[12px]">
-                      {hasProductDisc ? (
-                        <span className="text-bad">
-                          {it.discount_type === 'percentage' ? `${it.discount_value}%` : `₹${it.discount_value}/unit`}
-                        </span>
-                      ) : (
-                        <span className="text-faint">-</span>
+                    <td className="p-2.5 text-right font-medium text-fg">
+                      {inr(finalUnitPrice)}
+                      {hasProductDisc && (
+                        <div className="text-[11px] font-normal text-bad">
+                          {it.discount_type === 'percentage' ? `${it.discount_value}% off` : `₹${it.discount_value}/unit off`}
+                        </div>
                       )}
                     </td>
-                    <td className="p-2.5 text-right font-medium text-fg">₹{finalUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="p-2.5 text-right font-medium text-fg">₹{lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="p-2.5 text-right font-medium text-fg">{inr(lineTotal)}</td>
+                    <td className="p-2.5 text-right text-fg">
+                      {inr(gstAmt)}
+                      <div className="text-[11px] text-subtle">({taxRate}%)</div>
+                    </td>
+                    <td className="p-2.5 text-right font-medium text-fg">{inr(lineTotal + gstAmt)}</td>
                     </>)}
                   </tr>
                 );
