@@ -264,6 +264,22 @@ export default function QuotationDetail() {
                 </div>
               ))}
             </div>
+            {/* Stage change buttons sit right under the workflow steps */}
+            {(st === 'draft' || st === 'sent') && (
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-line2 pt-3">
+                {st === 'draft' && (
+                  <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs">
+                    {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
+                  </button>
+                )}
+                <button type="button" disabled={busyAction !== null} onClick={() => setStatus('accepted')} className="ts-btn ts-dark ts-xs">
+                  {busyAction === 'accepted' ? 'Marking as Accepted…' : 'Mark as Accepted'}
+                </button>
+                <button type="button" disabled={busyAction !== null} onClick={() => setStatus('rejected')} className="ts-btn ts-dark ts-xs">
+                  {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
+                </button>
+              </div>
+            )}
             {canRecordPayment && (
               <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-line2 pt-3">
                 <span className="text-[12.5px] text-subtle">
@@ -438,39 +454,6 @@ export default function QuotationDetail() {
           </div>
         </div>
 
-        {/* Stage Change Actions */}
-        <div className="flex gap-2 flex-wrap border-t border-line2 pt-4">
-          {quotation.status === 'draft' && (
-            <button
-              type="button"
-              disabled={busyAction !== null}
-              onClick={() => setStatus('sent')}
-              className="ts-btn ts-dark ts-xs"
-            >
-              {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
-            </button>
-          )}
-          {(quotation.status === 'draft' || quotation.status === 'sent') && (
-            <>
-              <button
-                type="button"
-                disabled={busyAction !== null}
-                onClick={() => setStatus('accepted')}
-                className="ts-btn ts-dark ts-xs"
-              >
-                {busyAction === 'accepted' ? 'Marking as Accepted…' : 'Mark as Accepted'}
-              </button>
-              <button
-                type="button"
-                disabled={busyAction !== null}
-                onClick={() => setStatus('rejected')}
-                className="ts-btn ts-dark ts-xs"
-              >
-                {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
-              </button>
-            </>
-          )}
-        </div>
       </section>
 
       {/* PO / PI Conversion Section */}
