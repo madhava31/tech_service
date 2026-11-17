@@ -124,6 +124,17 @@ function amountInWords(amount) {
   return parts.join(' ') + ' Rupees only';
 }
 
+/** Amount in words with paise, e.g. "Sixty Seven Thousand Two Hundred Two Rupees and Fourteen Paise only". */
+export function amountInWordsWithPaise(amount) {
+  const total = Math.round((Number(amount) || 0) * 100);
+  const rupees = Math.floor(Math.abs(total) / 100);
+  const paise = Math.abs(total) % 100;
+  const rupeeText = amountInWords(rupees).replace(/ only$/, '');
+  const sign = total < 0 ? 'Minus ' : '';
+  if (!paise) return `${sign}${rupeeText} only`;
+  return `${sign}${rupeeText} and ${twoDigitWords(paise)} Paise only`;
+}
+
 // Logo and signature uploaded in Settings are stored as data: URIs. Only those are read: a plain
 // file path in the setting is ignored, so a setting can never make the server read its own files.
 export function imageBuffer(dataUri) {

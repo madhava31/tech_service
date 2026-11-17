@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { FONT_REGULAR_PATH, FONT_BOLD_PATH, imageBuffer } from './documents.js';
+import { FONT_REGULAR_PATH, FONT_BOLD_PATH, imageBuffer, amountInWordsWithPaise } from './documents.js';
 
 // Quotation PDF in the approved Technicon format (Technicon_Quotation_Sample_TS-26-27-000001.pdf):
 // letterhead, title, number/date, "To" block, bordered product table with a grey header, totals,
@@ -342,6 +342,14 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     return ty;
   }
 
+  // "Amount in words" for the grand total, at the left of the totals, level with their first row.
+  const wordsAt = (atY, width) => {
+    const total = Number(quotation.total);
+    if (!Number.isFinite(total) || width < 80) return;
+    doc.font(B).fontSize(8).fillColor('#000').text('Amount in words', M, atY + 3, { width, lineBreak: false });
+    doc.font(R).fontSize(8).fillColor('#222').text(amountInWordsWithPaise(total), M, atY + 15, { width });
+  };
+
   // ---- totals ----
   // Overall discount and round off exist only on quotations from the original quotation form; the
   // rows appear only when non-zero, so other quotations print exactly like the approved sample.
@@ -375,6 +383,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     const labelW = 150;
     const boxX = valueX - labelW;
     const boxW = M + W - boxX;
+    wordsAt(y, boxX - M - 12);
     for (const t of totals) {
       doc.rect(boxX, y, boxW, totH).fill(t.fill);
       doc.lineWidth(0.6).strokeColor('#000').rect(boxX, y, boxW, totH).stroke();
@@ -407,6 +416,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     const sumX = M + W - sumW;
     const rowH = 15;
     if (y + rowH * (rows.length + 2) > BOTTOM) { doc.addPage(); y = M; }
+    wordsAt(y, sumX - M - 12);
     doc.fontSize(8.5).fillColor('#000');
     for (const [label, value] of rows) {
       doc.font(R).text(label, sumX + 6, y + 3, { width: 100, align: 'left', lineBreak: false });
