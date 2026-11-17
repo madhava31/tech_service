@@ -338,6 +338,52 @@ export default function QuotationNew() {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   }
 
+  // The selected customer's address and state. They belong to the customer (Companies page): editing them
+  // here saves them to the customer, and the quotation, PO and PI PDFs print the saved address.
+  const [custAddress, setCustAddress] = useState('');
+  const [custState, setCustState] = useState('');
+  const [addrSaving, setAddrSaving] = useState(false);
+  const addrSyncedFor = useRef<number | ''>('');
+  useEffect(() => {
+    if (!companyId) { addrSyncedFor.current = ''; setCustAddress(''); setCustState(''); return; }
+    if (addrSyncedFor.current === companyId) return;
+    const c = companies.find((x) => x.id === companyId);
+    if (!c) return; // the customers are still loading
+    addrSyncedFor.current = companyId;
+    setCustAddress(c.address || '');
+    setCustState(c.state || '');
+  }, [companyId, companies]);
+
+  const addrInFlight = useRef<Promise<boolean> | null>(null);
+  /** Saves the typed address and state to the customer. Resolves true when saved or when there was nothing to save. */
+  function saveCustomerAddress(): Promise<boolean> {
+    if (addrInFlight.current) return addrInFlight.current;
+    const c = companies.find((x) => x.id === companyId);
+    if (!c) return Promise.resolve(true);
+    const address = custAddress.trim();
+    const state = custState.trim();
+    if (address === (c.address || '').trim() && state === (c.state || '').trim()) return Promise.resolve(true);
+    setAddrSaving(true);
+    setError('');
+    const run = (async () => {
+      try {
+        const updated = await api.companies.update(c.id, { address, state });
+        setCompanies((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+        setSuccessToast(`Saved the address to customer "${updated.name}".`);
+        setTimeout(() => setSuccessToast(''), 4000);
+        return true;
+      } catch (err: any) {
+        setError(err.message || 'Could not save the customer address');
+        return false;
+      } finally {
+        setAddrSaving(false);
+        addrInFlight.current = null;
+      }
+    })();
+    addrInFlight.current = run;
+    return run;
+  }
+
   async function handleCreateCompany(customName: string) {
     const trimmed = customName.trim();
     if (!trimmed) return;
@@ -569,6 +615,9 @@ export default function QuotationNew() {
     }
     setSaving(true);
     try {
+      // The customer's address (and state) typed on this form is saved to the customer first, so the Companies
+      // page and every PDF of this customer have it as soon as the quotation is saved.
+      if (!(await saveCustomerAddress())) { setSaving(false); return; }
       // Auto-save any custom products into catalogue before creating/updating quotation
       const currentItems = [...items];
       for (let i = 0; i < currentItems.length; i++) {
@@ -945,6 +994,29 @@ export default function QuotationNew() {
                 </div>
               );
             })()}
+            {companyId !== '' && (
+              <div className="ts-fgrid ts-g4" style={{ marginTop: 12 }}>
+                <div className="ts-fld ts-span3">
+                  <label htmlFor="q-caddr">Customer address</label>
+                  <textarea
+                    id="q-caddr"
+                    rows={2}
+                    className="ts-fi"
+                    maxLength={500}
+                    value={custAddress}
+                    onChange={(e) => setCustAddress(e.target.value)}
+                    onBlur={() => { void saveCustomerAddress(); }}
+                    placeholder="Street, area, city, PIN: printed under 'To' on the quotation"
+                  />
+                  <small className="ts-hint">{custAddress.trim() ? 'Saved to the customer when you leave this box, and printed on the PDF.' : 'No address saved for this customer yet. Type it here to save it and print it on the PDF.'}</small>
+                </div>
+                <div className="ts-fld">
+                  <label htmlFor="q-cstate">State</label>
+                  <input id="q-cstate" className="ts-fi" maxLength={80} value={custState} onChange={(e) => setCustState(e.target.value)} onBlur={() => { void saveCustomerAddress(); }} placeholder="e.g. Telangana" />
+                  <small className="ts-hint">Decides CGST + SGST or IGST.</small>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Contact person and payment terms (migration 004) */}
