@@ -5,6 +5,7 @@ import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm } from '../api';
 import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
 import SearchableSelect from '../components/SearchableSelect';
+import EditableCombo from '../components/EditableCombo';
 import StockAnalysisWidget from '../components/StockAnalysisWidget';
 
 // A stable key per line, so a line keeps its own state when the lines are re-ordered.
@@ -1071,28 +1072,26 @@ export default function QuotationNew() {
                     <div className="ts-fgrid ts-ql-a">
                       <div className="ts-fld">
                         <label>Description</label>
-                        <SearchableSelect
+                        <EditableCombo
                           options={products.map((p) => ({ value: p.description, label: p.description }))}
                           value={it.description || ''}
-                          onChange={(v) => pickProductByDescription(idx, v)}
-                          placeholder="Enter or select product…"
-                          allowCustom={true}
-                          onCreateCustom={(val) => handleCreateDescription(idx, val)}
-                          customLabel={(val) => `Use description "${val}"`}
-                          size="sm"
+                          onTextChange={(t) => updateItem(idx, { description: t })}
+                          onPick={(v) => pickProductByDescription(idx, v)}
+                          onCommit={(t) => { if (!items[idx]?.product_id && products.some((p) => p.description.trim().toLowerCase() === t.trim().toLowerCase())) pickProductByDescription(idx, t); }}
+                          placeholder="Type or select the description…"
+                          ariaLabel={`Description of line item ${idx + 1}`}
                         />
                       </div>
                       <div className="ts-fld">
                         <label>Item code</label>
-                        <SearchableSelect
+                        <EditableCombo
                           options={products.map((p) => ({ value: p.part_no, label: `${p.part_no} — ${p.description}` }))}
                           value={it.part_no || ''}
-                          onChange={(v) => pickProductForItem(idx, v)}
+                          onTextChange={(t) => updateItem(idx, { part_no: t })}
+                          onPick={(v) => pickProductForItem(idx, v)}
+                          onCommit={(t) => { if (!items[idx]?.product_id && products.some((p) => p.part_no.toUpperCase() === t.trim().toUpperCase())) pickProductForItem(idx, t); }}
                           placeholder="Part no…"
-                          allowCustom={true}
-                          onCreateCustom={(val) => handleCreatePartNo(idx, val)}
-                          customLabel={(val) => `Use part no "${val}"`}
-                          size="sm"
+                          ariaLabel={`Item code of line item ${idx + 1}`}
                         />
                       </div>
                       <div className="ts-fld">
