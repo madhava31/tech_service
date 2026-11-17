@@ -305,6 +305,34 @@ export default function QuotationNew() {
     }
   }
 
+  // While a line is being dragged, scroll the page when the pointer nears the top or bottom edge,
+  // so a line can be carried a long way without dropping it.
+  useEffect(() => {
+    if (dragFrom === null) return;
+    const scrollParent = (el: HTMLElement | null): HTMLElement | null => {
+      for (let n = el; n; n = n.parentElement) {
+        const oy = getComputedStyle(n).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+      }
+      return null;
+    };
+    const onDragOver = (e: DragEvent) => {
+      const EDGE = 110, MAX = 28;
+      const target = e.target as HTMLElement | null;
+      const box = scrollParent(target);
+      const top = box ? box.getBoundingClientRect().top : 0;
+      const bottom = box ? box.getBoundingClientRect().bottom : window.innerHeight;
+      let dy = 0;
+      if (e.clientY < top + EDGE) dy = -Math.ceil(((top + EDGE - e.clientY) / EDGE) * MAX);
+      else if (e.clientY > bottom - EDGE) dy = Math.ceil(((e.clientY - (bottom - EDGE)) / EDGE) * MAX);
+      if (!dy) return;
+      if (box) box.scrollBy(0, dy);
+      else window.scrollBy(0, dy);
+    };
+    document.addEventListener('dragover', onDragOver);
+    return () => document.removeEventListener('dragover', onDragOver);
+  }, [dragFrom]);
+
   function updateItem(idx: number, patch: Partial<QuotationItem>) {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   }
