@@ -1204,6 +1204,15 @@ router.get('/:id/pdf', async (req, res) => {
       ? { quotation, items }
       : await legacyForApprovedLayout(quotation, items, settings);
 
+    // "Special terms and notes" typed on the quotation form print under the standard terms.
+    const special = String(printable.quotation.notes || '').trim();
+    if (special) {
+      const base = Array.isArray(printable.quotation.terms) ? printable.quotation.terms : [];
+      if (!base.some((t) => String(t?.text || '').trim() === special)) {
+        printable.quotation = { ...printable.quotation, terms: [...base, { label: 'Special terms', text: special }] };
+      }
+    }
+
     res.setHeader('Content-Type', 'application/pdf');
     const disposition = req.query.download === '1' ? 'attachment' : 'inline';
     res.setHeader('Content-Disposition', `${disposition}; filename="${quotation.number.replace(/\//g, '-')}.pdf"`);

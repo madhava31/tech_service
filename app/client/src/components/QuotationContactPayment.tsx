@@ -168,7 +168,7 @@ export function QuotationContactPayment({
       </div>
       <small className="ts-hint">
         {adv >= 100
-          ? `100% advance, due within ${days} days of the customer's purchase order.`
+          ? '100% advance.'
           : `${advancePercent || 0}% advance due within ${days} days of the purchase order; balance ${balance}% due within ${days} days of the performa invoice.`}
       </small>
     </section>

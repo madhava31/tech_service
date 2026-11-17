@@ -1,4 +1,4 @@
-import { CheckIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, GripVerticalIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { CountUp } from '../components/ds/CountUp';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
@@ -7,8 +7,13 @@ import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '
 import SearchableSelect from '../components/SearchableSelect';
 import StockAnalysisWidget from '../components/StockAnalysisWidget';
 
+// A stable key per line, so a line keeps its own state when the lines are re-ordered.
+let lineKeySeq = 0;
+const lineKey = (it: QuotationItem) => (it as QuotationItem & { _k?: string })._k as string;
+const withKey = (it: QuotationItem): QuotationItem => ({ ...it, _k: `l${++lineKeySeq}` } as QuotationItem);
+
 function emptyItem(): QuotationItem {
-  return {
+  return withKey({
     product_id: null,
     part_no: '',
     description: '',
@@ -20,7 +25,7 @@ function emptyItem(): QuotationItem {
     discount_value: 0,
     price: 0,
     key_features: [],
-  };
+  });
 }
 
 // The key features box holds one feature per line; blank lines are dropped when saving.
@@ -50,6 +55,8 @@ export default function QuotationNew() {
   const [discountValue, setDiscountValue] = useState<number | string>(0);
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<QuotationItem[]>([emptyItem()]);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
   const [quotationNumber, setQuotationNumber] = useState('');
   const [prefix, setPrefix] = useState<string>('TSQOT');
   const [userEditedNumber, setUserEditedNumber] = useState(false);
@@ -178,7 +185,7 @@ export default function QuotationNew() {
           if (q.payment_due_days !== undefined && q.payment_due_days !== null) setDueDays(String(q.payment_due_days));
           if (q.items && q.items.length > 0) {
             setItems(
-              q.items.map((it) => ({
+              q.items.map((it) => withKey({
                 ...it,
                 actual_unit_price: it.actual_unit_price !== undefined ? it.actual_unit_price : it.price,
                 discount_type: it.discount_type || 'none',
@@ -442,6 +449,19 @@ export default function QuotationNew() {
 
   function addItem() {
     setItems((prev) => [...prev, emptyItem()]);
+  }
+
+  // Moves a line to a new place (drag and drop, or the up / down buttons). The order here is the order
+  // printed on the quotation.
+  function moveItem(from: number, to: number) {
+    if (from === to || to < 0) return;
+    setItems((prev) => {
+      if (from >= prev.length || to >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
   }
 
   function removeItem(idx: number) {
@@ -944,8 +964,32 @@ export default function QuotationNew() {
               {computedItems.map((it, idx) => {
                 const noDisc = !it.discount_type || it.discount_type === 'none';
                 return (
-                  <div key={idx} className="ts-qline">
+                  <div
+                    key={lineKey(it) || idx}
+                    className="ts-qline"
+                    style={dragOver === idx && dragFrom !== null && dragFrom !== idx ? { outline: '2px dashed var(--accent2, #2563eb)', outlineOffset: 2, opacity: dragFrom === idx ? 0.5 : 1 } : dragFrom === idx ? { opacity: 0.5 } : undefined}
+                    onDragOver={(e) => { if (dragFrom !== null) { e.preventDefault(); if (dragOver !== idx) setDragOver(idx); } }}
+                    onDrop={(e) => { e.preventDefault(); if (dragFrom !== null) moveItem(dragFrom, idx); setDragFrom(null); setDragOver(null); }}
+                  >
                     <div className="ts-ql-h">
+                      {items.length > 1 && (
+                        <span
+                          draggable
+                          onDragStart={(e) => {
+                            setDragFrom(idx);
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', String(idx));
+                            const card = (e.currentTarget as HTMLElement).closest('.ts-qline');
+                            if (card) e.dataTransfer.setDragImage(card as HTMLElement, 20, 20);
+                          }}
+                          onDragEnd={() => { setDragFrom(null); setDragOver(null); }}
+                          style={{ cursor: 'grab', display: 'inline-flex', alignItems: 'center' }}
+                          title="Drag to change the order"
+                          aria-label={`Drag line item ${idx + 1} to reorder`}
+                        >
+                          <GripVerticalIcon className="size-4" />
+                        </span>
+                      )}
                       <b>Line item {idx + 1}</b>
                       {isInstrument && (
                         <label className="flex cursor-pointer items-center gap-1.5 text-[12.5px] text-subtle">
@@ -960,6 +1004,10 @@ export default function QuotationNew() {
                           {savingItemIdx === idx ? 'Saving…' : 'Save part to catalogue'}
                         </button>
                       )}
+                      {items.length > 1 && (<>
+                        <button type="button" className="ts-iconx" onClick={() => moveItem(idx, idx - 1)} disabled={idx === 0} aria-label={`Move line item ${idx + 1} up`} title="Move up"><ChevronUpIcon className="size-4" /></button>
+                        <button type="button" className="ts-iconx" onClick={() => moveItem(idx, idx + 1)} disabled={idx === items.length - 1} aria-label={`Move line item ${idx + 1} down`} title="Move down"><ChevronDownIcon className="size-4" /></button>
+                      </>)}
                       <button type="button" className="ts-iconx" onClick={() => removeItem(idx)} disabled={items.length === 1} aria-label={`Remove line item ${idx + 1}`} title="Remove line item"><Trash2Icon className="size-4" /></button>
                     </div>
                     <div className="ts-fgrid ts-ql-a">

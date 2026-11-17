@@ -78,7 +78,7 @@ export function paymentTermsText(advancePercent, dueDays) {
   const adv = Number(advancePercent ?? 100);
   const days = Number(dueDays ?? 30);
   const fmt = (n) => `${Number.isInteger(n) ? n : n.toFixed(2).replace(/\.?0+$/, '')}%`;
-  if (adv >= 100) return `100% advance, payable within ${days} days of the purchase order`;
+  if (adv >= 100) return '100% advance';
   if (adv <= 0) return `100% payable within ${days} days of the invoice`;
   return `${fmt(adv)} advance within ${days} days of the purchase order, balance ${fmt(round2(100 - adv))} within ${days} days of the invoice`;
 }

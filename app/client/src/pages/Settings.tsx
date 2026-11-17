@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, CompanySettings } from '../api';
+import { pdfFirstPageToPng } from '../lib/pdfToImage';
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -8,6 +9,25 @@ function readFileAsDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+// The PDFs can only embed PNG and JPEG. Any other image type (WebP, GIF, SVG...) is redrawn as a PNG.
+async function toPdfSafeImage(file: File): Promise<string> {
+  const dataUrl = await readFileAsDataUrl(file);
+  if (/^data:image\/(png|jpeg|jpg);/i.test(dataUrl)) return dataUrl;
+  const img = new Image();
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('this image type is not supported, use PNG or JPG'));
+    img.src = dataUrl;
+  });
+  const w = img.naturalWidth || 600, h = img.naturalHeight || 200;
+  const scale = Math.min(1, 1000 / w);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(w * scale));
+  canvas.height = Math.max(1, Math.round(h * scale));
+  canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/png');
 }
 
 export default function Settings() {
@@ -38,11 +58,14 @@ export default function Settings() {
 
   async function onImageChange(field: 'logo_image' | 'signature_image', file: File | null) {
     if (!settings || !file) return;
+    setError('');
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      // A PDF (e.g. a scanned signature or stamp) becomes an image of its first page.
+      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+      const dataUrl = isPdf ? await pdfFirstPageToPng(file) : await toPdfSafeImage(file);
       setSettings({ ...settings, [field]: dataUrl });
-    } catch {
-      setError('Could not read that image file.');
+    } catch (e) {
+      setError(e instanceof Error && e.message ? `Could not read that file: ${e.message}` : 'Could not read that file.');
     }
   }
 
@@ -223,10 +246,11 @@ export default function Settings() {
             <label className="ts-lbl">Authorized Signature / Stamp</label>
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,application/pdf,.pdf"
               onChange={(e) => onImageChange('signature_image', e.target.files?.[0] || null)}
               className="block w-full text-[13px] text-subtle file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[13px] file:font-normal file:bg-tile file:text-fg hover:file:bg-surface2 file:cursor-pointer cursor-pointer"
             />
+            <small className="mt-2 block text-[12px] text-subtle">Image (PNG, JPG) or PDF. For a PDF, the first page is used. Click Save to apply it to quotations, POs and PIs.</small>
             {settings.signature_image && (
               <div className="mt-4 p-3 bg-tile rounded-[14px] inline-block">
                 <img src={settings.signature_image} alt="Signature preview" className="max-h-16 max-w-[200px] object-contain" />

@@ -219,9 +219,9 @@ function drawEstimateBlock(doc, { billTo, number, date, createdByUsername, extra
   }
   if (billTo.company_gstin) doc.text(`GSTIN : ${billTo.company_gstin}`, { width: colWidth });
   // The contact person chosen on the quotation (migration 004).
-  if (billTo.contact_person) {
+  if (billTo.contact_person && !/^n\/?a$/i.test(String(billTo.contact_person).trim())) {
     doc.moveDown(0.2);
-    doc.text(`Kind Attn : ${billTo.contact_person}`, { width: colWidth });
+    doc.text(`Contact person : ${billTo.contact_person}`, { width: colWidth });
     if (billTo.contact_phone) doc.text(`Phone : ${billTo.contact_phone}`, { width: colWidth });
     if (billTo.contact_email) doc.text(`Email : ${billTo.contact_email}`, { width: colWidth });
   }

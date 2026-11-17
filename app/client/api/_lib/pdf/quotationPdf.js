@@ -75,19 +75,20 @@ function resolveCompanyDetails(q, s = {}) {
 }
 
 // Standard quotation table: the same columns, names and order as the PO and PI PDFs
-// (S.NO. | Item code | HSN/SAC | Description | Quantity | Unit | Price/Unit | Taxable amount | GST | Amount).
+// (S.NO. | Item code | HSN/SAC | Description | Quantity | Unit | Price/Unit | Discount | Taxable amount | GST | Amount).
 // Widths add up to W. The instrument format has its own table (see drawInstrumentTable).
 const STD_COLS = [
   { key: 'sno', label: 'S.NO.', w: 30, align: 'left' },
-  { key: 'code', label: 'Item code', w: 56, align: 'left' },
-  { key: 'hsn', label: 'HSN/\nSAC', w: 42, align: 'left' },
-  { key: 'desc', label: 'Description', w: 94, align: 'left' },
-  { key: 'qty', label: 'Quantity', w: 36, align: 'right' },
-  { key: 'unit', label: 'Unit', w: 28, align: 'center' },
-  { key: 'price', label: 'Price/\nUnit', w: 62, align: 'right' },
-  { key: 'taxable', label: 'Taxable\namount', w: 62, align: 'right' },
+  { key: 'code', label: 'Item code', w: 50, align: 'left' },
+  { key: 'hsn', label: 'HSN/\nSAC', w: 34, align: 'left' },
+  { key: 'desc', label: 'Description', w: 70, align: 'left' },
+  { key: 'qty', label: 'Quantity', w: 38, align: 'right' },
+  { key: 'unit', label: 'Unit', w: 24, align: 'center' },
+  { key: 'price', label: 'Price/\nUnit', w: 57, align: 'right' },
+  { key: 'discount', label: 'Discount', w: 50, align: 'right' },
+  { key: 'taxable', label: 'Taxable\namount', w: 58, align: 'right' },
   { key: 'gst', label: 'GST', w: 60, align: 'right' },
-  { key: 'amount', label: 'Amount', w: 65.28, align: 'right' },
+  { key: 'amount', label: 'Amount', w: 64.28, align: 'right' },
 ];
 {
   let x = M;
@@ -167,7 +168,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
   for (const l of String(quotation.company_address || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean)) toLines.push(l);
   if (quotation.company_state) toLines.push(quotation.company_state);
   // The contact person chosen for this quotation (a snapshot, see migration 004).
-  if (quotation.contact_person) toLines.push(`Kind Attn: ${quotation.contact_person}`);
+  if (quotation.contact_person && !/^n\/?a$/i.test(String(quotation.contact_person).trim())) toLines.push(`Contact person: ${quotation.contact_person}`);
   if (quotation.contact_phone) toLines.push(`Phone: ${quotation.contact_phone}`);
   if (quotation.contact_email) toLines.push(`Email: ${quotation.contact_email}`);
   for (const l of toLines) {
@@ -198,7 +199,9 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     const feats = features(it);
     if (feats.length) {
       h += 4;
-      doc.fontSize(featSize);
+      doc.font(B).fontSize(featSize);
+      h += doc.heightOfString('Key features:', { width: dw });
+      doc.font(R);
       for (const f of feats) h += doc.heightOfString(`• ${f}`, { width: dw });
       doc.fontSize(8);
     }
@@ -208,10 +211,19 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     const hHsn = doc.heightOfString(String(it.hsn_sac || ''), { width: STD.hsn.w - 4 });
     return Math.max(30, h + 10, hCode + 10, hHsn + 10);
   };
-  const discountNote = (it) => {
-    const v = Number(it.discount_value || 0);
-    if (!(v > 0)) return '';
-    return it.discount_type === 'amount' ? `(${rupees(v)} off)` : `(${v.toLocaleString('en-IN', { maximumFractionDigits: 2 })}% off)`;
+  // Per line: price before discount, the line's discount, the taxable amount after it, and the GST on that.
+  const lineFigures = (it) => {
+    const qty = Number(it.qty || 0);
+    const taxable = Number(it.final_line_total ?? it.amount ?? 0);
+    const unit = Number(it.actual_unit_price ?? it.price ?? it.final_unit_price ?? 0);
+    const gross = unit;
+    const discount = Math.max(0, Math.round((unit * qty - taxable) * 100) / 100);
+    return { gross, discount, taxable, gstAmt: (taxable * taxRate) / 100 };
+  };
+  const discountPct = (it, gross, discount) => {
+    const base = gross * Number(it.qty || 0);
+    const p = it.discount_type === 'percentage' && Number(it.discount_value) > 0 ? Number(it.discount_value) : base > 0 ? (discount / base) * 100 : 0;
+    return p.toLocaleString('en-IN', { maximumFractionDigits: 2 });
   };
   const stdRow = (it, idx, atY, h) => {
     const top = atY + 4;
@@ -223,22 +235,23 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     cell('qty', Number.isInteger(qty) ? String(qty) : fixed2(qty));
     cell('unit', String(it.unit || 'Nos'));
     if (!lumpSum) {
-      const taxable = Number(it.final_line_total ?? it.amount ?? 0);
-      const gstAmt = (taxable * taxRate) / 100;
-      cell('price', rupees(it.final_unit_price));
-      const note = discountNote(it);
-      if (note) doc.font(R).fontSize(6.5).fillColor('#666').text(note, STD.price.x + 2, doc.y, { width: STD.price.w - 4, align: 'right' });
-      cell('taxable', rupees(taxable));
-      doc.font(R).fontSize(8).fillColor('#000').text(`${rupees(gstAmt)}\n(${taxRate.toLocaleString('en-IN', { maximumFractionDigits: 2 })}%)`, STD.gst.x + 2, top, { width: STD.gst.w - 4, align: 'right' });
-      cell('amount', rupees(taxable + gstAmt));
+      const { gross, discount, taxable, gstAmt } = lineFigures(it);
+      const num = (key, t) => doc.font(R).fontSize(7.5).fillColor('#000').text(t, STD[key].x + 2, top, { width: STD[key].w - 4, align: 'right' });
+      num('price', rupees(gross));
+      num('discount', discount > 0.004 ? `${rupees(discount)}\n(${discountPct(it, gross, discount)}%)` : rupees(0));
+      num('taxable', rupees(taxable));
+      num('gst', `${rupees(gstAmt)}\n(${taxRate.toLocaleString('en-IN', { maximumFractionDigits: 2 })}%)`);
+      num('amount', rupees(taxable + gstAmt));
     }
     // Description (name, then the key features below it in small type)
     const dx = STD.desc.x + 2, dw = STD.desc.w - 4;
     doc.font(R).fontSize(8).fillColor('#000').text(String(it.product_name || it.description || ''), dx, top, { width: dw });
     const feats = features(it);
     if (feats.length) {
-      doc.font(R).fontSize(featSize).fillColor('#333');
-      let fy = doc.y + 4;
+      doc.font(B).fontSize(featSize).fillColor('#333');
+      doc.text('Key features:', dx, doc.y + 4, { width: dw });
+      doc.font(R);
+      let fy = doc.y;
       for (const f of feats) {
         doc.text(`• ${f}`, dx, fy, { width: dw });
         fy = doc.y;
@@ -262,6 +275,22 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     });
     doc.moveTo(M, y + 2).lineTo(M + W, y + 2).lineWidth(0.8).strokeColor('#555').stroke();
     y += 8;
+    if (!lumpSum && items.length) {
+      // Totals row under the lines: quantity, discount, taxable amount, GST and amount.
+      const t = items.reduce((a, it) => {
+        const f = lineFigures(it);
+        return { qty: a.qty + Number(it.qty || 0), discount: a.discount + f.discount, taxable: a.taxable + f.taxable, gst: a.gst + f.gstAmt };
+      }, { qty: 0, discount: 0, taxable: 0, gst: 0 });
+      if (y + 20 > BOTTOM - 30) { doc.addPage(); y = M; }
+      doc.rect(M, y - 4, W, 18).fill(SHADE);
+      const tot = (key, v) => doc.font(B).fontSize(7.5).fillColor('#000').text(v, STD[key].x + 2, y, { width: STD[key].w - 4, align: 'right', lineBreak: false });
+      tot('qty', Number.isInteger(t.qty) ? String(t.qty) : fixed2(t.qty));
+      tot('discount', rupees(t.discount));
+      tot('taxable', rupees(t.taxable));
+      tot('gst', rupees(t.gst));
+      tot('amount', rupees(t.taxable + t.gst));
+      y += 18;
+    }
   }
 
   // Instrument format (migration 006): a centred, underlined title, then
@@ -400,7 +429,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
   let termsH = 14;
   for (const t of terms) termsH += doc.heightOfString(`: ${t.text || ''}`, { width: leftW - termLabelW }) + 1.5;
   if (company.bank.length) termsH += 16 + company.bank.length * 11;
-  const footerH = Math.max(termsH, 70);
+  const footerH = Math.max(termsH, 82);
   y += 12;
   if (y + footerH > BOTTOM) { doc.addPage(); y = M; }
 
@@ -439,9 +468,9 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
   // Signature / stamp uploaded in Settings, above the signatory's name.
   const sig = imageBuffer(s.signature_image);
   if (sig) {
-    try { doc.image(sig, M + W - 120, y + 12, { fit: [120, 30], align: 'right' }); } catch { /* unreadable image: skip */ }
+    try { doc.image(sig, M + W - 130, y + 12, { fit: [130, 40], align: 'right' }); } catch { /* unreadable image: skip */ }
   }
-  doc.font(B).fontSize(8.5).text(company.signatory, rx, y + 44, { width: rightW, align: 'right' });
+  doc.font(B).fontSize(8.5).text(company.signatory, rx, y + 56, { width: rightW, align: 'right' });
   doc.font(R).fontSize(8.5).text('Authorised Signatory', rx, doc.y + 1, { width: rightW, align: 'right' });
 
   doc.end();
