@@ -10,19 +10,7 @@ const router = Router();
 /**
  * Universal Excel Workbook Builder
  */
-export async function generateExcelBuffer({
-  title = 'TECHNICON ERP Export',
-  sheetName = 'Data',
-  columns = [],
-  data = [],
-  summary = null,
-  filters = {},
-}) {
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'TECHNICON SERVICES ERP';
-  workbook.lastModifiedBy = 'TECHNICON SERVICES ERP';
-  workbook.created = new Date();
-
+function fillSheet(workbook, { title, sheetName, columns, data, filters }) {
   const worksheet = workbook.addWorksheet(sheetName, {
     views: [{ state: 'frozen', ySplit: 5 }],
     properties: { defaultRowHeight: 20 },
@@ -138,6 +126,24 @@ export async function generateExcelBuffer({
     from: { row: 5, column: 1 },
     to: { row: 5, column: columns.length },
   };
+}
+
+export async function generateExcelBuffer({
+  title = 'TECHNICON ERP Export',
+  sheetName = 'Data',
+  columns = [],
+  data = [],
+  summary = null,
+  filters = {},
+  extraSheets = [], // more sheets in the same workbook: [{ sheetName, title?, columns, data }]
+}) {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'TECHNICON SERVICES ERP';
+  workbook.lastModifiedBy = 'TECHNICON SERVICES ERP';
+  workbook.created = new Date();
+
+  fillSheet(workbook, { title, sheetName, columns, data, filters });
+  for (const x of extraSheets) fillSheet(workbook, { title: x.title || title, sheetName: x.sheetName, columns: x.columns, data: x.data, filters });
 
   const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
@@ -239,8 +245,11 @@ const QUOTATION_EXPORT_COLUMNS = [
   { key: 'quotation_number', header: 'Quotation No', minWidth: 18, def: true },
   { key: 'quotation_date', header: 'Date', minWidth: 14, def: true },
   { key: 'customer_name', header: 'Customer', minWidth: 26, def: true },
+  { key: 'company_address', header: 'Customer Address', minWidth: 32, def: false },
   { key: 'customer_state', header: 'State', minWidth: 16, def: false },
-  { key: 'contact_person', header: 'Contact Person', minWidth: 20, def: false },
+  { key: 'contact_person', header: 'Contact Person', minWidth: 20, def: true },
+  { key: 'contact_phone', header: 'Contact Phone', minWidth: 16, def: true },
+  { key: 'contact_email', header: 'Contact Email', minWidth: 26, def: true },
   { key: 'sales_engineer', header: 'Sales Engineer', minWidth: 20, def: true },
   { key: 'firm_name', header: 'Firm', minWidth: 20, def: false },
   { key: 'branch', header: 'Branch', minWidth: 18, def: false },
@@ -252,11 +261,16 @@ const QUOTATION_EXPORT_COLUMNS = [
   { key: 'net_subtotal', header: 'Net Subtotal (₹)', type: 'currency', align: 'right', minWidth: 18, def: false },
   { key: 'tax_amount', header: 'GST Tax (₹)', type: 'currency', align: 'right', minWidth: 16, def: false },
   { key: 'total_amount', header: 'Total Value (₹)', type: 'currency', align: 'right', minWidth: 20, def: true },
+  { key: 'products_quoted', header: 'Products Quoted (qty)', minWidth: 40, def: true, po: true },
+  { key: 'items_quoted', header: 'Items Quoted', type: 'integer', align: 'right', minWidth: 14, def: true, po: true },
+  { key: 'qty_quoted', header: 'Total Qty Quoted', type: 'number', align: 'right', minWidth: 16, def: true, po: true },
+  { key: 'po_count', header: 'POs Received', type: 'integer', align: 'right', minWidth: 14, def: true, po: true },
   { key: 'po_numbers', header: 'PO Number(s)', minWidth: 22, def: true, po: true },
-  { key: 'po_dates', header: 'PO Date(s)', minWidth: 16, def: false, po: true },
-  { key: 'items_ordered', header: 'Items Ordered', type: 'integer', align: 'right', minWidth: 14, def: false, po: true },
-  { key: 'items_quoted', header: 'Items Quoted', type: 'integer', align: 'right', minWidth: 14, def: false, po: true },
-  { key: 'ordered_value', header: 'Ordered Value excl. GST (₹)', type: 'currency', align: 'right', minWidth: 24, def: false, po: true },
+  { key: 'po_dates', header: 'PO Date(s)', minWidth: 16, def: true, po: true },
+  { key: 'products_ordered', header: 'Products Ordered (qty)', minWidth: 40, def: true, po: true },
+  { key: 'items_ordered', header: 'Items Ordered', type: 'integer', align: 'right', minWidth: 14, def: true, po: true },
+  { key: 'qty_ordered', header: 'Total Qty Ordered', type: 'number', align: 'right', minWidth: 16, def: true, po: true },
+  { key: 'ordered_value', header: 'Ordered Value excl. GST (₹)', type: 'currency', align: 'right', minWidth: 24, def: true, po: true },
 ];
 
 /** GET /api/export/quotations/columns : what the "Export to Excel" window offers. */
@@ -286,12 +300,22 @@ export async function buildQuotationExport(query, scope = {}) {
     const { q, status, branchId, engineerId, start, end, startDate, endDate, limit = 5000 } = query;
     const po = await poReceivedReady();
 
+    // How a quantity is written inside a text list: 5 not 5.00.
+    const num = (e) => `trim(trailing '.' from trim(trailing '0' from round((${e})::numeric, 2)::text))`;
     const poSql = po
       ? `,
+        (SELECT COUNT(*)::int FROM quotation_po p WHERE p.quotation_id = q.id) AS po_count,
         (SELECT string_agg(p.po_number, ', ' ORDER BY p.created_at, p.id) FROM quotation_po p WHERE p.quotation_id = q.id) AS po_numbers,
         (SELECT string_agg(to_char(p.po_date, 'DD-MM-YYYY'), ', ' ORDER BY p.created_at, p.id) FROM quotation_po p WHERE p.quotation_id = q.id) AS po_dates,
         (SELECT COUNT(DISTINCT pi.quotation_item_id)::int FROM quotation_po_item pi JOIN quotation_po p ON p.id = pi.quotation_po_id WHERE p.quotation_id = q.id) AS items_ordered,
         (SELECT COUNT(*)::int FROM quotation_item qi WHERE qi.quotation_id = q.id) AS items_quoted,
+        (SELECT COALESCE(SUM(pi.qty), 0)::float8 FROM quotation_po_item pi JOIN quotation_po p ON p.id = pi.quotation_po_id WHERE p.quotation_id = q.id) AS qty_ordered,
+        (SELECT COALESCE(SUM(qi.qty), 0)::float8 FROM quotation_item qi WHERE qi.quotation_id = q.id) AS qty_quoted,
+        (SELECT string_agg(x.d, '; ' ORDER BY x.id) FROM (
+           SELECT qi.id, COALESCE(NULLIF(qi.description, ''), qi.part_no) || ' x ' || ${num('SUM(pi.qty)')} AS d
+             FROM quotation_po_item pi JOIN quotation_po p ON p.id = pi.quotation_po_id JOIN quotation_item qi ON qi.id = pi.quotation_item_id
+            WHERE p.quotation_id = q.id GROUP BY qi.id, qi.description, qi.part_no) x) AS products_ordered,
+        (SELECT string_agg(COALESCE(NULLIF(qi.description, ''), qi.part_no) || ' x ' || ${num('qi.qty')}, '; ' ORDER BY qi.id) FROM quotation_item qi WHERE qi.quotation_id = q.id) AS products_quoted,
         (SELECT COALESCE(SUM(pi.qty * COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0)), 0)::float8
            FROM quotation_po_item pi JOIN quotation_po p ON p.id = pi.quotation_po_id JOIN quotation_item qi ON qi.id = pi.quotation_item_id
           WHERE p.quotation_id = q.id) AS ordered_value`
@@ -303,7 +327,11 @@ export async function buildQuotationExport(query, scope = {}) {
         q.date AS quotation_date,
         c.name AS customer_name,
         c.state AS customer_state,
+        q.id AS _id,
+        c.address AS company_address,
         q.contact_person AS contact_person,
+        COALESCE(NULLIF(to_jsonb(q) ->> 'contact_phone', ''), c.phone) AS contact_phone,
+        COALESCE(NULLIF(to_jsonb(q) ->> 'contact_email', ''), c.email) AS contact_email,
         COALESCE(e.name, 'Unassigned') AS sales_engineer,
         f.firm_name AS firm_name,
         COALESCE(b.branch_name, 'Main') AS branch,
@@ -369,6 +397,45 @@ export async function buildQuotationExport(query, scope = {}) {
     const picked = asked.length ? available.filter((c) => asked.includes(c.key)) : available.filter((c) => c.def);
     const columns = picked.length ? picked : available.filter((c) => c.def);
 
+    // Second sheet "PO Items": one row per item of every PO (which product, how many ordered, against which PO).
+    let extraSheets = [];
+    if (po && rows.length) {
+      const items = await db
+        .prepare(
+          `SELECT q.number AS quotation_number, c.name AS customer_name, p.po_number, to_char(p.po_date, 'DD-MM-YYYY') AS po_date,
+                  qi.part_no, COALESCE(NULLIF(qi.description, ''), qi.part_no) AS product, qi.qty::float8 AS quoted_qty, pi.qty::float8 AS ordered_qty,
+                  COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0)::float8 AS unit_price,
+                  (pi.qty * COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0))::float8 AS line_value
+             FROM quotation_po_item pi
+             JOIN quotation_po p ON p.id = pi.quotation_po_id
+             JOIN quotation_item qi ON qi.id = pi.quotation_item_id
+             JOIN quotation q ON q.id = p.quotation_id
+             LEFT JOIN company c ON c.id = q.company_id
+            WHERE p.quotation_id = ANY(?::int[])
+            ORDER BY q.id DESC, p.created_at, p.id, qi.id`
+        )
+        .all(rows.map((r) => r._id));
+      if (items.length) {
+        extraSheets = [{
+          sheetName: 'PO Items',
+          title: 'TECHNICON SERVICES — ITEMS ORDERED ON EACH PO',
+          columns: [
+            { header: 'Quotation No', key: 'quotation_number', minWidth: 18 },
+            { header: 'Customer', key: 'customer_name', minWidth: 26 },
+            { header: 'PO Number', key: 'po_number', minWidth: 20 },
+            { header: 'PO Date', key: 'po_date', minWidth: 14 },
+            { header: 'Item Code', key: 'part_no', minWidth: 16 },
+            { header: 'Product', key: 'product', minWidth: 40 },
+            { header: 'Quoted Qty', key: 'quoted_qty', type: 'number', align: 'right', minWidth: 14 },
+            { header: 'Ordered Qty', key: 'ordered_qty', type: 'number', align: 'right', minWidth: 14 },
+            { header: 'Unit Price (₹)', key: 'unit_price', type: 'currency', align: 'right', minWidth: 16 },
+            { header: 'Line Value excl. GST (₹)', key: 'line_value', type: 'currency', align: 'right', minWidth: 24 },
+          ],
+          data: items,
+        }];
+      }
+    }
+
     const dateTag = new Date().toISOString().slice(0, 10);
     const buffer = await generateExcelBuffer({
       title: 'TECHNICON SERVICES — QUOTATIONS MASTER REPORT',
@@ -376,6 +443,7 @@ export async function buildQuotationExport(query, scope = {}) {
       columns,
       data: rows,
       filters: { status, branchId, engineerId },
+      extraSheets,
     });
 
     return { buffer, filename: `TECHNICON_Quotations_${dateTag}.xlsx` };

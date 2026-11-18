@@ -116,6 +116,20 @@ describe('Excel export', () => {
     assert.equal(ws.getRow(7).getCell(3).value, '');
   });
 
+  test('a second sheet (PO Items) holds one row per ordered item', async () => {
+    const buf = await generateExcelBuffer({
+      title: 'T', sheetName: 'Quotations', columns, data,
+      extraSheets: [{ sheetName: 'PO Items', title: 'Items', columns: [{ header: 'PO Number', key: 'po' }, { header: 'Product', key: 'p' }, { header: 'Ordered Qty', key: 'q', type: 'number' }], data: [{ po: '4500012345', p: 'PH Meter', q: 5 }, { po: '4500012345', p: 'Digester', q: 1 }] }],
+    });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf);
+    assert.deepEqual(wb.worksheets.map((w) => w.name), ['Quotations', 'PO Items']);
+    const ws = wb.getWorksheet('PO Items');
+    assert.deepEqual([1, 2, 3].map((c) => ws.getRow(5).getCell(c).value), ['PO Number', 'Product', 'Ordered Qty']);
+    assert.deepEqual([1, 2, 3].map((c) => ws.getRow(6).getCell(c).value), ['4500012345', 'PH Meter', 5]);
+    assert.equal(ws.getRow(7).getCell(2).value, 'Digester');
+  });
+
   test('only the chosen columns are written', async () => {
     const chosen = columns.filter((c) => c.key !== 'customer_name');
     const buf = await generateExcelBuffer({ title: 'T', sheetName: 'Quotations', columns: chosen, data });
