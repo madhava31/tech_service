@@ -1,4 +1,5 @@
 import db from './index.js';
+import { receivedValueSql, preGstSql, runWithFallback } from '../quotations/poValue.js';
 
 // Sales-person figures (quoted value, accepted value, target achievement) are counted before GST:
 // the taxable amount, i.e. after discounts and without tax. Quotations without a stored taxable
@@ -49,13 +50,14 @@ export async function getEngineerById(id, { financialYear = 'FY 2026-27' } = {})
   const fy = normalizeFy(financialYear);
   const rawFy = fy.replace('FY ', '');
 
-  const quoteStats = await db.prepare(`
+  const acceptedPreGst = await receivedValueSql('q', { withGst: false, fallback: preGstSql('q') });
+  const quoteStats = await runWithFallback((v) => db.prepare(`
     SELECT COUNT(*) AS total_quotations,
            COALESCE(SUM(${PRE_GST}), 0) AS total_quoted_value,
            SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
-           COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${PRE_GST} ELSE 0 END), 0) AS accepted_value
-    FROM quotation WHERE sales_engineer_id = ?
-  `).get(engId);
+           COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${v} ELSE 0 END), 0) AS accepted_value
+    FROM quotation q WHERE q.sales_engineer_id = ?
+  `).get(engId), acceptedPreGst, preGstSql('q'), 'sales person');
 
   const targetRow = await db.prepare(`
     SELECT target_amount, financial_year FROM engineer_sales_targets
@@ -193,13 +195,14 @@ export async function getEngineerPerformance({ financialYear, branchId = null, e
 
   const performanceList = [];
   for (const eng of engineers) {
-    const quoteStats = await db.prepare(`
+    const acceptedPreGst = await receivedValueSql('q', { withGst: false, fallback: preGstSql('q') });
+    const quoteStats = await runWithFallback((v) => db.prepare(`
       SELECT COUNT(*) AS total_quotations,
              COALESCE(SUM(${PRE_GST}), 0) AS total_quoted_value,
              SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
-             COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${PRE_GST} ELSE 0 END), 0) AS accepted_value
-      FROM quotation WHERE sales_engineer_id = ?
-    `).get(eng.id);
+             COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${v} ELSE 0 END), 0) AS accepted_value
+      FROM quotation q WHERE q.sales_engineer_id = ?
+    `).get(eng.id), acceptedPreGst, preGstSql('q'), 'sales person');
 
     const targetRow = await db.prepare(`
       SELECT target_amount FROM engineer_sales_targets

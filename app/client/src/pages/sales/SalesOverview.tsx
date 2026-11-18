@@ -102,7 +102,7 @@ export default function SalesOverview() {
         </div>
 
         <div className="ts-card ts-kpi-sm space-y-1">
-          <div className="text-[13px] text-subtle">Accepted Quotes</div>
+          <div className="text-[13px] text-subtle">PO received</div>
           <div className="ts-val num text-fg !mt-1.5 truncate">{kpis.acceptedQuotations}</div>
           <div className="text-[12.5px] text-faint pt-1 num">
             {formatCurrency(kpis.acceptedQuotationValue)}
@@ -243,7 +243,7 @@ export default function SalesOverview() {
                   <td className="ts-r text-fg num">{showMoney(kpis.grossSales)}</td>
                 </tr>
                 <tr>
-                  <td className="text-subtle">Accepted Quotation Pipeline</td>
+                  <td className="text-subtle">PO received quotations</td>
                   <td className="ts-r text-fg num">{formatCurrency(kpis.acceptedQuotationValue)}</td>
                 </tr>
                 <tr>

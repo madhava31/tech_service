@@ -1,4 +1,5 @@
 import db from '../db/index.js';
+import { poReceivedReady } from '../quotations/poReceived.js';
 
 // Postgres port of the legacy SQLite sales order / pending work / reports services
 // (app/server/src/services/salesService.js). Response shapes match the frontend types in
@@ -260,6 +261,8 @@ export async function getSalesOrderById(id) {
 /** Action queue: documents waiting on the next step, oldest first. */
 export async function getPendingSalesWork() {
   const age = (col) => `GREATEST(0, CURRENT_DATE - ${col})::int AS age_days`;
+  // A quotation with a received PO (PO received) is not waiting for a purchase order any more.
+  const hasReceivedPo = (await poReceivedReady()) ? 'AND NOT EXISTS (SELECT 1 FROM quotation_po qp WHERE qp.quotation_id = q.id)' : '';
   const [quotationsAwaiting, acceptedWithoutPo, posWithoutPi, pisWithoutSr, srAwaitingConfirm] = await Promise.all([
     db.prepare(
       `SELECT q.id, q.number, q.date, q.total, c.name AS company_name, ${age('q.date')}
@@ -270,7 +273,7 @@ export async function getPendingSalesWork() {
       `SELECT q.id, q.number, q.date, q.total, c.name AS company_name, ${age('q.date')}
        FROM quotation q JOIN company c ON c.id = q.company_id
        LEFT JOIN purchase_order po ON po.quotation_id = q.id
-       WHERE q.status = 'accepted' AND po.id IS NULL ORDER BY q.date ASC`
+       WHERE q.status = 'accepted' AND po.id IS NULL ${hasReceivedPo} ORDER BY q.date ASC`
     ).all(),
     db.prepare(
       `SELECT po.id, po.number, po.date, q.total, c.name AS company_name, po.quotation_id, ${age('po.date')}

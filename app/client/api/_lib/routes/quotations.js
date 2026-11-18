@@ -470,7 +470,7 @@ router.get('/', async (req, res) => {
       .all(...itemsParams);
 
     // Global stage counts aggregated in database
-    const stageCounts = { All: 0, Draft: 0, Sent: 0, Negotiation: 0, Accepted: 0, Rejected: 0 };
+    const stageCounts = { All: 0, Draft: 0, Sent: 0, Negotiation: 0, Accepted: 0, 'PO received': 0, Rejected: 0 };
     const globalCountRows = isAdmin(req)
       ? await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation GROUP BY status`).all()
       : await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation WHERE created_by_user_id = ? GROUP BY status`).all(req.user.id);
@@ -481,7 +481,7 @@ router.get('/', async (req, res) => {
       if (r.status === 'draft') stageCounts.Draft = c;
       else if (r.status === 'sent') stageCounts.Sent = c;
       else if (r.status === NEGOTIATION) stageCounts.Negotiation = c;
-      else if (r.status === 'accepted') stageCounts.Accepted = c;
+      else if (r.status === 'accepted') { stageCounts.Accepted = c; stageCounts['PO received'] = c; }
       else if (r.status === 'rejected') stageCounts.Rejected = c;
     }
     stageCounts.All = totalAll;

@@ -6,6 +6,7 @@ import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Fi
 import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
 import SearchableSelect from '../components/SearchableSelect';
 import EditableCombo from '../components/EditableCombo';
+import { MANUAL_ORDER_PREFIX } from '../lib/manualOrder';
 import StockAnalysisWidget from '../components/StockAnalysisWidget';
 
 // A stable key per line, so a line keeps its own state when the lines are re-ordered.
@@ -83,6 +84,15 @@ export default function QuotationNew() {
   useEffect(() => {
     if (isInstrument) setLumpSum(true);
   }, [isInstrument]);
+  // Manual order ("Manual order" type): a PO or a PI typed in for a customer, with no quotation before it. It is saved as
+  // a quotation record with its own number series (TSMO...), then a PO received or a performa invoice is created from it.
+  const [isManual, setIsManual] = useState(!isEdit && searchParams.get('type') === 'order');
+  const [orderDoc, setOrderDoc] = useState<'po' | 'pi'>('po');
+  const [orderPoNumber, setOrderPoNumber] = useState('');
+  const [orderPoDate, setOrderPoDate] = useState(new Date().toISOString().slice(0, 10));
+  useEffect(() => {
+    if (isManual) { setLumpSum(false); setIsInstrument(false); }
+  }, [isManual]);
   // Contact person and payment terms (migration 004). contactsEnabled turns false when the database
   // has not been updated yet; the form then saves without them, as before.
   const [contactsEnabled, setContactsEnabled] = useState(true);
@@ -139,6 +149,10 @@ export default function QuotationNew() {
       if (fList.length > 0 && !isEdit) {
         const defFirm = fList.find((f) => f.is_default === 1) || fList[0];
         setFirmId(defFirm.id);
+        if (isManual) {
+          fetchNextNumber(date, MANUAL_ORDER_PREFIX, defFirm.id);
+          return;
+        }
         let initPref = 'TSQOT';
         if (defFirm.quotation_prefix) {
           initPref = defFirm.quotation_prefix.trim().toUpperCase();
@@ -154,7 +168,7 @@ export default function QuotationNew() {
     });
 
     if (!isEdit && !quotationNumber) {
-      fetchNextNumber(date, prefix);
+      fetchNextNumber(date, isManual ? MANUAL_ORDER_PREFIX : prefix);
     }
 
     if (isEdit && quotationId) {
@@ -207,6 +221,7 @@ export default function QuotationNew() {
   }, [isEdit, quotationId]);
 
   function fetchNextNumber(d: string, pref: string, fId?: number | '', bId?: number | '') {
+    if (isManual) pref = MANUAL_ORDER_PREFIX;
     const reqId = ++numberReq.current;
     setNumberLoading(true);
     api.quotations
@@ -593,6 +608,7 @@ export default function QuotationNew() {
   async function submit() {
     setError('');
     if (!companyId) return setError('Please select a company');
+    if (isManual && orderDoc === 'po' && !orderPoNumber.trim()) return setError('Please enter the customer PO number');
     if (items.length === 0 || items.some((it) => !it.description || !it.qty)) {
       return setError('Every line item needs a description and quantity');
     }
@@ -707,6 +723,24 @@ export default function QuotationNew() {
         navigate(`/quotations/${quotationId}`);
       } else {
         const created = await api.quotations.create(payload as any);
+        if (isManual) {
+          // The order record exists; now the document the user chose. If this step fails the order is kept, and its page
+          // offers "PO received" / "Create PI", so nothing has to be typed again.
+          try {
+            if (orderDoc === 'po') {
+              const full = await api.quotations.get(created.id);
+              await api.quotations.poReceived.create(created.id, {
+                po_number: orderPoNumber.trim(),
+                po_date: orderPoDate || undefined,
+                items: (full.items || []).filter((it) => it.id !== undefined).map((it) => ({ quotation_item_id: it.id as number, qty: Number(it.qty) })),
+              });
+            } else {
+              await api.performaInvoices.create({ quotation_id: created.id });
+            }
+          } catch (followUp: any) {
+            setError(`The order ${created.number || ''} was saved, but the ${orderDoc === 'po' ? 'PO' : 'performa invoice'} could not be created: ${followUp?.message || 'please try again from the order page'}`);
+          }
+        }
         navigate(`/quotations/${created.id}`);
       }
     } catch (e: any) {
@@ -723,7 +757,7 @@ export default function QuotationNew() {
   const money2 = (v: number) => '₹' + Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const custName = companies.find((c) => c.id === companyId)?.name;
   const eng = engineers.find((e) => e.id === salesEngineerId);
-  const saveLabel = saving ? 'Saving…' : isEdit ? 'Save quotation' : 'Save and generate';
+  const saveLabel = saving ? 'Saving…' : isEdit ? 'Save quotation' : isManual ? (orderDoc === 'po' ? 'Save order and PO' : 'Save order and create PI') : 'Save and generate';
 
   return (
     <div className="ts-page-pad">
@@ -734,11 +768,13 @@ export default function QuotationNew() {
             <h1 style={{ margin: 0 }}>
               {isEdit
                 ? `Edit ${isInstrument ? 'instrument ' : ''}quotation`
+                : isManual
+                ? 'New manual order'
                 : isInstrument
                 ? 'New instrument quotation'
                 : 'New quotation'}
             </h1>
-            {!isEdit ? (
+            {!isEdit && !isManual ? (
               <div
                 style={{
                   display: 'inline-flex',
@@ -836,10 +872,11 @@ export default function QuotationNew() {
                 type="button"
                 onClick={() => {
                   setIsInstrument(false);
+                  if (isManual) { setIsManual(false); fetchNextNumber(date, prefix, firmId, branchId); }
                   setSearchParams({});
                 }}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
-                  !isInstrument
+                  !isInstrument && !isManual
                     ? 'bg-ink text-onink shadow-sm'
                     : 'text-subtle hover:text-fg'
                 }`}
@@ -850,6 +887,7 @@ export default function QuotationNew() {
                 type="button"
                 onClick={() => {
                   setIsInstrument(true);
+                  if (isManual) { setIsManual(false); fetchNextNumber(date, prefix, firmId, branchId); }
                   setSearchParams({ type: 'instrument' });
                 }}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
@@ -859,6 +897,23 @@ export default function QuotationNew() {
                 }`}
               >
                 🔬 Instrument
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInstrument(false);
+                  setIsManual(true);
+                  setSearchParams({ type: 'order' });
+                  fetchNextNumber(date, MANUAL_ORDER_PREFIX, firmId, branchId);
+                }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                  isManual
+                    ? 'bg-accent2 text-onaccent shadow-sm'
+                    : 'text-subtle hover:text-fg'
+                }`}
+                title="A PO or a PI typed in by hand, for a customer with no quotation before it"
+              >
+                🧾 Manual order (PO / PI)
               </button>
             </div>
           )}
@@ -1041,6 +1096,39 @@ export default function QuotationNew() {
             <div className="ts-warnbox"><span>Contact persons and payment terms need a database update (migration 004). Ask your administrator to apply it.</span></div>
           )}
 
+          {/* Manual order: which document to create */}
+          {isManual && (
+            <section className="ts-card ts-white" style={{ ['--i' as string]: 1 }}>
+              <div className="ts-ch"><b>Order document</b></div>
+              <p className="m-0 mb-3 text-[13px] text-subtle">
+                For a customer who sent a PO without a quotation, or for a performa invoice made by hand. Fill in the customer and the products below, as for a quotation.
+              </p>
+              <div className="flex flex-wrap gap-3 mb-3">
+                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-fg">
+                  <input type="radio" name="order-doc" checked={orderDoc === 'po'} onChange={() => setOrderDoc('po')} />
+                  <span><b>Purchase order received</b> from the customer</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-fg">
+                  <input type="radio" name="order-doc" checked={orderDoc === 'pi'} onChange={() => setOrderDoc('pi')} />
+                  <span><b>Performa invoice</b> (no PO)</span>
+                </label>
+              </div>
+              {orderDoc === 'po' && (
+                <div className="ts-fgrid ts-g3">
+                  <div className="ts-fld ts-span2">
+                    <label htmlFor="mo-po">Customer PO number *</label>
+                    <input id="mo-po" className="ts-fi" maxLength={60} value={orderPoNumber} onChange={(e) => setOrderPoNumber(e.target.value)} placeholder="The customer's PO number, as written on their PO" />
+                  </div>
+                  <div className="ts-fld">
+                    <label htmlFor="mo-po-date">PO date</label>
+                    <input id="mo-po-date" type="date" className="ts-fi" value={orderPoDate} onChange={(e) => setOrderPoDate(e.target.value)} />
+                  </div>
+                </div>
+              )}
+              <small className="ts-hint">The order gets its own number ({MANUAL_ORDER_PREFIX}…). Every product on it counts as ordered at the quantity you enter.</small>
+            </section>
+          )}
+
           {/* Line items */}
           <section className="ts-card ts-white" style={{ ['--i' as string]: 1 }}>
             <div className="ts-rhead"><div className="ts-ch"><b>{lumpSum ? 'Line items' : 'Line items and product discounts'}</b></div><span className="ts-muted" style={{ fontSize: 13 }}>{items.length} {items.length === 1 ? 'item' : 'items'}</span></div>
@@ -1052,7 +1140,7 @@ export default function QuotationNew() {
                 </div>
                 <small className="text-[12.5px] text-subtle">Instrument format: Part Number, Quantity and Description for each line, and one total amount for all the items. Tick "Main item" to print a line in bold.</small>
               </div>
-            ) : (
+            ) : isManual ? null : (
             <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-lg border border-line2 bg-surface px-3 py-2 text-[13px]">
               <input type="checkbox" className="mt-0.5" checked={lumpSum} onChange={(e) => setLumpSum(e.target.checked)} />
               <span>

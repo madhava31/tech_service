@@ -7,6 +7,8 @@ import { DownloadIcon, FileTextIcon, MailIcon, PencilIcon, Trash2 } from 'lucide
 import { SendEmailModal } from '../components/SendEmailModal';
 import { POReceivedModal } from '../components/POReceivedModal';
 import { NegotiateModal } from '../components/NegotiateModal';
+import { quotationStatusLabel } from '../lib/quotationStatus';
+import { isManualOrderNumber } from '../lib/manualOrder';
 import { useAuth } from '../auth';
 import { fmtDay } from '../components/ds/format';
 import { QuotationPayments } from '../components/QuotationPayments';
@@ -100,6 +102,8 @@ export default function QuotationDetail() {
     load();
     loadFollowUps();
   }, [quotationId]);
+
+  const manual = isManualOrderNumber(quotation?.number);
 
   async function startNegotiation(note: string) {
     await api.quotations.setStatus(quotationId, 'negotiation', note);
@@ -220,17 +224,18 @@ export default function QuotationDetail() {
           <Link to="/quotations" className="ts-back">← Quotations</Link>
           <div className="flex items-center gap-3 flex-wrap">
             <h1>{quotation.number}</h1>
-            <span className={`ts-st ts-${quotation.status}`}>{String(quotation.status).replace(/_/g, ' ')}</span>
+            <span className={`ts-st ts-${quotation.status}`}>{quotationStatusLabel(quotation.status)}</span>
+            {manual && <span className="ts-pill ts-up" title="A PO or PI typed in by hand, with no quotation before it">Manual order</span>}
           </div>
         </div>
         <span className="ts-grow" />
         <div className="flex items-center gap-2 flex-wrap">
-          {(quotation.status === 'draft' || quotation.status === 'negotiation') && (
+          {!manual && (quotation.status === 'draft' || quotation.status === 'negotiation') && (
             <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-ghost"><PencilIcon /> Edit quotation</Link>
           )}
-          <a className="ts-btn ts-dark" href={api.quotations.pdfUrl(quotationId)} target="_blank" rel="noreferrer"><FileTextIcon /> View PDF</a>
-          <DownloadPdfButton url={api.quotations.downloadPdfUrl(quotationId)} fileName={pdfFileName(quotation?.number, `quotation-${quotationId}`)} kind="quotation" className="ts-btn ts-ghost"><DownloadIcon /> Download PDF</DownloadPdfButton>
-          {user?.role === 'admin' && (
+          {!manual && <a className="ts-btn ts-dark" href={api.quotations.pdfUrl(quotationId)} target="_blank" rel="noreferrer"><FileTextIcon /> View PDF</a>}
+          {!manual && (<DownloadPdfButton url={api.quotations.downloadPdfUrl(quotationId)} fileName={pdfFileName(quotation?.number, `quotation-${quotationId}`)} kind="quotation" className="ts-btn ts-ghost"><DownloadIcon /> Download PDF</DownloadPdfButton>)}
+          {user?.role === 'admin' && !manual && (
             <button type="button" className="ts-btn ts-ghost" onClick={() => setEmailOpen(true)}><MailIcon /> Send Email</button>
           )}
         </div>
@@ -297,17 +302,17 @@ export default function QuotationDetail() {
             {/* Stage change buttons sit right under the workflow steps */}
             {(st === 'draft' || st === 'sent' || st === 'negotiation' || (poList !== null && st !== 'rejected')) && (
               <div className="mt-4 flex flex-wrap gap-2 border-t border-line2 pt-3">
-                {st === 'draft' && (
+                {st === 'draft' && !manual && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs">
                     {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
                   </button>
                 )}
-                {st === 'sent' && (
+                {st === 'sent' && !manual && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setNegotiateOpen(true)} className="ts-btn ts-dark ts-xs" title="The customer asked for a price change">
                     Negotiate
                   </button>
                 )}
-                {st === 'negotiation' && (
+                {st === 'negotiation' && !manual && (
                   <>
                     <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-dark ts-xs"><PencilIcon /> Edit prices</Link>
                     <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs" title="Send the revised quotation to the customer">
@@ -320,7 +325,7 @@ export default function QuotationDetail() {
                     {poList.pos.length ? '+ PO received (another)' : 'PO received'}
                   </button>
                 )}
-                {(st === 'draft' || st === 'sent' || st === 'negotiation') && (
+                {(st === 'draft' || st === 'sent' || st === 'negotiation') && !manual && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setStatus('rejected')} className="ts-btn ts-dark ts-xs">
                     {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
                   </button>
@@ -393,6 +398,7 @@ export default function QuotationDetail() {
             for (const it of p.items) acc[it.quotation_item_id] = (acc[it.quotation_item_id] || 0) + Number(it.qty);
             return acc;
           }, {})}
+          lastPo={poList.pos.length ? Object.fromEntries(poList.pos[poList.pos.length - 1].items.map((it) => [it.quotation_item_id, Number(it.qty)])) : null}
           onClose={() => setPoModalOpen(false)}
           onSaved={load}
         />
@@ -401,7 +407,21 @@ export default function QuotationDetail() {
       {/* POs received (typed by hand), with the items each one ordered */}
       {poList && poList.pos.length > 0 && (
         <section className="ts-card ts-white" style={{ ['--i' as string]: 0, marginBottom: 16 }}>
-          <div className="ts-ch"><b>POs received</b></div>
+          {(() => {
+            // What was ordered in total over all POs (repeat orders add up): quantity x unit price, plus GST.
+            const unit = new Map((quotation?.items || []).map((it) => [it.id, Number(it.final_unit_price ?? it.actual_unit_price ?? it.price ?? 0)]));
+            const orderedExGst = poList.pos.reduce((sum, p) => sum + p.items.reduce((s2, it) => s2 + Number(it.qty) * (unit.get(it.quotation_item_id) || 0), 0), 0);
+            const withGst = orderedExGst * (1 + Number(quotation?.tax_percent || 0) / 100);
+            const money = (n: number) => `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            return (
+              <div className="ts-ch">
+                <b>POs received</b>
+                <span className="ts-muted" style={{ fontSize: 13, marginLeft: 10 }}>
+                  {poList.pos.length} {poList.pos.length === 1 ? 'PO' : 'POs'} · ordered {money(withGst)} incl. GST
+                </span>
+              </div>
+            );
+          })()}
           <div className="flex flex-col gap-3">
             {poList.pos.map((p) => (
               <div key={p.id} className="rounded-lg border border-line2 bg-surface px-3 py-2.5">

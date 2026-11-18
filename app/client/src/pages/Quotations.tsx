@@ -9,6 +9,7 @@ import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, 
 import { Seg } from '../components/ds/Seg';
 import { ExportQuotationsModal } from '../components/ExportQuotationsModal';
 import { fmtDay } from '../components/ds/format';
+import { quotationStatusLabel } from '../lib/quotationStatus';
 
 const PAGE_SIZE = 25;
 
@@ -239,10 +240,10 @@ export default function Quotations() {
     const isAccepted = status === 'accepted';
 
     if (isAccepted) {
-      const step1Message = `Step 1 of 2: Quotation "${number}" is currently ACCEPTED. Are you sure you want to initiate deletion?`;
+      const step1Message = `Step 1 of 2: Quotation "${number}" is currently PO RECEIVED. Are you sure you want to initiate deletion?`;
       if (!window.confirm(step1Message)) return;
 
-      const step2Message = `FINAL CONFIRMATION (Step 2 of 2): Are you 100% SURE you want to PERMANENTLY DELETE ACCEPTED quotation "${number}"? This will remove all associated line items, follow-ups, and linked documents!`;
+      const step2Message = `FINAL CONFIRMATION (Step 2 of 2): Are you 100% SURE you want to PERMANENTLY DELETE PO RECEIVED quotation "${number}"? This will remove all associated line items, follow-ups, and linked documents!`;
       if (!window.confirm(step2Message)) return;
     } else {
       const confirmMessage = `Are you sure you want to delete quotation "${number}"?`;
@@ -272,7 +273,7 @@ export default function Quotations() {
     const hasAccepted = selectedQuotations.some((q) => q.status === 'accepted');
 
     if (hasAccepted) {
-      const step1Message = `Step 1 of 2: You have selected ${selectedIds.length} quotation(s), which includes ACCEPTED quotation(s). Are you sure you want to initiate deletion?`;
+      const step1Message = `Step 1 of 2: You have selected ${selectedIds.length} quotation(s), which includes PO RECEIVED quotation(s). Are you sure you want to initiate deletion?`;
       if (!window.confirm(step1Message)) return;
 
       const step2Message = `FINAL CONFIRMATION (Step 2 of 2): Are you 100% SURE you want to PERMANENTLY DELETE these ${selectedIds.length} selected quotation(s)? This will remove all associated line items, follow-ups, and linked documents!`;
@@ -354,7 +355,7 @@ export default function Quotations() {
     { name: 'Draft', key: 'draft' },
     { name: 'Sent', key: 'sent' },
     { name: 'Negotiation', key: 'negotiation' },
-    { name: 'Accepted', key: 'accepted' },
+    { name: 'PO received', key: 'accepted' },
     { name: 'Rejected', key: 'rejected' },
   ];
   const cols = (isSelectionMode ? 1 : 0) + (isAdmin ? 8 : 7);
@@ -398,6 +399,7 @@ export default function Quotations() {
             </>
           )}
           <Link className="ts-btn ts-ghost" to="/quotations/new?type=instrument"><Plus /> Quotation for instruments</Link>
+          <Link className="ts-btn ts-ghost" to="/quotations/new?type=order" title="A PO or a PI typed in by hand, for a customer with no quotation before it"><Plus /> Manual order (PO / PI)</Link>
           <button
             type="button"
             className="ts-btn ts-dark cursor-pointer"
@@ -518,7 +520,7 @@ export default function Quotations() {
                       <td className="ts-muted font-mono text-[12px]" style={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.items_part_nos || ''}>{q.items_part_nos || '—'}</td>
                       <td className="ts-r num">{money(q.total)}</td>
                       {isAdmin && <td className="ts-muted">{q.created_by_username || '—'}</td>}
-                      <td><span className={`ts-st ts-${q.status}`}>{String(q.status || '').replace(/_/g, ' ')}</span></td>
+                      <td><span className={`ts-st ts-${q.status}`}>{quotationStatusLabel(q.status)}</span></td>
                       <td className="ts-r">
                         <div className="ts-racts">
                           <Link to={`/quotations/${q.id}`} className="ts-btn ts-ghost ts-xs">View</Link>

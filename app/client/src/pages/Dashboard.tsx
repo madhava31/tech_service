@@ -509,7 +509,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
           <Link className="ts-kfoot" to="/sale-reports">See sale reports</Link>
         </div>
         <div className="ts-card ts-white" style={{ ['--i' as string]: 1 }}>
-          <div className="ts-ch">Accepted quotations</div>
+          <div className="ts-ch">PO received</div>
           <div className="ts-kbody"><div>
             {loading ? skel('70%') : <div className="ts-val num"><CountUp value={data?.acceptedQuotationRevenue ?? 0} format={formatCurrency} /></div>}
             <div className="ts-delta">{counts ? `${counts.quotations} quotations in total` : '—'}</div></div>
@@ -532,7 +532,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
           <Link className="ts-kfoot" to="/purchase-orders">See purchase orders</Link>
         </div>
         <div className="ts-card" style={{ ['--i' as string]: 3 }}>
-          <div className="ts-ch">Quote acceptance</div>
+          <div className="ts-ch">PO received rate</div>
           <div className="ts-kbody"><div>
             {!pipeline && !pipelineError ? skel('50%') : <div className="ts-val num"><CountUp value={acceptedRate} format={(v) => `${v.toFixed(1)}%`} /></div>}
             <div className="ts-delta">{pipeline ? `${pipeline.summary.wonCount} of ${pipeline.summary.totalOpportunities} quotations` : pipelineError ? 'Pipeline unavailable' : '—'}</div></div>
@@ -611,7 +611,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
             {stages.map((st) => (
               <div key={st.key} className="ts-hbar" data-stage={st.key}><span>{st.label}</span><div className="ts-t"><i style={{ width: `${(st.count / Math.max(1, ...stages.map((x) => x.count))) * 100}%` }} /></div><span className="ts-p num">{st.count}</span></div>
             ))}
-            <p className="ts-muted" style={{ fontSize: 13, margin: '10px 0 0' }}>{formatCurrency(pipelineTotalValue)} across {pipeline!.summary.totalOpportunities} quotations · {acceptedRate.toFixed(1)}% accepted.</p>
+            <p className="ts-muted" style={{ fontSize: 13, margin: '10px 0 0' }}>{formatCurrency(pipelineTotalValue)} across {pipeline!.summary.totalOpportunities} quotations · {acceptedRate.toFixed(1)}% PO received.</p>
           </div> : <div className="ts-dempty"><p>{pipeline ? 'No quotations in this period.' : 'Loading…'}</p></div>}
         </div>
       </div>

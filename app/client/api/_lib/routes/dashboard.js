@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { paymentsReady, listOutstanding } from '../payments/service.js';
 import { classifyHealthStatus } from './companies.js';
+import { receivedValueSql, runWithFallback } from '../quotations/poValue.js';
 
 const router = Router();
 
@@ -133,7 +134,12 @@ export async function getGroupedFollowUps() {
 router.get('/', async (req, res) => {
   try {
     const salesTotal = (await db.prepare(`SELECT COALESCE(SUM(total_amount),0) t FROM sales_record WHERE needs_review = 0`).get()).t;
-    const quotationTotal = (await db.prepare(`SELECT COALESCE(SUM(total),0) t FROM quotation WHERE status = 'accepted'`).get()).t;
+    // PO received: what the customers actually ordered (repeat and partial POs included), not the whole quotation amount.
+    const receivedValue = await receivedValueSql('q');
+    const quotationTotal = await runWithFallback(
+      async (v) => (await db.prepare(`SELECT COALESCE(SUM(${v}),0) t FROM quotation q WHERE q.status = 'accepted'`).get()).t,
+      receivedValue, 'q.total', 'dashboard'
+    );
 
     const monthlyTrend = await db
       .prepare(
@@ -461,29 +467,31 @@ const PIPELINE_STAGES = [
   { key: 'draft', label: 'Draft' },
   { key: 'sent', label: 'Sent' },
   { key: 'negotiation', label: 'Negotiation' },
-  { key: 'accepted', label: 'Accepted' },
+  { key: 'accepted', label: 'PO received' },
   { key: 'rejected', label: 'Rejected' },
 ];
 
 export async function getPipeline(start, end) {
-  let query = `
-    SELECT status, COUNT(*) AS count, COALESCE(SUM(total), 0) AS value
-    FROM quotation
-  `;
+  const receivedValue = await receivedValueSql('q');
   const params = [];
+  let where = '';
   if (start && end) {
-    query += ` WHERE date >= ? AND date <= ?`;
+    where = ` WHERE date >= ? AND date <= ?`;
     params.push(start, end);
   } else if (start) {
-    query += ` WHERE date >= ?`;
+    where = ` WHERE date >= ?`;
     params.push(start);
   } else if (end) {
-    query += ` WHERE date <= ?`;
+    where = ` WHERE date <= ?`;
     params.push(end);
   }
-  query += ` GROUP BY status`;
-
-  const rows = await db.prepare(query).all(...params);
+  const rows = await runWithFallback(
+    (v) =>
+      db
+        .prepare(`SELECT q.status AS status, COUNT(*) AS count, COALESCE(SUM(CASE WHEN q.status = 'accepted' THEN ${v} ELSE q.total END), 0) AS value FROM quotation q${where} GROUP BY status`)
+        .all(...params),
+    receivedValue, 'q.total', 'pipeline'
+  );
   const byStage = new Map(rows.map((r) => [r.status, { count: Number(r.count), value: Number(r.value) }]));
 
   const stages = PIPELINE_STAGES.map(({ key, label }) => ({

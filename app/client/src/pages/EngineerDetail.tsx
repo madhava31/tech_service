@@ -135,7 +135,7 @@ export default function EngineerDetail() {
           </div>
 
           <div className="bg-surface p-3 rounded-lg border border-line2">
-            <span className="text-[10px] uppercase text-subtle block">Accepted Proposals</span>
+            <span className="text-[10px] uppercase text-subtle block">PO received</span>
             <span className="text-lg font-bold text-fg">{performance?.accepted_quotation_count || 0}</span>
             <span className="text-xs font-mono text-fg block">
               ₹{(performance?.accepted_quotation_amount || 0).toLocaleString('en-IN')}

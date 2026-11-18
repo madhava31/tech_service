@@ -40,7 +40,7 @@ export default function AwaitingCustomerResponse() {
         <div className="text-[22px] font-medium text-fg num tracking-[-.02em]">
           {data.count} Awaiting Response
         </div>
-        <div className="text-[13px] text-subtle">Sent to the customer but not yet accepted or rejected.</div>
+        <div className="text-[13px] text-subtle">Sent to the customer, with no PO received and no rejection yet.</div>
       </div>
 
       <div style={{ marginBottom: 14 }}>

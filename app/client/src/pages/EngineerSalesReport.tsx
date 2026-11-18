@@ -119,7 +119,7 @@ export default function EngineerSalesReport() {
                 <th>Code / Engineer</th>
                 <th className="ts-r">Target (₹)</th>
                 <th className="ts-r">Quoted (₹)</th>
-                <th className="ts-r">Accepted (₹)</th>
+                <th className="ts-r">PO received (₹)</th>
                 <th className="ts-r">Confirmed Sales (₹)</th>
                 <th className="ts-r">Achieved %</th>
                 <th className="ts-r">Shortfall (₹)</th>

@@ -1,4 +1,5 @@
 import db from '../db/index.js';
+import { receivedValueSql, runWithFallback } from '../quotations/poValue.js';
 
 // Postgres port of the legacy SQLite getSalesOverview (app/server/src/services/salesService.js).
 // Returns the { kpis, pipeline, unavailable } shape the Sales Overview page expects
@@ -29,7 +30,8 @@ async function tableExists(name) {
 }
 
 export async function getSalesOverview() {
-  const quoteCounts = await db
+  const receivedValue = await receivedValueSql('q');
+  const quoteCounts = await runWithFallback((v) => db
     .prepare(
       `SELECT
         COUNT(*) AS total_quotations,
@@ -38,10 +40,10 @@ export async function getSalesOverview() {
         COUNT(*) FILTER (WHERE status = 'accepted') AS accepted_quotations,
         COUNT(*) FILTER (WHERE status = 'rejected') AS rejected_quotations,
         COALESCE(SUM(total), 0) AS quotation_total_value,
-        COALESCE(SUM(total) FILTER (WHERE status = 'accepted'), 0) AS accepted_quotation_value
-       FROM quotation`
+        COALESCE(SUM(${v}) FILTER (WHERE q.status = 'accepted'), 0) AS accepted_quotation_value
+       FROM quotation q`
     )
-    .get();
+    .get(), receivedValue, 'q.total', 'sales overview');
 
   const poCounts = await db
     .prepare(
@@ -86,7 +88,7 @@ export async function getSalesOverview() {
   };
   const pipeline = [
     { stage: 'Quotation', label: 'All Quotations', count: num(quoteCounts.total_quotations), value: num(quoteCounts.quotation_total_value) },
-    { stage: 'Accepted', label: 'Accepted Quotes', count: accepted, value: num(quoteCounts.accepted_quotation_value) },
+    { stage: 'Accepted', label: 'PO received', count: accepted, value: num(quoteCounts.accepted_quotation_value) },
     { stage: 'PO', label: 'Purchase Orders', count: num(poCounts.total_pos), value: num(poCounts.po_total_value) },
     { stage: 'PI', label: 'Performa Invoices', count: num(piCounts.total_pis), value: num(piCounts.pi_total_value) },
   ];

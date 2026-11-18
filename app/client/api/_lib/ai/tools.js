@@ -679,7 +679,7 @@ export const TOOL_DECLARATIONS = [
   },
   {
     name: 'quotation_summary',
-    description: "Counts and values of quotations grouped by status (draft/sent/accepted/rejected), plus how many converted to a PO/PI, for an optional time period. Use for 'how many quotations did we send in 2024'.",
+    description: "Counts and values of quotations grouped by status (draft/sent/negotiation/accepted/rejected; 'accepted' means a PO was received), plus how many converted to a PO/PI, for an optional time period. Use for 'how many quotations did we send in 2024'.",
     parametersJsonSchema: { type: 'object', properties: { dateRange: DATE_RANGE_PARAM_SCHEMA } },
   },
   {

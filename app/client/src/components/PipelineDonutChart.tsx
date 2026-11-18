@@ -84,7 +84,7 @@ export function PipelineDonutChart({
 
         {/* Center Conversion Metrics */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-          <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">Accepted Rate</span>
+          <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">PO received rate</span>
           <span className="text-xl font-extrabold text-fg mt-0.5">{acceptedRate}%</span>
           <span className="text-[10px] text-subtle font-semibold">{formatCurrency(totalValue)}</span>
         </div>

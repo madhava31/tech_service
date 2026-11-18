@@ -110,52 +110,6 @@ export default function SalesPending() {
         )}
       </div>
 
-      {/* 2. ACCEPTED QUOTATIONS WITHOUT PO */}
-      <div className="ts-card ts-tbl mb-3">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
-          <h2 className="m-0 text-[15px] font-medium text-fg flex items-center gap-2 flex-wrap">
-            <span>Accepted Quotations Awaiting Purchase Order</span>
-          </h2>
-          <span className="ts-st num">{data.acceptedQuotationsWithoutPo.length} Pending</span>
-        </div>
-        {data.acceptedQuotationsWithoutPo.length === 0 ? (
-          <p className="text-[13px] text-subtle p-2">All accepted quotations have linked purchase orders.</p>
-        ) : (
-          <div className="ts-tblwrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Quotation Number</th>
-                  <th>Company</th>
-                  <th>Date</th>
-                  <th className="ts-r">Amount</th>
-                  <th className="text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.acceptedQuotationsWithoutPo.map((q) => (
-                  <tr key={q.id}>
-                    <td className="font-medium">
-                      <Link to={`/quotations/${q.id}`} className="text-fg hover:underline">
-                        {q.number}
-                      </Link>
-                    </td>
-                    <td>{q.company_name}</td>
-                    <td>{q.date}</td>
-                    <td className="ts-r">₹{q.total?.toLocaleString('en-IN')}</td>
-                    <td className="text-center">
-                      <Link to={`/purchase-orders`} className="ts-btn ts-dark text-[13px]">
-                        + Create PO
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
       {/* 3. POs WITHOUT PI */}
       <div className="ts-card ts-tbl mb-3">
         <div className="flex items-center justify-between gap-3 flex-wrap mb-2">

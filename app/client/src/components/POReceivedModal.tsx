@@ -3,16 +3,18 @@ import { api, type QuotationItem } from '../api';
 import { showToast } from '../lib/savePdf';
 
 /**
- * "PO received" dialog. The user types the customer's PO number, and every quoted item is listed ticked with its
- * quoted quantity already filled in:
- *   - the customer ordered everything: type the PO number and save (one step);
- *   - the customer ordered only some items or smaller quantities: untick items or change quantities.
+ * "PO received" dialog. The user types the customer's PO number, and the quoted items are listed with the quantity ordered:
+ *   - first PO, customer ordered everything: every item is ticked at the quoted quantity; type the PO number and save;
+ *   - first PO, only some items or smaller quantities: untick items or change quantities;
+ *   - a repeat PO on the same quotation (same products, new PO number, sometimes other quantities): the list starts as
+ *     "Same as last PO", so only the PO number, and any quantity that changed, has to be typed.
  */
 export function POReceivedModal({
   quotationId,
   quotationNumber,
   items,
   alreadyOrdered,
+  lastPo,
   onClose,
   onSaved,
 }: {
@@ -21,6 +23,8 @@ export function POReceivedModal({
   items: QuotationItem[];
   /** Quantities already covered by earlier POs of this quotation, per quotation item id (for the hint). */
   alreadyOrdered: Record<number, number>;
+  /** Quantities of the most recent PO of this quotation, per quotation item id; null for the first PO. */
+  lastPo: Record<number, number> | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -28,18 +32,26 @@ export function POReceivedModal({
   const [poNumber, setPoNumber] = useState('');
   const [poDate, setPoDate] = useState(today);
   const [notes, setNotes] = useState('');
-  // Lines of the quotation, each ticked with its quoted quantity.
-  // What is left to order of a line: the quoted quantity minus what earlier POs already covered.
+  // The list starts one of three ways: as quoted, the quantity still left to order, or the same as the last PO.
+  type Mode = 'quoted' | 'remaining' | 'last';
+  const hasEarlierPo = lastPo !== null;
   const remaining = (it: QuotationItem) => Math.max(0, Number(it.qty) - (alreadyOrdered[it.id as number] || 0));
-  const freshRows = (asQuoted: boolean) =>
+  const freshRows = (mode: Mode) =>
     items
       .filter((it) => it.id !== undefined)
       .map((it) => {
+        const id = it.id as number;
+        if (mode === 'last') {
+          const q = lastPo?.[id];
+          return { id, checked: q !== undefined, qty: String(q !== undefined ? q : Number(it.qty)) };
+        }
         const left = remaining(it);
-        const qty = asQuoted || left <= 0 ? Number(it.qty) : left;
-        return { id: it.id as number, checked: asQuoted || left > 0, qty: String(qty) };
+        if (mode === 'remaining') return { id, checked: left > 0, qty: String(left > 0 ? left : Number(it.qty)) };
+        return { id, checked: true, qty: String(Number(it.qty)) };
       });
-  const [rows, setRows] = useState(() => freshRows(false));
+  const [mode, setMode] = useState<Mode>(hasEarlierPo ? 'last' : 'quoted');
+  const [rows, setRows] = useState(() => freshRows(hasEarlierPo ? 'last' : 'quoted'));
+  const pick = (m: Mode) => { setMode(m); setRows(freshRows(m)); };
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -110,7 +122,17 @@ export function POReceivedModal({
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <b className="text-[13px] text-fg">Items ordered ({chosen.length} of {rows.length})</b>
             <span className="flex gap-2">
-              <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setRows(freshRows(true))}>
+              {hasEarlierPo && (
+                <button type="button" className={`ts-btn ts-xs ${mode === 'last' ? 'ts-dark' : 'ts-ghost'}`} onClick={() => pick('last')} title="A repeat order: the same items and quantities as the last PO">
+                  Same as last PO
+                </button>
+              )}
+              {hasEarlierPo && (
+                <button type="button" className={`ts-btn ts-xs ${mode === 'remaining' ? 'ts-dark' : 'ts-ghost'}`} onClick={() => pick('remaining')} title="Only what is still left of the quoted quantities">
+                  Remaining only
+                </button>
+              )}
+              <button type="button" className={`ts-btn ts-xs ${mode === 'quoted' ? 'ts-dark' : 'ts-ghost'}`} onClick={() => pick('quoted')}>
                 All items as quoted
               </button>
               <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setRows((prev) => prev.map((r) => ({ ...r, checked: false })))}>
@@ -118,6 +140,9 @@ export function POReceivedModal({
               </button>
             </span>
           </div>
+          {hasEarlierPo && mode === 'last' && (
+            <p className="m-0 mb-2 text-[12.5px] text-subtle">Repeat order: the items and quantities of the last PO are filled in. Type the new PO number, and change any quantity that is different.</p>
+          )}
           {/* One row per quoted item: tick, item, quoted quantity, ordered quantity (editable). No sideways scrolling. */}
           <div className="rounded-lg border border-line2">
             <div className="grid items-center gap-2 border-b border-line2 px-3 py-2 text-[11.5px] uppercase tracking-wider text-faint" style={{ gridTemplateColumns: '22px minmax(0,1fr) 64px 96px' }}>
@@ -129,14 +154,14 @@ export function POReceivedModal({
             {items.filter((it) => it.id !== undefined).map((it) => {
               const r = rows.find((x) => x.id === it.id)!;
               const before = alreadyOrdered[it.id as number];
-              const over = r.checked && Number(r.qty) > Number(it.qty);
+              const over = !hasEarlierPo && r.checked && Number(r.qty) > Number(it.qty);
               return (
                 <div key={it.id} className={`grid items-center gap-2 border-b border-line px-3 py-2 last:border-b-0 ${r.checked ? '' : 'opacity-50'}`} style={{ gridTemplateColumns: '22px minmax(0,1fr) 64px 96px' }}>
                   <input type="checkbox" checked={r.checked} onChange={(e) => setRow(r.id, { checked: e.target.checked })} aria-label={`Item ${it.part_no || it.description} ordered`} />
                   <div className="min-w-0">
                     <div className="truncate text-[13px] text-fg">{it.description}</div>
                     <div className="truncate font-mono text-[11px] text-faint">{it.part_no || '-'}</div>
-                    {before ? <div className="text-[11px] text-faint">Already ordered on an earlier PO: {before}</div> : null}
+                    {before ? <div className="text-[11px] text-faint">Ordered so far on earlier POs: {before}</div> : null}
                     {over ? <div className="text-[11px] text-bad">More than the quoted {it.qty}</div> : null}
                   </div>
                   <div className="text-right text-[13px] text-subtle">{it.qty}</div>
