@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
+import { poReceivedReady } from '../quotations/poReceived.js';
 import { nextNumber } from '../db/numbering.js';
 import { streamPurchaseOrderPdf } from '../pdf/documents.js';
 
@@ -26,6 +27,32 @@ async function fullPO(id) {
   const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(po.quotation_id);
   return { po, items };
 }
+
+// GET /api/purchase-orders/received : the customer POs recorded with "PO received" or a manual order, one row per PO,
+// in the same shape as the list below. Users who are not admins see only the quotations they created.
+router.get('/received', async (req, res) => {
+  try {
+    if (!(await poReceivedReady())) return res.json([]);
+    const own = req.user?.role === 'admin' ? '' : 'WHERE q.created_by_user_id = ?';
+    const rows = await db
+      .prepare(
+        `SELECT p.id, p.po_number AS number, p.po_date AS date, p.po_number AS client_po_ref, 'Received' AS status,
+                q.id AS quotation_id, q.number AS quotation_number, c.name AS company_name,
+                (SELECT COALESCE(SUM(pi.qty * COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0)), 0)
+                   FROM quotation_po_item pi JOIN quotation_item qi ON qi.id = pi.quotation_item_id
+                  WHERE pi.quotation_po_id = p.id) * (1 + COALESCE(q.tax_percent, 0) / 100.0) AS total
+           FROM quotation_po p
+           JOIN quotation q ON q.id = p.quotation_id
+           JOIN company c ON c.id = q.company_id
+           ${own}
+          ORDER BY p.created_at DESC, p.id DESC`
+      )
+      .all(...(own ? [req.user.id] : []));
+    res.json(rows.map((r) => ({ ...r, total: Number(r.total) })));
+  } catch (err) {
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
 
 router.get('/', async (req, res) => {
   try {

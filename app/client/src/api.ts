@@ -1335,6 +1335,8 @@ export const api = {
     },
   },
   purchaseOrders: {
+    /** Customer POs recorded with PO received or a manual order (one row per PO). */
+    received: () => request<PurchaseOrder[]>('/purchase-orders/received'),
     list: (params?: { quotation_id?: number }) => {
       const qs = params?.quotation_id ? `?quotation_id=${encodeURIComponent(params.quotation_id)}` : '';
       return request<PurchaseOrder[]>(`/purchase-orders${qs}`);

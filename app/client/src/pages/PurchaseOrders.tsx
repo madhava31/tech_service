@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
 import { api, PurchaseOrder } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
@@ -48,7 +49,7 @@ const PO_STATUS_TONES: Record<string, string> = {
 };
 
 export default function PurchaseOrders() {
-  const [rows, setRows] = useState<PurchaseOrder[]>([]);
+  const [rows, setRows] = useState<(PurchaseOrder & { received?: boolean })[]>([]);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -56,7 +57,13 @@ export default function PurchaseOrders() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    api.purchaseOrders.list().then(setRows).catch((e) => setError(e.message));
+    // The POs received (PO received and manual orders) come first, then the older purchase order records.
+    Promise.all([
+      api.purchaseOrders.received().catch(() => [] as PurchaseOrder[]),
+      api.purchaseOrders.list(),
+    ])
+      .then(([received, older]) => setRows([...received.map((r) => ({ ...r, received: true })), ...older]))
+      .catch((e) => setError(e.message));
   }, []);
 
   useEffect(() => {
@@ -110,8 +117,12 @@ export default function PurchaseOrders() {
             Purchase Orders
           </h1>
           <p className="ts-muted m-0 mt-1.5 text-[14px]">
-            Orders raised against accepted quotations, by fulfilment state.
+            Customer POs received, and POs entered by hand.
           </p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Link to="/quotations/new?type=order&doc=po" className="ts-btn ts-dark"><Plus className="size-4" /> Manual PO</Link>
+            <Link to="/quotations/new?type=order&doc=pi" className="ts-btn ts-ghost"><Plus className="size-4" /> Manual PI</Link>
+          </div>
         </div>
         <div className="grid grid-cols-2  rounded-[18px] shadow-card bg-surface2 overflow-hidden">
           <div className="p-[10px_16px] border-r border-line2 flex flex-col gap-[2px]">
@@ -215,8 +226,10 @@ export default function PurchaseOrders() {
               {paged.map((po) => {
                 const tone = PO_STATUS_TONES[po.status.toLowerCase()] || 'rgb(var(--good))';
                 return (
-                  <tr key={po.id} >
-                    <td className="p-[11px_10px] font-medium text-fg">{po.number}</td>
+                  <tr key={`${po.received ? 'r' : 'o'}${po.id}`} >
+                    <td className="p-[11px_10px] font-medium text-fg">
+                      {po.received ? <Link to={`/quotations/${po.quotation_id}`} className="text-fg hover:underline">{po.number}</Link> : po.number}
+                    </td>
                     <td className="p-[11px_10px] text-fg">{po.company_name || '—'}</td>
                     <td className="p-[11px_10px] text-subtle">
                       <Link to={`/quotations/${po.quotation_id}`} className="text-fg hover:underline">
@@ -229,6 +242,7 @@ export default function PurchaseOrders() {
                       <span className={`ts-st ts-${String(po.status).toLowerCase().replace(/\s+/g, '_')}`}>{po.status}</span>
                     </td>
                     <td className="p-[11px_10px] text-right">
+                      {po.received ? <span className="text-[12px] text-faint">—</span> : (<>
                       <a
                         href={api.purchaseOrders.pdfUrl(po.id)}
                         target="_blank"
@@ -240,6 +254,7 @@ export default function PurchaseOrders() {
                       <DownloadPdfButton url={api.purchaseOrders.pdfUrl(po.id)} fileName={pdfFileName(po.number)} kind="purchase-order" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline" title="Save the PDF to a folder">
                         Save
                       </DownloadPdfButton>
+                      </>)}
                     </td>
                   </tr>
                 );

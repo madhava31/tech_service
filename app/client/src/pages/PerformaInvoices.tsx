@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
 import { api, PerformaInvoice } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
@@ -112,6 +113,10 @@ export default function PerformaInvoices() {
           <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Issued invoices and where collection currently stands.
           </p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Link to="/quotations/new?type=order&doc=pi" className="ts-btn ts-dark"><Plus className="size-4" /> Manual PI</Link>
+            <Link to="/quotations/new?type=order&doc=po" className="ts-btn ts-ghost"><Plus className="size-4" /> Manual PO</Link>
+          </div>
         </div>
         <div className="grid grid-cols-2  rounded-[18px] shadow-card bg-surface2 overflow-hidden">
           <div className="p-[10px_16px] border-r border-line2 flex flex-col gap-[2px]">

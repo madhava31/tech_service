@@ -87,7 +87,7 @@ export default function QuotationNew() {
   // Manual order ("Manual order" type): a PO or a PI typed in for a customer, with no quotation before it. It is saved as
   // a quotation record with its own number series (TSMO...), then a PO received or a performa invoice is created from it.
   const [isManual, setIsManual] = useState(!isEdit && searchParams.get('type') === 'order');
-  const [orderDoc, setOrderDoc] = useState<'po' | 'pi'>('po');
+  const [orderDoc, setOrderDoc] = useState<'po' | 'pi'>(searchParams.get('doc') === 'pi' ? 'pi' : 'po');
   const [orderPoNumber, setOrderPoNumber] = useState('');
   const [orderPoDate, setOrderPoDate] = useState(new Date().toISOString().slice(0, 10));
   useEffect(() => {
