@@ -421,7 +421,7 @@ export async function buildQuotationExport(query, scope = {}) {
     for (const r of rows) {
       r._highlight = !!r.po_numbers || r.status === 'accepted';
       r._negotiation = !r._highlight && r.status === 'negotiation';
-      r.status = STATUS_NAMES[r.status] || r.status;
+      r.status = r._highlight ? 'PO received' : (STATUS_NAMES[r.status] || r.status);
     }
 
     const available = QUOTATION_EXPORT_COLUMNS.filter((c) => (po || !c.po) && (rev || !c.rev));

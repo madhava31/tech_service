@@ -114,7 +114,7 @@ describe('quotation export rows and layout', () => {
     for (const c of [1, 2, 3]) assert.equal(fill(6, c), 'FFC6EFCE', `accepted row col ${c} is green`);
     assert.notEqual(fill(7, 1), 'FFC6EFCE', 'a sent quotation is not green');
     assert.equal(ws.getRow(7).getCell(3).value, 'Sent');
-    assert.equal(ws.getRow(8).getCell(3).value, 'Negotiation');
+    assert.equal(ws.getRow(8).getCell(3).value, 'PO received', 'a quotation with PO records reads PO received, matching its green row');
     assert.equal(fill(8, 1), 'FFC6EFCE', 'a quotation with PO records is green');
   });
 
