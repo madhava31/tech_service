@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "setup-db": "node scripts/setup-db.js",
-    "import": "node api/_lib/db/import.js"
+    "import": "node api/_lib/db/import.js",
+    "test:mail": "node --test \"api/_lib/mail/__tests__/*.test.mjs\"",
+    "test:po": "node --test \"api/_lib/quotations/__tests__/*.test.mjs\"",
+    "test:db": "node --test \"api/_lib/db/__tests__/*.test.mjs\""
   },
   "dependencies": {
     "@google/genai": "^2.17.1",

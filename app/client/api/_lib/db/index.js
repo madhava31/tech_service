@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { sslFor } from './ssl.js';
 
 const { Pool } = pg;
 
@@ -22,9 +23,8 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Supabase (and most hosted Postgres) require TLS; self-signed/managed certs mean we can't
   // strictly verify the chain here without extra setup, so we accept the connection either way.
-  ssl: process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1')
-    ? false
-    : { rejectUnauthorized: false },
+  // TLS: no verification by default (unchanged); full verification with DATABASE_CA_FILE (see db/ssl.js).
+  ssl: sslFor(process.env.DATABASE_URL),
   max: isServerless ? 3 : 10,
   idleTimeoutMillis: isServerless ? 5000 : 30000,
   connectionTimeoutMillis: isServerless ? 5000 : 10000,

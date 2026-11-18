@@ -357,7 +357,8 @@ export default function QuotationNew() {
   const addrInFlight = useRef<Promise<boolean> | null>(null);
   /** Saves the typed address and state to the customer. Resolves true when saved or when there was nothing to save. */
   function saveCustomerAddress(): Promise<boolean> {
-    if (addrInFlight.current) return addrInFlight.current;
+    // A save is still running (the user already moved on to the next box): run again right after it, so the newer text is saved too.
+    if (addrInFlight.current) return addrInFlight.current.then(() => saveCustomerAddress());
     const c = companies.find((x) => x.id === companyId);
     if (!c) return Promise.resolve(true);
     const address = custAddress.trim();

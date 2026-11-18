@@ -4,6 +4,7 @@
 
 import pg from 'pg';
 import { EventEmitter } from 'node:events';
+import { sslFor } from './ssl.js';
 
 const { Client } = pg;
 
@@ -77,9 +78,7 @@ export function initPgNotificationListener(connectionString) {
   if (isConnecting) return;
   isConnecting = true;
 
-  const ssl = connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
-    ? false
-    : { rejectUnauthorized: false };
+  const ssl = sslFor(connectionString);
 
   // Use a dedicated client outside the connection pool to preserve pooled query connections
   const client = new Client({

@@ -3,6 +3,7 @@ import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { getEngineerPerformance } from '../db/engineerService.js';
 import { sendRouteError } from '../http/errors.js';
+import { poReceivedReady } from '../quotations/poReceived.js';
 
 const router = Router();
 
@@ -102,10 +103,11 @@ export async function generateExcelBuffer({
 
       // Zebra striping
       const isEven = rowIdx % 2 === 1;
+      // A row flagged _highlight (a quotation that received a PO) is green all the way across.
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: isEven ? 'FFF8FAFC' : 'FFFFFFFF' },
+        fgColor: { argb: row._highlight ? 'FFC6EFCE' : isEven ? 'FFF8FAFC' : 'FFFFFFFF' },
       };
 
       cell.border = {
@@ -230,19 +232,76 @@ router.get('/engineers/performance', async (req, res) => {
 });
 
 /**
- * GET /api/export/quotations
+ * The columns the quotation export offers. The user picks which ones to download (the page asks first); the
+ * PO columns need migration 008 and are left out until it has been applied.
+ */
+const QUOTATION_EXPORT_COLUMNS = [
+  { key: 'quotation_number', header: 'Quotation No', minWidth: 18, def: true },
+  { key: 'quotation_date', header: 'Date', minWidth: 14, def: true },
+  { key: 'customer_name', header: 'Customer', minWidth: 26, def: true },
+  { key: 'customer_state', header: 'State', minWidth: 16, def: false },
+  { key: 'contact_person', header: 'Contact Person', minWidth: 20, def: false },
+  { key: 'sales_engineer', header: 'Sales Engineer', minWidth: 20, def: true },
+  { key: 'firm_name', header: 'Firm', minWidth: 20, def: false },
+  { key: 'branch', header: 'Branch', minWidth: 18, def: false },
+  { key: 'status', header: 'Status', minWidth: 14, def: true },
+  { key: 'gross_subtotal', header: 'Gross Subtotal (₹)', type: 'currency', align: 'right', minWidth: 18, def: false },
+  { key: 'product_discount_total', header: 'Product Disc (₹)', type: 'currency', align: 'right', minWidth: 16, def: false },
+  { key: 'subtotal_after_product_discounts', header: 'Post-Prod Disc Subtotal (₹)', type: 'currency', align: 'right', minWidth: 22, def: false },
+  { key: 'overall_discount_amount', header: 'Overall Disc (₹)', type: 'currency', align: 'right', minWidth: 16, def: false },
+  { key: 'net_subtotal', header: 'Net Subtotal (₹)', type: 'currency', align: 'right', minWidth: 18, def: false },
+  { key: 'tax_amount', header: 'GST Tax (₹)', type: 'currency', align: 'right', minWidth: 16, def: false },
+  { key: 'total_amount', header: 'Total Value (₹)', type: 'currency', align: 'right', minWidth: 20, def: true },
+  { key: 'po_numbers', header: 'PO Number(s)', minWidth: 22, def: true, po: true },
+  { key: 'po_dates', header: 'PO Date(s)', minWidth: 16, def: false, po: true },
+  { key: 'items_ordered', header: 'Items Ordered', type: 'integer', align: 'right', minWidth: 14, def: false, po: true },
+  { key: 'items_quoted', header: 'Items Quoted', type: 'integer', align: 'right', minWidth: 14, def: false, po: true },
+  { key: 'ordered_value', header: 'Ordered Value excl. GST (₹)', type: 'currency', align: 'right', minWidth: 24, def: false, po: true },
+];
+
+/** GET /api/export/quotations/columns : what the "Export to Excel" window offers. */
+router.get('/quotations/columns', async (req, res) => {
+  try {
+    const po = await poReceivedReady();
+    res.json({
+      po_available: po,
+      columns: QUOTATION_EXPORT_COLUMNS.filter((c) => po || !c.po).map((c) => ({ key: c.key, label: c.header.replace(/ \(₹\)$/, ''), default: c.def, po: !!c.po })),
+    });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Failed to load the export columns');
+  }
+});
+
+/**
+ * GET /api/export/quotations?columns=key1,key2,...
+ * Only the columns asked for are downloaded (the default ones when none are named). A quotation that has
+ * received a PO is a full green row and shows its PO number(s).
  */
 router.get('/quotations', async (req, res) => {
   try {
     const { q, status, branchId, engineerId, start, end, startDate, endDate, limit = 5000 } = req.query;
+    const po = await poReceivedReady();
+
+    const poSql = po
+      ? `,
+        (SELECT string_agg(p.po_number, ', ' ORDER BY p.created_at, p.id) FROM quotation_po p WHERE p.quotation_id = q.id) AS po_numbers,
+        (SELECT string_agg(to_char(p.po_date, 'DD-MM-YYYY'), ', ' ORDER BY p.created_at, p.id) FROM quotation_po p WHERE p.quotation_id = q.id) AS po_dates,
+        (SELECT COUNT(DISTINCT pi.quotation_item_id)::int FROM quotation_po_item pi JOIN quotation_po p ON p.id = pi.quotation_po_id WHERE p.quotation_id = q.id) AS items_ordered,
+        (SELECT COUNT(*)::int FROM quotation_item qi WHERE qi.quotation_id = q.id) AS items_quoted,
+        (SELECT COALESCE(SUM(pi.qty * COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0)), 0)::float8
+           FROM quotation_po_item pi JOIN quotation_po p ON p.id = pi.quotation_po_id JOIN quotation_item qi ON qi.id = pi.quotation_item_id
+          WHERE p.quotation_id = q.id) AS ordered_value`
+      : '';
 
     let sql = `
-      SELECT 
+      SELECT
         q.number AS quotation_number,
         q.date AS quotation_date,
         c.name AS customer_name,
         c.state AS customer_state,
+        q.contact_person AS contact_person,
         COALESCE(e.name, 'Unassigned') AS sales_engineer,
+        f.firm_name AS firm_name,
         COALESCE(b.branch_name, 'Main') AS branch,
         q.status,
         COALESCE(q.gross_subtotal, q.subtotal) AS gross_subtotal,
@@ -251,11 +310,12 @@ router.get('/quotations', async (req, res) => {
         COALESCE(q.overall_discount_amount, q.discount_amount, 0) AS overall_discount_amount,
         COALESCE(q.net_subtotal, q.subtotal) AS net_subtotal,
         COALESCE(q.tax_amount, 0) AS tax_amount,
-        COALESCE(q.total, 0) AS total_amount
+        COALESCE(q.total, 0) AS total_amount${poSql}
       FROM quotation q
       LEFT JOIN company c ON c.id = q.company_id
       LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
       LEFT JOIN branch b ON b.id = q.branch_id
+      LEFT JOIN firm f ON f.id = q.firm_id
       WHERE 1=1
     `;
     const params = [];
@@ -292,23 +352,13 @@ router.get('/quotations', async (req, res) => {
     params.push(Number(limit) || 5000);
 
     const rows = await db.prepare(sql).all(...params);
+    // A quotation that has received a PO is highlighted as a whole row.
+    for (const r of rows) r._highlight = !!r.po_numbers;
 
-    const columns = [
-      { header: 'Quotation No', key: 'quotation_number', minWidth: 18 },
-      { header: 'Date', key: 'quotation_date', minWidth: 14 },
-      { header: 'Customer', key: 'customer_name', minWidth: 26 },
-      { header: 'State', key: 'customer_state', minWidth: 16 },
-      { header: 'Sales Engineer', key: 'sales_engineer', minWidth: 20 },
-      { header: 'Branch', key: 'branch', minWidth: 18 },
-      { header: 'Status', key: 'status', minWidth: 14 },
-      { header: 'Gross Subtotal (₹)', key: 'gross_subtotal', type: 'currency', align: 'right', minWidth: 18 },
-      { header: 'Product Disc (₹)', key: 'product_discount_total', type: 'currency', align: 'right', minWidth: 16 },
-      { header: 'Post-Prod Disc Subtotal (₹)', key: 'subtotal_after_product_discounts', type: 'currency', align: 'right', minWidth: 22 },
-      { header: 'Overall Disc (₹)', key: 'overall_discount_amount', type: 'currency', align: 'right', minWidth: 16 },
-      { header: 'Net Subtotal (₹)', key: 'net_subtotal', type: 'currency', align: 'right', minWidth: 18 },
-      { header: 'GST Tax (₹)', key: 'tax_amount', type: 'currency', align: 'right', minWidth: 16 },
-      { header: 'Total Value (₹)', key: 'total_amount', type: 'currency', align: 'right', minWidth: 20 },
-    ];
+    const available = QUOTATION_EXPORT_COLUMNS.filter((c) => po || !c.po);
+    const asked = String(req.query.columns || '').split(',').map((k) => k.trim()).filter(Boolean);
+    const picked = asked.length ? available.filter((c) => asked.includes(c.key)) : available.filter((c) => c.def);
+    const columns = picked.length ? picked : available.filter((c) => c.def);
 
     const dateTag = new Date().toISOString().slice(0, 10);
     const buffer = await generateExcelBuffer({

@@ -7,6 +7,7 @@ import { useAuth } from '../auth';
 import { queryClient } from '../lib/queryClient';
 import { ChevronDown, ChevronUp, Search, X, Filter, RotateCcw, Trash2, Loader2, RefreshCw, Download, Plus, FileDown, Pencil } from 'lucide-react';
 import { Seg } from '../components/ds/Seg';
+import { ExportQuotationsModal } from '../components/ExportQuotationsModal';
 import { fmtDay } from '../components/ds/format';
 
 const PAGE_SIZE = 25;
@@ -48,6 +49,7 @@ export default function Quotations() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   // Admin only: everyone who can create quotations, for the "Sales person" filter
+  const [exportOpen, setExportOpen] = useState(false);
   const [salesPeople, setSalesPeople] = useState<AdminUser[]>([]);
   const [salesPersonFilter, setSalesPersonFilter] = useState('');
   useEffect(() => {
@@ -376,9 +378,10 @@ export default function Quotations() {
           />
         </div>
         <div className="ts-end">
-          <a className="ts-btn ts-ghost" href={api.export.quotationsUrl(statusFilter ? { status: statusFilter } : undefined)} download>
+          <button type="button" className="ts-btn ts-ghost" onClick={() => setExportOpen(true)}>
             <Download /> Export to Excel
-          </a>
+          </button>
+          {exportOpen && <ExportQuotationsModal status={statusFilter || undefined} onClose={() => setExportOpen(false)} />}
           {!isSelectionMode ? (
             <button type="button" className="ts-btn ts-ghost" onClick={() => setIsSelectionMode(true)}>
               <Trash2 /> Select to delete

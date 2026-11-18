@@ -7,6 +7,12 @@ import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
 import { readInstrument, saveInstrument } from '../quotations/instrument.js';
+import { requirePoReceived, listPos, createPo, deletePo } from '../quotations/poReceived.js';
+import { collectPdf } from '../pdf/pdfBuffer.js';
+import { createSendEmailHandler, requireAdminRole } from '../mail/sendEmailHandler.js';
+import { getMailProvider, getSender } from '../mail/index.js';
+import { createSendGuard } from '../mail/sendGuard.js';
+import { emailLog, requireEmailLog } from '../mail/emailLog.js';
 import { applyQuotationContactAndTerms, paymentsReady, requirePayments, getQuotationPayments, recordPayment, paymentTermsText } from '../payments/service.js';
 
 const router = Router();
@@ -1222,6 +1228,42 @@ router.get('/:id/pdf', async (req, res) => {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 });
+
+// ---------- Send a quotation by email (separate from View / Download PDF) ----------
+// POST /api/quotations/:id/send-email  (admin only). The PDF route above is not touched: this loads the
+// same data the same way (a deliberate copy of its preparation steps, so that route stays exactly as it
+// is) and generates the PDF into memory with the same streamQuotationPdfV2.
+async function loadQuotationForEmail(id) {
+  const rawQuotation = await db.prepare(`${QUOTATION_DETAIL_SELECT} WHERE q.id = ?`).get(id);
+  if (!rawQuotation) return null;
+  const quotation = enrichQuotationFirm(rawQuotation);
+  const items = await db.prepare(`SELECT qi.*, p.unit AS unit FROM quotation_item qi LEFT JOIN product p ON p.id = qi.product_id WHERE qi.quotation_id = ? ORDER BY qi.id`).all(id);
+  const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
+  let printable = Array.isArray(quotation.terms) ? { quotation, items } : await legacyForApprovedLayout(quotation, items, settings);
+  const special = String(printable.quotation.notes || '').trim();
+  if (special) {
+    const base = Array.isArray(printable.quotation.terms) ? printable.quotation.terms : [];
+    if (!base.some((t) => String(t?.text || '').trim() === special)) {
+      printable = { ...printable, quotation: { ...printable.quotation, terms: [...base, { label: 'Special terms', text: special }] } };
+    }
+  }
+  return { number: quotation.number, printable, settings };
+}
+
+const sendEmailHandler = createSendEmailHandler({
+  loadQuotation: loadQuotationForEmail,
+  renderPdf: (q, { maxBytes }) => collectPdf((sink) => streamQuotationPdfV2(sink, { ...q.printable, settings: q.settings }), { maxBytes }),
+  getProvider: getMailProvider,
+  getSender,
+  log: emailLog,
+  guard: createSendGuard(),
+});
+router.post('/:id/send-email', requireAdminRole, requireEmailLog, sendEmailHandler);
+
+// PO received (migration 008): the customer POs of a quotation, typed by hand, with the items each one ordered.
+router.get('/:id/po-received', requirePoReceived, listPos);
+router.post('/:id/po-received', requirePoReceived, createPo);
+router.delete('/:id/po-received/:poId', requirePoReceived, deletePo);
 
 async function createModuleQuotation(req, res) {
   try {

@@ -332,6 +332,39 @@ export interface ProductImportResult {
   errors: number;
 }
 
+export interface QuotationPoItem {
+  quotation_item_id: number;
+  qty: number;
+  quoted_qty: number;
+  part_no: string | null;
+  description: string;
+}
+export interface QuotationPo {
+  id: number;
+  po_number: string;
+  po_date: string;
+  notes: string | null;
+  created_at: string;
+  created_by_username: string | null;
+  ordered_items: number;
+  items: QuotationPoItem[];
+}
+export interface QuotationPoList {
+  quoted_items: number;
+  pos: QuotationPo[];
+}
+
+export interface QuotationEmailResult {
+  ok: boolean;
+  status: 'SIMULATED_NOT_SENT' | 'SENT';
+  simulated: boolean;
+  provider: string;
+  filename: string;
+  attachment_bytes: number;
+  log_id: number;
+  message: string;
+}
+
 export interface QuotationItem {
   id?: number;
   /** Instrument quotation: the line prints in bold as a main unit (migration 006). */
@@ -1238,6 +1271,23 @@ export const api = {
     pdfUrl: (id: number) => `${BASE}/quotations/${id}/pdf`,
     downloadPdfUrl: (id: number) => `${BASE}/quotations/${id}/pdf?download=1`,
     openPdf: (id: number) => openPdfDocument(`/quotations/${id}/pdf`),
+    /** Admin only. Emails the quotation PDF; with the mock provider the result is SIMULATED_NOT_SENT and nothing is sent. */
+    sendEmail: (id: number, data: { to: string; cc?: string; subject: string; message: string }) =>
+      request<QuotationEmailResult>(`/quotations/${id}/send-email`, { method: 'POST', body: JSON.stringify(data) }),
+    /** PO received (migration 008): the customer POs of a quotation, typed by hand, with the items each one ordered. */
+    poReceived: {
+      list: (id: number) => request<QuotationPoList>(`/quotations/${id}/po-received`),
+      create: async (id: number, data: { po_number: string; po_date?: string; notes?: string; items: { quotation_item_id: number; qty: number }[] }) => {
+        const res = await request<{ id: number; po_number: string; ordered_items: number }>(`/quotations/${id}/po-received`, { method: 'POST', body: JSON.stringify(data) });
+        clearCache('quotations');
+        return res;
+      },
+      remove: async (id: number, poId: number) => {
+        const res = await request<{ ok: boolean }>(`/quotations/${id}/po-received/${poId}`, { method: 'DELETE' });
+        clearCache('quotations');
+        return res;
+      },
+    },
     stockAnalysis: (data: { warehouse_id?: number; items: { product_id?: number; part_no?: string; qty: number }[] }) =>
       request<QuotationStockAnalysisResponse>('/quotations/stock-analysis', { method: 'POST', body: JSON.stringify(data) }),
     followUps: {
@@ -2042,10 +2092,12 @@ export const api = {
       request<BranchDocumentSettings>(`/branches/${branchId}/document-settings`, { method: 'PUT', body: JSON.stringify(data) }),
   },
   export: {
-    quotationsUrl: (params?: { status?: string; start?: string; end?: string }) => {
+    quotationsUrl: (params?: { status?: string; start?: string; end?: string; columns?: string }) => {
       const q = new URLSearchParams(params as any).toString();
       return `${BASE}/export/quotations${q ? `?${q}` : ''}`;
     },
+    /** The columns the "Export to Excel" window offers (the PO columns appear once migration 008 is applied). */
+    quotationColumns: () => request<{ po_available: boolean; columns: { key: string; label: string; default: boolean; po: boolean }[] }>('/export/quotations/columns'),
     engineersPerformanceUrl: (year?: string) => `${BASE}/export/engineers/performance${year ? `?year=${year}` : ''}`,
     inventoryStockUrl: (params?: { warehouseId?: number; status?: string; q?: string }) => {
       const q = new URLSearchParams();

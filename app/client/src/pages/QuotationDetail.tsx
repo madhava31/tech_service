@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp } from '../api';
+import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp, QuotationPoList } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
-import { DownloadIcon, FileTextIcon, PencilIcon, Trash2 } from 'lucide-react';
+import { DownloadIcon, FileTextIcon, MailIcon, PencilIcon, Trash2 } from 'lucide-react';
+import { SendEmailModal } from '../components/SendEmailModal';
+import { POReceivedModal } from '../components/POReceivedModal';
+import { useAuth } from '../auth';
 import { fmtDay } from '../components/ds/format';
 import { QuotationPayments } from '../components/QuotationPayments';
 
@@ -29,6 +32,12 @@ export default function QuotationDetail() {
   const [pis, setPis] = useState<PerformaInvoice[]>([]);
   const [challans, setChallans] = useState<DeliveryChallanListRow[]>([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [emailOpen, setEmailOpen] = useState(false);
+  // PO received (migration 008). null until loaded, and stays null while the database update has not been applied.
+  const [poList, setPoList] = useState<QuotationPoList | null>(null);
+  const [poModalOpen, setPoModalOpen] = useState(false);
+  const [poBusy, setPoBusy] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [clientPoRef, setClientPoRef] = useState('');
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -49,6 +58,7 @@ export default function QuotationDetail() {
 
   function load() {
     api.quotations.get(quotationId).then(setQuotation).catch((e) => setError(e.message));
+    api.quotations.poReceived.list(quotationId).then(setPoList).catch(() => setPoList(null));
     api.purchaseOrders.list().then((all) => setPos(all.filter((p) => p.quotation_id === quotationId)));
     api.performaInvoices.list().then((all) => setPis(all.filter((p) => p.quotation_id === quotationId)));
     api.deliveryChallans.list({ quotationId }).then(setChallans).catch(() => setChallans([]));
@@ -209,22 +219,28 @@ export default function QuotationDetail() {
           )}
           <a className="ts-btn ts-dark" href={api.quotations.pdfUrl(quotationId)} target="_blank" rel="noreferrer"><FileTextIcon /> View PDF</a>
           <DownloadPdfButton url={api.quotations.downloadPdfUrl(quotationId)} fileName={pdfFileName(quotation?.number, `quotation-${quotationId}`)} kind="quotation" className="ts-btn ts-ghost"><DownloadIcon /> Download PDF</DownloadPdfButton>
+          {user?.role === 'admin' && (
+            <button type="button" className="ts-btn ts-ghost" onClick={() => setEmailOpen(true)}><MailIcon /> Send Email</button>
+          )}
         </div>
       </div>
 
       {error && <div className="ts-warnbox"><span>{error}</span></div>}
+      {emailOpen && quotation && (
+        <SendEmailModal quotationId={quotationId} quotationNumber={quotation.number} contactEmail={quotation.contact_email} onClose={() => setEmailOpen(false)} />
+      )}
 
       {/* Workflow stepper */}
       {(() => {
         const st = quotation.status;
         const sentOrLater = st !== 'draft';
-        const accepted = st === 'accepted' || st === 'po_created' || st === 'pi_created' || pos.length > 0;
         // [label, done, extra class, small status line under the label]
         let steps: [string, boolean, string?, string?][] = [
           ['Drafted', true],
           ['Sent', sentOrLater],
-          ['Accepted', accepted],
-          [pos.length ? `PO ${pos[0].number}` : 'Purchase order', pos.length > 0],
+          poList && poList.pos.length
+            ? [`PO ${poList.pos.map((p) => p.po_number).join(', ')}`, true]
+            : [pos.length ? `PO ${pos[0].number}` : 'Purchase order', pos.length > 0],
         ];
         // Payment steps (migration 004): the advance follows the PO and the balance follows the PI.
         // An overdue payment shows in red.
@@ -265,19 +281,23 @@ export default function QuotationDetail() {
               ))}
             </div>
             {/* Stage change buttons sit right under the workflow steps */}
-            {(st === 'draft' || st === 'sent') && (
+            {(st === 'draft' || st === 'sent' || (poList !== null && st !== 'rejected')) && (
               <div className="mt-4 flex flex-wrap gap-2 border-t border-line2 pt-3">
                 {st === 'draft' && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs">
                     {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
                   </button>
                 )}
-                <button type="button" disabled={busyAction !== null} onClick={() => setStatus('accepted')} className="ts-btn ts-dark ts-xs">
-                  {busyAction === 'accepted' ? 'Marking as Accepted…' : 'Mark as Accepted'}
-                </button>
-                <button type="button" disabled={busyAction !== null} onClick={() => setStatus('rejected')} className="ts-btn ts-dark ts-xs">
-                  {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
-                </button>
+                {poList !== null && st !== 'rejected' && (
+                  <button type="button" disabled={busyAction !== null} onClick={() => setPoModalOpen(true)} className="ts-btn ts-dark ts-xs">
+                    {poList.pos.length ? '+ PO received (another)' : 'PO received'}
+                  </button>
+                )}
+                {(st === 'draft' || st === 'sent') && (
+                  <button type="button" disabled={busyAction !== null} onClick={() => setStatus('rejected')} className="ts-btn ts-dark ts-xs">
+                    {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
+                  </button>
+                )}
               </div>
             )}
             {canRecordPayment && (
@@ -293,6 +313,55 @@ export default function QuotationDetail() {
           </div>
         );
       })()}
+
+      {poModalOpen && quotation && poList && (
+        <POReceivedModal
+          quotationId={quotationId}
+          quotationNumber={quotation.number}
+          items={quotation.items || []}
+          alreadyOrdered={poList.pos.reduce<Record<number, number>>((acc, p) => {
+            for (const it of p.items) acc[it.quotation_item_id] = (acc[it.quotation_item_id] || 0) + Number(it.qty);
+            return acc;
+          }, {})}
+          onClose={() => setPoModalOpen(false)}
+          onSaved={load}
+        />
+      )}
+
+      {/* POs received (typed by hand), with the items each one ordered */}
+      {poList && poList.pos.length > 0 && (
+        <section className="ts-card ts-white" style={{ ['--i' as string]: 0, marginBottom: 16 }}>
+          <div className="ts-ch"><b>POs received</b></div>
+          <div className="flex flex-col gap-3">
+            {poList.pos.map((p) => (
+              <div key={p.id} className="rounded-lg border border-line2 bg-surface px-3 py-2.5">
+                <div className="flex flex-wrap items-center gap-3">
+                  <b className="text-fg">PO {p.po_number}</b>
+                  <span className="text-[12.5px] text-subtle">{fmtDay(p.po_date)}</span>
+                  <span className="ts-pill ts-up">{p.ordered_items === poList.quoted_items ? 'All items' : `${p.ordered_items} of ${poList.quoted_items} items`}</span>
+                  <span className="ts-grow" />
+                  <button
+                    type="button"
+                    className="ts-btn ts-ghost ts-xs"
+                    disabled={poBusy === p.id}
+                    onClick={async () => {
+                      if (!window.confirm(`Remove PO ${p.po_number} from this quotation?`)) return;
+                      setPoBusy(p.id);
+                      try { await api.quotations.poReceived.remove(quotationId, p.id); load(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not remove the PO'); } finally { setPoBusy(null); }
+                    }}
+                  >
+                    <Trash2 className="size-3.5" /> Remove
+                  </button>
+                </div>
+                <div className="mt-1.5 text-[12.5px] text-subtle">
+                  {p.items.map((it) => `${it.part_no || it.description} × ${it.qty}${Number(it.qty) !== Number(it.quoted_qty) ? ` (quoted ${it.quoted_qty})` : ''}`).join('  ·  ')}
+                </div>
+                {p.notes && <div className="mt-1 text-[12px] text-faint">{p.notes}</div>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Quotation summary */}
       <section className="ts-card ts-white flex flex-col gap-5" style={{ ['--i' as string]: 1 }}>
