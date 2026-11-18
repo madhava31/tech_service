@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import RestockModal from '../../components/RestockModal';
 import {
   api,
   ProductStockDetailResponse,
@@ -53,6 +54,9 @@ export default function ProductStockDetail() {
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [restockWh, setRestockWh] = useState<number | null | undefined>(undefined); // undefined = closed
+  const [notice, setNotice] = useState('');
 
   const loadData = async () => {
     if (!productId) return;
@@ -166,6 +170,9 @@ export default function ProductStockDetail() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button type="button" className="ts-btn ts-dark ts-xs" onClick={() => setRestockWh(null)}>
+            Restock
+          </button>
           <div className="text-right">
             <span className="text-xs text-subtle">Catalogue Price</span>
             <div className="text-base font-bold text-fg">
@@ -284,7 +291,14 @@ export default function ProductStockDetail() {
                       </span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => setRestockWh(wh.warehouseId)}
+                      className="ts-btn ts-xs bg-goodbg text-good mr-2"
+                    >
+                      Restock
+                    </button>
                     <Link
                       to={`/inventory/warehouses/${wh.warehouseId}`}
                       className="px-2.5 py-1 bg-tile hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
@@ -380,6 +394,20 @@ export default function ProductStockDetail() {
           </div>
         )}
       </div>
+      {notice && (
+        <div className="fixed bottom-4 right-4 z-50 ts-card ts-white flex items-center gap-3 shadow-lg">
+          <span className="text-[13px]">{notice}</span>
+          <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setNotice('')}>OK</button>
+        </div>
+      )}
+      {restockWh !== undefined && (
+        <RestockModal
+          product={{ productId: product.id, partNo: product.part_no, description: product.description, unit: product.unit, available: totals.availableQuantity, incoming: totals.incomingQuantity }}
+          defaultWarehouseId={restockWh ?? warehouses.find((w) => w.warehouseIsDefault)?.warehouseId ?? warehouses[0]?.warehouseId}
+          onClose={() => setRestockWh(undefined)}
+          onDone={(msg) => { setRestockWh(undefined); setNotice(msg); loadData(); }}
+        />
+      )}
     </div>
   );
 }

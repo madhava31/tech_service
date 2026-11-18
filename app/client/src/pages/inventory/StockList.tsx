@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import RestockModal from '../../components/RestockModal';
 import { api, InventoryStockItem, Warehouse } from '../../api';
 import { useAuth } from '../../auth';
 import { Pagination } from '../../components/Pagination';
@@ -63,6 +64,8 @@ export default function StockList() {
   const [downloadError, setDownloadError] = useState('');
 
   const companies = useMemo(() => groupCompanies(savedMakes), [savedMakes]);
+
+  const [restockItem, setRestockItem] = useState<InventoryStockItem | null>(null);
 
   const loadMakes = () =>
     api.inventory
@@ -497,7 +500,14 @@ export default function StockList() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => setRestockItem(item)}
+                        className="ts-btn ts-xs bg-goodbg text-good mr-2"
+                      >
+                        Restock
+                      </button>
                       <Link
                         to={`/inventory/stock/${item.productId}`}
                         className="px-2.5 py-1 bg-tile hover:bg-tile text-fg border border-line2 rounded text-xs font-medium transition-colors"
@@ -597,6 +607,15 @@ export default function StockList() {
             </div>
           </div>
         </div>
+      )}
+      {restockItem && (
+        <RestockModal
+          product={{ productId: restockItem.productId, partNo: restockItem.partNo, description: restockItem.description, unit: restockItem.unit, available: restockItem.availableQuantity, incoming: restockItem.incomingQuantity }}
+          defaultWarehouseId={selectedWarehouse || undefined}
+          warehouses={warehouses.map((w) => ({ id: w.id, name: w.name }))}
+          onClose={() => setRestockItem(null)}
+          onDone={(msg) => { setRestockItem(null); setNotice(msg); loadStock(); }}
+        />
       )}
     </div>
   );

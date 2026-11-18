@@ -221,7 +221,7 @@ export default function DeliveryChallanForm() {
                 <input id="dc-odate" type="date" className="ts-fi" value={form.order_date} onChange={set('order_date')} />
               </div>
               <div className="ts-fld">
-                <label htmlFor="dc-wo">Work order no.</label>
+                <label htmlFor="dc-wo">PO number</label>
                 <input id="dc-wo" className="ts-fi" value={form.work_order_no} onChange={set('work_order_no')} />
               </div>
               <div className="ts-fld">
@@ -243,7 +243,7 @@ export default function DeliveryChallanForm() {
                 <input id="dc-cust" className="ts-fi" value={form.customer_name} onChange={set('customer_name')} />
               </div>
               <div className="ts-fld">
-                <label htmlFor="dc-att">Attention</label>
+                <label htmlFor="dc-att">Person name</label>
                 <input id="dc-att" className="ts-fi" value={form.attention} onChange={set('attention')} />
               </div>
               <div className="ts-fld">

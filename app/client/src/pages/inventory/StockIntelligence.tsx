@@ -13,6 +13,7 @@ import {
   StockOverstockItem,
 } from '../../api';
 import { Pagination } from '../../components/Pagination';
+import RestockModal from '../../components/RestockModal';
 import {
   Search,
   RotateCcw,
@@ -190,6 +191,12 @@ export default function StockIntelligence() {
   // Pagination & Detail Drawer
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<StockIntelligenceItem | null>(null);
+
+  // Restock pop-up: adds stock straight into the database (a confirmed stock receipt) without leaving this page.
+  const [restockItem, setRestockItem] = useState<StockIntelligenceItem | null>(null);
+  const [restockDone, setRestockDone] = useState('');
+
+  const openRestock = (p: StockIntelligenceItem) => setRestockItem(p);
 
   const fetchIntelligence = async () => {
     setLoading(true);
@@ -617,7 +624,7 @@ export default function StockIntelligence() {
                     <th className="text-center">Status</th>
                     <th className="text-center">Recommendation</th>
                     <th className="ts-r">Suggested Restock</th>
-                    <th className="text-center">Actions & Links</th>
+                    <th className="text-center ts-stick-r">Actions & Links</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -692,8 +699,8 @@ export default function StockIntelligence() {
                             <span className="text-faint">0</span>
                           )}
                         </td>
-                        <td className="text-center" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        <td className="text-center ts-stick-r" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1.5">
                             <button
                               type="button"
                               onClick={() => setSelectedProduct(p)}
@@ -721,7 +728,7 @@ export default function StockIntelligence() {
                             {(p.recommendation === 'RESTOCK_NOW' || p.recommendation === 'RESTOCK_SOON' || p.suggestedRestockQty > 0) && (
                               <button
                                 type="button"
-                                onClick={() => navigate(`/inventory/stock-inward?productId=${p.productId}`)}
+                                onClick={() => openRestock(p)}
                                 className="ts-btn ts-xs bg-goodbg text-good"
                               >
                                 <span>Restock</span>
@@ -1190,7 +1197,7 @@ export default function StockIntelligence() {
                     <th className="ts-r">Recommended Restock</th>
                     <th className="text-center">Priority</th>
                     <th>Reason / Recommendation</th>
-                    <th className="text-center">Action & Links</th>
+                    <th className="text-center ts-stick-r">Action & Links</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1243,11 +1250,14 @@ export default function StockIntelligence() {
                         <td className="text-[11.5px] text-subtle max-w-xs">
                           {r.reason}
                         </td>
-                        <td className="text-center">
+                        <td className="text-center ts-stick-r">
                           <div className="flex flex-col items-center justify-center gap-1">
                             <button
                               type="button"
-                              onClick={() => navigate(`/inventory/stock-inward?productId=${r.productId}`)}
+                              onClick={() => {
+                                const found = data?.products.find((x) => x.productId === r.productId);
+                                if (found) openRestock(found);
+                              }}
                               className="ts-btn ts-xs bg-goodbg text-good"
                             >
                               <span>Restock Now</span>
@@ -1491,6 +1501,25 @@ export default function StockIntelligence() {
         </div>
       )}
 
+      {restockDone && (
+        <div className="fixed bottom-4 right-4 z-50 ts-card ts-white flex items-center gap-3 shadow-lg">
+          <CheckCircle2 className="w-4 h-4 text-good" />
+          <span className="text-[13px]">{restockDone}</span>
+          <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setRestockDone('')}>OK</button>
+        </div>
+      )}
+
+      {restockItem && (
+        <RestockModal
+          product={{ productId: restockItem.productId, partNo: restockItem.partNo, description: restockItem.description, unit: restockItem.unit, available: restockItem.available, incoming: restockItem.incoming }}
+          suggestedQty={restockItem.suggestedRestockQty}
+          defaultWarehouseId={selectedWarehouseId || undefined}
+          warehouses={data?.warehouses?.map((w) => ({ id: w.id, name: w.name }))}
+          onClose={() => setRestockItem(null)}
+          onDone={(msg) => { setRestockItem(null); setRestockDone(msg); fetchIntelligence(); }}
+        />
+      )}
+
       {/* Product Detail Modal / Drawer */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
@@ -1619,9 +1648,9 @@ export default function StockIntelligence() {
               <button
                 type="button"
                 onClick={() => {
-                  const pId = selectedProduct.productId;
+                  const prod = selectedProduct;
                   setSelectedProduct(null);
-                  navigate(`/inventory/stock-inward?productId=${pId}`);
+                  openRestock(prod);
                 }}
                 className="ts-btn ts-dark ts-xs"
               >

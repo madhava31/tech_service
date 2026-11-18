@@ -84,7 +84,7 @@ function draw(res, dc, { blank }) {
     ['DC Date', blank ? '' : ddmmyyyy(dc.date)],
     ['Invoice No.', v(dc.invoice_no)],
     ['Order Date', blank ? '' : dc.order_date ? ddmmyyyy(dc.order_date) : '—'],
-    ['Work Order No.', v(dc.work_order_no)],
+    ['PO Number', v(dc.work_order_no)],
     ['Job', v(dc.job)],
     ['Quotation Ref.', v(dc.quotation_number)],
   ];
@@ -121,7 +121,7 @@ function draw(res, dc, { blank }) {
   }
   const pairY = blank ? boxY + capH + bodyH - 2 * lineH - 9 : Math.max(ly + 6, boxY + capH + bodyH - 2 * lineH - 9);
   const labelW = 58;
-  for (const [j, [label, value]] of [['Attention', v(dc.attention)], ['Phone No.', v(dc.phone)]].entries()) {
+  for (const [j, [label, value]] of [['Person Name', v(dc.attention)], ['Phone No.', v(dc.phone)]].entries()) {
     const yy = pairY + j * lineH;
     doc.font(R).fontSize(8).fillColor('#222').text(label, lx, yy, { width: labelW, lineBreak: false });
     doc.text(':', lx + labelW + 6, yy, { lineBreak: false });
