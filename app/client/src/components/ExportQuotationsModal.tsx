@@ -169,7 +169,7 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
         {tab === 'live' && (
           <div className="flex flex-col gap-3 text-[13px] text-fg">
             <p className="m-0 text-subtle">
-              A downloaded file never changes. A <b>live link</b> lets Excel read the quotations from the ERP again, so the sheet updates when it is opened or on a timer. It uses the columns ticked on the Download tab.
+              A downloaded file never changes. A <b>live link</b> lets Excel read the quotations from the ERP again, so the sheet updates when it is opened or on a timer. Anything changed in the ERP shows up there: edited prices, a quotation that goes into negotiation (status, rounds, what the customer asked, how the price moved) and POs received. The sheet is read-only: changes are made in the ERP, not in Excel. It uses the columns ticked on the Download tab.
             </p>
 
             {liveUnavailable && (
@@ -230,6 +230,11 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
                           ? <code>={'$'}{poColumnLetter}2&lt;&gt;""</code>
                           : <i>(tick Status on the Download tab first)</i>}, choose a green fill, and apply it to the whole table.
                     </li>
+                    {statusColumnLetter && (
+                      <li>
+                        Optional, for quotations in negotiation: the same, with <code>={'$'}{statusColumnLetter}2="Negotiation"</code> and an amber fill.
+                      </li>
+                    )}
                   </ol>
                 </div>
               </>

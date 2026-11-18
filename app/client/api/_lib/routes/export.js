@@ -4,6 +4,7 @@ import db from '../db/index.js';
 import { getEngineerPerformance } from '../db/engineerService.js';
 import { sendRouteError } from '../http/errors.js';
 import { poReceivedReady } from '../quotations/poReceived.js';
+import { revisionsReady } from '../quotations/negotiation.js';
 
 const router = Router();
 
@@ -100,7 +101,7 @@ function fillSheet(workbook, { title, sheetName, columns, data, filters, clean =
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: row._highlight ? 'FFC6EFCE' : isEven ? 'FFF8FAFC' : 'FFFFFFFF' },
+        fgColor: { argb: row._highlight ? 'FFC6EFCE' : row._negotiation ? 'FFFFEB9C' : isEven ? 'FFF8FAFC' : 'FFFFFFFF' },
       };
 
       cell.border = {
@@ -267,6 +268,10 @@ const QUOTATION_EXPORT_COLUMNS = [
   { key: 'net_subtotal', header: 'Net Subtotal (₹)', type: 'currency', align: 'right', minWidth: 18, def: false },
   { key: 'tax_amount', header: 'GST Tax (₹)', type: 'currency', align: 'right', minWidth: 16, def: false },
   { key: 'total_amount', header: 'Total Value (₹)', type: 'currency', align: 'right', minWidth: 20, def: true },
+  { key: 'negotiation_rounds', header: 'Negotiation Rounds', type: 'integer', align: 'right', minWidth: 18, def: true, rev: true },
+  { key: 'negotiation_note', header: 'Customer Asked (last round)', minWidth: 34, def: true, rev: true },
+  { key: 'first_total', header: 'First Sent Total (₹)', type: 'currency', align: 'right', minWidth: 20, def: false, rev: true },
+  { key: 'price_change', header: 'Price Change Since First Sent (₹)', type: 'currency', align: 'right', minWidth: 28, def: true, rev: true },
   { key: 'products_quoted', header: 'Products Quoted (qty)', minWidth: 40, def: true, po: true },
   { key: 'items_quoted', header: 'Items Quoted', type: 'integer', align: 'right', minWidth: 14, def: true, po: true },
   { key: 'qty_quoted', header: 'Total Qty Quoted', type: 'number', align: 'right', minWidth: 16, def: true, po: true },
@@ -283,9 +288,11 @@ const QUOTATION_EXPORT_COLUMNS = [
 router.get('/quotations/columns', async (req, res) => {
   try {
     const po = await poReceivedReady();
+    const rev = await revisionsReady();
     res.json({
       po_available: po,
-      columns: QUOTATION_EXPORT_COLUMNS.filter((c) => po || !c.po).map((c) => ({ key: c.key, label: c.header.replace(/ \(₹\)$/, ''), default: c.def, po: !!c.po })),
+      negotiation_available: rev,
+      columns: QUOTATION_EXPORT_COLUMNS.filter((c) => (po || !c.po) && (rev || !c.rev)).map((c) => ({ key: c.key, label: c.header.replace(/ \(₹\)$/, ''), default: c.def, po: !!c.po })),
     });
   } catch (err) {
     sendRouteError(res, err, 500, 'Failed to load the export columns');
@@ -305,6 +312,7 @@ export async function buildQuotationExport(query, scope = {}) {
   {
     const { q, status, branchId, engineerId, start, end, startDate, endDate, limit = 5000 } = query;
     const po = await poReceivedReady();
+    const rev = await revisionsReady();
 
     // How a quantity is written inside a text list: 5 not 5.00.
     const num = (e) => `trim(trailing '.' from trim(trailing '0' from round((${e})::numeric, 2)::text))`;
@@ -327,6 +335,17 @@ export async function buildQuotationExport(query, scope = {}) {
           WHERE p.quotation_id = q.id) AS ordered_value`
       : '';
 
+    // Negotiation: how many rounds the customer asked for a better price, what was asked last, and how the price moved
+    // from the first version that was sent to now. These come from the saved rounds (migration 010).
+    const revSql = rev
+      ? `,
+        (SELECT COUNT(*)::int FROM quotation_revision r WHERE r.quotation_id = q.id) AS negotiation_rounds,
+        (SELECT r.note FROM quotation_revision r WHERE r.quotation_id = q.id AND r.note IS NOT NULL AND r.note <> '' ORDER BY r.revision_no DESC LIMIT 1) AS negotiation_note,
+        (SELECT r.total::float8 FROM quotation_revision r WHERE r.quotation_id = q.id ORDER BY r.revision_no ASC LIMIT 1) AS first_total,
+        (SELECT COALESCE(q.total, 0) - r.total FROM quotation_revision r WHERE r.quotation_id = q.id ORDER BY r.revision_no ASC LIMIT 1)::float8 AS price_change`
+      : '';
+
+
     let sql = `
       SELECT
         q.number AS quotation_number,
@@ -348,7 +367,7 @@ export async function buildQuotationExport(query, scope = {}) {
         COALESCE(q.overall_discount_amount, q.discount_amount, 0) AS overall_discount_amount,
         COALESCE(q.net_subtotal, q.subtotal) AS net_subtotal,
         COALESCE(q.tax_amount, 0) AS tax_amount,
-        COALESCE(q.total, 0) AS total_amount${poSql}
+        COALESCE(q.total, 0) AS total_amount${poSql}${revSql}
       FROM quotation q
       LEFT JOIN company c ON c.id = q.company_id
       LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
@@ -401,10 +420,11 @@ export async function buildQuotationExport(query, scope = {}) {
     const STATUS_NAMES = { draft: 'Draft', sent: 'Sent', negotiation: 'Negotiation', accepted: 'PO received', rejected: 'Rejected' };
     for (const r of rows) {
       r._highlight = !!r.po_numbers || r.status === 'accepted';
+      r._negotiation = !r._highlight && r.status === 'negotiation';
       r.status = STATUS_NAMES[r.status] || r.status;
     }
 
-    const available = QUOTATION_EXPORT_COLUMNS.filter((c) => po || !c.po);
+    const available = QUOTATION_EXPORT_COLUMNS.filter((c) => (po || !c.po) && (rev || !c.rev));
     const asked = String(query.columns || '').split(',').map((k) => k.trim()).filter(Boolean);
     const picked = asked.length ? available.filter((c) => asked.includes(c.key)) : available.filter((c) => c.def);
     const columns = picked.length ? picked : available.filter((c) => c.def);

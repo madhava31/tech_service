@@ -170,6 +170,27 @@ describe('Excel export', () => {
     assert.equal(ws.getRow(7).getCell(2).value, 'Digester');
   });
 
+  test('a quotation in negotiation is an amber row, and a PO received row stays green', async () => {
+    const buf = await generateExcelBuffer({
+      title: 'T', sheetName: 'Quotations', clean: true,
+      columns: [{ header: 'Quotation No', key: 'n' }, { header: 'Negotiation Rounds', key: 'rounds', type: 'integer' }, { header: 'Price Change', key: 'chg', type: 'currency' }],
+      data: [
+        { n: 'Q-1', rounds: 2, chg: -5000, _negotiation: true },
+        { n: 'Q-2', rounds: 1, chg: -100, _highlight: true, _negotiation: false },
+        { n: 'Q-3', rounds: 0, chg: null },
+      ],
+    });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf);
+    const ws = wb.getWorksheet('Quotations');
+    const fill = (r) => ws.getRow(r).getCell(1).fill?.fgColor?.argb;
+    assert.equal(fill(2), 'FFFFEB9C', 'negotiation is amber');
+    assert.equal(fill(3), 'FFC6EFCE', 'PO received is green');
+    assert.notEqual(fill(4), 'FFFFEB9C');
+    assert.equal(ws.getRow(2).getCell(2).value, 2);
+    assert.equal(ws.getRow(2).getCell(3).value, -5000);
+  });
+
   test('only the chosen columns are written', async () => {
     const chosen = columns.filter((c) => c.key !== 'customer_name');
     const buf = await generateExcelBuffer({ title: 'T', sheetName: 'Quotations', columns: chosen, data });
