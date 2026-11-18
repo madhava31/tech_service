@@ -143,7 +143,7 @@ export async function generateExcelBuffer({
   return buffer;
 }
 
-function sendExcelResponse(res, buffer, filename) {
+export function sendExcelResponse(res, buffer, filename) {
   const safeFilename = filename.replace(/[/\\?%*:|"<>]/g, '_');
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
@@ -277,9 +277,13 @@ router.get('/quotations/columns', async (req, res) => {
  * Only the columns asked for are downloaded (the default ones when none are named). A quotation that has
  * received a PO is a full green row and shows its PO number(s).
  */
-router.get('/quotations', async (req, res) => {
-  try {
-    const { q, status, branchId, engineerId, start, end, startDate, endDate, limit = 5000 } = req.query;
+/**
+ * Builds the quotations workbook. Shared by the signed-in export (GET /quotations) and the live Excel link
+ * (export/liveExport.js). `scope.createdByUserId` limits the rows to one user's own quotations.
+ */
+export async function buildQuotationExport(query, scope = {}) {
+  {
+    const { q, status, branchId, engineerId, start, end, startDate, endDate, limit = 5000 } = query;
     const po = await poReceivedReady();
 
     const poSql = po
@@ -348,6 +352,11 @@ router.get('/quotations', async (req, res) => {
       params.push(search, search);
     }
 
+    if (scope.createdByUserId) {
+      sql += ` AND q.created_by_user_id = ?`;
+      params.push(Number(scope.createdByUserId));
+    }
+
     sql += ` ORDER BY q.id DESC LIMIT ?`;
     params.push(Number(limit) || 5000);
 
@@ -356,7 +365,7 @@ router.get('/quotations', async (req, res) => {
     for (const r of rows) r._highlight = !!r.po_numbers;
 
     const available = QUOTATION_EXPORT_COLUMNS.filter((c) => po || !c.po);
-    const asked = String(req.query.columns || '').split(',').map((k) => k.trim()).filter(Boolean);
+    const asked = String(query.columns || '').split(',').map((k) => k.trim()).filter(Boolean);
     const picked = asked.length ? available.filter((c) => asked.includes(c.key)) : available.filter((c) => c.def);
     const columns = picked.length ? picked : available.filter((c) => c.def);
 
@@ -369,7 +378,14 @@ router.get('/quotations', async (req, res) => {
       filters: { status, branchId, engineerId },
     });
 
-    sendExcelResponse(res, buffer, `TECHNICON_Quotations_${dateTag}.xlsx`);
+    return { buffer, filename: `TECHNICON_Quotations_${dateTag}.xlsx` };
+  }
+}
+
+router.get('/quotations', async (req, res) => {
+  try {
+    const { buffer, filename } = await buildQuotationExport(req.query);
+    sendExcelResponse(res, buffer, filename);
   } catch (err) {
     console.error('Failed to export quotations:', err);
     sendRouteError(res, err, 500, 'Failed to export quotations');

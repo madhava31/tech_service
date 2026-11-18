@@ -58,6 +58,36 @@ describe('PO received request', () => {
   });
 });
 
+describe('buildQuotationExport (shared by the signed-in export and the live Excel link)', async () => {
+  const { buildQuotationExport } = await import('../../routes/export.js');
+  const { default: db } = await import('../../db/index.js');
+  const rows = [
+    { quotation_number: 'Q-1', customer_name: 'With PO Ltd', status: 'accepted', total_amount: 100, po_numbers: '4500012345' },
+    { quotation_number: 'Q-2', customer_name: 'No PO Ltd', status: 'sent', total_amount: 50, po_numbers: null },
+  ];
+
+  test('runs end to end with a stubbed database: chosen columns, green row, and the own-quotations scope', async () => {
+    const realPrepare = db.prepare;
+    const seen = [];
+    db.prepare = (sql) => ({ all: async (...params) => { seen.push({ sql, params }); return rows.map((r) => ({ ...r })); }, get: async () => ({ n: 0 }) });
+    try {
+      // poReceivedReady() asks the catalogue, which the stub does not know, so PO columns are treated as absent
+      const { buffer, filename } = await buildQuotationExport({ columns: 'quotation_number,customer_name,status' }, { createdByUserId: 20 });
+      assert.match(filename, /^TECHNICON_Quotations_\d{4}-\d{2}-\d{2}\.xlsx$/);
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buffer);
+      const ws = wb.getWorksheet('Quotations');
+      assert.deepEqual([1, 2, 3, 4].map((c) => ws.getRow(5).getCell(c).value), ['Quotation No', 'Customer', 'Status', null]);
+      assert.equal(ws.getRow(6).getCell(1).value, 'Q-1');
+      const main = seen.find((x) => /FROM quotation q/.test(x.sql));
+      assert.match(main.sql, /AND q\.created_by_user_id = \?/);
+      assert.ok(main.params.includes(20), 'the user id is a bound parameter');
+    } finally {
+      db.prepare = realPrepare;
+    }
+  });
+});
+
 describe('Excel export', () => {
   const columns = [
     { header: 'Quotation No', key: 'quotation_number' },

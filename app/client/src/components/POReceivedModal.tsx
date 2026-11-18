@@ -29,7 +29,17 @@ export function POReceivedModal({
   const [poDate, setPoDate] = useState(today);
   const [notes, setNotes] = useState('');
   // Lines of the quotation, each ticked with its quoted quantity.
-  const [rows, setRows] = useState(() => items.filter((it) => it.id !== undefined).map((it) => ({ id: it.id as number, checked: true, qty: String(it.qty) })));
+  // What is left to order of a line: the quoted quantity minus what earlier POs already covered.
+  const remaining = (it: QuotationItem) => Math.max(0, Number(it.qty) - (alreadyOrdered[it.id as number] || 0));
+  const freshRows = (asQuoted: boolean) =>
+    items
+      .filter((it) => it.id !== undefined)
+      .map((it) => {
+        const left = remaining(it);
+        const qty = asQuoted || left <= 0 ? Number(it.qty) : left;
+        return { id: it.id as number, checked: asQuoted || left > 0, qty: String(qty) };
+      });
+  const [rows, setRows] = useState(() => freshRows(false));
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -100,7 +110,7 @@ export function POReceivedModal({
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <b className="text-[13px] text-fg">Items ordered ({chosen.length} of {rows.length})</b>
             <span className="flex gap-2">
-              <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setRows(items.filter((it) => it.id !== undefined).map((it) => ({ id: it.id as number, checked: true, qty: String(it.qty) })))}>
+              <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setRows(freshRows(true))}>
                 All items as quoted
               </button>
               <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setRows((prev) => prev.map((r) => ({ ...r, checked: false })))}>
@@ -108,40 +118,32 @@ export function POReceivedModal({
               </button>
             </span>
           </div>
-          <div className="ts-tbl ts-tblwrap">
-            <table className="w-full border-collapse text-[12.5px]">
-              <thead>
-                <tr className="border-b border-line2">
-                  <th style={{ width: 36 }}></th>
-                  <th>Item code</th>
-                  <th>Description</th>
-                  <th className="ts-r">Quoted qty</th>
-                  <th className="ts-r" style={{ width: 120 }}>Ordered qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.filter((it) => it.id !== undefined).map((it) => {
-                  const r = rows.find((x) => x.id === it.id)!;
-                  const before = alreadyOrdered[it.id as number];
-                  return (
-                    <tr key={it.id} className={`border-b border-line ${r.checked ? '' : 'opacity-50'}`}>
-                      <td className="p-2.5">
-                        <input type="checkbox" checked={r.checked} onChange={(e) => setRow(r.id, { checked: e.target.checked })} aria-label={`Item ${it.part_no || it.description} ordered`} />
-                      </td>
-                      <td className="p-2.5 font-mono text-[12px]">{it.part_no || '-'}</td>
-                      <td className="p-2.5">
-                        {it.description}
-                        {before ? <div className="text-[11px] text-faint">Already ordered on an earlier PO: {before}</div> : null}
-                      </td>
-                      <td className="p-2.5 text-right">{it.qty}</td>
-                      <td className="p-2.5">
-                        <input type="number" min="0" step="any" className="ts-fi ts-r" disabled={!r.checked} value={r.qty} onChange={(e) => setRow(r.id, { qty: e.target.value })} onFocus={(e) => e.target.select()} aria-label={`Ordered quantity of ${it.part_no || it.description}`} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* One row per quoted item: tick, item, quoted quantity, ordered quantity (editable). No sideways scrolling. */}
+          <div className="rounded-lg border border-line2">
+            <div className="grid items-center gap-2 border-b border-line2 px-3 py-2 text-[11.5px] uppercase tracking-wider text-faint" style={{ gridTemplateColumns: '22px minmax(0,1fr) 64px 96px' }}>
+              <span />
+              <span>Item</span>
+              <span className="text-right">Quoted</span>
+              <span className="text-right">Ordered</span>
+            </div>
+            {items.filter((it) => it.id !== undefined).map((it) => {
+              const r = rows.find((x) => x.id === it.id)!;
+              const before = alreadyOrdered[it.id as number];
+              const over = r.checked && Number(r.qty) > Number(it.qty);
+              return (
+                <div key={it.id} className={`grid items-center gap-2 border-b border-line px-3 py-2 last:border-b-0 ${r.checked ? '' : 'opacity-50'}`} style={{ gridTemplateColumns: '22px minmax(0,1fr) 64px 96px' }}>
+                  <input type="checkbox" checked={r.checked} onChange={(e) => setRow(r.id, { checked: e.target.checked })} aria-label={`Item ${it.part_no || it.description} ordered`} />
+                  <div className="min-w-0">
+                    <div className="truncate text-[13px] text-fg">{it.description}</div>
+                    <div className="truncate font-mono text-[11px] text-faint">{it.part_no || '-'}</div>
+                    {before ? <div className="text-[11px] text-faint">Already ordered on an earlier PO: {before}</div> : null}
+                    {over ? <div className="text-[11px] text-bad">More than the quoted {it.qty}</div> : null}
+                  </div>
+                  <div className="text-right text-[13px] text-subtle">{it.qty}</div>
+                  <input type="number" min="0" step="any" className="ts-fi ts-r" disabled={!r.checked} value={r.qty} onChange={(e) => setRow(r.id, { qty: e.target.value })} onFocus={(e) => e.target.select()} aria-label={`Ordered quantity of ${it.part_no || it.description}`} />
+                </div>
+              );
+            })}
           </div>
         </div>
 

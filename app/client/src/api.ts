@@ -332,6 +332,15 @@ export interface ProductImportResult {
   errors: number;
 }
 
+export interface ExportKey {
+  id: number;
+  label: string;
+  hint: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+}
+
 export interface QuotationPoItem {
   quotation_item_id: number;
   qty: number;
@@ -2098,6 +2107,12 @@ export const api = {
     },
     /** The columns the "Export to Excel" window offers (the PO columns appear once migration 008 is applied). */
     quotationColumns: () => request<{ po_available: boolean; columns: { key: string; label: string; default: boolean; po: boolean }[] }>('/export/quotations/columns'),
+    /** Private keys for the live Excel link (migration 009). The key itself is returned only by create. */
+    keys: {
+      list: () => request<{ keys: ExportKey[]; max_active: number }>('/export/keys'),
+      create: (label: string) => request<{ id: number; label: string; hint: string; key: string; created_at: string }>('/export/keys', { method: 'POST', body: JSON.stringify({ label }) }),
+      revoke: (id: number) => request<{ ok: boolean }>(`/export/keys/${id}`, { method: 'DELETE' }),
+    },
     engineersPerformanceUrl: (year?: string) => `${BASE}/export/engineers/performance${year ? `?year=${year}` : ''}`,
     inventoryStockUrl: (params?: { warehouseId?: number; status?: string; q?: string }) => {
       const q = new URLSearchParams();
