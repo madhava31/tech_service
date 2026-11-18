@@ -115,7 +115,6 @@ export default function PerformaInvoices() {
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link to="/quotations/new?type=order&doc=pi" className="ts-btn ts-dark"><Plus className="size-4" /> Manual PI</Link>
-            <Link to="/quotations/new?type=order&doc=po" className="ts-btn ts-ghost"><Plus className="size-4" /> Manual PO</Link>
           </div>
         </div>
         <div className="grid grid-cols-2  rounded-[18px] shadow-card bg-surface2 overflow-hidden">
