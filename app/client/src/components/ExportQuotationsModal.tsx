@@ -113,9 +113,16 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
     try { await navigator.clipboard.writeText(text); showToast('Link copied. Keep it private.'); } catch { showToast('Could not copy. Select the link and copy it by hand.'); }
   }
 
-  // Excel column letter of the PO Number(s) column in the live sheet, for the conditional-formatting formula.
-  const poIndex = orderedPicked().indexOf('po_numbers');
-  const poColumnLetter = poIndex >= 0 ? String.fromCharCode(65 + poIndex) : '';
+  // Excel column letter of a column in the live sheet, for the conditional-formatting formula (A, B ... Z, AA ...).
+  const letterOf = (key: string) => {
+    let n = orderedPicked().indexOf(key);
+    if (n < 0) return '';
+    let out = '';
+    for (n += 1; n > 0; n = Math.floor((n - 1) / 26)) out = String.fromCharCode(65 + ((n - 1) % 26)) + out;
+    return out;
+  };
+  const statusColumnLetter = letterOf('status');
+  const poColumnLetter = letterOf('po_numbers');
   const active = (keys || []).filter((k) => !k.revoked_at);
   const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'never');
 
@@ -216,8 +223,12 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
                     <li>Choose the table in the window and click <b>Load</b>.</li>
                     <li>In <b>Data → Queries &amp; Connections</b>, right-click the query → <b>Properties</b>: tick <b>Refresh every 5 minutes</b> and <b>Refresh data when opening the file</b>.</li>
                     <li>
-                      For the green PO rows: select the table, <b>Home → Conditional Formatting → New Rule → Use a formula</b>, enter{' '}
-                      {poColumnLetter ? <code>={'$'}{poColumnLetter}2&lt;&gt;""</code> : <i>(tick PO Number(s) on the Download tab first)</i>}, choose a green fill, and apply it to the whole table.
+                      For the green PO received rows: select the table, <b>Home → Conditional Formatting → New Rule → Use a formula</b>, enter{' '}
+                      {statusColumnLetter
+                        ? <code>={'$'}{statusColumnLetter}2="PO received"</code>
+                        : poColumnLetter
+                          ? <code>={'$'}{poColumnLetter}2&lt;&gt;""</code>
+                          : <i>(tick Status on the Download tab first)</i>}, choose a green fill, and apply it to the whole table.
                     </li>
                   </ol>
                 </div>

@@ -88,6 +88,46 @@ describe('buildQuotationExport (shared by the signed-in export and the live Exce
   });
 });
 
+describe('quotation export rows and layout', () => {
+  const rowsFor = () => [
+    { quotation_number: 'Q-643', customer_name: 'Matrix', status: 'accepted', total_amount: 19744, po_numbers: null },
+    { quotation_number: 'Q-642', customer_name: 'Trisu', status: 'sent', total_amount: 100, po_numbers: null },
+    { quotation_number: 'Q-641', customer_name: 'Shilpa', status: 'negotiation', total_amount: 50, po_numbers: '4500012345' },
+  ];
+  const build = async (scope) => {
+    const { buildQuotationExport } = await import('../../routes/export.js');
+    const { default: db2 } = await import('../../db/index.js');
+    const real = db2.prepare;
+    db2.prepare = () => ({ all: async () => rowsFor().map((r) => ({ ...r })), get: async () => ({ n: 0 }) });
+    try {
+      const { buffer } = await buildQuotationExport({ columns: 'quotation_number,customer_name,status' }, scope);
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buffer);
+      return wb.getWorksheet('Quotations');
+    } finally { db2.prepare = real; }
+  };
+
+  test('a PO received quotation is a green row even without PO records, and the status is shown by name', async () => {
+    const ws = await build({});
+    const fill = (r, c) => ws.getRow(r).getCell(c).fill?.fgColor?.argb;
+    assert.equal(ws.getRow(6).getCell(3).value, 'PO received', 'accepted is shown as PO received');
+    for (const c of [1, 2, 3]) assert.equal(fill(6, c), 'FFC6EFCE', `accepted row col ${c} is green`);
+    assert.notEqual(fill(7, 1), 'FFC6EFCE', 'a sent quotation is not green');
+    assert.equal(ws.getRow(7).getCell(3).value, 'Sent');
+    assert.equal(ws.getRow(8).getCell(3).value, 'Negotiation');
+    assert.equal(fill(8, 1), 'FFC6EFCE', 'a quotation with PO records is green');
+  });
+
+  test('the live-link layout has the column names in row 1 and the data right below, with no title block', async () => {
+    const ws = await build({ clean: true });
+    assert.deepEqual([1, 2, 3].map((c) => ws.getRow(1).getCell(c).value), ['Quotation No', 'Customer', 'Status']);
+    assert.equal(ws.getRow(2).getCell(1).value, 'Q-643');
+    assert.equal(ws.getRow(2).getCell(3).value, 'PO received');
+    assert.equal(ws.getRow(2).getCell(1).fill?.fgColor?.argb, 'FFC6EFCE');
+    assert.deepEqual(ws.views[0].ySplit, 1);
+  });
+});
+
 describe('Excel export', () => {
   const columns = [
     { header: 'Quotation No', key: 'quotation_number' },

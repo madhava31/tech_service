@@ -50,7 +50,7 @@ export function createFeedHandler({ store, build, send, limiter }) {
       if (!row) return refuse();
       store.touch(row.id).catch(() => {});
       // The key carries its owner's permissions: admins see every quotation, other users only their own.
-      const scope = row.role === 'admin' ? {} : { createdByUserId: row.user_id };
+      const scope = { ...(row.role === 'admin' ? {} : { createdByUserId: row.user_id }), clean: true };
       const { key: _ignored, ...query } = req.query;
       const { buffer, filename } = await build(query, scope);
       send(res, buffer, filename);

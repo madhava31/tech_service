@@ -63,8 +63,8 @@ describe('feed', () => {
     try {
       await fetch(`${srv.base}/quotations.xlsx?key=${ADMIN}`);
       await fetch(`${srv.base}/quotations.xlsx?key=${STAFF}`);
-      assert.deepEqual(calls.build[0].scope, {});
-      assert.deepEqual(calls.build[1].scope, { createdByUserId: 20 });
+      assert.deepEqual(calls.build[0].scope, { clean: true }, 'the live feed asks for the clean layout');
+      assert.deepEqual(calls.build[1].scope, { createdByUserId: 20, clean: true });
     } finally { await srv.close(); }
   });
 

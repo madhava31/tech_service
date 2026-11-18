@@ -10,12 +10,16 @@ const router = Router();
 /**
  * Universal Excel Workbook Builder
  */
-function fillSheet(workbook, { title, sheetName, columns, data, filters }) {
+function fillSheet(workbook, { title, sheetName, columns, data, filters, clean = false }) {
+  // clean: the layout the live Excel link uses. The header is in row 1 and the data follows at once, with no title block,
+  // so Excel's "Get Data" finds the column names by itself. The normal download keeps the title block (header in row 5).
+  const HEADER_ROW = clean ? 1 : 5;
   const worksheet = workbook.addWorksheet(sheetName, {
-    views: [{ state: 'frozen', ySplit: 5 }],
+    views: [{ state: 'frozen', ySplit: HEADER_ROW }],
     properties: { defaultRowHeight: 20 },
   });
 
+  if (!clean) {
   // Title Block
   worksheet.mergeCells('A1:G1');
   const titleCell = worksheet.getCell('A1');
@@ -34,9 +38,10 @@ function fillSheet(workbook, { title, sheetName, columns, data, filters }) {
 
   worksheet.addRow([]); // Blank spacer row 3
   worksheet.addRow([]); // Blank spacer row 4
+  }
 
-  // Table Headers at Row 5
-  const headerRow = worksheet.getRow(5);
+  // Table headers
+  const headerRow = worksheet.getRow(HEADER_ROW);
   headerRow.height = 26;
 
   columns.forEach((col, idx) => {
@@ -59,7 +64,7 @@ function fillSheet(workbook, { title, sheetName, columns, data, filters }) {
 
   // Data Rows starting at Row 6
   data.forEach((row, rowIdx) => {
-    const dataRow = worksheet.getRow(6 + rowIdx);
+    const dataRow = worksheet.getRow(HEADER_ROW + 1 + rowIdx);
     dataRow.height = 20;
 
     columns.forEach((col, colIdx) => {
@@ -123,8 +128,8 @@ function fillSheet(workbook, { title, sheetName, columns, data, filters }) {
 
   // Auto-filter on header row
   worksheet.autoFilter = {
-    from: { row: 5, column: 1 },
-    to: { row: 5, column: columns.length },
+    from: { row: HEADER_ROW, column: 1 },
+    to: { row: HEADER_ROW, column: columns.length },
   };
 }
 
@@ -136,14 +141,15 @@ export async function generateExcelBuffer({
   summary = null,
   filters = {},
   extraSheets = [], // more sheets in the same workbook: [{ sheetName, title?, columns, data }]
+  clean = false, // the live-link layout (see fillSheet)
 }) {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'TECHNICON SERVICES ERP';
   workbook.lastModifiedBy = 'TECHNICON SERVICES ERP';
   workbook.created = new Date();
 
-  fillSheet(workbook, { title, sheetName, columns, data, filters });
-  for (const x of extraSheets) fillSheet(workbook, { title: x.title || title, sheetName: x.sheetName, columns: x.columns, data: x.data, filters });
+  fillSheet(workbook, { title, sheetName, columns, data, filters, clean });
+  for (const x of extraSheets) fillSheet(workbook, { title: x.title || title, sheetName: x.sheetName, columns: x.columns, data: x.data, filters, clean });
 
   const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
@@ -390,7 +396,13 @@ export async function buildQuotationExport(query, scope = {}) {
 
     const rows = await db.prepare(sql).all(...params);
     // A quotation that has received a PO is highlighted as a whole row.
-    for (const r of rows) r._highlight = !!r.po_numbers;
+    // A quotation is a "PO received" row (green) when it has PO records, or when it is marked PO received (stored 'accepted')
+    // from before PO records existed. The status is then shown by name: accepted is "PO received".
+    const STATUS_NAMES = { draft: 'Draft', sent: 'Sent', negotiation: 'Negotiation', accepted: 'PO received', rejected: 'Rejected' };
+    for (const r of rows) {
+      r._highlight = !!r.po_numbers || r.status === 'accepted';
+      r.status = STATUS_NAMES[r.status] || r.status;
+    }
 
     const available = QUOTATION_EXPORT_COLUMNS.filter((c) => po || !c.po);
     const asked = String(query.columns || '').split(',').map((k) => k.trim()).filter(Boolean);
@@ -444,6 +456,7 @@ export async function buildQuotationExport(query, scope = {}) {
       data: rows,
       filters: { status, branchId, engineerId },
       extraSheets,
+      clean: !!scope.clean,
     });
 
     return { buffer, filename: `TECHNICON_Quotations_${dateTag}.xlsx` };
