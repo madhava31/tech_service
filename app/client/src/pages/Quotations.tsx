@@ -39,6 +39,7 @@ function getDateRange(filter: DateFilter): { start: string; end: string } | null
 const STAGE_COLORS: Record<string, string> = {
   draft: 'rgb(var(--muted))',
   sent: 'rgb(var(--fg))',
+  negotiation: 'rgb(var(--chart-fill))',
   accepted: 'rgb(var(--good))',
   rejected: 'rgb(var(--bad))',
   po_created: 'rgb(var(--fg))',
@@ -65,6 +66,7 @@ export default function Quotations() {
     All: 0,
     Draft: 0,
     Sent: 0,
+    Negotiation: 0,
     Accepted: 0,
     Rejected: 0,
   });
@@ -351,6 +353,7 @@ export default function Quotations() {
     { name: 'All', key: '' },
     { name: 'Draft', key: 'draft' },
     { name: 'Sent', key: 'sent' },
+    { name: 'Negotiation', key: 'negotiation' },
     { name: 'Accepted', key: 'accepted' },
     { name: 'Rejected', key: 'rejected' },
   ];
@@ -519,7 +522,7 @@ export default function Quotations() {
                       <td className="ts-r">
                         <div className="ts-racts">
                           <Link to={`/quotations/${q.id}`} className="ts-btn ts-ghost ts-xs">View</Link>
-                          {['draft', 'sent'].includes(q.status) && (
+                          {['draft', 'sent', 'negotiation'].includes(q.status) && (
                             <Link to={`/quotations/${q.id}/edit`} className="ts-btn ts-ghost ts-xs" aria-label={`Edit quotation ${q.number}`}><Pencil className="size-3.5" /> Edit</Link>
                           )}
                           <DownloadPdfButton url={api.quotations.downloadPdfUrl(q.id)} fileName={pdfFileName(q.number)} kind="quotation" className="ts-btn ts-ghost ts-xs" ariaLabel={`Download PDF of ${q.number}`}><FileDown className="size-3.5" /> PDF</DownloadPdfButton>

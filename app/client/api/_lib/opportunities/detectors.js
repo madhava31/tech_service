@@ -189,7 +189,7 @@ export async function detectHighValue(db, precomputedStats) {
   const strong = stats.filter((s) => s.status === 'strong');
 
   const openPipelineRows = await db
-    .prepare(`SELECT DISTINCT company_id FROM quotation WHERE status IN ('draft', 'sent', 'accepted')`)
+    .prepare(`SELECT DISTINCT company_id FROM quotation WHERE status IN ('draft', 'sent', 'negotiation', 'accepted')`)
     .all();
   const openPipelineCompanyIds = new Set(openPipelineRows.map((r) => r.company_id));
 

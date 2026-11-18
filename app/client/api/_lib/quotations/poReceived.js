@@ -140,7 +140,7 @@ export async function createPo(req, res) {
         const insertItem = db.prepare(`INSERT INTO quotation_po_item (quotation_po_id, quotation_item_id, qty) VALUES (?, ?, ?)`);
         for (const it of parsed.items) await insertItem.run(newId, it.quotation_item_id, it.qty);
         // A PO means the quotation was accepted. Same rule as the older PO route: open follow-ups are cancelled.
-        if (['draft', 'sent', 'rejected'].includes(quotation.status)) {
+        if (['draft', 'sent', 'negotiation', 'rejected'].includes(quotation.status)) {
           await db.prepare(`UPDATE quotation SET status = 'accepted' WHERE id = ?`).run(id);
         }
         await db.prepare(`UPDATE quotation_follow_up SET status = 'cancelled' WHERE quotation_id = ? AND status = 'scheduled'`).run(id);

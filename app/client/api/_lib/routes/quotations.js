@@ -8,6 +8,7 @@ import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
 import { readInstrument, saveInstrument } from '../quotations/instrument.js';
 import { requirePoReceived, listPos, createPo, deletePo } from '../quotations/poReceived.js';
+import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, listRevisions } from '../quotations/negotiation.js';
 import { collectPdf } from '../pdf/pdfBuffer.js';
 import { createSendEmailHandler, requireAdminRole } from '../mail/sendEmailHandler.js';
 import { getMailProvider, getSender } from '../mail/index.js';
@@ -469,7 +470,7 @@ router.get('/', async (req, res) => {
       .all(...itemsParams);
 
     // Global stage counts aggregated in database
-    const stageCounts = { All: 0, Draft: 0, Sent: 0, Accepted: 0, Rejected: 0 };
+    const stageCounts = { All: 0, Draft: 0, Sent: 0, Negotiation: 0, Accepted: 0, Rejected: 0 };
     const globalCountRows = isAdmin(req)
       ? await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation GROUP BY status`).all()
       : await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation WHERE created_by_user_id = ? GROUP BY status`).all(req.user.id);
@@ -479,6 +480,7 @@ router.get('/', async (req, res) => {
       totalAll += c;
       if (r.status === 'draft') stageCounts.Draft = c;
       else if (r.status === 'sent') stageCounts.Sent = c;
+      else if (r.status === NEGOTIATION) stageCounts.Negotiation = c;
       else if (r.status === 'accepted') stageCounts.Accepted = c;
       else if (r.status === 'rejected') stageCounts.Rejected = c;
     }
@@ -773,7 +775,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
   try {
     const existing = await db.prepare(`SELECT * FROM quotation WHERE id = ?`).get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
-    if (existing.status !== 'draft') return res.status(400).json({ error: 'Only draft quotations can be edited' });
+    if (!EDITABLE_STATUSES.includes(existing.status)) return res.status(400).json({ error: 'Only a draft quotation, or one in negotiation, can be edited' });
 
     const { company_id, company_name, date, tax_percent, notes, discount_type, discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
     const lumpSum = await readLumpSum(req.body);
@@ -949,14 +951,19 @@ router.put('/:id', moduleGuard, async (req, res) => {
 
 router.post('/:id/status', async (req, res) => {
   try {
-    const { status } = req.body;
-    if (!['draft', 'sent', 'accepted', 'rejected'].includes(status)) {
+    const { status, note } = req.body;
+    if (!ALL_STATUSES.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
     const existing = await db.prepare(`SELECT * FROM quotation WHERE id = ?`).get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
+    const blocked = statusChangeError(existing.status, status);
+    if (blocked) return res.status(400).json({ error: blocked });
+    const noteText = typeof note === 'string' ? note.trim().slice(0, 500) : '';
 
     await db.transaction(async () => {
+      // Price negotiation: the version that was sent is saved as a revision before it is changed (history, migration 010).
+      if (status === NEGOTIATION && existing.status !== NEGOTIATION) await takeRevisionSnapshot(req.params.id, req.user?.id, noteText);
       await db.prepare(`UPDATE quotation SET status = ? WHERE id = ?`).run(status, req.params.id);
       if (status === 'accepted' || status === 'rejected') {
         await db
@@ -969,6 +976,17 @@ router.post('/:id/status', async (req, res) => {
   } catch (err) {
     console.error('Unable to update quotation status:', err);
     sendRouteError(res, err, 500, 'Unable to update the quotation status. Please try again.');
+  }
+});
+
+// GET /api/quotations/:id/revisions : the negotiation history (the versions that were sent before each round).
+router.get('/:id/revisions', async (req, res) => {
+  try {
+    const found = await db.prepare(`SELECT id FROM quotation WHERE id = ?`).get(req.params.id);
+    if (!found) return res.status(404).json({ error: 'Quotation not found' });
+    res.json(await listRevisions(Number(req.params.id)));
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Something went wrong. Please try again.');
   }
 });
 
@@ -1308,7 +1326,7 @@ async function updateModuleQuotation(req, res) {
     const existing = await db.prepare(`SELECT id, status FROM quotation WHERE id = ?`).get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
     // Accepted/rejected quotations back purchase orders and invoices that print these lines.
-    if (!['draft', 'sent'].includes(existing.status)) {
+    if (!MODULE_EDITABLE_STATUSES.includes(existing.status)) {
       return res.status(400).json({ error: `A quotation that is ${existing.status} cannot be edited.` });
     }
     const q = await buildQuotation(req.body);

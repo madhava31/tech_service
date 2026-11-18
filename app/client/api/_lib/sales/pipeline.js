@@ -17,7 +17,7 @@ const FOLLOW_UP_STATUSES = ['scheduled', 'completed', 'cancelled'];
 /** Workflow stage of a quotation and its downstream documents (stored statuses are not changed). */
 export function deriveSalesPipelineStage({ quotationStatus, hasPo, hasPi, saleReports = [], totalOrdered = 0, totalDispatched = 0 }) {
   if (quotationStatus === 'draft' && !hasPo) return 'QUOTATION_DRAFT';
-  if (quotationStatus === 'sent' && !hasPo) return 'AWAITING_CUSTOMER';
+  if ((quotationStatus === 'sent' || quotationStatus === 'negotiation') && !hasPo) return 'AWAITING_CUSTOMER';
   if (quotationStatus === 'rejected' && !hasPo) return 'QUOTATION_REJECTED';
 
   const dispatched = Number(totalDispatched) || 0;
@@ -672,7 +672,7 @@ export async function getQuotationTimeline(quotationId) {
   const timeline = [
     { stage: 'QUOTATION', title: `Quotation Created (${quote.number})`, timestamp: quote.created_at, status: 'completed', description: `Created for amount ₹${num(quote.total).toLocaleString('en-IN')}` },
   ];
-  if (quote.status === 'sent' || quote.status === 'accepted') {
+  if (quote.status === 'sent' || quote.status === 'negotiation' || quote.status === 'accepted') {
     timeline.push({ stage: 'QUOTATION', title: 'Quotation Sent to Customer', timestamp: quote.created_at, status: 'completed', description: 'Quotation delivered to client' });
   }
   for (const f of followUps) {

@@ -460,6 +460,7 @@ router.get('/inactive-customers', async (req, res) => {
 const PIPELINE_STAGES = [
   { key: 'draft', label: 'Draft' },
   { key: 'sent', label: 'Sent' },
+  { key: 'negotiation', label: 'Negotiation' },
   { key: 'accepted', label: 'Accepted' },
   { key: 'rejected', label: 'Rejected' },
 ];
@@ -792,7 +793,7 @@ export async function getBusinessHealth() {
             detail: `${Number(overdueValueRow.overdue_count)} quotations worth ₹${Math.round(Number(overdueValueRow.overdue_value)).toLocaleString('en-IN')} need attention.`,
           };
         } else if (weakestKey === 'conversions') {
-          const openStages = pipeline.stages.filter((s) => ['sent', 'accepted'].includes(s.key));
+          const openStages = pipeline.stages.filter((s) => ['sent', 'negotiation', 'accepted'].includes(s.key));
           const openValue = openStages.reduce((sum, s) => sum + s.value, 0);
           const openCount = openStages.reduce((sum, s) => sum + s.count, 0);
           recommendation = {

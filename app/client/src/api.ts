@@ -332,6 +332,22 @@ export interface ProductImportResult {
   errors: number;
 }
 
+export interface QuotationRevision {
+  id: number;
+  revision_no: number;
+  total: number;
+  subtotal: number;
+  tax_amount: number;
+  note: string | null;
+  created_at: string;
+  created_by_username: string | null;
+  items: { part_no: string | null; description: string; qty: number; unit_price: number; discount_type: string; discount_value: number; line_total: number }[];
+}
+export interface QuotationRevisionList {
+  ready: boolean;
+  revisions: QuotationRevision[];
+}
+
 export interface ExportKey {
   id: number;
   label: string;
@@ -574,6 +590,7 @@ export interface QuotationPageResponse {
     All: number;
     Draft: number;
     Sent: number;
+    Negotiation: number;
     Accepted: number;
     Rejected: number;
     [key: string]: number;
@@ -949,7 +966,7 @@ export interface FlaggedSalesRecordsData {
   records: FlaggedSalesRecord[];
 }
 
-export type PipelineStageKey = 'draft' | 'sent' | 'accepted' | 'rejected';
+export type PipelineStageKey = 'draft' | 'sent' | 'negotiation' | 'accepted' | 'rejected';
 
 export interface YearAnalysisStatus {
   year: number;
@@ -1272,11 +1289,13 @@ export const api = {
       overallDiscountValue?: number;
       taxPercent?: number;
     }) => request<any>('/quotations/calculate-pricing', { method: 'POST', body: JSON.stringify(data) }),
-    setStatus: async (id: number, status: string) => {
-      const res = await request<Quotation>(`/quotations/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) });
+    setStatus: async (id: number, status: string, note?: string) => {
+      const res = await request<Quotation>(`/quotations/${id}/status`, { method: 'POST', body: JSON.stringify(note ? { status, note } : { status }) });
       clearCache('quotations');
       return res;
     },
+    /** Negotiation history: the versions that were sent before each round (migration 010; empty and ready:false until then). */
+    revisions: (id: number) => request<QuotationRevisionList>(`/quotations/${id}/revisions`),
     pdfUrl: (id: number) => `${BASE}/quotations/${id}/pdf`,
     downloadPdfUrl: (id: number) => `${BASE}/quotations/${id}/pdf?download=1`,
     openPdf: (id: number) => openPdfDocument(`/quotations/${id}/pdf`),

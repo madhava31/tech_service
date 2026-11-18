@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp, QuotationPoList } from '../api';
+import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp, QuotationPoList, QuotationRevisionList } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
 import { DownloadIcon, FileTextIcon, MailIcon, PencilIcon, Trash2 } from 'lucide-react';
 import { SendEmailModal } from '../components/SendEmailModal';
 import { POReceivedModal } from '../components/POReceivedModal';
+import { NegotiateModal } from '../components/NegotiateModal';
 import { useAuth } from '../auth';
 import { fmtDay } from '../components/ds/format';
 import { QuotationPayments } from '../components/QuotationPayments';
@@ -18,6 +19,7 @@ function formatDate(d: string | null) {
 const STAGE_COLORS: Record<string, string> = {
   draft: 'rgb(var(--muted))',
   sent: 'rgb(var(--chart-fill))',
+  negotiation: 'rgb(var(--chart-fill))',
   accepted: 'rgb(var(--good))',
   rejected: 'rgb(var(--bad))',
   po_created: 'rgb(var(--chart-line))',
@@ -37,6 +39,9 @@ export default function QuotationDetail() {
   // PO received (migration 008). null until loaded, and stays null while the database update has not been applied.
   const [poList, setPoList] = useState<QuotationPoList | null>(null);
   const [poModalOpen, setPoModalOpen] = useState(false);
+  // Price negotiation: the history of what was sent in each round (migration 010; empty until it is applied).
+  const [revs, setRevs] = useState<QuotationRevisionList | null>(null);
+  const [negotiateOpen, setNegotiateOpen] = useState(false);
   const [poBusy, setPoBusy] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [clientPoRef, setClientPoRef] = useState('');
@@ -59,6 +64,7 @@ export default function QuotationDetail() {
   function load() {
     api.quotations.get(quotationId).then(setQuotation).catch((e) => setError(e.message));
     api.quotations.poReceived.list(quotationId).then(setPoList).catch(() => setPoList(null));
+    api.quotations.revisions(quotationId).then(setRevs).catch(() => setRevs(null));
     api.purchaseOrders.list().then((all) => setPos(all.filter((p) => p.quotation_id === quotationId)));
     api.performaInvoices.list().then((all) => setPis(all.filter((p) => p.quotation_id === quotationId)));
     api.deliveryChallans.list({ quotationId }).then(setChallans).catch(() => setChallans([]));
@@ -94,6 +100,11 @@ export default function QuotationDetail() {
     load();
     loadFollowUps();
   }, [quotationId]);
+
+  async function startNegotiation(note: string) {
+    await api.quotations.setStatus(quotationId, 'negotiation', note);
+    load();
+  }
 
   async function setStatus(status: string) {
     if (busyAction) return;
@@ -214,7 +225,7 @@ export default function QuotationDetail() {
         </div>
         <span className="ts-grow" />
         <div className="flex items-center gap-2 flex-wrap">
-          {quotation.status === 'draft' && (
+          {(quotation.status === 'draft' || quotation.status === 'negotiation') && (
             <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-ghost"><PencilIcon /> Edit quotation</Link>
           )}
           <a className="ts-btn ts-dark" href={api.quotations.pdfUrl(quotationId)} target="_blank" rel="noreferrer"><FileTextIcon /> View PDF</a>
@@ -238,6 +249,9 @@ export default function QuotationDetail() {
         let steps: [string, boolean, string?, string?][] = [
           ['Drafted', true],
           ['Sent', sentOrLater],
+          ...((st === 'negotiation' || (revs?.revisions.length || 0) > 0
+            ? [[(revs?.revisions.length || 0) > 0 ? `Negotiation (round ${revs!.revisions.length})` : 'Negotiation', true, undefined, st === 'negotiation' ? 'Being revised' : 'Re-sent']]
+            : []) as [string, boolean, string?, string?][]),
           poList && poList.pos.length
             ? [`PO ${poList.pos.map((p) => p.po_number).join(', ')}`, true]
             : [pos.length ? `PO ${pos[0].number}` : 'Purchase order', pos.length > 0],
@@ -281,19 +295,32 @@ export default function QuotationDetail() {
               ))}
             </div>
             {/* Stage change buttons sit right under the workflow steps */}
-            {(st === 'draft' || st === 'sent' || (poList !== null && st !== 'rejected')) && (
+            {(st === 'draft' || st === 'sent' || st === 'negotiation' || (poList !== null && st !== 'rejected')) && (
               <div className="mt-4 flex flex-wrap gap-2 border-t border-line2 pt-3">
                 {st === 'draft' && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs">
                     {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
                   </button>
                 )}
+                {st === 'sent' && (
+                  <button type="button" disabled={busyAction !== null} onClick={() => setNegotiateOpen(true)} className="ts-btn ts-dark ts-xs" title="The customer asked for a price change">
+                    Negotiate
+                  </button>
+                )}
+                {st === 'negotiation' && (
+                  <>
+                    <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-dark ts-xs"><PencilIcon /> Edit prices</Link>
+                    <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs" title="Send the revised quotation to the customer">
+                      {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent (revised)'}
+                    </button>
+                  </>
+                )}
                 {poList !== null && st !== 'rejected' && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setPoModalOpen(true)} className="ts-btn ts-dark ts-xs">
                     {poList.pos.length ? '+ PO received (another)' : 'PO received'}
                   </button>
                 )}
-                {(st === 'draft' || st === 'sent') && (
+                {(st === 'draft' || st === 'sent' || st === 'negotiation') && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setStatus('rejected')} className="ts-btn ts-dark ts-xs">
                     {busyAction === 'rejected' ? 'Marking as Rejected…' : 'Mark as Rejected'}
                   </button>
@@ -311,6 +338,49 @@ export default function QuotationDetail() {
               </div>
             )}
           </div>
+        );
+      })()}
+
+      {negotiateOpen && quotation && (
+        <NegotiateModal quotationNumber={quotation.number} round={(revs?.revisions.length || 0) + 1} onClose={() => setNegotiateOpen(false)} onConfirm={startNegotiation} />
+      )}
+
+      {/* Negotiation history: what was sent in each round, and how the price moved */}
+      {revs && revs.revisions.length > 0 && (() => {
+        const money = (n: number) => `₹${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const totals = [...revs.revisions.map((r) => Number(r.total)), Number(quotation.total || 0)];
+        return (
+          <section className="ts-card ts-white" style={{ ['--i' as string]: 0, marginBottom: 16 }}>
+            <div className="ts-ch"><b>Negotiation history</b></div>
+            <div className="flex flex-col gap-2.5">
+              {revs.revisions.map((r, i) => {
+                const next = totals[i + 1];
+                const diff = next - Number(r.total);
+                const pct = Number(r.total) > 0 ? (diff / Number(r.total)) * 100 : 0;
+                return (
+                  <div key={r.id} className="rounded-lg border border-line2 bg-surface px-3 py-2.5">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <b className="text-fg">Round {r.revision_no}: sent at {money(r.total)}</b>
+                      <span className="text-[12.5px] text-subtle">{fmtDay(r.created_at)}{r.created_by_username ? ` · ${r.created_by_username}` : ''}</span>
+                      <span className="ts-grow" />
+                      <span className={`text-[12.5px] ${diff < 0 ? 'text-good' : diff > 0 ? 'text-bad' : 'text-subtle'}`}>
+                        {i === revs.revisions.length - 1 ? 'now ' : 'then '}{money(next)} ({diff === 0 ? 'no change' : `${diff < 0 ? '−' : '+'}${money(Math.abs(diff))}, ${Math.abs(pct).toFixed(1)}%`})
+                      </span>
+                    </div>
+                    {r.note && <div className="mt-1 text-[12.5px] text-subtle">Customer asked: {r.note}</div>}
+                    <details className="mt-1.5 text-[12.5px] text-subtle">
+                      <summary className="cursor-pointer">The {r.items.length} {r.items.length === 1 ? 'item' : 'items'} in that version</summary>
+                      <ul className="m-0 mt-1 pl-5">
+                        {r.items.map((it, j) => (
+                          <li key={j}>{it.description}{it.part_no ? ` (${it.part_no})` : ''}: {it.qty} × {money(it.unit_price)}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         );
       })()}
 

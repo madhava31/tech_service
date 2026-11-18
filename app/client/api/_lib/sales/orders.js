@@ -16,7 +16,7 @@ export function httpError(status, message) {
 /** Workflow status of an order, derived without changing stored statuses. */
 export function deriveSalesOrderStatus({ quotationStatus, hasPo, hasPi, saleReports = [], totalOrdered = 0, totalDispatched = 0 }) {
   if (quotationStatus === 'draft') return 'QUOTATION_DRAFT';
-  if (quotationStatus === 'sent') return 'AWAITING_CUSTOMER';
+  if (quotationStatus === 'sent' || quotationStatus === 'negotiation') return 'AWAITING_CUSTOMER';
   if (quotationStatus === 'rejected') return 'QUOTATION_REJECTED';
 
   const isFullyDispatched = totalOrdered > 0 && totalDispatched >= totalOrdered;
@@ -264,7 +264,7 @@ export async function getPendingSalesWork() {
     db.prepare(
       `SELECT q.id, q.number, q.date, q.total, c.name AS company_name, ${age('q.date')}
        FROM quotation q JOIN company c ON c.id = q.company_id
-       WHERE q.status = 'sent' ORDER BY q.date ASC`
+       WHERE q.status IN ('sent', 'negotiation') ORDER BY q.date ASC`
     ).all(),
     db.prepare(
       `SELECT q.id, q.number, q.date, q.total, c.name AS company_name, ${age('q.date')}
@@ -371,7 +371,7 @@ export async function getCompanySalesHistory(companyId) {
       confirmedSalesValue: confirmed.reduce((sum, s) => sum + num(s.total_amount), 0),
       lastSaleDate: confirmed[0]?.sale_date || null,
       openOrdersCount: purchaseOrders.length,
-      pendingQuotationsCount: quotations.filter((x) => x.status === 'draft' || x.status === 'sent').length,
+      pendingQuotationsCount: quotations.filter((x) => x.status === 'draft' || x.status === 'sent' || x.status === 'negotiation').length,
     },
   };
 }

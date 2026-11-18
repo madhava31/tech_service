@@ -9,6 +9,7 @@ function formatCurrency(n: number) {
 const STAGE_COLORS: Record<string, string> = {
   draft: 'rgb(var(--muted))',
   sent: 'rgb(var(--chart-fill))',
+  negotiation: 'rgb(var(--chart-fill))',
   accepted: 'rgb(var(--chart-line))',
   rejected: 'rgb(var(--bad))',
 };

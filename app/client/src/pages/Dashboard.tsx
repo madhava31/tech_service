@@ -446,7 +446,7 @@ function LiveDashboard({ onOpenAnalysis }: { onOpenAnalysis: (year: number) => v
   const counts = data?.counts;
   const stages = pipeline?.stages ?? [];
   const stageCount = (k: string) => stages.find((st) => st.key === k)?.count ?? 0;
-  const openStages = [stageCount('draft'), stageCount('sent'), stageCount('accepted')];
+  const openStages = [stageCount('draft'), stageCount('sent'), stageCount('negotiation'), stageCount('accepted')];
   const openMax = Math.max(1, ...openStages);
   const fulfil = pipeline?.fulfillment;
   const invoicedPct = fulfil && fulfil.purchaseOrderCount > 0 ? Math.min(100, Math.round((fulfil.performaInvoiceCount / fulfil.purchaseOrderCount) * 100)) : 0;
