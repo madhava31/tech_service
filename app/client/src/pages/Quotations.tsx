@@ -524,7 +524,7 @@ export default function Quotations() {
                       <td className="ts-r">
                         <div className="ts-racts">
                           <Link to={`/quotations/${q.id}`} className="ts-btn ts-ghost ts-xs">View</Link>
-                          {['draft', 'sent', 'negotiation'].includes(q.status) && (
+                          {['draft', 'sent', 'negotiation', 'rejected'].includes(q.status) && (
                             <Link to={`/quotations/${q.id}/edit`} className="ts-btn ts-ghost ts-xs" aria-label={`Edit quotation ${q.number}`}><Pencil className="size-3.5" /> Edit</Link>
                           )}
                           <DownloadPdfButton url={api.quotations.downloadPdfUrl(q.id)} fileName={pdfFileName(q.number)} kind="quotation" className="ts-btn ts-ghost ts-xs" ariaLabel={`Download PDF of ${q.number}`}><FileDown className="size-3.5" /> PDF</DownloadPdfButton>

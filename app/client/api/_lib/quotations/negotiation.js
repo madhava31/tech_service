@@ -11,10 +11,13 @@ import db from '../db/index.js';
 import { missingColumns } from '../db/schemaGuard.js';
 
 export const NEGOTIATION = 'negotiation';
-/** Statuses in which a quotation's lines can be changed (legacy form). */
-export const EDITABLE_STATUSES = ['draft', NEGOTIATION];
-/** Statuses in which a quotation made with the quotation module can be changed. */
-export const MODULE_EDITABLE_STATUSES = ['draft', 'sent', NEGOTIATION];
+/**
+ * Statuses in which a quotation can be edited. Once a PO is received the lines are tied to the PO items, so it is not
+ * editable then (remove the PO first); every earlier state, including a rejected quotation, is.
+ */
+export const EDITABLE_STATUSES = ['draft', 'sent', NEGOTIATION, 'rejected'];
+/** The same for a quotation made with the quotation module. */
+export const MODULE_EDITABLE_STATUSES = EDITABLE_STATUSES;
 export const ALL_STATUSES = ['draft', 'sent', NEGOTIATION, 'accepted', 'rejected'];
 
 /** Returns an error message when the status change is not allowed, or null. */
@@ -61,6 +64,19 @@ export async function takeRevisionSnapshot(quotationId, userId, note, database =
     .prepare(`INSERT INTO quotation_revision (quotation_id, revision_no, total, subtotal, tax_amount, note, items, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?)`)
     .run(quotationId, next, Number(q.total) || 0, Number(q.subtotal) || 0, Number(q.tax_amount) || 0, note || null, JSON.stringify(snapshotItems(rows)), userId ?? null);
   return next;
+}
+
+/**
+ * "Undo negotiation": when a negotiation is cancelled before anything was changed, the round that was saved for it is
+ * removed again, so the history only shows rounds that really happened.
+ */
+export async function dropUnchangedRevision(quotationId, database = db) {
+  if (!(await revisionsReady())) return false;
+  const last = await database.prepare(`SELECT id, total FROM quotation_revision WHERE quotation_id = ? ORDER BY revision_no DESC LIMIT 1`).get(quotationId);
+  const now = await database.prepare(`SELECT total FROM quotation WHERE id = ?`).get(quotationId);
+  if (!last || !now || Math.abs(Number(last.total) - Number(now.total)) > 0.005) return false;
+  await database.prepare(`DELETE FROM quotation_revision WHERE id = ?`).run(last.id);
+  return true;
 }
 
 export async function listRevisions(quotationId, database = db) {

@@ -8,7 +8,7 @@ import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
 import { readInstrument, saveInstrument } from '../quotations/instrument.js';
 import { requirePoReceived, listPos, createPo, deletePo } from '../quotations/poReceived.js';
-import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, listRevisions } from '../quotations/negotiation.js';
+import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, dropUnchangedRevision, listRevisions } from '../quotations/negotiation.js';
 import { collectPdf } from '../pdf/pdfBuffer.js';
 import { createSendEmailHandler, requireAdminRole } from '../mail/sendEmailHandler.js';
 import { getMailProvider, getSender } from '../mail/index.js';
@@ -775,7 +775,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
   try {
     const existing = await db.prepare(`SELECT * FROM quotation WHERE id = ?`).get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
-    if (!EDITABLE_STATUSES.includes(existing.status)) return res.status(400).json({ error: 'Only a draft quotation, or one in negotiation, can be edited' });
+    if (!EDITABLE_STATUSES.includes(existing.status)) return res.status(400).json({ error: 'A quotation with a received PO cannot be edited. Remove the PO first.' });
 
     const { company_id, company_name, date, tax_percent, notes, discount_type, discount_value, sales_engineer_id, firm_id, branch_id } = req.body;
     const lumpSum = await readLumpSum(req.body);
@@ -964,6 +964,7 @@ router.post('/:id/status', async (req, res) => {
     await db.transaction(async () => {
       // Price negotiation: the version that was sent is saved as a revision before it is changed (history, migration 010).
       if (status === NEGOTIATION && existing.status !== NEGOTIATION) await takeRevisionSnapshot(req.params.id, req.user?.id, noteText);
+      if (existing.status === NEGOTIATION && status === 'sent') await dropUnchangedRevision(req.params.id);
       await db.prepare(`UPDATE quotation SET status = ? WHERE id = ?`).run(status, req.params.id);
       if (status === 'accepted' || status === 'rejected') {
         await db

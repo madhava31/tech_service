@@ -230,7 +230,7 @@ export default function QuotationDetail() {
         </div>
         <span className="ts-grow" />
         <div className="flex items-center gap-2 flex-wrap">
-          {!manual && (quotation.status === 'draft' || quotation.status === 'negotiation') && (
+          {!manual && ['draft', 'sent', 'negotiation', 'rejected'].includes(quotation.status) && (
             <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-ghost"><PencilIcon /> Edit quotation</Link>
           )}
           {!manual && <a className="ts-btn ts-dark" href={api.quotations.pdfUrl(quotationId)} target="_blank" rel="noreferrer"><FileTextIcon /> View PDF</a>}
@@ -300,12 +300,25 @@ export default function QuotationDetail() {
               ))}
             </div>
             {/* Stage change buttons sit right under the workflow steps */}
-            {(st === 'draft' || st === 'sent' || st === 'negotiation' || (poList !== null && st !== 'rejected')) && (
+            {(st === 'draft' || st === 'sent' || st === 'negotiation' || st === 'rejected' || (poList !== null && st !== 'rejected')) && (
               <div className="mt-4 flex flex-wrap gap-2 border-t border-line2 pt-3">
                 {st === 'draft' && !manual && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs">
                     {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent'}
                   </button>
+                )}
+                {st === 'sent' && !manual && (
+                  <button type="button" disabled={busyAction !== null} onClick={() => setStatus('draft')} className="ts-btn ts-ghost ts-xs" title="Undo: take the quotation back to draft">
+                    ↶ Back to draft
+                  </button>
+                )}
+                {st === 'rejected' && !manual && (
+                  <>
+                    <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-dark ts-xs"><PencilIcon /> Edit quotation</Link>
+                    <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-ghost ts-xs" title="Undo the rejection: the quotation is Sent again">
+                      ↶ Reopen (undo reject)
+                    </button>
+                  </>
                 )}
                 {st === 'sent' && !manual && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setNegotiateOpen(true)} className="ts-btn ts-dark ts-xs" title="The customer asked for a price change">
@@ -317,6 +330,9 @@ export default function QuotationDetail() {
                     <Link to={`/quotations/${quotationId}/edit`} className="ts-btn ts-dark ts-xs"><PencilIcon /> Edit prices</Link>
                     <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-dark ts-xs" title="Send the revised quotation to the customer">
                       {busyAction === 'sent' ? 'Marking as Sent…' : 'Mark as Sent (revised)'}
+                    </button>
+                    <button type="button" disabled={busyAction !== null} onClick={() => setStatus('sent')} className="ts-btn ts-ghost ts-xs" title="Undo: cancel the negotiation and go back to Sent">
+                      ↶ Undo negotiation
                     </button>
                   </>
                 )}
