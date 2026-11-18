@@ -9,6 +9,7 @@ import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSu
 import { readInstrument, saveInstrument } from '../quotations/instrument.js';
 import { requirePoReceived, listPos, createPo, deletePo } from '../quotations/poReceived.js';
 import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, dropUnchangedRevision, listRevisions } from '../quotations/negotiation.js';
+import { requireSalesTeam, getSalesTeam, saveSalesTeam, validateTeam, setTeamFromIds, salesTeamReady } from '../quotations/salesTeam.js';
 import { collectPdf } from '../pdf/pdfBuffer.js';
 import { createSendEmailHandler, requireAdminRole } from '../mail/sendEmailHandler.js';
 import { getMailProvider, getSender } from '../mail/index.js';
@@ -562,6 +563,8 @@ router.get('/:id', async (req, res) => {
       items,
       payment_schedule: payment?.schedule ?? null,
       payments: payment?.payments ?? [],
+      sales_team: await getSalesTeam(req.params.id),
+      sales_team_available: await salesTeamReady(),
     });
   } catch (err) {
     console.error('Error fetching quotation by ID:', err);
@@ -685,6 +688,9 @@ router.post('/', moduleGuard, async (req, res) => {
       const qId = info.lastInsertRowid;
       await savePricingMode(qId, req.body, lumpSum);
       await applyQuotationContactAndTerms(qId, finalCompanyId, req.body, req.user.id, { isNew: true });
+      if (Array.isArray(req.body.co_sales_engineer_ids) && req.body.co_sales_engineer_ids.length) {
+        await setTeamFromIds(qId, sales_engineer_id, req.body.co_sales_engineer_ids);
+      }
       const insertItem = db.prepare(
         `INSERT INTO quotation_item (
           quotation_id, product_id, part_no, description, hsn_sac, make, qty, price, amount,
@@ -862,6 +868,10 @@ router.put('/:id', moduleGuard, async (req, res) => {
         await db.prepare(`UPDATE quotation SET number = ? WHERE id = ?`).run(newNumber, req.params.id);
       }
       await applyQuotationContactAndTerms(req.params.id, finalCompanyId, req.body, req.user.id);
+      if (Array.isArray(req.body.co_sales_engineer_ids)) {
+        const primary = sales_engineer_id !== undefined ? sales_engineer_id : existing.sales_engineer_id;
+        await setTeamFromIds(req.params.id, primary, req.body.co_sales_engineer_ids);
+      }
 
       await db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(req.params.id);
       const insertItem = db.prepare(
@@ -1280,6 +1290,30 @@ const sendEmailHandler = createSendEmailHandler({
 router.post('/:id/send-email', requireAdminRole, requireEmailLog, sendEmailHandler);
 
 // PO received (migration 008): the customer POs of a quotation, typed by hand, with the items each one ordered.
+// The sales people who worked on a quotation and each one's share of the sales target (migration 011).
+router.get('/:id/sales-team', requireSalesTeam, async (req, res) => {
+  try {
+    res.json({ members: await getSalesTeam(req.params.id) });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Something went wrong. Please try again.');
+  }
+});
+
+router.put('/:id/sales-team', requireSalesTeam, async (req, res) => {
+  try {
+    const q = await db.prepare(`SELECT id, sales_engineer_id FROM quotation WHERE id = ?`).get(req.params.id);
+    if (!q) return res.status(404).json({ error: 'Quotation not found' });
+    const members = validateTeam(req.body?.members, q.sales_engineer_id);
+    const known = await db.prepare(`SELECT id FROM sales_engineer WHERE id = ANY(?::int[])`).all(`{${members.map((m) => m.sales_engineer_id).join(',')}}`);
+    if (known.length !== members.length) return res.status(400).json({ error: 'One of the sales people does not exist.' });
+    await db.transaction(async () => { await saveSalesTeam(q.id, members); });
+    apiCache.invalidateTags(['dashboard']);
+    res.json({ members: await getSalesTeam(q.id) });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to save the sales team. Please try again.');
+  }
+});
+
 router.get('/:id/po-received', requirePoReceived, listPos);
 router.post('/:id/po-received', requirePoReceived, createPo);
 router.delete('/:id/po-received/:poId', requirePoReceived, deletePo);

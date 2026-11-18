@@ -5,6 +5,7 @@ import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm } from '../api';
 import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
 import SearchableSelect from '../components/SearchableSelect';
+import { SalesTeamEditor, type TeamMember } from '../components/SalesTeamEditor';
 import EditableCombo from '../components/EditableCombo';
 import { MANUAL_ORDER_PREFIX } from '../lib/manualOrder';
 import StockAnalysisWidget from '../components/StockAnalysisWidget';
@@ -48,6 +49,8 @@ export default function QuotationNew() {
 
   const [companyId, setCompanyId] = useState<number | ''>('');
   const [salesEngineerId, setSalesEngineerId] = useState<number | ''>('');
+  // Other sales people who also worked on this quotation (the shares are set when the PO is received).
+  const [coSales, setCoSales] = useState<TeamMember[]>([]);
   const [firmId, setFirmId] = useState<number | ''>('');
   const [branchId, setBranchId] = useState<number | ''>('');
 
@@ -177,6 +180,7 @@ export default function QuotationNew() {
         .then((q) => {
           setCompanyId(q.company_id);
           setSalesEngineerId(q.sales_engineer_id || '');
+          setCoSales((q.sales_team || []).filter((m) => !m.is_primary).map((m) => ({ id: m.sales_engineer_id, share: String(m.share_percent) })));
           setFirmId(q.firm_id || '');
           setBranchId(q.branch_id || '');
           setDate(q.date);
@@ -675,6 +679,7 @@ export default function QuotationNew() {
         company_id: Number(companyId),
         company_name: compObj?.name || undefined,
         sales_engineer_id: salesEngineerId ? Number(salesEngineerId) : null,
+        co_sales_engineer_ids: salesEngineerId ? coSales.map((m) => m.id).filter((v): v is number => v !== '') : [],
         firm_id: firmId ? Number(firmId) : null,
         branch_id: branchId ? Number(branchId) : null,
         date,
@@ -1020,6 +1025,12 @@ export default function QuotationNew() {
                   onChange={(v) => setSalesEngineerId(v ? Number(v) : '')}
                   placeholder="Select sales engineer…"
                 />
+                {salesEngineerId ? (
+                  <div className="mt-2">
+                    <SalesTeamEditor engineers={engineers} primaryId={Number(salesEngineerId)} members={coSales} onChange={setCoSales} withShares={false} />
+                    {coSales.length > 0 && <small className="ts-hint">Everyone listed is involved in this quotation. You decide each person's share of the sales target when the PO is received.</small>}
+                  </div>
+                ) : null}
               </div>
               <div className="ts-fld">
                 <label htmlFor="q-firm">Issuing legal firm</label>

@@ -1,10 +1,38 @@
 import db from './index.js';
 import { receivedValueSql, preGstSql, runWithFallback } from '../quotations/poValue.js';
+import { salesTeamReady } from '../quotations/salesTeam.js';
 
 // Sales-person figures (quoted value, accepted value, target achievement) are counted before GST:
 // the taxable amount, i.e. after discounts and without tax. Quotations without a stored taxable
 // amount fall back to the total minus its GST.
 const PRE_GST = 'COALESCE(taxable_amount, total - COALESCE(tax_amount, 0), total)';
+
+
+// Quoted and accepted figures of one sales person. A quotation shared by several sales people (migration 011) counts for
+// each of them by their share of it; a quotation with one sales person counts 100% for that person, as before.
+async function engineerQuoteStats(engId) {
+  const acceptedPreGst = await receivedValueSql('q', { withGst: false, fallback: preGstSql('q') });
+  if (!(await salesTeamReady())) {
+    return runWithFallback((v) => db.prepare(`
+      SELECT COUNT(*) AS total_quotations,
+             COALESCE(SUM(${PRE_GST}), 0) AS total_quoted_value,
+             SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
+             COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${v} ELSE 0 END), 0) AS accepted_value
+      FROM quotation q WHERE q.sales_engineer_id = ?
+    `).get(engId), acceptedPreGst, preGstSql('q'), 'sales person');
+  }
+  const w = '(COALESCE(sp.share_percent, 100) / 100.0)';
+  return runWithFallback((v) => db.prepare(`
+    SELECT COUNT(*) AS total_quotations,
+           COALESCE(SUM(${PRE_GST.replace(/\b(taxable_amount|tax_amount|total)\b/g, 'q.$1')} * ${w}), 0) AS total_quoted_value,
+           SUM(CASE WHEN q.status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
+           COALESCE(SUM(CASE WHEN q.status = 'accepted' THEN ${v} * ${w} ELSE 0 END), 0) AS accepted_value
+    FROM quotation q
+    LEFT JOIN quotation_sales_person sp ON sp.quotation_id = q.id AND sp.sales_engineer_id = ?
+    WHERE sp.id IS NOT NULL
+       OR (q.sales_engineer_id = ? AND NOT EXISTS (SELECT 1 FROM quotation_sales_person x WHERE x.quotation_id = q.id))
+  `).get(engId, engId), acceptedPreGst, preGstSql('q'), 'sales person');
+}
 
 function normalizeFy(yearStr) {
   if (!yearStr) return 'FY 2026-27';
@@ -50,14 +78,7 @@ export async function getEngineerById(id, { financialYear = 'FY 2026-27' } = {})
   const fy = normalizeFy(financialYear);
   const rawFy = fy.replace('FY ', '');
 
-  const acceptedPreGst = await receivedValueSql('q', { withGst: false, fallback: preGstSql('q') });
-  const quoteStats = await runWithFallback((v) => db.prepare(`
-    SELECT COUNT(*) AS total_quotations,
-           COALESCE(SUM(${PRE_GST}), 0) AS total_quoted_value,
-           SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
-           COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${v} ELSE 0 END), 0) AS accepted_value
-    FROM quotation q WHERE q.sales_engineer_id = ?
-  `).get(engId), acceptedPreGst, preGstSql('q'), 'sales person');
+  const quoteStats = await engineerQuoteStats(engId);
 
   const targetRow = await db.prepare(`
     SELECT target_amount, financial_year FROM engineer_sales_targets
@@ -195,14 +216,7 @@ export async function getEngineerPerformance({ financialYear, branchId = null, e
 
   const performanceList = [];
   for (const eng of engineers) {
-    const acceptedPreGst = await receivedValueSql('q', { withGst: false, fallback: preGstSql('q') });
-    const quoteStats = await runWithFallback((v) => db.prepare(`
-      SELECT COUNT(*) AS total_quotations,
-             COALESCE(SUM(${PRE_GST}), 0) AS total_quoted_value,
-             SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
-             COALESCE(SUM(CASE WHEN status = 'accepted' THEN ${v} ELSE 0 END), 0) AS accepted_value
-      FROM quotation q WHERE q.sales_engineer_id = ?
-    `).get(eng.id), acceptedPreGst, preGstSql('q'), 'sales person');
+    const quoteStats = await engineerQuoteStats(eng.id);
 
     const targetRow = await db.prepare(`
       SELECT target_amount FROM engineer_sales_targets

@@ -442,6 +442,10 @@ export interface Quotation {
   sales_engineer_id?: number | null;
   sales_engineer_name?: string | null;
   sales_engineer_code?: string | null;
+  /** The sales people who worked on this quotation with their share of the sales target; empty with a single sales person. */
+  sales_team?: { sales_engineer_id: number; name: string; code: string | null; share_percent: number; is_primary: boolean }[];
+  /** False until the sales team database update (migration 011) is applied. */
+  sales_team_available?: boolean;
   firm_id?: number | null;
   firm_name?: string | null;
   firm_address?: string | null;
@@ -1303,6 +1307,14 @@ export const api = {
     sendEmail: (id: number, data: { to: string; cc?: string; subject: string; message: string }) =>
       request<QuotationEmailResult>(`/quotations/${id}/send-email`, { method: 'POST', body: JSON.stringify(data) }),
     /** PO received (migration 008): the customer POs of a quotation, typed by hand, with the items each one ordered. */
+    salesTeam: {
+      save: async (id: number, members: { sales_engineer_id: number; share_percent: number }[]) => {
+        const res = await request<{ members: unknown[] }>(`/quotations/${id}/sales-team`, { method: 'PUT', body: JSON.stringify({ members }) });
+        clearCache('quotations');
+        clearCache('engineers');
+        return res;
+      },
+    },
     poReceived: {
       list: (id: number) => request<QuotationPoList>(`/quotations/${id}/po-received`),
       create: async (id: number, data: { po_number: string; po_date?: string; notes?: string; items: { quotation_item_id: number; qty: number }[] }) => {

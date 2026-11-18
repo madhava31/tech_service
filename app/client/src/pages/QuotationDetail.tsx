@@ -414,6 +414,9 @@ export default function QuotationDetail() {
             for (const it of p.items) acc[it.quotation_item_id] = (acc[it.quotation_item_id] || 0) + Number(it.qty);
             return acc;
           }, {})}
+          primarySalesId={quotation.sales_engineer_id ?? null}
+          salesTeam={quotation.sales_team || []}
+          salesTeamAvailable={!!quotation.sales_team_available}
           lastPo={poList.pos.length ? Object.fromEntries(poList.pos[poList.pos.length - 1].items.map((it) => [it.quotation_item_id, Number(it.qty)])) : null}
           onClose={() => setPoModalOpen(false)}
           onSaved={load}
@@ -476,6 +479,9 @@ export default function QuotationDetail() {
           <div><span>Date</span><b>{fmtDay(quotation.date)}</b></div>
           <div><span>Grand total</span><b className="num" style={{ fontSize: 18 }}>₹{Number(quotation.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</b></div>
           {quotation.sales_engineer_name && <div><span>Sales engineer</span><b>{quotation.sales_engineer_name}{quotation.sales_engineer_code ? ` (${quotation.sales_engineer_code})` : ''}</b></div>}
+          {(quotation.sales_team || []).length > 1 && (
+            <div><span>Sales team</span><b>{(quotation.sales_team || []).map((m) => `${m.name} ${m.share_percent}%`).join(' · ')}</b></div>
+          )}
           {quotation.firm_name && (
             <div>
               <span>Issued by</span>

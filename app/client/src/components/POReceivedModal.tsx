@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { api, type QuotationItem } from '../api';
+import { api, type QuotationItem, type SalesEngineer } from '../api';
+import { SalesTeamEditor, teamTotal, type TeamMember } from './SalesTeamEditor';
 import { showToast } from '../lib/savePdf';
 
 /**
@@ -15,6 +16,9 @@ export function POReceivedModal({
   items,
   alreadyOrdered,
   lastPo,
+  primarySalesId,
+  salesTeam,
+  salesTeamAvailable,
   onClose,
   onSaved,
 }: {
@@ -25,6 +29,10 @@ export function POReceivedModal({
   alreadyOrdered: Record<number, number>;
   /** Quantities of the most recent PO of this quotation, per quotation item id; null for the first PO. */
   lastPo: Record<number, number> | null;
+  /** The quotation's main sales person (null when none is assigned), its current team, and whether the team feature is available. */
+  primarySalesId: number | null;
+  salesTeam: { sales_engineer_id: number; share_percent: number; is_primary: boolean }[];
+  salesTeamAvailable: boolean;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -52,6 +60,15 @@ export function POReceivedModal({
   const [mode, setMode] = useState<Mode>(hasEarlierPo ? 'last' : 'quoted');
   const [rows, setRows] = useState(() => freshRows(hasEarlierPo ? 'last' : 'quoted'));
   const pick = (m: Mode) => { setMode(m); setRows(freshRows(m)); };
+  // Sales people on this quotation and their share of the sales target.
+  const [engineers, setEngineers] = useState<SalesEngineer[]>([]);
+  const [team, setTeam] = useState<TeamMember[]>(() =>
+    salesTeam.filter((m) => !m.is_primary).map((m) => ({ id: m.sales_engineer_id, share: String(m.share_percent) }))
+  );
+  const teamOn = salesTeamAvailable && primarySalesId !== null;
+  useEffect(() => {
+    if (teamOn) api.engineers.list(true).then(setEngineers).catch(() => {});
+  }, [teamOn]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -75,6 +92,13 @@ export function POReceivedModal({
     if (chosen.length === 0) return setError('Tick at least one item that the customer ordered.');
     const bad = chosen.find((r) => !(Number(r.qty) > 0));
     if (bad) return setError('Every ticked item needs a quantity above 0.');
+    // Several sales people: the shares must be complete and add up to 100 before anything is saved.
+    const others = team.filter((m) => m.id !== '');
+    if (teamOn && team.length > 0) {
+      if (team.some((m) => m.id === '')) return setError('Choose a sales person for every row, or remove the empty one.');
+      if (others.some((m) => !(Number(m.share) > 0))) return setError('Every added sales person needs a share above 0%.');
+      if (teamTotal(others) >= 100) return setError('The shares of the added sales people must add up to less than 100%, so the main sales person keeps a share.');
+    }
     setError('');
     savingRef.current = true;
     setSaving(true);
@@ -85,6 +109,27 @@ export function POReceivedModal({
         notes: notes.trim() || undefined,
         items: chosen.map((r) => ({ quotation_item_id: r.id, qty: Number(r.qty) })),
       });
+      if (teamOn) {
+        const other = team.filter((m) => m.id !== '');
+        const mainShare = Math.round((100 - teamTotal(other)) * 100) / 100;
+        const same =
+          other.length === salesTeam.filter((m) => !m.is_primary).length &&
+          other.every((m) => salesTeam.some((t) => t.sales_engineer_id === m.id && Number(t.share_percent) === Number(m.share))) &&
+          (other.length === 0 || salesTeam.some((t) => t.is_primary && Number(t.share_percent) === mainShare));
+        if (!same) {
+          try {
+          await api.quotations.salesTeam.save(quotationId, [
+            { sales_engineer_id: primarySalesId as number, share_percent: other.length ? mainShare : 100 },
+            ...other.map((m) => ({ sales_engineer_id: m.id as number, share_percent: Number(m.share) })),
+          ]);
+          } catch (err) {
+            // The PO itself is saved; only the shares failed, so say so and let the user retry from the quotation.
+            onSaved();
+            setError(`PO ${poNumber.trim()} was saved, but the sales shares were not: ${err instanceof Error && err.message ? err.message : 'please try again'}. Close this window and use PO received again to set the shares.`);
+            return;
+          }
+        }
+      }
       showToast(`PO ${poNumber.trim()} recorded for ${quotationNumber}.`);
       onSaved();
       onClose();
@@ -117,6 +162,18 @@ export function POReceivedModal({
             <input id="po-date" type="date" className="ts-fi" value={poDate} onChange={(e) => setPoDate(e.target.value)} />
           </div>
         </div>
+
+        {teamOn && engineers.length > 0 && (
+          <div className="border border-line2 rounded-xl p-3">
+            <b className="text-[13px] text-fg">Sales target share</b>
+            <p className="ts-muted m-0 mt-1 mb-2 text-[12.5px]">
+              {team.length === 0
+                ? 'This sale counts 100% toward the target of the sales person on the quotation. If someone else worked on it too, add them and decide each share.'
+                : 'Decide how much of this sale counts toward each person\'s sales target. The main sales person keeps what is left of 100%.'}
+            </p>
+            <SalesTeamEditor engineers={engineers} primaryId={primarySalesId as number} members={team} onChange={setTeam} withShares />
+          </div>
+        )}
 
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
