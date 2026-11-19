@@ -315,6 +315,34 @@ export async function createInvoice(req, res) {
   }
 }
 
+/**
+ * Puts back the stock that left with the given invoices: a correcting Adjustment (up) per stock out, so the history keeps
+ * both the out and the correction. Call it inside the transaction that deletes the invoices (or the quotation they belong
+ * to), so the stock and the invoices change together. invoices: [{ id, invoice_number }]. Returns the units put back.
+ */
+export async function restoreInvoiceStock(invoices, userId, why = 'removed') {
+  let units = 0;
+  for (const inv of invoices) {
+    const outs = await db
+      .prepare(`SELECT warehouse_id, product_id, quantity::float8 AS quantity FROM inventory_movement WHERE reference_type = ? AND reference_id = ? AND movement_type = 'STOCK_OUT' ORDER BY id`)
+      .all(INVOICE_STOCK_REF, String(inv.id));
+    for (const m of outs) {
+      await recordStockIn({
+        warehouseId: m.warehouse_id,
+        productId: m.product_id,
+        quantity: m.quantity,
+        referenceType: INVOICE_VOID_REF,
+        referenceId: inv.id,
+        reason: `Invoice ${inv.invoice_number} ${why}`,
+        userId,
+        movementType: 'ADJUSTMENT',
+      });
+      units += Number(m.quantity);
+    }
+  }
+  return units;
+}
+
 /** DELETE /api/quotations/:id/invoices/:invoiceId : removes an invoice recorded by mistake and puts its stock back. */
 export async function deleteInvoice(req, res) {
   try {
@@ -323,22 +351,7 @@ export async function deleteInvoice(req, res) {
     if (!inv) return res.status(404).json({ error: 'Invoice not found' });
     const userId = await resolveUserId(req.user);
     await db.transaction(async () => {
-      // A correcting entry per stock out (an Adjustment up), so the history keeps both the out and the correction.
-      const outs = await db
-        .prepare(`SELECT warehouse_id, product_id, quantity::float8 AS quantity FROM inventory_movement WHERE reference_type = ? AND reference_id = ? AND movement_type = 'STOCK_OUT' ORDER BY id`)
-        .all(INVOICE_STOCK_REF, String(inv.id));
-      for (const m of outs) {
-        await recordStockIn({
-          warehouseId: m.warehouse_id,
-          productId: m.product_id,
-          quantity: m.quantity,
-          referenceType: INVOICE_VOID_REF,
-          referenceId: inv.id,
-          reason: `Invoice ${inv.invoice_number} removed`,
-          userId,
-          movementType: 'ADJUSTMENT',
-        });
-      }
+      await restoreInvoiceStock([inv], userId, 'removed');
       await db.prepare(`DELETE FROM quotation_invoice WHERE id = ?`).run(inv.id);
     });
     res.json({ ok: true });

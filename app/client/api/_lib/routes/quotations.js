@@ -8,7 +8,8 @@ import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
 import { readInstrument, saveInstrument } from '../quotations/instrument.js';
 import { requirePoReceived, listPos, createPo, deletePo } from '../quotations/poReceived.js';
-import { requireInvoices, listInvoices, createInvoice, deleteInvoice, invoiceStock } from '../quotations/invoices.js';
+import { requireInvoices, listInvoices, createInvoice, deleteInvoice, invoiceStock, invoicesReady, restoreInvoiceStock } from '../quotations/invoices.js';
+import { resolveUserId } from '../db/inventorySchema.js';
 import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, dropUnchangedRevision, listRevisions } from '../quotations/negotiation.js';
 import { requireSalesTeam, getSalesTeam, saveSalesTeam, validateTeam, setTeamFromIds, salesTeamReady } from '../quotations/salesTeam.js';
 import { collectPdf } from '../pdf/pdfBuffer.js';
@@ -1007,8 +1008,15 @@ router.delete('/:id', async (req, res) => {
     const quotationId = req.params.id;
     const existing = await db.prepare(`SELECT id FROM quotation WHERE id = ?`).get(quotationId);
     if (!existing) return res.status(404).json({ error: 'Quotation not found' });
+    const stockUserId = await resolveUserId(req.user);
 
     await db.transaction(async () => {
+      // The invoices of this quotation go with it, so the stock they took out of the warehouse must come back first.
+      if (await invoicesReady()) {
+        const invoices = await db.prepare(`SELECT id, invoice_number FROM quotation_invoice WHERE quotation_id = ?`).all(quotationId);
+        await restoreInvoiceStock(invoices, stockUserId, 'removed (quotation deleted)');
+      }
+
       // Find all connected PIs and POs
       const pis = await db.prepare(`SELECT id FROM performa_invoice WHERE quotation_id = ?`).all(quotationId);
       const piIds = pis.map((p) => p.id);
