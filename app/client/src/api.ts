@@ -1404,6 +1404,9 @@ export const api = {
     get: (id: number) => request<PerformaInvoice>(`/performa-invoices/${id}`),
     create: (data: { quotation_id: number; purchase_order_id?: number; date?: string }) =>
       request<PerformaInvoice>('/performa-invoices', { method: 'POST', body: JSON.stringify(data) }),
+    /** Changes the PI number and date; the PDF shows the change at once. */
+    update: (id: number, data: { number: string; date: string }) =>
+      request<PerformaInvoice>(`/performa-invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     pdfUrl: (id: number) => `${BASE}/performa-invoices/${id}/pdf`,
     openPdf: (id: number) => openPdfDocument(`/performa-invoices/${id}/pdf`),
   },

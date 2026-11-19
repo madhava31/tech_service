@@ -7,6 +7,7 @@ import { DownloadIcon, FileTextIcon, MailIcon, PencilIcon, Trash2 } from 'lucide
 import { SendEmailModal } from '../components/SendEmailModal';
 import { POReceivedModal } from '../components/POReceivedModal';
 import { InvoiceModal } from '../components/InvoiceModal';
+import { PIEditModal } from '../components/PIEditModal';
 import { NegotiateModal } from '../components/NegotiateModal';
 import { quotationStatusLabel } from '../lib/quotationStatus';
 import { isManualOrderNumber } from '../lib/manualOrder';
@@ -46,6 +47,7 @@ export default function QuotationDetail() {
   const [invList, setInvList] = useState<QuotationInvoiceList | null>(null);
   const [invModalOpen, setInvModalOpen] = useState(false);
   const [invBusy, setInvBusy] = useState<number | null>(null);
+  const [editingPi, setEditingPi] = useState<PerformaInvoice | null>(null);
   // Price negotiation: the history of what was sent in each round (migration 010; empty until it is applied).
   const [revs, setRevs] = useState<QuotationRevisionList | null>(null);
   const [negotiateOpen, setNegotiateOpen] = useState(false);
@@ -499,6 +501,8 @@ export default function QuotationDetail() {
         </section>
       )}
 
+      {editingPi && <PIEditModal pi={editingPi} onClose={() => setEditingPi(null)} onSaved={() => { setEditingPi(null); load(); }} />}
+
       {invModalOpen && quotation && invList && (
         <InvoiceModal
           quotationId={quotationId}
@@ -835,7 +839,10 @@ export default function QuotationDetail() {
                       <span className="text-subtle ml-2">PO: {(pi.po_refs || []).map((p) => `${p.po_number}${p.po_date ? ` (${p.po_date})` : ''}`).join(', ')}</span>
                     )}
                   </div>
-                  <span className="text-fg text-[12px] capitalize">{pi.status}</span>
+                  <span className="flex items-center gap-3">
+                    <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setEditingPi(pi)} title="Change the PI number or date">Edit</button>
+                    <span className="text-fg text-[12px] capitalize">{pi.status}</span>
+                  </span>
                 </div>
               ))}
             </div>

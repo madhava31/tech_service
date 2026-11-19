@@ -7,6 +7,7 @@ import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
 import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
+import { PIEditModal } from '../components/PIEditModal';
 
 const PAGE_SIZE = 20;
 
@@ -55,9 +56,11 @@ export default function PerformaInvoices() {
   const [statusFilter, setStatusFilter] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState<PerformaInvoice | null>(null);
 
+  const load = () => api.performaInvoices.list().then(setRows).catch((e) => setError(e.message));
   useEffect(() => {
-    api.performaInvoices.list().then(setRows).catch((e) => setError(e.message));
+    load();
   }, []);
 
   useEffect(() => {
@@ -242,6 +245,14 @@ export default function PerformaInvoices() {
                       <span className={`ts-st ts-${String(pi.status).toLowerCase().replace(/\s+/g, '_')}`}>{pi.status}</span>
                     </td>
                     <td className="p-[11px_10px] text-right">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(pi)}
+                        className="mr-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline"
+                        title="Change the PI number or date"
+                      >
+                        Edit
+                      </button>
                       <a
                         href={api.performaInvoices.pdfUrl(pi.id)}
                         target="_blank"
@@ -259,7 +270,7 @@ export default function PerformaInvoices() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="ts-empty">
+                  <td colSpan={7} className="ts-empty">
                     No performa invoices found.
                   </td>
                 </tr>
@@ -268,6 +279,8 @@ export default function PerformaInvoices() {
           </table>
         </div>
       </section>
+
+      {editing && <PIEditModal pi={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
 
       {/* Pagination Footer */}
       <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
