@@ -471,17 +471,22 @@ export async function buildQuotationExport(query, scope = {}) {
                   qi.hsn_sac AS hsn_code, COALESCE(qi.qty, 0)::float8 AS item_qty,
                   COALESCE(qi.actual_unit_price, qi.price, 0)::float8 AS list_price,
                   COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0)::float8 AS price_after_discount,
-                  COALESCE(qi.final_line_total, qi.qty * COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0), 0)::float8 AS line_total
+                  COALESCE(qi.final_line_total, qi.qty * COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0), 0)::float8 AS line_total,
+                  (to_jsonb(q2) ->> 'pricing_mode') = 'lump_sum' AS _lump_sum
              FROM quotation_item qi
+             JOIN quotation q2 ON q2.id = qi.quotation_id
             WHERE qi.quotation_id = ANY(?::int[])
             ORDER BY qi.quotation_id ASC, qi.id`
         )
         .all(rows.map((r) => r._id));
       const byQuotation = new Map();
       for (const it of items) {
-        const { _qid, ...rest } = it;
+        const { _qid, _lump_sum, ...rest } = it;
         // Discount per unit: list price minus the price after discount (product and overall discount together).
         rest.item_discount = Math.round((Number(rest.list_price) - Number(rest.price_after_discount)) * 100) / 100;
+        // A lump-sum quotation has one package price: the lines only hold a split of it, which is not a real unit price,
+        // so their price columns stay blank (the quotation's Total Value column still shows the package price).
+        if (_lump_sum) { rest.list_price = null; rest.item_discount = null; rest.price_after_discount = null; rest.line_total = null; }
         if (!byQuotation.has(_qid)) byQuotation.set(_qid, []);
         byQuotation.get(_qid).push(rest);
       }

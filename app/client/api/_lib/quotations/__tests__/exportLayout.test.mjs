@@ -15,6 +15,7 @@ const QUOTES = [
 const ITEMS = [
   { _qid: 2, part_no: 'P-1', item_description: 'Vial', hsn_code: '7017', item_qty: 2, list_price: 500, price_after_discount: 450, line_total: 900 },
   { _qid: 2, part_no: 'P-2', item_description: 'Cap', hsn_code: '3923', item_qty: 1, list_price: 100, price_after_discount: 100, line_total: 100 },
+  { _qid: 1, part_no: 'L-1', item_description: 'Instrument part', hsn_code: '9027', item_qty: 1, list_price: 564452, price_after_discount: 564452, line_total: 564452, _lump_sum: true },
 ];
 
 async function sheet(query, scope = {}) {
@@ -60,6 +61,16 @@ describe('one row per product', () => {
     assert.deepEqual(rows[2].slice(1, 9), ['Q-2', 'Laurus Labs', 'P-1', 2, 500, 50, 450, 900]);
     assert.deepEqual(rows[3].slice(1, 4), ['Q-2', 'Laurus Labs', 'P-2']);
     assert.equal(rows[3][6], 0, 'no discount on P-2');
+  });
+
+  test('a lump-sum quotation lists its products but leaves their prices blank (the lines only hold a split of one package price)', async () => {
+    const rows = await sheet({ layout: '2', columns: 'quotation_number,part_no,item_qty,list_price,item_discount,price_after_discount,line_total' }, { clean: true });
+    const lump = rows.find((r) => r[0] === 'Q-1');
+    assert.equal(lump[1], 'L-1');
+    assert.equal(lump[2], 1, 'the quantity is kept');
+    assert.deepEqual(lump.slice(3, 7).map((v) => v ?? ''), ['', '', '', ''], 'no list price, discount, price after discount or total price');
+    const normal = rows.find((r) => r[0] === 'Q-2' && r[1] === 'P-1');
+    assert.equal(normal[3], 500, 'a normal quotation keeps its prices');
   });
 
   test('without product columns the sheet stays one row per quotation', async () => {
