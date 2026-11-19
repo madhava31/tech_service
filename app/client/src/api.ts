@@ -389,6 +389,8 @@ export interface QuotationInvoice {
   created_at: string;
   created_by_username: string | null;
   invoiced_items: number;
+  /** The stock that left the warehouse with this invoice. */
+  stock_movements?: { product_id: number; part_no: string | null; qty: number; warehouse_name: string }[];
   items: { quotation_invoice_id: number; quotation_item_id: number; qty: number; part_no: string | null; description: string; quoted_qty: number }[];
 }
 export interface QuotationInvoiceList {
@@ -1334,8 +1336,11 @@ export const api = {
     },
     invoices: {
       list: (id: number) => request<QuotationInvoiceList>(`/quotations/${id}/invoices`),
-      create: async (id: number, data: { invoice_number: string; invoice_date?: string; payment_due_date?: string; notes?: string; items: { quotation_item_id: number; qty: number }[] }) => {
-        const res = await request<{ id: number; invoice_number: string; payment_due_date: string; invoiced_items: number }>(`/quotations/${id}/invoices`, { method: 'POST', body: JSON.stringify(data) });
+      /** Stock on hand and available of each line, in the warehouse (the default one when none is given). */
+      stock: (id: number, warehouseId?: number) =>
+        request<{ warehouse: { id: number; name: string } | null; items: { quotation_item_id: number; tracked: boolean; on_hand: number; available: number }[] }>(`/quotations/${id}/invoice-stock${warehouseId ? `?warehouseId=${warehouseId}` : ''}`),
+      create: async (id: number, data: { invoice_number: string; invoice_date?: string; payment_due_date?: string; notes?: string; warehouse_id?: number; items: { quotation_item_id: number; qty: number }[] }) => {
+        const res = await request<{ id: number; invoice_number: string; payment_due_date: string; invoiced_items: number; stock?: { warehouse: string | null; deducted: number; untracked: number } }>(`/quotations/${id}/invoices`, { method: 'POST', body: JSON.stringify(data) });
         clearCache('quotations');
         return res;
       },

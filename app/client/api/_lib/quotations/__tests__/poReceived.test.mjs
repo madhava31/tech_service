@@ -100,7 +100,7 @@ describe('quotation export rows and layout', () => {
     const real = db2.prepare;
     db2.prepare = () => ({ all: async () => rowsFor().map((r) => ({ ...r })).reverse(), get: async () => ({ n: 0 }) });
     try {
-      const { buffer } = await buildQuotationExport({ columns: 'quotation_number,customer_name,status' }, scope);
+      const { buffer } = await buildQuotationExport({ columns: 'quotation_number,customer_name,status', layout: '2' }, scope);
       const wb = new ExcelJS.Workbook();
       await wb.xlsx.load(buffer);
       return wb.getWorksheet('Quotations');
@@ -120,7 +120,7 @@ describe('quotation export rows and layout', () => {
 
   test('the live-link layout has the column names in row 1 and the data right below, with no title block', async () => {
     const ws = await build({ clean: true });
-    assert.deepEqual([1, 2, 3].map((c) => ws.getRow(1).getCell(c).value), ['Quotation No', 'Customer', 'Status']);
+    assert.deepEqual([1, 2, 3].map((c) => ws.getRow(1).getCell(c).value), ['Quotation No', 'Company Name', 'Status']);
     assert.equal(ws.getRow(2).getCell(1).value, 'Q-643');
     assert.equal(ws.getRow(2).getCell(3).value, 'PO received');
     assert.equal(ws.getRow(2).getCell(1).fill?.fgColor?.argb, 'FFC6EFCE');

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { api, type QuotationItem } from '../api';
+import { api, type QuotationItem, type Warehouse } from '../api';
 import { showToast } from '../lib/savePdf';
 
 const addDays = (iso: string, days: number) => {
@@ -48,6 +48,10 @@ export function InvoiceModal({
   const leftOf = (it: QuotationItem) => Math.max(0, limitOf(it) - (invoiced[it.id as number] || 0));
   const lines = items.filter((it) => it.id !== undefined && limitOf(it) > 0);
   const [rows, setRows] = useState(() => lines.map((it) => ({ id: it.id as number, checked: leftOf(it) > 0, qty: String(leftOf(it) || '') })));
+  // The warehouse the goods leave from, and the stock each line has there.
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [warehouseId, setWarehouseId] = useState<number | ''>('');
+  const [stock, setStock] = useState<Record<number, { tracked: boolean; on_hand: number; available: number }> | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -59,6 +63,22 @@ export function InvoiceModal({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  useEffect(() => {
+    api.inventory.listWarehouses(true).then((w) => setWarehouses(w)).catch(() => {});
+  }, []);
+  useEffect(() => {
+    let live = true;
+    api.quotations.invoices
+      .stock(quotationId, warehouseId === '' ? undefined : warehouseId)
+      .then((r) => {
+        if (!live) return;
+        setStock(Object.fromEntries(r.items.map((x) => [x.quotation_item_id, { tracked: x.tracked, on_hand: x.on_hand, available: x.available }])));
+        if (warehouseId === '' && r.warehouse) setWarehouseId(r.warehouse.id);
+      })
+      .catch(() => { if (live) setStock(null); });
+    return () => { live = false; };
+  }, [quotationId, warehouseId]);
 
   // The payment due date follows the invoice date until the user changes it by hand.
   const changeInvoiceDate = (v: string) => {
@@ -79,18 +99,28 @@ export function InvoiceModal({
     if (dueDate < invoiceDate) return setError('The payment due date cannot be before the invoice date.');
     if (chosen.length === 0) return setError('Tick at least one item on this invoice.');
     if (chosen.some((r) => !(Number(r.qty) > 0))) return setError('Every ticked item needs a quantity above 0.');
+    // Stock: items linked to a product leave the warehouse, so there must be enough there.
+    const tracked = chosen.filter((r) => stock?.[r.id]?.tracked);
+    if (tracked.length && warehouseId === '') return setError('Choose the warehouse the goods leave from.');
+    const short = tracked.find((r) => Number(r.qty) > (stock?.[r.id]?.available ?? 0));
+    if (short) {
+      const it = lines.find((x) => x.id === short.id);
+      return setError(`${it?.part_no || 'An item'}: only ${stock?.[short.id]?.available ?? 0} in stock here, but the invoice needs ${short.qty}.`);
+    }
     setError('');
     savingRef.current = true;
     setSaving(true);
     try {
-      await api.quotations.invoices.create(quotationId, {
+      const res = await api.quotations.invoices.create(quotationId, {
         invoice_number: invoiceNumber.trim(),
         invoice_date: invoiceDate,
         payment_due_date: dueDate,
+        warehouse_id: warehouseId === '' ? undefined : warehouseId,
         notes: notes.trim() || undefined,
         items: chosen.map((r) => ({ quotation_item_id: r.id, qty: Number(r.qty) })),
       });
-      showToast(`Invoice ${invoiceNumber.trim()} recorded for ${quotationNumber}. Payment due ${dueDate}.`);
+      const out = res?.stock?.deducted ? ` ${res.stock.deducted} ${res.stock.deducted === 1 ? 'item' : 'items'} taken out of ${res.stock.warehouse}.` : '';
+      showToast(`Invoice ${invoiceNumber.trim()} recorded for ${quotationNumber}. Payment due ${dueDate}.${out}`);
       onSaved();
       onClose();
     } catch (err) {
@@ -133,6 +163,15 @@ export function InvoiceModal({
           </div>
         </div>
 
+        <div className="ts-fld">
+          <label htmlFor="inv-wh">Goods leave from (warehouse)</label>
+          <select id="inv-wh" className="ts-fi" value={warehouseId} onChange={(e) => setWarehouseId(e.target.value ? Number(e.target.value) : '')}>
+            {warehouseId === '' && <option value="">Loading…</option>}
+            {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+          <small className="ts-hint">The quantities on this invoice are taken out of this warehouse's stock when you save.</small>
+        </div>
+
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <b className="text-[13px] text-fg">Items on this invoice ({chosen.length} of {rows.length})</b>
@@ -161,6 +200,11 @@ export function InvoiceModal({
                         {hasOrders ? 'Ordered' : 'Quoted'} {limitOf(it)}
                         {invoiced[it.id as number] ? ` · already invoiced ${invoiced[it.id as number]}` : ''} · left {left}
                       </small>
+                      {stock && (
+                        <small className={`block text-[11.5px] ${stock[it.id as number]?.tracked && r.checked && Number(r.qty) > (stock[it.id as number]?.available ?? 0) ? 'text-bad' : 'text-subtle'}`}>
+                          {stock[it.id as number]?.tracked ? `In stock here: ${stock[it.id as number].available}` : 'Not tracked in stock'}
+                        </small>
+                      )}
                     </span>
                     {/* .ts-fi is width:100%, so the width is set on a wrapper that cannot shrink or grow */}
                     <span className="shrink-0" style={{ width: 96 }}>

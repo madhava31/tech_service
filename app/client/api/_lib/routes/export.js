@@ -295,20 +295,13 @@ const QUOTATION_EXPORT_COLUMNS = [
   { key: 'ordered_value', header: 'Ordered Value excl. GST (₹)', type: 'currency', align: 'right', minWidth: 24, def: true, po: true },
 ];
 
-// Live Excel links made before the product rows (no layout=2 in the link) keep their old column names, order and one
-// row per quotation: Excel finds the columns of a refreshed sheet by name, so renaming them would break those sheets.
-const LEGACY_HEADERS = { customer_name: 'Customer', contact_person: 'Contact Person', contact_phone: 'Contact Phone', contact_email: 'Contact Email' };
-const LEGACY_ORDER = ['quotation_number', 'quotation_date', 'customer_name', 'company_address', 'customer_state', 'contact_person', 'contact_phone', 'contact_email'];
-export function exportColumnsFor(available, asked, legacy) {
-  const pool = legacy ? available.filter((c) => !c.item) : available;
-  const picked = asked.length ? pool.filter((c) => asked.includes(c.key)) : pool.filter((c) => c.def);
-  const cols = picked.length ? picked : pool.filter((c) => c.def);
-  if (!legacy) return cols;
-  const rank = (k) => { const i = LEGACY_ORDER.indexOf(k); return i < 0 ? LEGACY_ORDER.length : i; };
-  return cols
-    .map((c, i) => ({ c, i }))
-    .sort((a, b) => rank(a.c.key) - rank(b.c.key) || a.i - b.i)
-    .map(({ c }) => (LEGACY_HEADERS[c.key] ? { ...c, header: LEGACY_HEADERS[c.key] } : c));
+// Live Excel links made before the product rows list only the old columns. They are upgraded to the current layout:
+// the product columns are added to whatever the link asked for, and every column follows the catalogue order and names.
+// (A link keeps working; Excel only has to be pointed at the new column names once if its query refers to the old ones.)
+export function exportColumnsFor(available, asked, upgrade) {
+  const wanted = (c) => asked.includes(c.key) || (upgrade && asked.length > 0 && c.item && c.def);
+  const picked = asked.length ? available.filter(wanted) : available.filter((c) => c.def);
+  return picked.length ? picked : available.filter((c) => c.def);
 }
 
 /** Splits quotation rows into one row per product. A quotation without products keeps a single row. */
@@ -465,9 +458,9 @@ export async function buildQuotationExport(query, scope = {}) {
 
     const available = QUOTATION_EXPORT_COLUMNS.filter((c) => (po || !c.po) && (rev || !c.rev));
     const asked = String(query.columns || '').split(',').map((k) => k.trim()).filter(Boolean);
-    // Downloads always use the current layout; a live link only when it was made with it (layout=2).
-    const legacy = !!scope.clean && String(query.layout || '') !== '2';
-    const columns = exportColumnsFor(available, asked, legacy);
+    // A live link made before the product rows gets the product columns added (layout=2 marks links that already have them).
+    const upgrade = !!scope.clean && String(query.layout || '') !== '2';
+    const columns = exportColumnsFor(available, asked, upgrade);
 
     // One row per product when any product column is in the sheet.
     let sheetRows = rows;

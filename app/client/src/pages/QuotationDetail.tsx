@@ -540,7 +540,7 @@ export default function QuotationDetail() {
                     className="ts-btn ts-ghost ts-xs"
                     disabled={invBusy === inv.id}
                     onClick={async () => {
-                      if (!window.confirm(`Remove invoice ${inv.invoice_number} from this quotation?`)) return;
+                      if (!window.confirm(`Remove invoice ${inv.invoice_number} from this quotation?${(inv.stock_movements || []).length ? ' The stock it took out of the warehouse will be put back.' : ''}`)) return;
                       setInvBusy(inv.id);
                       try { await api.quotations.invoices.remove(quotationId, inv.id); load(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not remove the invoice'); } finally { setInvBusy(null); }
                     }}
@@ -551,6 +551,11 @@ export default function QuotationDetail() {
                 <div className="mt-1.5 text-[12.5px] text-subtle">
                   {inv.items.map((it) => `${it.part_no || it.description} × ${it.qty}`).join('  ·  ')}
                 </div>
+                {(inv.stock_movements || []).length > 0 && (
+                  <div className="mt-1 text-[12px] text-subtle">
+                    Stock out of {inv.stock_movements![0].warehouse_name}: {inv.stock_movements!.map((m) => `${m.part_no || 'item'} −${m.qty}`).join('  ·  ')}
+                  </div>
+                )}
                 {inv.notes && <div className="mt-1 text-[12px] text-faint">{inv.notes}</div>}
               </div>
             ))}

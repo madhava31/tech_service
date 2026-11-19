@@ -78,21 +78,28 @@ describe('one row per product', () => {
   });
 });
 
-describe('live links made before this change keep their layout', () => {
-  test('an old link (no layout=2): old names, old order, no product columns, one row per quotation', async () => {
-    const rows = await sheet({ columns: 'quotation_number,quotation_date,customer_name,contact_person,contact_phone,contact_email,status,part_no' }, { clean: true });
-    assert.deepEqual(rows[0], ['Quotation No', 'Date', 'Customer', 'Contact Person', 'Contact Phone', 'Contact Email', 'Status']);
-    assert.equal(rows.length, 3, 'header + one row per quotation');
+describe('live links made before this change are upgraded to the new layout', () => {
+  test('an old link (the columns of the old sheet, no layout=2) now gets the new order, names and product columns', async () => {
+    const rows = await sheet({ columns: 'quotation_number,quotation_date,customer_name,contact_person,contact_phone,contact_email,status' }, { clean: true });
+    assert.deepEqual(rows[0], [
+      'Date', 'Quotation No', 'Company Name', 'Part Number', 'Description', 'HSN Code', 'Quantity',
+      'List Price (₹)', 'Discount (₹)', 'Price After Discount (₹)', 'Total Price (₹)', 'Customer Name', 'Phone Number', 'Email ID', 'Status',
+    ]);
+    assert.equal(rows.length, 4, 'header + one row per product (Q-1 has none and keeps a single row)');
+    assert.equal(rows[1][1], 'Q-1', 'oldest first');
+    assert.equal(rows[2][3], 'P-1');
   });
 
-  test('a new link (layout=2) gets the new names and order', async () => {
+  test('a link that already has layout=2 keeps exactly the columns it asked for', async () => {
     const rows = await sheet({ layout: '2', columns: 'quotation_number,quotation_date,customer_name,contact_person' }, { clean: true });
     assert.deepEqual(rows[0], ['Date', 'Quotation No', 'Company Name', 'Customer Name']);
   });
 
-  test('exportColumnsFor falls back to the defaults when nothing valid is asked', () => {
-    const cols = [{ key: 'a', def: true }, { key: 'b', def: false, item: true }];
-    assert.deepEqual(exportColumnsFor(cols, ['zzz'], false).map((c) => c.key), ['a']);
-    assert.deepEqual(exportColumnsFor(cols, ['b'], true).map((c) => c.key), ['a'], 'an old link cannot ask for product columns');
+  test('exportColumnsFor: the defaults when nothing valid is asked; product defaults are added only when upgrading', () => {
+    const cols = [{ key: 'a', def: true }, { key: 'b', def: true, item: true }, { key: 'c', def: false, item: true }];
+    assert.deepEqual(exportColumnsFor(cols, ['zzz'], false).map((c) => c.key), ['a', 'b']);
+    assert.deepEqual(exportColumnsFor(cols, ['a'], false).map((c) => c.key), ['a']);
+    assert.deepEqual(exportColumnsFor(cols, ['a'], true).map((c) => c.key), ['a', 'b'], 'an old link gets the default product columns');
+    assert.deepEqual(exportColumnsFor(cols, ['a', 'c'], true).map((c) => c.key), ['a', 'b', 'c']);
   });
 });
