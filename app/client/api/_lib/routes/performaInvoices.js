@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { nextNumber } from '../db/numbering.js';
 import { streamPerformaInvoicePdf } from '../pdf/documents.js';
+import { loadPoRefs } from '../quotations/poRefs.js';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ async function fullPI(id) {
               po.number AS po_number, po.client_po_ref,
               c.name AS company_name, c.address AS company_address, c.state AS company_state,
               c.gstin AS company_gstin, c.phone AS company_phone, u.username AS created_by_username,
+              e.name AS sales_engineer_name,
               -- Contact and payment terms chosen on the quotation (migration 004); NULL before it is applied.
               to_jsonb(q) ->> 'contact_person' AS contact_person, to_jsonb(q) ->> 'contact_phone' AS contact_phone,
               to_jsonb(q) ->> 'contact_email' AS contact_email, to_jsonb(q) ->> 'advance_percent' AS advance_percent,
@@ -21,11 +23,14 @@ async function fullPI(id) {
        JOIN company c ON c.id = q.company_id
        LEFT JOIN purchase_order po ON po.id = pi.purchase_order_id
        LEFT JOIN app_user u ON u.id = q.created_by_user_id
+       LEFT JOIN sales_engineer e ON e.id = q.sales_engineer_id
        WHERE pi.id = ?`
     )
     .get(id);
   if (!pi) return null;
   const items = await db.prepare(`SELECT * FROM quotation_item WHERE quotation_id = ? ORDER BY id`).all(pi.quotation_id);
+  // The customer's PO number(s) and date(s): the PI is raised against them, not against the quotation.
+  pi.po_refs = (await loadPoRefs([pi.quotation_id])).get(Number(pi.quotation_id)) || [];
   return { pi, items };
 }
 
@@ -40,7 +45,8 @@ router.get('/', async (req, res) => {
          ORDER BY pi.id DESC`
       )
       .all();
-    res.json(rows);
+    const refs = await loadPoRefs(rows.map((r) => r.quotation_id));
+    res.json(rows.map((r) => ({ ...r, po_refs: refs.get(Number(r.quotation_id)) || [] })));
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }

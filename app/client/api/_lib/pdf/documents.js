@@ -1,3 +1,4 @@
+import { piReferenceLines } from '../quotations/poRefs.js';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
@@ -522,7 +523,7 @@ export function streamQuotationPdf(res, { quotation, items, settings }) {
     roundOff: quotation.round_off,
     total: quotation.total,
     settings,
-    createdByUsername: quotation.created_by_username,
+    createdByUsername: quotation.sales_engineer_name || quotation.created_by_username,
   });
 }
 
@@ -536,7 +537,7 @@ export function streamPurchaseOrderPdf(res, { po, items, settings }) {
     subtotal: po.subtotal,
     taxPercent: po.tax_percent,
     settings,
-    createdByUsername: po.created_by_username,
+    createdByUsername: po.sales_engineer_name || po.created_by_username,
     extraDetailLines: [
       `Against Quotation: ${po.quotation_number}`,
       po.client_po_ref ? `Client PO Reference: ${po.client_po_ref}` : null,
@@ -554,10 +555,8 @@ export function streamPerformaInvoicePdf(res, { pi, items, settings }) {
     subtotal: pi.subtotal,
     taxPercent: pi.tax_percent,
     settings,
-    createdByUsername: pi.created_by_username,
-    extraDetailLines: [
-      `Against Quotation: ${pi.quotation_number}`,
-      pi.po_number ? `Against Purchase Order: ${pi.po_number}` : null,
-    ].filter(Boolean),
+    createdByUsername: pi.sales_engineer_name || pi.created_by_username,
+    // Raised against the customer's PO: its number and date (the quotation number only when no PO is recorded).
+    extraDetailLines: piReferenceLines(pi.po_refs, pi.quotation_number, formatDateNumeric),
   });
 }

@@ -786,6 +786,8 @@ export interface PerformaInvoice {
   company_name?: string;
   status: string;
   total?: number;
+  /** The customer's PO number(s) and date(s) this PI is raised against. */
+  po_refs?: { po_number: string; po_date: string | null }[];
 }
 
 export interface QuotationFollowUp {

@@ -75,7 +75,8 @@ export default function PerformaInvoices() {
       if (q) {
         const number = (r.number || '').toLowerCase();
         const company = (r.company_name || '').toLowerCase();
-        if (!number.includes(q) && !company.includes(q)) return false;
+        const poNumbers = (r.po_refs || []).map((p) => p.po_number.toLowerCase()).join(' ');
+        if (!number.includes(q) && !company.includes(q) && !poNumbers.includes(q)) return false;
       }
       return true;
     });
@@ -199,7 +200,10 @@ export default function PerformaInvoices() {
                   Customer
                 </th>
                 <th>
-                  Linked quote
+                  PO number
+                </th>
+                <th>
+                  PO date
                 </th>
                 <th>
                   Issued
@@ -220,9 +224,18 @@ export default function PerformaInvoices() {
                     <td className="p-[11px_10px] font-medium text-fg">{pi.number}</td>
                     <td className="p-[11px_10px] text-fg">{pi.company_name || '—'}</td>
                     <td className="p-[11px_10px] text-subtle">
-                      <Link to={`/quotations/${pi.quotation_id}`} className="text-fg hover:underline">
-                        {pi.quotation_number}
-                      </Link>
+                      {(pi.po_refs || []).length > 0 ? (
+                        <Link to={`/quotations/${pi.quotation_id}`} className="text-fg hover:underline">
+                          {(pi.po_refs || []).map((p) => p.po_number).join(', ')}
+                        </Link>
+                      ) : (
+                        <Link to={`/quotations/${pi.quotation_id}`} className="text-subtle hover:underline" title="No PO recorded yet, so the quotation is shown">
+                          {pi.quotation_number}
+                        </Link>
+                      )}
+                    </td>
+                    <td className="p-[11px_10px] text-subtle">
+                      {(pi.po_refs || []).length > 0 ? (pi.po_refs || []).map((p) => (p.po_date ? fmtDay(p.po_date) : '—')).join(', ') : '—'}
                     </td>
                     <td className="p-[11px_10px] text-subtle">{fmtDay(pi.date)}</td>
                     <td className="p-[11px_10px] text-right">

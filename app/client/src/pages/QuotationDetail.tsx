@@ -831,6 +831,9 @@ export default function QuotationDetail() {
                   <div>
                     <span className="font-bold text-fg">{pi.number}</span>
                     <span className="text-subtle ml-2">Date: {pi.date}</span>
+                    {(pi.po_refs || []).length > 0 && (
+                      <span className="text-subtle ml-2">PO: {(pi.po_refs || []).map((p) => `${p.po_number}${p.po_date ? ` (${p.po_date})` : ''}`).join(', ')}</span>
+                    )}
                   </div>
                   <span className="text-fg text-[12px] capitalize">{pi.status}</span>
                 </div>
