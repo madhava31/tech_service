@@ -154,7 +154,7 @@ export function InvoiceModal({
                 const left = leftOf(it);
                 return (
                   <label key={it.id} className={`flex items-center gap-3 rounded-lg border border-line2 px-3 py-2 ${r.checked ? 'bg-surface' : ''}`}>
-                    <input type="checkbox" checked={r.checked} onChange={(e) => setRow(r.id, { checked: e.target.checked })} />
+                    <input type="checkbox" className="shrink-0" checked={r.checked} onChange={(e) => setRow(r.id, { checked: e.target.checked })} />
                     <span className="flex-1 min-w-0 text-[13px]">
                       <b className="text-fg">{it.part_no || '—'}</b> <span className="text-subtle">{it.description}</span>
                       <small className="block text-[11.5px] text-subtle">
@@ -162,16 +162,19 @@ export function InvoiceModal({
                         {invoiced[it.id as number] ? ` · already invoiced ${invoiced[it.id as number]}` : ''} · left {left}
                       </small>
                     </span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      className="ts-fi !py-1.5 w-24"
-                      aria-label={`Quantity of ${it.part_no || it.description}`}
-                      value={r.qty}
-                      disabled={!r.checked}
-                      onChange={(e) => setRow(r.id, { qty: e.target.value })}
-                    />
+                    {/* .ts-fi is width:100%, so the width is set on a wrapper that cannot shrink or grow */}
+                    <span className="shrink-0" style={{ width: 96 }}>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        className="ts-fi !py-1.5"
+                        aria-label={`Quantity of ${it.part_no || it.description}`}
+                        value={r.qty}
+                        disabled={!r.checked}
+                        onChange={(e) => setRow(r.id, { qty: e.target.value })}
+                      />
+                    </span>
                   </label>
                 );
               })}
