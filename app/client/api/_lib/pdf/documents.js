@@ -287,7 +287,7 @@ function drawItemsTable(doc, items, defaultTaxPercent, fonts) {
     const hDesc = doc.heightOfString(it.description || '', { width: COLUMNS.desc.width - 4 });
     const hCode = doc.heightOfString(it.part_no || '', { width: COLUMNS.code.width - 4 });
     const hHsn  = doc.heightOfString(it.hsn_sac || '', { width: COLUMNS.hsn.width - 4 });
-    const hGst  = doc.heightOfString(`₹ ${formatNum(gstAmt)}\n(${taxPercent}%)`, { width: COLUMNS.gst.width - 4 });
+    const hGst  = doc.heightOfString(`₹ ${formatNum(gstAmt)}`, { width: COLUMNS.gst.width - 4 });
     const rowH = Math.max(28, hDesc + 6, hCode + 6, hHsn + 6, hGst + 6);
 
     // Multi-page handling (Requirement #27)
@@ -305,7 +305,7 @@ function drawItemsTable(doc, items, defaultTaxPercent, fonts) {
     doc.text(it.unit || 'Nos', colX.unit + 2, y, { width: COLUMNS.unit.width - 4, align: COLUMNS.unit.align });
     doc.text(formatCurrency(it.price), colX.price + 2, y, { width: COLUMNS.price.width - 4, align: COLUMNS.price.align });
     doc.text(formatCurrency(taxable), colX.taxable + 2, y, { width: COLUMNS.taxable.width - 4, align: COLUMNS.taxable.align });
-    doc.text(`₹ ${formatNum(gstAmt)}\n(${taxPercent}%)`, colX.gst + 2, y, { width: COLUMNS.gst.width - 4, align: COLUMNS.gst.align });
+    doc.text(`₹ ${formatNum(gstAmt)}`, colX.gst + 2, y, { width: COLUMNS.gst.width - 4, align: COLUMNS.gst.align });
     doc.text(formatCurrency(lineTotal), colX.amount + 2, y, { width: COLUMNS.amount.width - 4, align: COLUMNS.amount.align });
 
     y += rowH;

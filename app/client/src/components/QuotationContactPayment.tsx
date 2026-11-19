@@ -59,7 +59,7 @@ export function QuotationContactPayment({
       <div className="ts-fld">
         <div className="ts-fl">
           <label>Contact person</label>
-          <span>{hasCompany ? (contactId || (adding && draft.name.trim()) ? '✓ Selected' : 'Required') : 'Pick a customer first'}</span>
+          <span>{hasCompany ? (contactId || (adding && draft.name.trim()) ? '✓ Selected' : 'Optional') : 'Pick a customer first'}</span>
         </div>
         {!hasCompany && <small className="ts-hint">Select the customer above to see its saved contact persons.</small>}
         {hasCompany && contactsLoading && <small className="ts-hint">Loading contact persons…</small>}
@@ -108,11 +108,11 @@ export function QuotationContactPayment({
               <div className="rounded-lg border border-line2 bg-surface2 p-3">
                 <div className="ts-fgrid ts-g3">
                   <div className="ts-fld">
-                    <label htmlFor="q-cname">Contact person name *</label>
+                    <label htmlFor="q-cname">Contact person name</label>
                     <input id="q-cname" className="ts-fi" maxLength={120} value={draft.name} onChange={(e) => onDraftChange({ ...draft, name: e.target.value })} placeholder="e.g. Ramesh Kumar" autoFocus />
                   </div>
                   <div className="ts-fld">
-                    <label htmlFor="q-cphone">Contact number *</label>
+                    <label htmlFor="q-cphone">Contact number</label>
                     <input id="q-cphone" className="ts-fi" type="tel" maxLength={40} value={draft.phone} onChange={(e) => onDraftChange({ ...draft, phone: e.target.value })} placeholder="e.g. 98765 43210" />
                   </div>
                   <div className="ts-fld">
@@ -120,7 +120,7 @@ export function QuotationContactPayment({
                     <input id="q-cemail" className="ts-fi" type="email" maxLength={160} value={draft.email} onChange={(e) => onDraftChange({ ...draft, email: e.target.value })} placeholder="name@company.com" />
                   </div>
                 </div>
-                <small className="ts-hint">Saved to this customer when you save the quotation. Existing contacts are not changed.</small>
+                <small className="ts-hint">All optional. Saved to this customer when you save the quotation if you enter a name. Existing contacts are not changed.</small>
                 {contacts.length > 0 && (
                   <div className="mt-2">
                     <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => { onAddingChange(false); onDraftChange({ name: '', phone: '', email: '' }); }}>

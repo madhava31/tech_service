@@ -12,6 +12,7 @@ import { requireInvoices, listInvoices, createInvoice, deleteInvoice, invoiceSto
 import { resolveUserId } from '../db/inventorySchema.js';
 import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, dropUnchangedRevision, listRevisions } from '../quotations/negotiation.js';
 import { requireSalesTeam, getSalesTeam, saveSalesTeam, validateTeam, setTeamFromIds, salesTeamReady } from '../quotations/salesTeam.js';
+import { defaultTerms, saveCustomTerms, storedTerms } from '../quotations/terms.js';
 import { collectPdf } from '../pdf/pdfBuffer.js';
 import { createSendEmailHandler, requireAdminRole } from '../mail/sendEmailHandler.js';
 import { getMailProvider, getSender } from '../mail/index.js';
@@ -549,6 +550,26 @@ function enrichQuotationFirm(quotation) {
   };
 }
 
+/**
+ * GET /api/quotations/terms-defaults?advance_percent=&payment_due_days=
+ * The standard Terms & Conditions the quotation form shows (and the PDF prints unless the user edits them).
+ * Registered before '/:id' so "terms-defaults" is not read as a quotation id.
+ */
+router.get('/terms-defaults', async (req, res) => {
+  try {
+    const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
+    const adv = req.query.advance_percent;
+    const days = req.query.payment_due_days;
+    const q = {
+      advance_percent: adv !== undefined && adv !== '' && Number.isFinite(Number(adv)) ? Number(adv) : undefined,
+      payment_due_days: days !== undefined && days !== '' && Number.isFinite(Number(days)) ? Number(days) : undefined,
+    };
+    res.json({ terms: defaultTerms(q, settings) });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Something went wrong. Please try again.');
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const rawQuotation = await db
@@ -690,6 +711,7 @@ router.post('/', moduleGuard, async (req, res) => {
       const qId = info.lastInsertRowid;
       await savePricingMode(qId, req.body, lumpSum);
       await applyQuotationContactAndTerms(qId, finalCompanyId, req.body, req.user.id, { isNew: true });
+      if (req.body.custom_terms !== undefined) await saveCustomTerms(qId, req.body.custom_terms);
       if (Array.isArray(req.body.co_sales_engineer_ids) && req.body.co_sales_engineer_ids.length) {
         await setTeamFromIds(qId, sales_engineer_id, req.body.co_sales_engineer_ids);
       }
@@ -870,6 +892,7 @@ router.put('/:id', moduleGuard, async (req, res) => {
         await db.prepare(`UPDATE quotation SET number = ? WHERE id = ?`).run(newNumber, req.params.id);
       }
       await applyQuotationContactAndTerms(req.params.id, finalCompanyId, req.body, req.user.id);
+      if (req.body.custom_terms !== undefined) await saveCustomTerms(req.params.id, req.body.custom_terms);
       if (Array.isArray(req.body.co_sales_engineer_ids)) {
         const primary = sales_engineer_id !== undefined ? sales_engineer_id : existing.sales_engineer_id;
         await setTeamFromIds(req.params.id, primary, req.body.co_sales_engineer_ids);
@@ -1216,19 +1239,22 @@ async function legacyForApprovedLayout(quotation, items, settings = {}) {
       final_line_total: Number(it.final_line_total ?? it.amount ?? unit * qty),
     };
   });
-  const s = settings || {};
-  const terms = [
-    // Payment terms set on the quotation (migration 004) win over the global text in settings.
-    quotation.advance_percent !== undefined && quotation.advance_percent !== null
-      ? { label: 'Payment', text: paymentTermsText(quotation.advance_percent, quotation.payment_due_days) }
-      : s.payment_terms ? { label: 'Payment', text: String(s.payment_terms) } : null,
-    s.delivery_time ? { label: 'Delivery', text: String(s.delivery_time) } : null,
-    { label: 'Validity', text: `${Number(s.quotation_validity_days) || 15} days from the quotation date` },
-  ].filter(Boolean);
+  // Payment terms set on the quotation (migration 004) win over the global text in settings.
+  const terms = defaultTerms(quotation, settings);
   return {
     quotation: { ...quotation, terms, subtotal: Number(quotation.subtotal_after_product_discounts ?? quotation.subtotal ?? 0) },
     items: lines,
   };
+}
+
+/**
+ * What the PDF prints: the approved layout of the quotation, with the terms the user edited on the form when it has any,
+ * else the standard terms (payment, delivery, validity).
+ */
+export async function printableForPdf(quotation, items, settings) {
+  const base = await legacyForApprovedLayout(quotation, items, settings);
+  const edited = storedTerms(quotation.terms);
+  return edited === null ? base : { ...base, quotation: { ...base.quotation, terms: edited } };
 }
 
 router.get('/:id/pdf', async (req, res) => {
@@ -1244,9 +1270,7 @@ router.get('/:id/pdf', async (req, res) => {
 
     // Every quotation prints in the approved layout. A quotation saved before the quotation module
     // has no terms or key-feature snapshot, so those are filled in for printing (nothing is saved).
-    const printable = Array.isArray(quotation.terms)
-      ? { quotation, items }
-      : await legacyForApprovedLayout(quotation, items, settings);
+    const printable = await printableForPdf(quotation, items, settings);
 
     // "Special terms and notes" typed on the quotation form print under the standard terms.
     const special = String(printable.quotation.notes || '').trim();
@@ -1277,7 +1301,7 @@ async function loadQuotationForEmail(id) {
   const quotation = enrichQuotationFirm(rawQuotation);
   const items = await db.prepare(`SELECT qi.*, p.unit AS unit FROM quotation_item qi LEFT JOIN product p ON p.id = qi.product_id WHERE qi.quotation_id = ? ORDER BY qi.id`).all(id);
   const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
-  let printable = Array.isArray(quotation.terms) ? { quotation, items } : await legacyForApprovedLayout(quotation, items, settings);
+  let printable = await printableForPdf(quotation, items, settings);
   const special = String(printable.quotation.notes || '').trim();
   if (special) {
     const base = Array.isArray(printable.quotation.terms) ? printable.quotation.terms : [];

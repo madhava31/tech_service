@@ -95,6 +95,18 @@ const STD_COLS = [
   for (const c of STD_COLS) { c.x = x; x += c.w; }
 }
 const STD = Object.fromEntries(STD_COLS.map((c) => [c.key, c]));
+
+/**
+ * The standard table's columns with their x positions. The Discount column is only printed when at least one line has a
+ * discount; without it the column is left out and its width goes to the description, so the table still fills the page.
+ */
+export function stdLayout(showDiscount) {
+  const cols = STD_COLS.filter((c) => showDiscount || c.key !== 'discount').map((c) => ({ ...c }));
+  if (!showDiscount) cols.find((c) => c.key === 'desc').w += STD_COLS.find((c) => c.key === 'discount').w;
+  let x = M;
+  for (const c of cols) { c.x = x; x += c.w; }
+  return { cols, byKey: Object.fromEntries(cols.map((c) => [c.key, c])) };
+}
 const rupees = (n) => `${Number(n) < 0 ? '- ' : ''}₹ ${Math.abs(Number(n || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const normState = (v) => String(v || '').trim().toLowerCase().replace(/^\d{2}-/, '');
 
@@ -188,7 +200,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     const h = 24;
     doc.rect(M, atY, W, h).fill(HEADER_GREY);
     doc.font(B).fontSize(7.5).fillColor('#fff');
-    for (const c of STD_COLS) doc.text(c.label, c.x + 2, c.label.includes('\n') ? atY + 2 : atY + 8, { width: c.w - 4, align: c.align });
+    for (const c of COLS) doc.text(c.label, c.x + 2, c.label.includes('\n') ? atY + 2 : atY + 8, { width: c.w - 4, align: c.align });
     return atY + h;
   };
   const featSize = 7;
@@ -220,6 +232,9 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
     const discount = Math.max(0, Math.round((unit * qty - taxable) * 100) / 100);
     return { gross, discount, taxable, gstAmt: (taxable * taxRate) / 100 };
   };
+  // Only print the Discount column when a line has a discount (a lump-sum quotation has no per-line figures at all).
+  const showDiscount = !lumpSum && items.some((it) => lineFigures(it).discount > 0.004);
+  const { cols: COLS, byKey: STD } = stdLayout(showDiscount);
   const discountPct = (it, gross, discount) => {
     const base = gross * Number(it.qty || 0);
     const p = it.discount_type === 'percentage' && Number(it.discount_value) > 0 ? Number(it.discount_value) : base > 0 ? (discount / base) * 100 : 0;
@@ -238,9 +253,10 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       const { gross, discount, taxable, gstAmt } = lineFigures(it);
       const num = (key, t) => doc.font(R).fontSize(7.5).fillColor('#000').text(t, STD[key].x + 2, top, { width: STD[key].w - 4, align: 'right' });
       num('price', rupees(gross));
-      num('discount', discount > 0.004 ? `${rupees(discount)}\n(${discountPct(it, gross, discount)}%)` : rupees(0));
+      // A line without a discount leaves its Discount cell empty instead of printing a zero.
+      if (showDiscount && discount > 0.004) num('discount', `${rupees(discount)}\n(${discountPct(it, gross, discount)}%)`);
       num('taxable', rupees(taxable));
-      num('gst', `${rupees(gstAmt)}\n(${taxRate.toLocaleString('en-IN', { maximumFractionDigits: 2 })}%)`);
+      num('gst', rupees(gstAmt)); // the amount only; the GST rate is shown with the totals
       num('amount', rupees(taxable + gstAmt));
     }
     // Description (name, then the key features below it in small type)
@@ -285,7 +301,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       doc.rect(M, y - 4, W, 18).fill(SHADE);
       const tot = (key, v) => doc.font(B).fontSize(7.5).fillColor('#000').text(v, STD[key].x + 2, y, { width: STD[key].w - 4, align: 'right', lineBreak: false });
       tot('qty', Number.isInteger(t.qty) ? String(t.qty) : fixed2(t.qty));
-      tot('discount', rupees(t.discount));
+      if (showDiscount) tot('discount', rupees(t.discount));
       tot('taxable', rupees(t.taxable));
       tot('gst', rupees(t.gst));
       tot('amount', rupees(t.taxable + t.gst));

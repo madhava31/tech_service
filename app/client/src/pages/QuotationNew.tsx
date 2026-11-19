@@ -2,7 +2,7 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon, GripVerticalIcon, PlusIcon, 
 import { CountUp } from '../components/ds/CountUp';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { api, Company, CompanyContact, Product, QuotationItem, SalesEngineer, Firm } from '../api';
+import { api, Company, CompanyContact, Product, QuotationItem, QuotationTerm, SalesEngineer, Firm } from '../api';
 import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '../components/QuotationContactPayment';
 import SearchableSelect from '../components/SearchableSelect';
 import { SalesTeamEditor, type TeamMember } from '../components/SalesTeamEditor';
@@ -59,6 +59,10 @@ export default function QuotationNew() {
   const [discountType, setDiscountType] = useState<'none' | 'percentage' | 'amount'>('none');
   const [discountValue, setDiscountValue] = useState<number | string>(0);
   const [notes, setNotes] = useState('');
+  // Terms & Conditions printed on the PDF: the standard ones until the user edits them.
+  const [terms, setTerms] = useState<QuotationTerm[]>([]);
+  const [termsCustom, setTermsCustom] = useState(false); // edited by the user (or saved edited on this quotation)
+  const [hadStoredTerms, setHadStoredTerms] = useState(false);
   const [items, setItems] = useState<QuotationItem[]>([emptyItem()]);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<{ idx: number; after: boolean } | null>(null);
@@ -189,6 +193,11 @@ export default function QuotationNew() {
           setDiscountType(oType);
           setDiscountValue(q.overall_discount_value ?? q.discount_value ?? q.discount_percent ?? 0);
           setNotes(q.notes || '');
+          if (Array.isArray(q.terms)) {
+            setTerms(q.terms);
+            setTermsCustom(true);
+            setHadStoredTerms(true);
+          }
           setQuotationNumber(q.number || '');
           if (q.quotation_type === 'instrument') {
             setIsInstrument(true);
@@ -223,6 +232,19 @@ export default function QuotationNew() {
       });
     }
   }, [isEdit, quotationId]);
+
+  // The standard Terms & Conditions follow the advance % and due days until the user edits the terms.
+  useEffect(() => {
+    if (termsCustom) return;
+    let live = true;
+    const timer = setTimeout(() => {
+      api.quotations
+        .termsDefaults({ advance_percent: Number(advancePercent), payment_due_days: Number(dueDays === '' ? 30 : dueDays) })
+        .then((r) => { if (live) setTerms(r.terms); })
+        .catch(() => {});
+    }, 250);
+    return () => { live = false; clearTimeout(timer); };
+  }, [advancePercent, dueDays, termsCustom]);
 
   function fetchNextNumber(d: string, pref: string, fId?: number | '', bId?: number | '') {
     if (isManual) pref = MANUAL_ORDER_PREFIX;
@@ -619,14 +641,14 @@ export default function QuotationNew() {
     if (!quotationNumber.trim()) return setError('Please enter the quotation number');
     if (lumpSum && !(Number(lumpSumAmount) > 0)) return setError('Please enter the total amount for all the items');
     if (contactsEnabled) {
+      // The contact person is optional. A new contact is only saved when it has a name; a phone or email without a name
+      // is refused so it is not lost silently.
       if (addingContact) {
-        if (!contactDraft.name.trim()) return setError('Please enter the contact person name');
-        if (!contactDraft.phone.trim()) return setError('Please enter the contact number');
+        const hasOther = contactDraft.phone.trim() || contactDraft.email.trim();
+        if (!contactDraft.name.trim() && hasOther) return setError('Enter the contact person name, or clear the phone and email');
         if (contactDraft.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactDraft.email.trim())) {
           return setError('Please enter a valid email ID');
         }
-      } else if (!contactId) {
-        return setError('Please select a contact person, or add a new one');
       }
       const adv = Number(advancePercent);
       if (advancePercent === '' || !Number.isFinite(adv) || adv < 0 || adv > 100) return setError('Advance payment must be between 0% and 100%');
@@ -697,13 +719,17 @@ export default function QuotationNew() {
         ...(contactsEnabled
           ? {
               contact_id: addingContact ? null : Number(contactId) || null,
-              new_contact: addingContact
+              new_contact: addingContact && contactDraft.name.trim()
                 ? { name: contactDraft.name.trim(), phone: contactDraft.phone.trim(), email: contactDraft.email.trim() }
                 : null,
               advance_percent: Number(advancePercent),
               payment_due_days: Number(dueDays === '' ? 30 : dueDays),
             }
           : {}),
+        // Edited terms are saved with the quotation; "reset" clears edited terms saved earlier; untouched terms are not sent.
+        ...(termsCustom
+          ? { custom_terms: terms.filter((t) => t.label.trim() || t.text.trim()) }
+          : hadStoredTerms ? { custom_terms: null } : {}),
         items: currentItems.map((it) => {
           const itemPrice = Number(it.actual_unit_price !== undefined ? it.actual_unit_price : (it.price !== undefined ? it.price : 0)) || 0;
           return {
@@ -1359,10 +1385,69 @@ export default function QuotationNew() {
             </div>
           </section>
 
+          {/* Terms & Conditions: the standard text is shown; edit it or leave it to print as it is */}
+          <section className="ts-card ts-white" style={{ ['--i' as string]: 4 }}>
+            <div className="ts-rhead">
+              <div className="ts-ch"><b>Terms &amp; Conditions</b></div>
+              {termsCustom && (
+                <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setTermsCustom(false)} title="Go back to the standard terms">
+                  Reset to standard
+                </button>
+              )}
+            </div>
+            <p className="m-0 mb-3 text-[13px] text-subtle">
+              These print on the PDF. Leave them as they are to use the standard terms, or change, add or remove lines.
+            </p>
+            <div className="flex flex-col gap-2">
+              {terms.map((t, i) => (
+                <div key={i} className="flex flex-wrap items-start gap-2">
+                  <input
+                    className="ts-fi !py-2"
+                    style={{ width: 150 }}
+                    maxLength={60}
+                    aria-label={`Term ${i + 1} heading`}
+                    placeholder="Heading"
+                    value={t.label}
+                    onChange={(e) => { setTermsCustom(true); setTerms((prev) => prev.map((x, j) => (j === i ? { ...x, label: e.target.value } : x))); }}
+                  />
+                  <input
+                    className="ts-fi !py-2"
+                    style={{ flex: 1, minWidth: 220 }}
+                    maxLength={500}
+                    aria-label={`Term ${i + 1} text`}
+                    placeholder="Text"
+                    value={t.text}
+                    onChange={(e) => { setTermsCustom(true); setTerms((prev) => prev.map((x, j) => (j === i ? { ...x, text: e.target.value } : x))); }}
+                  />
+                  <button
+                    type="button"
+                    className="ts-btn ts-ghost ts-xs"
+                    aria-label={`Remove term ${i + 1}`}
+                    onClick={() => { setTermsCustom(true); setTerms((prev) => prev.filter((_, j) => j !== i)); }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {terms.length === 0 && <small className="ts-hint">{termsCustom ? 'No terms will print. Add one below, or reset to the standard terms.' : 'Loading the standard terms…'}</small>}
+            </div>
+            <div className="mt-3">
+              <button
+                type="button"
+                className="ts-btn ts-ghost ts-xs"
+                disabled={terms.length >= 15}
+                onClick={() => { setTermsCustom(true); setTerms((prev) => [...prev, { label: '', text: '' }]); }}
+              >
+                + Add term
+              </button>
+            </div>
+          </section>
+
           {/* Notes */}
           <section className="ts-card ts-white" style={{ ['--i' as string]: 4 }}>
             <div className="ts-fld">
               <label htmlFor="q-notes">Special terms and notes</label>
+              <small className="ts-hint">Printed under the Terms &amp; Conditions as "Special terms".</small>
               <textarea id="q-notes" rows={4} className="ts-fi" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Payment terms, validity, delivery terms…" />
             </div>
           </section>

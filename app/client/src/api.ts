@@ -1352,6 +1352,14 @@ export const api = {
         return res;
       },
     },
+    /** The standard Terms & Conditions for an advance % and due days (what prints unless the user edits them). */
+    termsDefaults: (params?: { advance_percent?: number; payment_due_days?: number }) => {
+      const q = new URLSearchParams();
+      if (params?.advance_percent !== undefined && Number.isFinite(params.advance_percent)) q.set('advance_percent', String(params.advance_percent));
+      if (params?.payment_due_days !== undefined && Number.isFinite(params.payment_due_days)) q.set('payment_due_days', String(params.payment_due_days));
+      const qs = q.toString();
+      return request<{ terms: QuotationTerm[] }>(`/quotations/terms-defaults${qs ? `?${qs}` : ''}`);
+    },
     poReceived: {
       list: (id: number) => request<QuotationPoList>(`/quotations/${id}/po-received`),
       create: async (id: number, data: { po_number: string; po_date?: string; notes?: string; items: { quotation_item_id: number; qty: number }[] }) => {
