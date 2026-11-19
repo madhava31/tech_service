@@ -1,3 +1,4 @@
+import { MovementDateField, todayIST } from '../../components/MovementDateField';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -80,6 +81,7 @@ export default function ReservationDetail() {
   const [actionLoading, setActionLoading] = useState(false);
   const [releaseModalOpen, setReleaseModalOpen] = useState(false);
   const [fulfillModalOpen, setFulfillModalOpen] = useState(false);
+  const [fulfillDate, setFulfillDate] = useState(todayIST());
 
   const fetchDetail = async () => {
     if (!id) return;
@@ -119,7 +121,7 @@ export default function ReservationDetail() {
     setActionLoading(true);
     setError('');
     try {
-      await api.inventory.fulfillReservation(reservation.id);
+      await api.inventory.fulfillReservation(reservation.id, fulfillDate || undefined);
       setFulfillModalOpen(false);
       fetchDetail();
     } catch (err: any) {
@@ -431,6 +433,8 @@ export default function ReservationDetail() {
               Fulfilling this reservation will perform an <strong>atomic STOCK OUT</strong> of {reservation.quantity} {reservation.unit || 'Nos'} for {reservation.part_no}.
               Physical on-hand stock will decrease, and an inventory movement will be logged.
             </p>
+
+            <MovementDateField id="fulfil-date" label="Date the stock went out" value={fulfillDate} onChange={setFulfillDate} />
 
             {error && (
               <div className="ts-warnbox">

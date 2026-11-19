@@ -88,6 +88,14 @@ export function bucketRange(period, key) {
   return { from: `${y}-${pad(m)}-01`, to: `${y}-${pad(m)}-${pad(daysInMonth(y, m))}` };
 }
 
+/** Opening stock per product: held now (heldRows: [{ product_id, on_hand }]) minus the changes since the period start (sinceRows: [{ product_id, delta }]). */
+export function openingFromStock(heldRows, sinceRows) {
+  const held = new Map(heldRows.map((r) => [Number(r.product_id), Number(r.on_hand) || 0]));
+  const since = new Map(sinceRows.map((r) => [Number(r.product_id), Number(r.delta) || 0]));
+  const ids = new Set([...held.keys(), ...since.keys()]);
+  return [...ids].map((id) => ({ product_id: id, opening: r3((held.get(id) || 0) - (since.get(id) || 0)) }));
+}
+
 /** Adds one movement change to a cell { in, out, ret, adj, xfer }. */
 export function addMovement(cell, type, delta, singleWarehouse) {
   const d = Number(delta) || 0;
@@ -213,20 +221,33 @@ async function loadGrid(period, f) {
     )
     .all(...bp);
 
-  const op = [startUtc];
-  const oWhere = ['m.created_at < ?'];
-  if (f.warehouseId) { oWhere.push('m.warehouse_id = ?'); op.push(f.warehouseId); }
-  oWhere.push(...productFilters(f, op));
-  const openingRows = await db
+  // Opening stock = the stock now, minus every change since the start of the period. This stays right when an entry was
+  // added later for an earlier date (a movement's before / after stock reflects the moment it was entered, not its date).
+  const sp = [startUtc];
+  const sWhere = ['m.created_at >= ?'];
+  if (f.warehouseId) { sWhere.push('m.warehouse_id = ?'); sp.push(f.warehouseId); }
+  sWhere.push(...productFilters(f, sp));
+  const sinceRows = await db
     .prepare(
-      `SELECT x.product_id, SUM(x.after_on_hand)::float8 AS opening FROM (
-         SELECT DISTINCT ON (m.warehouse_id, m.product_id) m.product_id, m.after_on_hand
-           FROM inventory_movement m JOIN product p ON p.id = m.product_id
-          WHERE ${oWhere.join(' AND ')}
-          ORDER BY m.warehouse_id, m.product_id, m.created_at DESC, m.id DESC
-       ) x GROUP BY x.product_id`
+      `SELECT m.product_id, SUM(m.after_on_hand - m.before_on_hand)::float8 AS delta
+         FROM inventory_movement m JOIN product p ON p.id = m.product_id
+        WHERE ${sWhere.join(' AND ')}
+        GROUP BY m.product_id`
     )
-    .all(...op);
+    .all(...sp);
+  const hp = [];
+  const hWhere = [];
+  if (f.warehouseId) { hWhere.push('s.warehouse_id = ?'); hp.push(f.warehouseId); }
+  hWhere.push(...productFilters(f, hp));
+  const heldRows = await db
+    .prepare(
+      `SELECT s.product_id, SUM(s.on_hand_quantity)::float8 AS on_hand
+         FROM inventory_stock s JOIN product p ON p.id = s.product_id
+         ${hWhere.length ? `WHERE ${hWhere.join(' AND ')}` : ''}
+        GROUP BY s.product_id`
+    )
+    .all(...hp);
+  const openingRows = openingFromStock(heldRows, sinceRows);
 
   // Which products to list: those that moved in the period, or every matching product.
   let ids;

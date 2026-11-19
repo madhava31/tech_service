@@ -4,7 +4,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 process.env.DATABASE_URL = 'postgres://nobody:nobody@127.0.0.1:1/none';
-const { periodBounds, bucketRange, addMovement, buildGrid, utcStartOf, todayIST, getMovementReport, buildMovementReportExcel } = await import('../movementReport.js');
+const { periodBounds, bucketRange, addMovement, buildGrid, utcStartOf, todayIST, getMovementReport, buildMovementReportExcel, openingFromStock } = await import('../movementReport.js');
 const { default: db } = await import('../../db/index.js');
 const { default: ExcelJS } = await import('exceljs');
 
@@ -119,7 +119,9 @@ describe('report and Excel with a stubbed database', () => {
     db.prepare = (sql) => ({
       all: async (...params) => {
         seen.push({ sql, params });
-        if (/DISTINCT ON/.test(sql)) return [{ product_id: 1, opening: 5 }];
+        const q0 = sql.replace(/\s+/g, ' ');
+        if (/FROM inventory_stock s/.test(q0)) return [{ product_id: 1, on_hand: 11 }];
+        if (/GROUP BY m.product_id$/.test(q0.trim())) return [{ product_id: 1, delta: 6 }];
         if (/GROUP BY m.product_id, 2/.test(sql)) return [{ product_id: 1, bucket: '3', movement_type: 'STOCK_IN', delta: 10 }, { product_id: 1, bucket: '3', movement_type: 'STOCK_OUT', delta: -4 }];
         if (/FROM product p WHERE p.id = ANY/.test(sql)) return [{ id: 1, part_no: 'P-1', description: 'Vial', unit: 'Nos', make: 'X' }];
         if (/FROM inventory_movement m JOIN product p ON p.id = m.product_id JOIN warehouse/.test(sql)) return [{ at: '03-11-2026 10:00', warehouse: 'HYD', part_no: 'P-1', description: 'Vial', movement_type: 'STOCK_IN', change: 10, before: 5, after: 15 }];

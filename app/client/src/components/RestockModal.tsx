@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, Warehouse } from '../api';
+import { MovementDateField, todayIST } from './MovementDateField';
 
 export interface RestockProduct {
   productId: number;
@@ -32,6 +33,7 @@ export default function RestockModal({ product, suggestedQty, defaultWarehouseId
   const [warehouse, setWarehouse] = useState(defaultWarehouseId ? String(defaultWarehouseId) : '');
   const [qty, setQty] = useState(String(suggestedQty && suggestedQty > 0 ? Math.ceil(suggestedQty) : 1));
   const [note, setNote] = useState('');
+  const [date, setDate] = useState(todayIST());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,6 +54,7 @@ export default function RestockModal({ product, suggestedQty, defaultWarehouseId
     const n = Number(qty);
     if (!warehouse) { setError('Choose a warehouse'); return; }
     if (!Number.isFinite(n) || n <= 0) { setError('Enter a quantity greater than 0'); return; }
+    if (!date) { setError('Choose the date the stock came in'); return; }
     setSaving(true);
     setError('');
     try {
@@ -59,6 +62,7 @@ export default function RestockModal({ product, suggestedQty, defaultWarehouseId
         warehouseId: Number(warehouse),
         sourceType: 'MANUAL',
         notes: note.trim() || 'Restock',
+        receiptDate: date || undefined,
         items: [{ productId: product.productId, quantity: n }],
         confirmImmediately: true,
       });
@@ -93,6 +97,7 @@ export default function RestockModal({ product, suggestedQty, defaultWarehouseId
           <label htmlFor="rs-qty" className="text-[12.5px] text-subtle">Quantity to add ({unit})</label>
           <input id="rs-qty" type="number" min="1" className="ts-fi mt-1" value={qty} onChange={(e) => setQty(e.target.value)} autoFocus />
         </div>
+        <MovementDateField id="rs-date" label="Date received" value={date} onChange={setDate} labelClass="text-[12.5px] text-subtle" inputClass="ts-fi mt-1" />
         <div>
           <label htmlFor="rs-note" className="text-[12.5px] text-subtle">Note (optional)</label>
           <input id="rs-note" className="ts-fi mt-1" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Supplier, invoice, etc." />

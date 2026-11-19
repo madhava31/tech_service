@@ -1725,8 +1725,9 @@ export const api = {
       request<{ reservation: StockReservation; stock: any }>('/inventory/reserve', { method: 'POST', body: JSON.stringify(data) }),
     releaseReservation: (id: number) =>
       request<{ reservation: StockReservation; stock: any }>(`/inventory/release-reservation/${id}`, { method: 'POST' }),
-    fulfillReservation: (id: number) =>
-      request<{ reservation: StockReservation; stock: any; movement: InventoryMovement }>(`/inventory/fulfill-reservation/${id}`, { method: 'POST' }),
+    /** `date` (YYYY-MM-DD) is the day the stock went out; today when left out. */
+    fulfillReservation: (id: number, date?: string) =>
+      request<{ reservation: StockReservation; stock: any; movement: InventoryMovement }>(`/inventory/fulfill-reservation/${id}`, { method: 'POST', body: JSON.stringify({ date }) }),
     recordReturn: (data: { warehouseId: number; productId: number; quantity: number; referenceType?: string; referenceId?: string; reason?: string }) =>
       request<{ stock: any; movement: InventoryMovement }>('/inventory/return', { method: 'POST', body: JSON.stringify(data) }),
     listMovements: (params?: { warehouseId?: number; productId?: number; movementType?: string; dateFrom?: string; dateTo?: string; limit?: number; offset?: number }) => {
@@ -1812,6 +1813,8 @@ export const api = {
         confirmImmediately?: boolean;
         /** Company (product make) saved on every product in the receipt. */
         make?: string;
+        /** The date the stock came in (YYYY-MM-DD); today when left out. */
+        receiptDate?: string;
       }) => request<StockReceiptDetailResponse>('/inventory/receipts', { method: 'POST', body: JSON.stringify(data) }),
       confirm: (id: number) =>
         request<StockReceiptDetailResponse>(`/inventory/receipts/${id}/confirm`, { method: 'POST' }),
@@ -1866,9 +1869,10 @@ export const api = {
           method: 'POST',
           body: JSON.stringify({ ids }),
         }),
-      importExcel: async (file: File) => {
+      importExcel: async (file: File, date?: string) => {
         const formData = new FormData();
         formData.append('file', file);
+        if (date) formData.append('date', date);
         const res = await fetch(`${BASE}/inventory/receipts/import-excel`, {
           method: 'POST',
           body: formData,
@@ -1942,9 +1946,9 @@ export const api = {
         const qs = q.toString();
         return request<PendingReservationsResponse>(`/inventory/operations/pending-reservations${qs ? `?${qs}` : ''}`);
       },
-      createAdjustment: (data: { warehouseId: number; productId: number; direction: 'INCREASE' | 'DECREASE'; quantity: number; reason?: string; notes?: string }) =>
+      createAdjustment: (data: { warehouseId: number; productId: number; direction: 'INCREASE' | 'DECREASE'; quantity: number; reason?: string; notes?: string; date?: string }) =>
         request<{ stock: any; movement: InventoryMovement }>('/inventory/adjustments', { method: 'POST', body: JSON.stringify(data) }),
-      createReturn: (data: { warehouseId: number; productId: number; quantity: number; referenceType?: string; referenceId?: string; reason?: string; notes?: string }) =>
+      createReturn: (data: { warehouseId: number; productId: number; quantity: number; referenceType?: string; referenceId?: string; reason?: string; notes?: string; date?: string }) =>
         request<{ stock: any; movement: InventoryMovement }>('/inventory/returns', { method: 'POST', body: JSON.stringify(data) }),
       listTransfers: (params?: { warehouseId?: number; status?: string; limit?: number; offset?: number }) => {
         const q = new URLSearchParams();
@@ -1956,7 +1960,7 @@ export const api = {
         return request<StockTransfersResponse>(`/inventory/transfers${qs ? `?${qs}` : ''}`);
       },
       getTransfer: (id: number) => request<StockTransferDetailResponse>(`/inventory/transfers/${id}`),
-      createTransfer: (data: { sourceWarehouseId: number; destinationWarehouseId: number; productId: number; quantity: number; reference?: string; notes?: string }) =>
+      createTransfer: (data: { sourceWarehouseId: number; destinationWarehouseId: number; productId: number; quantity: number; reference?: string; notes?: string; date?: string }) =>
         request<StockTransferDetailResponse>('/inventory/transfers', { method: 'POST', body: JSON.stringify(data) }),
       audit: (params?: { warehouseId?: number; productId?: number; movementType?: string; limit?: number; offset?: number }) => {
         const q = new URLSearchParams();

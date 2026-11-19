@@ -1,3 +1,4 @@
+import { MovementDateField, DateConfirmModal, todayIST } from '../../components/MovementDateField';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -221,18 +222,24 @@ export default function InventoryOperations() {
     }
   };
 
-  const handleFulfillReservation = async (id: number) => {
-    if (!window.confirm('Are you sure you want to fulfill this reservation? This will deduct on-hand stock.')) return;
-    try {
-      await api.inventory.fulfillReservation(id);
-      fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to fulfill reservation');
-    }
-  };
+  const [fulfilTarget, setFulfilTarget] = useState<number | null>(null);
+  const handleFulfillReservation = (id: number) => setFulfilTarget(id);
 
   return (
     <div className="ts-page-pad flex flex-col gap-4 pb-6 min-w-0">
+      {fulfilTarget !== null && (
+        <DateConfirmModal
+          title="Fulfill stock reservation"
+          message="This takes the reserved stock out of the warehouse and records it in the stock history."
+          confirmLabel="Fulfill & deduct stock"
+          onClose={() => setFulfilTarget(null)}
+          onConfirm={async (date) => {
+            await api.inventory.fulfillReservation(fulfilTarget, date);
+            setFulfilTarget(null);
+            fetchData();
+          }}
+        />
+      )}
       {/* Header */}
       <div className="ts-phead !mb-2 justify-between">
         <div>
@@ -1064,6 +1071,7 @@ function StockAdjustmentModal({
   const [direction, setDirection] = useState<'INCREASE' | 'DECREASE'>('INCREASE');
   const [quantity, setQuantity] = useState<string>('');
   const [reason, setReason] = useState<string>('Physical Audit Adjustment');
+  const [date, setDate] = useState<string>(todayIST());
   const [notes, setNotes] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1099,6 +1107,7 @@ function StockAdjustmentModal({
         quantity: qtyNum,
         reason,
         notes,
+        date: date || undefined,
       });
       onSuccess();
     } catch (err: any) {
@@ -1222,6 +1231,8 @@ function StockAdjustmentModal({
             />
           </div>
 
+          <MovementDateField id="adj-date" label="Date of the adjustment" value={date} onChange={setDate} hint="The day the count or correction applies to." />
+
           <div>
             <label className="ts-lbl">Notes / Audit Ref</label>
             <textarea
@@ -1272,6 +1283,7 @@ function StockReturnModal({
   const [referenceType, setReferenceType] = useState<string>('SALE_REPORT');
   const [referenceId, setReferenceId] = useState<string>('');
   const [reason, setReason] = useState<string>('Customer Product Return');
+  const [date, setDate] = useState<string>(todayIST());
   const [notes, setNotes] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1297,6 +1309,7 @@ function StockReturnModal({
         referenceId,
         reason,
         notes,
+        date: date || undefined,
       });
       onSuccess();
     } catch (err: any) {
@@ -1403,6 +1416,8 @@ function StockReturnModal({
             />
           </div>
 
+          <MovementDateField id="ret-date" label="Date returned" value={date} onChange={setDate} hint="The day the customer's goods came back." />
+
           <div>
             <label className="ts-lbl">Notes</label>
             <textarea
@@ -1452,6 +1467,7 @@ function WarehouseTransferModal({
   const [productId, setProductId] = useState<number>(products[0]?.id || 0);
   const [quantity, setQuantity] = useState<string>('');
   const [reference, setReference] = useState<string>('');
+  const [date, setDate] = useState<string>(todayIST());
   const [notes, setNotes] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1509,6 +1525,7 @@ function WarehouseTransferModal({
         quantity: qtyNum,
         reference,
         notes,
+        date: date || undefined,
       });
       onSuccess();
     } catch (err: any) {
@@ -1622,6 +1639,8 @@ function WarehouseTransferModal({
               <span className="font-medium text-fg">{destProjectedOnHand}</span>
             </div>
           </div>
+
+          <MovementDateField id="tr-date" label="Date of the transfer" value={date} onChange={setDate} hint="The day the stock moved between the warehouses." />
 
           <div>
             <label className="ts-lbl">Transfer Reference</label>

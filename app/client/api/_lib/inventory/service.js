@@ -6,6 +6,7 @@ import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { getUserTable } from '../db/inventorySchema.js';
 import { utcStartOf } from './movementReport.js';
+import { movementTimestamp } from './movementDate.js';
 
 const DEFAULT_LOW_THRESHOLD = 10;
 const DEFAULT_CRITICAL_THRESHOLD = 5;
@@ -72,14 +73,15 @@ async function insertMovement({
   referenceId,
   reason,
   userId,
+  createdAt = null,
 }) {
   return db
     .prepare(`
       INSERT INTO inventory_movement (
         warehouse_id, product_id, movement_type, quantity,
         before_on_hand, after_on_hand, before_reserved, after_reserved,
-        reference_type, reference_id, reason, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reference_type, reference_id, reason, created_by, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?::timestamp, NOW()))
       RETURNING *
     `)
     .get(
@@ -94,7 +96,8 @@ async function insertMovement({
       referenceType || null,
       referenceId != null && referenceId !== '' ? String(referenceId) : null,
       reason || null,
-      userId || null
+      userId || null,
+      createdAt
     );
 }
 
@@ -695,8 +698,10 @@ export async function recordStockIn({
   reason = 'Stock Inward',
   userId = null,
   movementType = 'STOCK_IN',
+  occurredOn = null,
 }) {
   const qty = positiveQty(quantity);
+  const when = movementTimestamp(occurredOn);
   await requireProduct(productId);
   await requireWarehouse(warehouseId);
 
@@ -720,6 +725,7 @@ export async function recordStockIn({
       referenceId,
       reason,
       userId,
+      createdAt: when,
     });
     return { stock, movement };
   });
@@ -733,8 +739,10 @@ export async function recordStockOut({
   referenceId = null,
   reason = 'Stock Outward',
   userId = null,
+  occurredOn = null,
 }) {
   const qty = positiveQty(quantity);
+  const when = movementTimestamp(occurredOn);
   await requireProduct(productId);
   await requireWarehouse(warehouseId);
 
@@ -762,6 +770,7 @@ export async function recordStockOut({
       referenceId,
       reason,
       userId,
+      createdAt: when,
     });
     return { stock, movement };
   });
@@ -778,7 +787,9 @@ export async function adjustStock({
   referenceType = 'MANUAL_ADJUSTMENT',
   referenceId = null,
   userId = null,
+  occurredOn = null,
 }) {
+  const when = movementTimestamp(occurredOn);
   const targetOnHand = Number(newOnHandQuantity);
   if (!Number.isFinite(targetOnHand) || targetOnHand < 0) {
     throw httpError(400, 'New on-hand quantity cannot be negative');
@@ -814,6 +825,7 @@ export async function adjustStock({
       referenceId,
       reason,
       userId,
+      createdAt: when,
     });
     return { stock, movement };
   });
@@ -830,8 +842,10 @@ export async function createStockAdjustment({
   reason = 'Manual Stock Adjustment',
   notes = '',
   userId = null,
+  occurredOn = null,
 }) {
   const qty = positiveQty(quantity);
+  const when = movementTimestamp(occurredOn);
   const dir = String(direction || '').toUpperCase();
   if (dir !== 'INCREASE' && dir !== 'DECREASE') {
     throw httpError(400, "Direction must be either 'INCREASE' or 'DECREASE'");
@@ -869,6 +883,7 @@ export async function createStockAdjustment({
       referenceId: null,
       reason: notes ? `${reason} - ${notes}` : reason,
       userId,
+      createdAt: when,
     });
     return { stock, movement };
   });
@@ -883,6 +898,7 @@ export async function recordReturn({
   reason = 'Customer Return',
   notes = '',
   userId = null,
+  occurredOn = null,
 }) {
   positiveQty(quantity, 'Return quantity must be greater than zero');
   return recordStockIn({
@@ -894,6 +910,7 @@ export async function recordReturn({
     reason: notes ? `${reason} - ${notes}` : reason,
     userId,
     movementType: 'RETURN',
+    occurredOn,
   });
 }
 
@@ -965,7 +982,8 @@ export async function releaseReservation({ reservationId }) {
   });
 }
 
-export async function fulfillReservation({ reservationId, userId = null }) {
+export async function fulfillReservation({ reservationId, userId = null, occurredOn = null }) {
+  const when = movementTimestamp(occurredOn);
   return db.transaction(async () => {
     const reservation = await lockActiveReservation(reservationId, 'fulfill');
     const qty = num(reservation.quantity);
@@ -980,8 +998,8 @@ export async function fulfillReservation({ reservationId, userId = null }) {
     const afterReserved = Math.max(0, beforeReserved - qty);
     const stock = await setStock(reservation.warehouse_id, reservation.product_id, { onHand: afterOnHand, reserved: afterReserved });
     const updated = await db
-      .prepare(`UPDATE stock_reservation SET status = 'FULFILLED', fulfilled_at = NOW() WHERE id = ? RETURNING *`)
-      .get(reservationId);
+      .prepare(`UPDATE stock_reservation SET status = 'FULFILLED', fulfilled_at = COALESCE(?::timestamp, NOW()) WHERE id = ? RETURNING *`)
+      .get(when, reservationId);
     const movement = await insertMovement({
       warehouseId: reservation.warehouse_id,
       productId: reservation.product_id,
@@ -995,6 +1013,7 @@ export async function fulfillReservation({ reservationId, userId = null }) {
       referenceId: reservation.reference_id || String(reservationId),
       reason: 'Reservation fulfilled and stock issued',
       userId,
+      createdAt: when,
     });
     return { reservation: updated, stock, movement };
   });
@@ -1117,8 +1136,10 @@ export async function createStockTransfer({
   reference = '',
   notes = '',
   userId = null,
+  occurredOn = null,
 }) {
   const qty = positiveQty(quantity);
+  const when = movementTimestamp(occurredOn);
   const srcId = Number(sourceWarehouseId);
   const destId = Number(destinationWarehouseId);
   if (!srcId || !destId) throw httpError(400, 'Source warehouse and destination warehouse are required');
@@ -1163,8 +1184,8 @@ export async function createStockTransfer({
           quantity, status, reference, notes,
           source_before_on_hand, source_after_on_hand,
           dest_before_on_hand, dest_after_on_hand,
-          created_by, confirmed_at
-        ) VALUES (?, ?, ?, ?, ?, 'COMPLETED', ?, ?, ?, ?, ?, ?, ?, NOW())
+          created_by, confirmed_at, created_at
+        ) VALUES (?, ?, ?, ?, ?, 'COMPLETED', ?, ?, ?, ?, ?, ?, ?, COALESCE(?::timestamp, NOW()), COALESCE(?::timestamp, NOW()))
         RETURNING id
       `)
       .get(
@@ -1179,7 +1200,9 @@ export async function createStockTransfer({
         srcAfterOnHand,
         destBeforeOnHand,
         destAfterOnHand,
-        userId || null
+        userId || null,
+        when,
+        when
       );
 
     await insertMovement({
@@ -1195,6 +1218,7 @@ export async function createStockTransfer({
       referenceId: transferNumber,
       reason: `Transfer to ${destWarehouse.name} (${destWarehouse.code})`,
       userId,
+      createdAt: when,
     });
     await insertMovement({
       warehouseId: destId,
@@ -1209,6 +1233,7 @@ export async function createStockTransfer({
       referenceId: transferNumber,
       reason: `Transfer from ${srcWarehouse.name} (${srcWarehouse.code})`,
       userId,
+      createdAt: when,
     });
 
     return inserted.id;

@@ -60,7 +60,7 @@ function fakePrepare(sql) {
     if (/^SELECT \* FROM inventory_stock WHERE warehouse_id = \? AND product_id = \? FOR UPDATE/.test(q)) { const s = S.stock.get(key(params[0], params[1])); return [{ on_hand_quantity: s.on_hand, reserved_quantity: s.reserved }]; }
     if (/^UPDATE inventory_stock SET on_hand_quantity/.test(q)) { const s = S.stock.get(key(params[2], params[3])); s.on_hand = params[0]; s.reserved = params[1]; return [{ on_hand_quantity: s.on_hand }]; }
     if (/^INSERT INTO inventory_movement/.test(q)) {
-      const m = { id: S.nextId++, warehouse_id: params[0], product_id: params[1], movement_type: params[2], quantity: params[3], before_on_hand: params[4], after_on_hand: params[5], reference_type: params[8], reference_id: params[9], reason: params[10] };
+      const m = { id: S.nextId++, warehouse_id: params[0], product_id: params[1], movement_type: params[2], quantity: params[3], before_on_hand: params[4], after_on_hand: params[5], reference_type: params[8], reference_id: params[9], reason: params[10], created_at: params[12] };
       S.movements.push(m);
       return [m];
     }
@@ -104,6 +104,15 @@ describe('invoice and stock', () => {
     const m = S.movements[0];
     assert.deepEqual([m.movement_type, m.quantity, m.before_on_hand, m.after_on_hand, m.reference_type, String(m.reference_id), m.reason], ['STOCK_OUT', 5, 10, 5, INVOICE_STOCK_REF, String(r.body.id), 'Invoice INV-1']);
     assert.deepEqual(r.body.stock, { warehouse: 'Hyderabad Central', deducted: 1, untracked: 0 });
+  });
+
+  test('the stock leaves on the invoice date; an invoice dated tomorrow takes it out today', async () => {
+    await post({ ...base, invoice_number: 'INV-OLD', invoice_date: '2026-11-05', items: [{ quotation_item_id: 11, qty: 2 }] });
+    assert.equal(S.movements[0].created_at, '2026-11-05 06:30:00', 'dated the invoice date');
+    const tomorrow = new Date(Date.now() + 330 * 60 * 1000 + 86400000).toISOString().slice(0, 10);
+    const r = await post({ ...base, invoice_number: 'INV-FUT', invoice_date: tomorrow, items: [{ quotation_item_id: 11, qty: 1 }] });
+    assert.equal(r.code, 201);
+    assert.equal(S.movements[1].created_at, null, 'a future invoice date means now');
   });
 
   test('a second invoice for the other 5 takes the rest; a third is over the quoted quantity', async () => {

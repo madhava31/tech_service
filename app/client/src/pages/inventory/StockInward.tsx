@@ -1,3 +1,4 @@
+import { MovementDateField, todayIST } from '../../components/MovementDateField';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -80,6 +81,7 @@ export default function StockInward() {
   const [manualReceiptNumber, setManualReceiptNumber] = useState('');
   const [manualSourceType, setManualSourceType] = useState('MANUAL');
   const [manualSourceRef, setManualSourceRef] = useState('');
+  const [manualDate, setManualDate] = useState(todayIST());
   const [manualNotes, setManualNotes] = useState('');
   const [manualItems, setManualItems] = useState<ManualLineItem[]>([]);
   const [manualConfirmImmediately, setManualConfirmImmediately] = useState(true);
@@ -103,6 +105,7 @@ export default function StockInward() {
   const [excelPreview, setExcelPreview] = useState<ExcelPreviewResponse | null>(null);
   const [excelReceiptNumber, setExcelReceiptNumber] = useState('');
   const [excelSourceRef, setExcelSourceRef] = useState('');
+  const [excelDate, setExcelDate] = useState(todayIST());
   const [excelNotes, setExcelNotes] = useState('');
   const [excelBusy, setExcelBusy] = useState(false);
   const [excelError, setExcelError] = useState('');
@@ -257,6 +260,7 @@ export default function StockInward() {
         receiptNumber: manualReceiptNumber.trim() || undefined,
         sourceType: manualSourceType,
         sourceReference: manualSourceRef.trim() || undefined,
+        receiptDate: manualDate || undefined,
         notes: manualNotes.trim() || undefined,
         items: Array.from(aggregated.values()),
         confirmImmediately: manualConfirmImmediately,
@@ -396,6 +400,7 @@ export default function StockInward() {
         receiptNumber: excelReceiptNumber.trim() || undefined,
         sourceType: 'EXCEL_IMPORT',
         sourceReference: excelSourceRef.trim() || excelFile?.name,
+        receiptDate: excelDate || undefined,
         notes: excelNotes.trim() || `Imported from ${excelFile?.name}`,
         items,
         confirmImmediately: true,
@@ -722,6 +727,18 @@ export default function StockInward() {
                     value={manualSourceRef}
                     onChange={(e) => setManualSourceRef(e.target.value)}
                     className="bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <MovementDateField
+                    id="manual-date"
+                    label="Date received *"
+                    value={manualDate}
+                    onChange={setManualDate}
+                    hint="The day the stock actually arrived. It is saved in the stock history."
+                    labelClass="text-xs font-medium text-subtle"
+                    inputClass="w-full bg-surface border border-line2 rounded-lg px-3 py-2 text-xs text-fg focus:outline-none focus:border-accent2"
                   />
                 </div>
 
@@ -1394,6 +1411,17 @@ export default function StockInward() {
                         value={excelSourceRef}
                         onChange={(e) => setExcelSourceRef(e.target.value)}
                         className="bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <MovementDateField
+                        id="excel-date"
+                        label="Date received *"
+                        value={excelDate}
+                        onChange={setExcelDate}
+                        hint="The day this stock arrived. All lines in the file are saved for this day."
+                        labelClass="text-[11px] text-subtle"
+                        inputClass="w-full bg-surface border border-line2 rounded px-2.5 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
                       />
                     </div>
                   </div>

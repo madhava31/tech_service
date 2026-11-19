@@ -6,6 +6,7 @@ import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
 import { ensureInventorySchema, getUserTable, resolveUserId } from '../db/inventorySchema.js';
 import { getMovementReport, buildMovementReportExcel } from '../inventory/movementReport.js';
+import { movementTimestamp } from '../inventory/movementDate.js';
 import { sendExcelResponse } from './export.js';
 import * as inventory from '../inventory/service.js';
 import { sendRouteError } from '../http/errors.js';
@@ -716,6 +717,8 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
   }
 
   try {
+    // The date this stock list is for (today when not given).
+    const movementWhen = movementTimestamp(req.body.date);
     const defaultWh = await ensureDefaultWarehouse();
     const allWarehouses = await db.prepare('SELECT id, name, code FROM warehouse').all();
     const whByCode = new Map(allWarehouses.map((w) => [String(w.code).toUpperCase(), w.id]));
@@ -871,7 +874,7 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
         if (diffQty !== 0 || reservedQty !== beforeReserved) {
           await db.prepare(`
             INSERT INTO inventory_movement (warehouse_id, product_id, movement_type, quantity, before_on_hand, after_on_hand, before_reserved, after_reserved, reference_type, reason, created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EXCEL_IMPORT', ?, ?, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EXCEL_IMPORT', ?, ?, COALESCE(?::timestamp, NOW()))
           `).run(
             targetWhId,
             product.id,
@@ -882,7 +885,8 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
             beforeReserved,
             reservedQty,
             `Imported from Excel: ${req.file.originalname}`,
-            importedBy
+            importedBy,
+            movementWhen
           );
         }
       }
@@ -1430,6 +1434,7 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
     const validUserId = await resolveUserId(req.user);
     const recNum = await getNextReceiptNumber('REC');
     const primaryWhId = parsedItems[0].warehouseId || defaultWh.id;
+    const when = movementTimestamp(req.body.receiptDate || req.body.date);
 
     let receiptId;
     let totalUnits = 0;
@@ -1439,14 +1444,16 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
         INSERT INTO stock_receipt (
           warehouse_id, receipt_number, source_type, source_reference,
           status, notes, created_by, confirmed_at, created_at
-        ) VALUES (?, ?, 'EXCEL_IMPORT', ?, 'CONFIRMED', ?, ?, NOW(), NOW())
+        ) VALUES (?, ?, 'EXCEL_IMPORT', ?, 'CONFIRMED', ?, ?, COALESCE(?::timestamp, NOW()), COALESCE(?::timestamp, NOW()))
         RETURNING id
       `).get(
         primaryWhId,
         recNum,
         sourceRef || `Import: ${req.file.originalname}`,
         `Bulk Excel inward of ${parsedItems.length} lines`,
-        validUserId
+        validUserId,
+        when,
+        when
       );
 
       receiptId = insertedReceipt.id;
@@ -1488,14 +1495,14 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
         await db.prepare(`
           INSERT INTO stock_receipt_item (
             receipt_id, product_id, quantity, before_on_hand, after_on_hand, notes, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, NOW())
-        `).run(receiptId, product.id, it.quantity, beforeOnHand, afterOnHand, it.notes || null);
+          ) VALUES (?, ?, ?, ?, ?, ?, COALESCE(?::timestamp, NOW()))
+        `).run(receiptId, product.id, it.quantity, beforeOnHand, afterOnHand, it.notes || null, when);
 
         await db.prepare(`
           INSERT INTO inventory_movement (
             warehouse_id, product_id, movement_type, quantity, before_on_hand, after_on_hand,
             before_reserved, after_reserved, reference_type, reference_id, reason, created_by, created_at
-          ) VALUES (?, ?, 'STOCK_IN', ?, ?, ?, ?, ?, 'STOCK_RECEIPT', ?, ?, ?, NOW())
+          ) VALUES (?, ?, 'STOCK_IN', ?, ?, ?, ?, ?, 'STOCK_RECEIPT', ?, ?, ?, COALESCE(?::timestamp, NOW()))
         `).run(
           it.warehouseId,
           product.id,
@@ -1506,7 +1513,8 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
           beforeReserved,
           String(receiptId),
           `Excel Stock Inward Receipt ${recNum}`,
-          validUserId
+          validUserId,
+          when
         );
       }
     });
@@ -1604,6 +1612,8 @@ router.post('/receipts', requireAuth, async (req, res) => {
       whId = defWh.id;
     }
 
+    // The date the stock came in (today when not given); a past date is recorded for that day.
+    const when = movementTimestamp(req.body.receiptDate || req.body.date);
     const recNum = receiptNumber && receiptNumber.trim() ? receiptNumber.trim() : await getNextReceiptNumber('REC');
     const status = confirmImmediately ? 'CONFIRMED' : 'DRAFT';
 
@@ -1612,8 +1622,8 @@ router.post('/receipts', requireAuth, async (req, res) => {
     const insertedReceipt = await db.prepare(`
       INSERT INTO stock_receipt (
         warehouse_id, receipt_number, source_type, source_reference,
-        status, notes, created_by, confirmed_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        status, notes, created_by, confirmed_at, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?::timestamp, NOW()))
       RETURNING id
     `).get(
       whId,
@@ -1623,7 +1633,8 @@ router.post('/receipts', requireAuth, async (req, res) => {
       status,
       notes ? notes.trim() : null,
       validUserId,
-      confirmImmediately ? new Date().toISOString() : null
+      confirmImmediately ? (when || new Date().toISOString()) : null,
+      when
     );
 
     const receiptId = insertedReceipt.id;
@@ -1670,16 +1681,16 @@ router.post('/receipts', requireAuth, async (req, res) => {
         await db.prepare(`
           INSERT INTO inventory_movement (
             warehouse_id, product_id, movement_type, quantity,
-            before_on_hand, after_on_hand, reference_type, reference_id, reason, created_by
-          ) VALUES (?, ?, 'STOCK_IN', ?, ?, ?, 'STOCK_RECEIPT', ?, ?, ?)
-        `).run(whId, prodId, qty, beforeOnHand, afterOnHand, String(receiptId), movReason, validUserId);
+            before_on_hand, after_on_hand, reference_type, reference_id, reason, created_by, created_at
+          ) VALUES (?, ?, 'STOCK_IN', ?, ?, ?, 'STOCK_RECEIPT', ?, ?, ?, COALESCE(?::timestamp, NOW()))
+        `).run(whId, prodId, qty, beforeOnHand, afterOnHand, String(receiptId), movReason, validUserId, when);
       }
 
       await db.prepare(`
         INSERT INTO stock_receipt_item (
-          receipt_id, product_id, quantity, before_on_hand, after_on_hand, notes
-        ) VALUES (?, ?, ?, ?, ?, ?)
-      `).run(receiptId, prodId, qty, beforeOnHand, afterOnHand, itemNotes);
+          receipt_id, product_id, quantity, before_on_hand, after_on_hand, notes, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, COALESCE(?::timestamp, NOW()))
+      `).run(receiptId, prodId, qty, beforeOnHand, afterOnHand, itemNotes, when);
     }
 
     // The company chosen on the inward form applies to every product on the receipt, including
@@ -2159,6 +2170,7 @@ router.post('/stock-in', requireAuth, async (req, res) => {
 
     const { warehouseId, productId, quantity, referenceType, referenceId, reason } = req.body;
     const result = await inventory.recordStockIn({
+      occurredOn: req.body.date || req.body.occurredOn || undefined,
       warehouseId: Number(warehouseId),
       productId: Number(productId),
       quantity: Number(quantity),
@@ -2183,6 +2195,7 @@ router.post('/stock-out', requireAuth, async (req, res) => {
 
     const { warehouseId, productId, quantity, referenceType, referenceId, reason } = req.body;
     const result = await inventory.recordStockOut({
+      occurredOn: req.body.date || req.body.occurredOn || undefined,
       warehouseId: Number(warehouseId),
       productId: Number(productId),
       quantity: Number(quantity),
@@ -2208,6 +2221,7 @@ router.post('/adjust', requireAuth, async (req, res) => {
 
     const { warehouseId, productId, newOnHandQuantity, reason, referenceType, referenceId } = req.body;
     const result = await inventory.adjustStock({
+      occurredOn: req.body.date || req.body.occurredOn || undefined,
       warehouseId: Number(warehouseId),
       productId: Number(productId),
       newOnHandQuantity: Number(newOnHandQuantity),
@@ -2233,6 +2247,7 @@ router.post('/adjustments', requireAuth, async (req, res) => {
 
     const { warehouseId, productId, direction, quantity, reason, notes } = req.body;
     const result = await inventory.createStockAdjustment({
+      occurredOn: req.body.date || req.body.occurredOn || undefined,
       warehouseId: Number(warehouseId),
       productId: Number(productId),
       direction,
@@ -2254,6 +2269,7 @@ async function handleReturn(req, res) {
 
     const { warehouseId, productId, quantity, referenceType, referenceId, reason, notes } = req.body;
     const result = await inventory.recordReturn({
+      occurredOn: req.body.date || req.body.occurredOn || undefined,
       warehouseId: Number(warehouseId),
       productId: Number(productId),
       quantity: Number(quantity),
@@ -2319,7 +2335,7 @@ router.post('/fulfill-reservation/:id', requireAuth, async (req, res) => {
   try {
     const reservationId = optionalId(req.params.id);
     if (!reservationId) return res.status(400).json({ error: 'Invalid reservation ID' });
-    res.json(await inventory.fulfillReservation({ reservationId, userId: await resolveUserId(req.user) }));
+    res.json(await inventory.fulfillReservation({ reservationId, userId: await resolveUserId(req.user), occurredOn: req.body?.date || req.body?.occurredOn || undefined }));
   } catch (err) {
     sendError(res, err, 'Failed to fulfill reservation');
   }
@@ -2516,6 +2532,7 @@ router.post('/transfers', requireAuth, async (req, res) => {
 
     const { sourceWarehouseId, destinationWarehouseId, productId, quantity, reference, notes } = req.body;
     const transfer = await inventory.createStockTransfer({
+      occurredOn: req.body.date || req.body.occurredOn || undefined,
       sourceWarehouseId: Number(sourceWarehouseId),
       destinationWarehouseId: Number(destinationWarehouseId),
       productId: Number(productId),

@@ -9,6 +9,7 @@ import { sendRouteError } from '../http/errors.js';
 import { poReceivedReady } from './poReceived.js';
 import { resolveUserId } from '../db/inventorySchema.js';
 import { recordStockOut, recordStockIn } from '../inventory/service.js';
+import { todayIST } from '../inventory/movementReport.js';
 
 export const INVOICE_COLUMNS = {
   quotation_invoice: ['id', 'quotation_id', 'invoice_number', 'invoice_date', 'payment_due_date', 'notes', 'created_by_user_id', 'created_at'],
@@ -292,6 +293,8 @@ export async function createInvoice(req, res) {
             referenceId: newId,
             reason: `Invoice ${parsed.invoice_number}`,
             userId: stockUserId,
+            // The goods left on the invoice date (an invoice dated in the future takes the stock out today).
+            occurredOn: parsed.invoice_date <= todayIST() ? parsed.invoice_date : undefined,
           });
         }
         return newId;
