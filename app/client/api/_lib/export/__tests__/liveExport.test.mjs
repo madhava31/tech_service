@@ -119,13 +119,15 @@ describe('key management', () => {
       async list(uid) { return rows.filter((r) => r.user_id === uid).map(({ key_hash, ...rest }) => rest); },
       async countActive(uid) { return rows.filter((r) => r.user_id === uid && !r.revoked_at).length; },
       async create({ userId: uid, label, hash, hint }) { const row = { id: rows.length + 1, user_id: uid, label, key_hash: hash, hint, revoked_at: null, created_at: 'now' }; rows.push(row); return row; },
+      async purge(id, uid, isAdmin) { const i = rows.findIndex((x) => x.id === id && !!x.revoked_at && (isAdmin || x.user_id === uid)); if (i < 0) return false; rows.splice(i, 1); return true; },
+      async purgeRevoked(uid) { const before = rows.length; for (let i = rows.length - 1; i >= 0; i--) if (rows[i].user_id === uid && rows[i].revoked_at) rows.splice(i, 1); return before - rows.length; },
       async revoke(id, uid, isAdmin) { const r = rows.find((x) => x.id === id && !x.revoked_at && (isAdmin || x.user_id === uid)); if (!r) return false; r.revoked_at = 'now'; return true; },
     };
     const h = createKeyHandlers({ store });
     const app = express();
     app.use(express.json());
     app.use((req, res, next) => { req.user = { id: Number(req.get('x-uid') || userId), role: req.get('x-role') || role }; next(); });
-    app.get('/', h.list); app.post('/', h.create); app.delete('/:id', h.revoke);
+    app.get('/', h.list); app.post('/', h.create); app.delete('/revoked', h.purgeRevoked); app.delete('/:id/permanent', h.purge); app.delete('/:id', h.revoke);
     return { app, rows };
   }
   const send = (base, method, path = '', body, headers = {}) => fetch(`${base}/${path}`, { method, headers: { 'content-type': 'application/json', ...headers }, body: body ? JSON.stringify(body) : undefined });
@@ -166,6 +168,36 @@ describe('key management', () => {
       assert.equal((await send(srv.base, 'DELETE', '1')).status, 404, 'already revoked');
       assert.equal((await send(srv.base, 'DELETE', 'abc')).status, 400);
       assert.equal((await send(srv.base, 'DELETE', '0')).status, 400);
+    } finally { await srv.close(); }
+  });
+
+  test('a revoked link can be deleted for good; a working one cannot; others\' links stay', async () => {
+    const { app, rows } = keysApp(10);
+    const srv = await serve(app);
+    try {
+      await send(srv.base, 'POST', '', { label: 'a' }); // id 1
+      await send(srv.base, 'POST', '', { label: 'b' }); // id 2
+      assert.equal((await send(srv.base, 'DELETE', '1/permanent')).status, 404, 'still active: revoke it first');
+      assert.equal(rows.length, 2);
+      await send(srv.base, 'DELETE', '1'); // revoke
+      assert.equal((await send(srv.base, 'DELETE', '1/permanent', undefined, { 'x-uid': '99' })).status, 404, "another user cannot delete it");
+      assert.equal((await send(srv.base, 'DELETE', '1/permanent')).status, 200);
+      assert.deepEqual(rows.map((r) => r.id), [2], 'only the revoked link is gone');
+      assert.equal((await send(srv.base, 'DELETE', '1/permanent')).status, 404, 'already gone');
+      assert.equal((await send(srv.base, 'DELETE', 'abc/permanent')).status, 400);
+    } finally { await srv.close(); }
+  });
+
+  test('"delete all revoked" removes only the user\'s own revoked links', async () => {
+    const { app, rows } = keysApp(10);
+    const srv = await serve(app);
+    try {
+      for (const l of ['a', 'b', 'c']) await send(srv.base, 'POST', '', { label: l }); // ids 1-3, user 10
+      await send(srv.base, 'POST', '', { label: 'other' }, { 'x-uid': '20' }); // id 4, user 20
+      await send(srv.base, 'DELETE', '1'); await send(srv.base, 'DELETE', '2'); await send(srv.base, 'DELETE', '4', undefined, { 'x-uid': '20' });
+      const r = await (await send(srv.base, 'DELETE', 'revoked')).json();
+      assert.deepEqual(r, { ok: true, deleted: 2 });
+      assert.deepEqual(rows.map((x) => x.id), [3, 4], 'the active link and the other user\'s revoked link are kept');
     } finally { await srv.close(); }
   });
 });

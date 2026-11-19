@@ -3,6 +3,8 @@
 //   POST   /api/export/keys          (signed in)  create a key; the key is returned ONCE, only its hash is stored
 //   GET    /api/export/keys          (signed in)  the user's own keys (never the key itself)
 //   DELETE /api/export/keys/:id      (signed in)  revoke a key; it stops working at once
+//   DELETE /api/export/keys/:id/permanent (signed in)  delete a key that is already revoked, so it leaves the list
+//   DELETE /api/export/keys/revoked  (signed in)  delete all of the user's revoked keys
 //   GET    /api/export/live/quotations.xlsx?key=...&columns=...   the feed: key only, no login cookie, read only
 //
 // The table comes from migration 009; until it is applied every route here answers 503 MIGRATION_REQUIRED.
@@ -84,6 +86,24 @@ export function createKeyHandlers({ store }) {
         sendRouteError(res, err, 500, 'Unable to create the key. Please try again.');
       }
     },
+    // Removes a revoked key from the list for good. An active key cannot be deleted: revoke it first.
+    async purge(req, res) {
+      try {
+        if (!isId(req.params.id)) return res.status(400).json({ error: 'Invalid key id' });
+        const done = await store.purge(Number(req.params.id), req.user.id, req.user.role === 'admin');
+        if (!done) return res.status(404).json({ error: 'Key not found, or it is still active. Revoke it first.' });
+        res.json({ ok: true });
+      } catch (err) {
+        sendRouteError(res, err, 500, 'Unable to delete the key. Please try again.');
+      }
+    },
+    async purgeRevoked(req, res) {
+      try {
+        res.json({ ok: true, deleted: await store.purgeRevoked(req.user.id) });
+      } catch (err) {
+        sendRouteError(res, err, 500, 'Unable to delete the revoked keys. Please try again.');
+      }
+    },
     async revoke(req, res) {
       try {
         if (!isId(req.params.id)) return res.status(400).json({ error: 'Invalid key id' });
@@ -118,6 +138,17 @@ const dbStore = {
       : await db.prepare(`UPDATE export_api_key SET revoked_at = NOW() WHERE id = ? AND user_id = ? AND revoked_at IS NULL`).run(id, userId);
     return r.changes > 0;
   },
+  // Only a key that is already revoked can be deleted, so a working link is never removed by accident.
+  async purge(id, userId, isAdmin) {
+    const r = isAdmin
+      ? await db.prepare(`DELETE FROM export_api_key WHERE id = ? AND revoked_at IS NOT NULL`).run(id)
+      : await db.prepare(`DELETE FROM export_api_key WHERE id = ? AND user_id = ? AND revoked_at IS NOT NULL`).run(id, userId);
+    return r.changes > 0;
+  },
+  async purgeRevoked(userId) {
+    const r = await db.prepare(`DELETE FROM export_api_key WHERE user_id = ? AND revoked_at IS NOT NULL`).run(userId);
+    return r.changes;
+  },
 };
 
 // Mounted in app/api/index.js: the feed WITHOUT requireAuth (the key is the credential), the key routes WITH it.
@@ -133,4 +164,7 @@ const handlers = createKeyHandlers({ store: dbStore });
 keysRouter.use(requireExportKeys);
 keysRouter.get('/', handlers.list);
 keysRouter.post('/', handlers.create);
+// '/revoked' is declared before '/:id' so it is not read as an id.
+keysRouter.delete('/revoked', handlers.purgeRevoked);
+keysRouter.delete('/:id/permanent', handlers.purge);
 keysRouter.delete('/:id', handlers.revoke);

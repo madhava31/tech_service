@@ -2185,6 +2185,9 @@ export const api = {
       list: () => request<{ keys: ExportKey[]; max_active: number }>('/export/keys'),
       create: (label: string) => request<{ id: number; label: string; hint: string; key: string; created_at: string }>('/export/keys', { method: 'POST', body: JSON.stringify({ label }) }),
       revoke: (id: number) => request<{ ok: boolean }>(`/export/keys/${id}`, { method: 'DELETE' }),
+      /** Deletes a link that is already revoked, so it leaves the list. */
+      remove: (id: number) => request<{ ok: boolean }>(`/export/keys/${id}/permanent`, { method: 'DELETE' }),
+      removeRevoked: () => request<{ ok: boolean; deleted: number }>('/export/keys/revoked', { method: 'DELETE' }),
     },
     engineersPerformanceUrl: (year?: string) => `${BASE}/export/engineers/performance${year ? `?year=${year}` : ''}`,
     inventoryStockUrl: (params?: { warehouseId?: number; status?: string; q?: string }) => {

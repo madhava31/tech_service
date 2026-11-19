@@ -110,6 +110,16 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
     try { await api.export.keys.revoke(k.id); loadKeys(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not revoke the key.'); }
   }
 
+  async function removeKey(k: ExportKey) {
+    if (!window.confirm(`Delete "${k.label}" from the list? It is already revoked, so no Excel file can use it.`)) return;
+    try { await api.export.keys.remove(k.id); loadKeys(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not delete the link.'); }
+  }
+
+  async function removeAllRevoked() {
+    if (!window.confirm('Delete all revoked links from the list? Working links are not touched.')) return;
+    try { const r = await api.export.keys.removeRevoked(); showToast(`${r.deleted} revoked ${r.deleted === 1 ? 'link' : 'links'} deleted.`); loadKeys(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not delete the links.'); }
+  }
+
   async function copy(text: string) {
     try { await navigator.clipboard.writeText(text); showToast('Link copied. Keep it private.'); } catch { showToast('Could not copy. Select the link and copy it by hand.'); }
   }
@@ -125,6 +135,7 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
   const statusColumnLetter = letterOf('status');
   const poColumnLetter = letterOf('po_numbers');
   const active = (keys || []).filter((k) => !k.revoked_at);
+  const revokedCount = (keys || []).length - active.length;
   const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'never');
 
   return (
@@ -204,14 +215,24 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
 
                 {keys && keys.length > 0 && (
                   <div className="flex flex-col gap-1.5">
-                    <b>Your links</b>
+                    <div className="flex items-center justify-between gap-2">
+                      <b>Your links</b>
+                      {revokedCount > 1 && (
+                        <button type="button" className="ts-btn ts-ghost ts-xs" onClick={removeAllRevoked}>Delete all {revokedCount} revoked</button>
+                      )}
+                    </div>
                     {keys.map((k) => (
                       <div key={k.id} className={`flex flex-wrap items-center gap-2 rounded-lg border border-line2 px-3 py-1.5 ${k.revoked_at ? 'opacity-50' : ''}`}>
                         <span className="font-medium">{k.label}</span>
                         <span className="font-mono text-[11.5px] text-subtle">{k.hint}</span>
                         <span className="text-[11.5px] text-subtle">last used {fmt(k.last_used_at)}</span>
                         <span style={{ flex: 1 }} />
-                        {k.revoked_at ? <span className="text-[11.5px]">revoked</span> : <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => revoke(k)}>Revoke</button>}
+                        {k.revoked_at ? (
+                          <>
+                            <span className="text-[11.5px]">revoked</span>
+                            <button type="button" className="ts-btn ts-ghost ts-xs !opacity-100" onClick={() => removeKey(k)}>Delete</button>
+                          </>
+                        ) : <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => revoke(k)}>Revoke</button>}
                       </div>
                     ))}
                   </div>
