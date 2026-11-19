@@ -248,15 +248,26 @@ router.get('/engineers/performance', async (req, res) => {
  * The columns the quotation export offers. The user picks which ones to download (the page asks first); the
  * PO columns need migration 008 and are left out until it has been applied.
  */
+// The sheet has one row per product of each quotation: the quotation's own columns repeat on each of its product rows.
+// Order: date, quotation, company, the product columns, the customer contact, then the rest. Columns marked item: true
+// are the product columns.
 const QUOTATION_EXPORT_COLUMNS = [
-  { key: 'quotation_number', header: 'Quotation No', minWidth: 18, def: true },
   { key: 'quotation_date', header: 'Date', minWidth: 14, def: true },
-  { key: 'customer_name', header: 'Customer', minWidth: 26, def: true },
+  { key: 'quotation_number', header: 'Quotation No', minWidth: 18, def: true },
+  { key: 'customer_name', header: 'Company Name', minWidth: 26, def: true },
+  { key: 'part_no', header: 'Part Number', minWidth: 16, def: true, item: true },
+  { key: 'item_description', header: 'Description', minWidth: 40, def: true, item: true },
+  { key: 'hsn_code', header: 'HSN Code', minWidth: 12, def: true, item: true },
+  { key: 'item_qty', header: 'Quantity', type: 'number', align: 'right', minWidth: 12, def: true, item: true },
+  { key: 'list_price', header: 'List Price (₹)', type: 'currency', align: 'right', minWidth: 16, def: true, item: true },
+  { key: 'item_discount', header: 'Discount (₹)', type: 'currency', align: 'right', minWidth: 14, def: true, item: true },
+  { key: 'price_after_discount', header: 'Price After Discount (₹)', type: 'currency', align: 'right', minWidth: 22, def: true, item: true },
+  { key: 'line_total', header: 'Total Price (₹)', type: 'currency', align: 'right', minWidth: 18, def: true, item: true },
+  { key: 'contact_person', header: 'Customer Name', minWidth: 20, def: true },
+  { key: 'contact_phone', header: 'Phone Number', minWidth: 16, def: true },
+  { key: 'contact_email', header: 'Email ID', minWidth: 26, def: true },
   { key: 'company_address', header: 'Customer Address', minWidth: 32, def: false },
   { key: 'customer_state', header: 'State', minWidth: 16, def: false },
-  { key: 'contact_person', header: 'Contact Person', minWidth: 20, def: true },
-  { key: 'contact_phone', header: 'Contact Phone', minWidth: 16, def: true },
-  { key: 'contact_email', header: 'Contact Email', minWidth: 26, def: true },
   { key: 'sales_engineer', header: 'Sales Engineer', minWidth: 20, def: true },
   { key: 'firm_name', header: 'Firm', minWidth: 20, def: false },
   { key: 'branch', header: 'Branch', minWidth: 18, def: false },
@@ -272,7 +283,7 @@ const QUOTATION_EXPORT_COLUMNS = [
   { key: 'negotiation_note', header: 'Customer Asked (last round)', minWidth: 34, def: true, rev: true },
   { key: 'first_total', header: 'First Sent Total (₹)', type: 'currency', align: 'right', minWidth: 20, def: false, rev: true },
   { key: 'price_change', header: 'Price Change Since First Sent (₹)', type: 'currency', align: 'right', minWidth: 28, def: true, rev: true },
-  { key: 'products_quoted', header: 'Products Quoted (qty)', minWidth: 40, def: true, po: true },
+  { key: 'products_quoted', header: 'Products Quoted (qty)', minWidth: 40, def: false, po: true },
   { key: 'items_quoted', header: 'Items Quoted', type: 'integer', align: 'right', minWidth: 14, def: true, po: true },
   { key: 'qty_quoted', header: 'Total Qty Quoted', type: 'number', align: 'right', minWidth: 16, def: true, po: true },
   { key: 'po_count', header: 'POs Received', type: 'integer', align: 'right', minWidth: 14, def: true, po: true },
@@ -283,6 +294,33 @@ const QUOTATION_EXPORT_COLUMNS = [
   { key: 'qty_ordered', header: 'Total Qty Ordered', type: 'number', align: 'right', minWidth: 16, def: true, po: true },
   { key: 'ordered_value', header: 'Ordered Value excl. GST (₹)', type: 'currency', align: 'right', minWidth: 24, def: true, po: true },
 ];
+
+// Live Excel links made before the product rows (no layout=2 in the link) keep their old column names, order and one
+// row per quotation: Excel finds the columns of a refreshed sheet by name, so renaming them would break those sheets.
+const LEGACY_HEADERS = { customer_name: 'Customer', contact_person: 'Contact Person', contact_phone: 'Contact Phone', contact_email: 'Contact Email' };
+const LEGACY_ORDER = ['quotation_number', 'quotation_date', 'customer_name', 'company_address', 'customer_state', 'contact_person', 'contact_phone', 'contact_email'];
+export function exportColumnsFor(available, asked, legacy) {
+  const pool = legacy ? available.filter((c) => !c.item) : available;
+  const picked = asked.length ? pool.filter((c) => asked.includes(c.key)) : pool.filter((c) => c.def);
+  const cols = picked.length ? picked : pool.filter((c) => c.def);
+  if (!legacy) return cols;
+  const rank = (k) => { const i = LEGACY_ORDER.indexOf(k); return i < 0 ? LEGACY_ORDER.length : i; };
+  return cols
+    .map((c, i) => ({ c, i }))
+    .sort((a, b) => rank(a.c.key) - rank(b.c.key) || a.i - b.i)
+    .map(({ c }) => (LEGACY_HEADERS[c.key] ? { ...c, header: LEGACY_HEADERS[c.key] } : c));
+}
+
+/** Splits quotation rows into one row per product. A quotation without products keeps a single row. */
+export function expandToProductRows(rows, itemsByQuotation) {
+  const out = [];
+  for (const r of rows) {
+    const items = itemsByQuotation.get(r._id) || [];
+    if (!items.length) { out.push(r); continue; }
+    for (const it of items) out.push({ ...r, ...it });
+  }
+  return out;
+}
 
 /** GET /api/export/quotations/columns : what the "Export to Excel" window offers. */
 router.get('/quotations/columns', async (req, res) => {
@@ -413,7 +451,8 @@ export async function buildQuotationExport(query, scope = {}) {
     sql += ` ORDER BY q.id DESC LIMIT ?`;
     params.push(Number(limit) || 5000);
 
-    const rows = await db.prepare(sql).all(...params);
+    // The newest quotations are fetched (up to the limit), then listed oldest first, so a new quotation is added at the bottom.
+    const rows = (await db.prepare(sql).all(...params)).reverse();
     // A quotation that has received a PO is highlighted as a whole row.
     // A quotation is a "PO received" row (green) when it has PO records, or when it is marked PO received (stored 'accepted')
     // from before PO records existed. The status is then shown by name: accepted is "PO received".
@@ -426,8 +465,35 @@ export async function buildQuotationExport(query, scope = {}) {
 
     const available = QUOTATION_EXPORT_COLUMNS.filter((c) => (po || !c.po) && (rev || !c.rev));
     const asked = String(query.columns || '').split(',').map((k) => k.trim()).filter(Boolean);
-    const picked = asked.length ? available.filter((c) => asked.includes(c.key)) : available.filter((c) => c.def);
-    const columns = picked.length ? picked : available.filter((c) => c.def);
+    // Downloads always use the current layout; a live link only when it was made with it (layout=2).
+    const legacy = !!scope.clean && String(query.layout || '') !== '2';
+    const columns = exportColumnsFor(available, asked, legacy);
+
+    // One row per product when any product column is in the sheet.
+    let sheetRows = rows;
+    if (columns.some((c) => c.item) && rows.length) {
+      const items = await db
+        .prepare(
+          `SELECT qi.quotation_id AS _qid, qi.part_no, COALESCE(NULLIF(qi.description, ''), qi.part_no) AS item_description,
+                  qi.hsn_sac AS hsn_code, COALESCE(qi.qty, 0)::float8 AS item_qty,
+                  COALESCE(qi.actual_unit_price, qi.price, 0)::float8 AS list_price,
+                  COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0)::float8 AS price_after_discount,
+                  COALESCE(qi.final_line_total, qi.qty * COALESCE(qi.final_unit_price, qi.actual_unit_price, qi.price, 0), 0)::float8 AS line_total
+             FROM quotation_item qi
+            WHERE qi.quotation_id = ANY(?::int[])
+            ORDER BY qi.quotation_id ASC, qi.id`
+        )
+        .all(rows.map((r) => r._id));
+      const byQuotation = new Map();
+      for (const it of items) {
+        const { _qid, ...rest } = it;
+        // Discount per unit: list price minus the price after discount (product and overall discount together).
+        rest.item_discount = Math.round((Number(rest.list_price) - Number(rest.price_after_discount)) * 100) / 100;
+        if (!byQuotation.has(_qid)) byQuotation.set(_qid, []);
+        byQuotation.get(_qid).push(rest);
+      }
+      sheetRows = expandToProductRows(rows, byQuotation);
+    }
 
     // Second sheet "PO Items": one row per item of every PO (which product, how many ordered, against which PO).
     let extraSheets = [];
@@ -444,7 +510,7 @@ export async function buildQuotationExport(query, scope = {}) {
              JOIN quotation q ON q.id = p.quotation_id
              LEFT JOIN company c ON c.id = q.company_id
             WHERE p.quotation_id = ANY(?::int[])
-            ORDER BY q.id DESC, p.created_at, p.id, qi.id`
+            ORDER BY q.id ASC, p.created_at, p.id, qi.id`
         )
         .all(rows.map((r) => r._id));
       if (items.length) {
@@ -473,7 +539,7 @@ export async function buildQuotationExport(query, scope = {}) {
       title: 'TECHNICON SERVICES — QUOTATIONS MASTER REPORT',
       sheetName: 'Quotations',
       columns,
-      data: rows,
+      data: sheetRows,
       filters: { status, branchId, engineerId },
       extraSheets,
       clean: !!scope.clean,

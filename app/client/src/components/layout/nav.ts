@@ -22,6 +22,7 @@ export const NAV: NavEntry[] = [
     { label: 'Stock inward', path: '/inventory/stock-inward', desc: 'Receive and restock' },
     { label: 'Reservations', path: '/inventory/reservations', desc: 'Commit stock to orders' },
     { label: 'Stock intelligence', path: '/inventory/intelligence', desc: 'Demand and restock advice' },
+    { label: 'Stock in / out', path: '/inventory/movement-report', desc: 'Daily and monthly stock in and out' },
   ] },
   { kind: 'group', key: 'analytics', label: 'Analytics', items: [
     { label: 'Business health', path: '/business-health', desc: 'Revenue, margin and risk signals' },

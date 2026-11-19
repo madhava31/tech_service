@@ -51,6 +51,7 @@ const StockReceiptDetail = lazy(() => import('./pages/inventory/StockReceiptDeta
 const ReservationList = lazy(() => import('./pages/inventory/ReservationList'));
 const ReservationDetail = lazy(() => import('./pages/inventory/ReservationDetail'));
 const StockIntelligence = lazy(() => import('./pages/inventory/StockIntelligence'));
+const StockMovementReport = lazy(() => import('./pages/inventory/StockMovementReport'));
 
 const SaleReportList = lazy(() => import('./pages/sales/SaleReportList'));
 const SaleReportNew = lazy(() => import('./pages/sales/SaleReportNew'));
@@ -163,6 +164,7 @@ export default function App() {
             <Route path="/inventory/reservations" element={<ReservationList />} />
             <Route path="/inventory/reservations/:id" element={<ReservationDetail />} />
             <Route path="/inventory/intelligence" element={<StockIntelligence />} />
+            <Route path="/inventory/movement-report" element={<StockMovementReport />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/reports/company-trends" element={<Reports />} />
             <Route path="/reports/engineer-sales" element={<EngineerSalesReport />} />

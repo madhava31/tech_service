@@ -5,6 +5,8 @@ import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
 import { ensureInventorySchema, getUserTable, resolveUserId } from '../db/inventorySchema.js';
+import { getMovementReport, buildMovementReportExcel } from '../inventory/movementReport.js';
+import { sendExcelResponse } from './export.js';
 import * as inventory from '../inventory/service.js';
 import { sendRouteError } from '../http/errors.js';
 import apiCache from '../cache/apiCache.js';
@@ -1795,12 +1797,37 @@ router.get('/movements', requireAuth, async (req, res) => {
         movementType: req.query.movementType ? String(req.query.movementType).trim() : null,
         referenceType: req.query.referenceType ? String(req.query.referenceType).trim() : null,
         referenceId: req.query.referenceId ? String(req.query.referenceId).trim() : null,
+        dateFrom: req.query.dateFrom ? String(req.query.dateFrom).trim() : null,
+        dateTo: req.query.dateTo ? String(req.query.dateTo).trim() : null,
         limit,
         offset,
       })
     );
   } catch (err) {
     sendError(res, err, 'Failed to list movements');
+  }
+});
+
+/**
+ * GET /api/inventory/movement-report?view=month&month=2026-11  or  ?view=year&year=2026&yearType=fy|calendar
+ *   &warehouseId=&q=&make=&productId=&moved=1&limit=&offset=
+ * Stock in / out of each product per day of a month or per month of a year (see inventory/movementReport.js).
+ */
+router.get('/movement-report', requireAuth, async (req, res) => {
+  try {
+    res.json(await getMovementReport(req.query));
+  } catch (err) {
+    sendError(res, err, 'Failed to build the stock in / out report');
+  }
+});
+
+/** GET /api/inventory/movement-report.xlsx : the same report as an Excel file (same parameters, every product). */
+router.get('/movement-report.xlsx', requireAuth, async (req, res) => {
+  try {
+    const { buffer, filename } = await buildMovementReportExcel(req.query);
+    sendExcelResponse(res, buffer, filename);
+  } catch (err) {
+    sendError(res, err, 'Failed to download the stock in / out report');
   }
 });
 

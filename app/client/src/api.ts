@@ -379,6 +379,23 @@ export interface QuotationPoList {
   pos: QuotationPo[];
 }
 
+/** An invoice of a quotation (migration 012): number typed from the tax invoice, items billed, payment due date. */
+export interface QuotationInvoice {
+  id: number;
+  invoice_number: string;
+  invoice_date: string;
+  payment_due_date: string;
+  notes: string | null;
+  created_at: string;
+  created_by_username: string | null;
+  invoiced_items: number;
+  items: { quotation_invoice_id: number; quotation_item_id: number; qty: number; part_no: string | null; description: string; quoted_qty: number }[];
+}
+export interface QuotationInvoiceList {
+  quoted_items: number;
+  invoices: QuotationInvoice[];
+}
+
 export interface QuotationEmailResult {
   ok: boolean;
   status: 'SIMULATED_NOT_SENT' | 'SENT';
@@ -1315,6 +1332,19 @@ export const api = {
         return res;
       },
     },
+    invoices: {
+      list: (id: number) => request<QuotationInvoiceList>(`/quotations/${id}/invoices`),
+      create: async (id: number, data: { invoice_number: string; invoice_date?: string; payment_due_date?: string; notes?: string; items: { quotation_item_id: number; qty: number }[] }) => {
+        const res = await request<{ id: number; invoice_number: string; payment_due_date: string; invoiced_items: number }>(`/quotations/${id}/invoices`, { method: 'POST', body: JSON.stringify(data) });
+        clearCache('quotations');
+        return res;
+      },
+      remove: async (id: number, invoiceId: number) => {
+        const res = await request<{ ok: boolean }>(`/quotations/${id}/invoices/${invoiceId}`, { method: 'DELETE' });
+        clearCache('quotations');
+        return res;
+      },
+    },
     poReceived: {
       list: (id: number) => request<QuotationPoList>(`/quotations/${id}/po-received`),
       create: async (id: number, data: { po_number: string; po_date?: string; notes?: string; items: { quotation_item_id: number; qty: number }[] }) => {
@@ -1692,8 +1722,10 @@ export const api = {
       request<{ reservation: StockReservation; stock: any; movement: InventoryMovement }>(`/inventory/fulfill-reservation/${id}`, { method: 'POST' }),
     recordReturn: (data: { warehouseId: number; productId: number; quantity: number; referenceType?: string; referenceId?: string; reason?: string }) =>
       request<{ stock: any; movement: InventoryMovement }>('/inventory/return', { method: 'POST', body: JSON.stringify(data) }),
-    listMovements: (params?: { warehouseId?: number; productId?: number; movementType?: string; limit?: number; offset?: number }) => {
+    listMovements: (params?: { warehouseId?: number; productId?: number; movementType?: string; dateFrom?: string; dateTo?: string; limit?: number; offset?: number }) => {
       const q = new URLSearchParams();
+      if (params?.dateFrom) q.set('dateFrom', params.dateFrom);
+      if (params?.dateTo) q.set('dateTo', params.dateTo);
       if (params?.warehouseId) q.set('warehouseId', String(params.warehouseId));
       if (params?.productId) q.set('productId', String(params.productId));
       if (params?.movementType) q.set('movementType', params.movementType);
@@ -1734,6 +1766,9 @@ export const api = {
       return res.json() as Promise<{ success: boolean; createdCount: number; errors: string[] }>;
     },
     getReservationsTemplateUrl: () => `${BASE}/inventory/reservations/template`,
+    /** Stock in / out per day of a month or per month of a year (financial or calendar). */
+    movementReport: (params: MovementReportParams) => request<MovementReport>(`/inventory/movement-report?${movementReportQuery(params)}`),
+    movementReportXlsxUrl: (params: MovementReportParams) => `${BASE}/inventory/movement-report.xlsx?${movementReportQuery({ ...params, limit: undefined, offset: undefined })}`,
     getStockIntelligence: (params?: { warehouseId?: number; productId?: number; period?: number; start?: string; end?: string; limit?: number; offset?: number }) => {
 
       const q = new URLSearchParams();
@@ -2298,6 +2333,59 @@ export type InventoryMovementType =
   | 'TRANSFER_IN'
   | 'TRANSFER_OUT'
   | 'OPENING_STOCK';
+
+export interface MovementReportParams {
+  view: 'month' | 'year';
+  month?: string;
+  year?: number;
+  yearType?: 'fy' | 'calendar';
+  warehouseId?: number | '';
+  productId?: number | '';
+  q?: string;
+  make?: string;
+  moved?: boolean;
+  limit?: number;
+  offset?: number;
+}
+export function movementReportQuery(p: MovementReportParams) {
+  const q = new URLSearchParams({ view: p.view });
+  if (p.view === 'month' && p.month) q.set('month', p.month);
+  if (p.view === 'year') {
+    if (p.year) q.set('year', String(p.year));
+    q.set('yearType', p.yearType || 'fy');
+  }
+  if (p.warehouseId) q.set('warehouseId', String(p.warehouseId));
+  if (p.productId) q.set('productId', String(p.productId));
+  if (p.q) q.set('q', p.q);
+  if (p.make) q.set('make', p.make);
+  q.set('moved', p.moved === false ? '0' : '1');
+  if (p.limit) q.set('limit', String(p.limit));
+  if (p.offset) q.set('offset', String(p.offset));
+  return q.toString();
+}
+/** One cell of the report: stock in, out, customer returns, corrections (signed) and transfers (net). */
+export interface MovementCell { in: number; out: number; ret: number; adj: number; xfer: number }
+export interface MovementReportRow {
+  id: number;
+  part_no: string;
+  description: string;
+  unit: string | null;
+  make: string | null;
+  opening: number;
+  cells: Record<string, MovementCell>;
+  totals: MovementCell;
+  closing: number;
+}
+export interface MovementReport {
+  period: { view: 'month' | 'year'; label: string; start: string; end_exclusive: string; month: string | null; year: number | null; year_type: 'fy' | 'calendar' | null };
+  buckets: { key: string; label: string }[];
+  single_warehouse: boolean;
+  products: MovementReportRow[];
+  total_products: number;
+  totals: MovementCell & { opening: number; closing: number; columns: Record<string, MovementCell> };
+  limit: number;
+  offset: number;
+}
 
 export interface InventoryMovement {
   id: number;

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { api, type ExportKey } from '../api';
 import { showToast } from '../lib/savePdf';
 
-const STORAGE_KEY = 'technicon_quotation_export_columns';
+// v2: the product columns were added; everyone starts once from the new default order.
+const STORAGE_KEY = 'technicon_quotation_export_columns.v2';
 
 type Col = { key: string; label: string; default: boolean; po: boolean };
 
@@ -81,7 +82,7 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
   }
 
   const liveUrl = (key: string) => {
-    const q = new URLSearchParams({ key });
+    const q = new URLSearchParams({ key, layout: '2' });
     if (picked.size) q.set('columns', orderedPicked().join(','));
     if (status) q.set('status', status);
     return `${window.location.origin}/api/export/live/quotations.xlsx?${q.toString()}`;
@@ -160,7 +161,7 @@ export function ExportQuotationsModal({ status, onClose }: { status?: string; on
             </div>
             <small className="ts-hint">
               {poAvailable
-                ? 'A quotation that has received a PO is a full green row, with its PO number in the PO Number(s) column. A downloaded file is a snapshot: use the Live link tab for a file that updates itself.'
+                ? 'One row per product: the quotation columns repeat on each of its product rows (sum Total Price, not Total Value). A quotation that has received a PO is a full green row, with its PO number in the PO Number(s) column. A downloaded file is a snapshot: use the Live link tab for a file that updates itself.'
                 : 'The PO columns and green rows appear once the PO received database update (migration 008) has been applied.'}
             </small>
           </>

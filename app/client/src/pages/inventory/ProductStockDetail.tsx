@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import RestockModal from '../../components/RestockModal';
+import { MonthStrip } from '../../components/MonthStrip';
 import {
   api,
   ProductStockDetailResponse,
@@ -312,6 +313,8 @@ export default function ProductStockDetail() {
           </table>
         </div>
       </div>
+
+      <MonthStrip productId={product.id} />
 
       {/* Movement History / Audit Trail */}
       <div className="ts-card ts-white ts-tbl overflow-hidden">

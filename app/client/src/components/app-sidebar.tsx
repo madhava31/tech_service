@@ -83,6 +83,7 @@ const INVENTORY_NAV: NavItemDef[] = [
       { label: 'Stock Inward', path: '/inventory/stock-inward' },
       { label: 'Reservations', path: '/inventory/reservations' },
       { label: 'Stock Intelligence', path: '/inventory/intelligence' },
+      { label: 'Stock In / Out Report', path: '/inventory/movement-report' },
     ],
   },
 ];

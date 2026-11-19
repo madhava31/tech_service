@@ -4,10 +4,14 @@
 // How a quotation's payment schedule is worked out:
 //   advance = total x advance_percent, due payment_due_days after the first purchase order's date.
 //   balance = total - advance, due payment_due_days after the first performa invoice's date.
+//   Once an invoice is recorded (migration 012), the balance (or the full payment, with 100% advance) is due on the
+//   first invoice's payment due date instead. The PO date is the earliest of the purchase orders and POs received.
 //   Payments received are applied to the advance first, then to the balance.
 //   A part has no due date until its PO or PI exists ("Not started").
 import db from '../db/index.js';
 import { createSchemaGuard, missingColumns } from '../db/schemaGuard.js';
+import { poReceivedReady } from '../quotations/poReceived.js';
+import { invoicesReady } from '../quotations/invoices.js';
 
 export const PAYMENTS_COLUMNS = {
   company_contact: ['id', 'company_id', 'name', 'phone', 'email'],
@@ -185,6 +189,11 @@ export function computeSchedule(q, today = todayIST()) {
   const received = round2(q.received);
   const advanceAmount = round2((total * advancePercent) / 100);
   const balanceAmount = round2(total - advanceAmount);
+  const day = (v) => (v ? String(v).slice(0, 10) : null);
+  // The earliest of the purchase order and the PO received dates.
+  const poDate = [day(q.po_date), day(q.po_received_date)].filter(Boolean).sort()[0] || null;
+  const invoiceDate = day(q.invoice_date);
+  const invoiceDue = day(q.invoice_due_date);
 
   const parts = [];
   let left = received;
@@ -198,9 +207,9 @@ export function computeSchedule(q, today = todayIST()) {
       key: 'advance',
       label: advancePercent >= 100 ? 'Full payment (100% advance)' : `Advance (${advancePercent}%)`,
       amount: advanceAmount,
-      starts_on: q.po_date || null,
+      starts_on: poDate,
       starts_with: 'purchase order',
-      due_date: q.po_date ? addDays(q.po_date, dueDays) : null,
+      due_date: poDate ? addDays(poDate, dueDays) : null,
       received: take(advanceAmount),
     });
   }
@@ -214,6 +223,13 @@ export function computeSchedule(q, today = todayIST()) {
       due_date: q.pi_date ? addDays(q.pi_date, dueDays) : null,
       received: take(balanceAmount),
     });
+  }
+  // With an invoice, the last part (the balance, or the full payment with 100% advance) is due on its payment due date.
+  if (invoiceDue && parts.length) {
+    const last = parts[parts.length - 1];
+    last.starts_on = invoiceDate;
+    last.starts_with = 'invoice';
+    last.due_date = invoiceDue;
   }
   for (const p of parts) {
     p.outstanding = round2(p.amount - p.received);
@@ -246,18 +262,26 @@ export function computeSchedule(q, today = todayIST()) {
   };
 }
 
-const SCHEDULE_SQL = `
+/** The schedule query; the PO received and invoice dates are included once migrations 008 and 012 are applied. */
+async function scheduleSql() {
+  const poReceived = await poReceivedReady();
+  const invoices = await invoicesReady();
+  return `
   SELECT q.id, q.number, q.date, q.total, q.status AS quotation_status, q.advance_percent, q.payment_due_days,
          q.contact_person, q.contact_phone, q.contact_email, q.created_by_user_id,
          c.id AS company_id, c.name AS company_name,
          (SELECT MIN(po.date) FROM purchase_order po WHERE po.quotation_id = q.id) AS po_date,
+         ${poReceived ? '(SELECT MIN(qp.po_date) FROM quotation_po qp WHERE qp.quotation_id = q.id)' : 'NULL'} AS po_received_date,
          (SELECT MIN(pi.date) FROM performa_invoice pi WHERE pi.quotation_id = q.id) AS pi_date,
+         ${invoices ? '(SELECT MIN(iv.invoice_date) FROM quotation_invoice iv WHERE iv.quotation_id = q.id)' : 'NULL'} AS invoice_date,
+         ${invoices ? '(SELECT iv.payment_due_date FROM quotation_invoice iv WHERE iv.quotation_id = q.id ORDER BY iv.invoice_date, iv.id LIMIT 1)' : 'NULL'} AS invoice_due_date,
          (SELECT COALESCE(SUM(p.amount), 0) FROM quotation_payment p WHERE p.quotation_id = q.id) AS received
   FROM quotation q JOIN company c ON c.id = q.company_id`;
+}
 
 /** The schedule and the payments recorded for one quotation. */
 export async function getQuotationPayments(quotationId) {
-  const q = await db.prepare(`${SCHEDULE_SQL} WHERE q.id = ?`).get(quotationId);
+  const q = await db.prepare(`${await scheduleSql()} WHERE q.id = ?`).get(quotationId);
   if (!q) return null;
   const payments = await db
     .prepare(
@@ -277,13 +301,17 @@ export async function getQuotationPayments(quotationId) {
  * Pass userId to limit the list to one sales person's quotations.
  */
 export async function listOutstanding({ userId = null } = {}) {
-  const where = [`EXISTS (SELECT 1 FROM purchase_order po WHERE po.quotation_id = q.id)`];
+  const where = [
+    (await poReceivedReady())
+      ? `(EXISTS (SELECT 1 FROM purchase_order po WHERE po.quotation_id = q.id) OR EXISTS (SELECT 1 FROM quotation_po qp WHERE qp.quotation_id = q.id))`
+      : `EXISTS (SELECT 1 FROM purchase_order po WHERE po.quotation_id = q.id)`,
+  ];
   const params = [];
   if (userId) {
     where.push('q.created_by_user_id = ?');
     params.push(userId);
   }
-  const rows = await db.prepare(`${SCHEDULE_SQL} WHERE ${where.join(' AND ')}`).all(...params);
+  const rows = await db.prepare(`${await scheduleSql()} WHERE ${where.join(' AND ')}`).all(...params);
   const today = todayIST();
   const items = rows
     .map((q) => {
@@ -295,8 +323,9 @@ export async function listOutstanding({ userId = null } = {}) {
         company_name: q.company_name,
         contact_person: q.contact_person,
         contact_phone: q.contact_phone,
-        po_date: q.po_date,
+        po_date: [q.po_date, q.po_received_date].filter(Boolean).map((v) => String(v).slice(0, 10)).sort()[0] || null,
         pi_date: q.pi_date,
+        invoice_date: q.invoice_date || null,
         total: s.total,
         advance_percent: s.advance_percent,
         received: s.received,

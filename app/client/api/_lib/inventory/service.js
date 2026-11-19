@@ -5,6 +5,7 @@
 import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { getUserTable } from '../db/inventorySchema.js';
+import { utcStartOf } from './movementReport.js';
 
 const DEFAULT_LOW_THRESHOLD = 10;
 const DEFAULT_CRITICAL_THRESHOLD = 5;
@@ -507,6 +508,8 @@ export async function getMovements({
   movementType = null,
   referenceType = null,
   referenceId = null,
+  dateFrom = null,
+  dateTo = null,
   limit = 50,
   offset = 0,
 } = {}) {
@@ -533,6 +536,18 @@ export async function getMovements({
   if (referenceId) {
     conditions.push('m.reference_id = ?');
     params.push(String(referenceId));
+  }
+  // Days in India time (YYYY-MM-DD, both inclusive); created_at is stored in UTC.
+  const isDay = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+  if (isDay(dateFrom)) {
+    conditions.push('m.created_at >= ?');
+    params.push(utcStartOf(dateFrom));
+  }
+  if (isDay(dateTo)) {
+    const next = new Date(`${dateTo}T00:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    conditions.push('m.created_at < ?');
+    params.push(utcStartOf(next.toISOString().slice(0, 10)));
   }
   const whereSql = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 

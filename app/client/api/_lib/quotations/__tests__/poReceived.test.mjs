@@ -69,7 +69,7 @@ describe('buildQuotationExport (shared by the signed-in export and the live Exce
   test('runs end to end with a stubbed database: chosen columns, green row, and the own-quotations scope', async () => {
     const realPrepare = db.prepare;
     const seen = [];
-    db.prepare = (sql) => ({ all: async (...params) => { seen.push({ sql, params }); return rows.map((r) => ({ ...r })); }, get: async () => ({ n: 0 }) });
+    db.prepare = (sql) => ({ all: async (...params) => { seen.push({ sql, params }); return rows.map((r) => ({ ...r })).reverse(); }, get: async () => ({ n: 0 }) }); // the database answers newest first
     try {
       // poReceivedReady() asks the catalogue, which the stub does not know, so PO columns are treated as absent
       const { buffer, filename } = await buildQuotationExport({ columns: 'quotation_number,customer_name,status' }, { createdByUserId: 20 });
@@ -77,7 +77,7 @@ describe('buildQuotationExport (shared by the signed-in export and the live Exce
       const wb = new ExcelJS.Workbook();
       await wb.xlsx.load(buffer);
       const ws = wb.getWorksheet('Quotations');
-      assert.deepEqual([1, 2, 3, 4].map((c) => ws.getRow(5).getCell(c).value), ['Quotation No', 'Customer', 'Status', null]);
+      assert.deepEqual([1, 2, 3, 4].map((c) => ws.getRow(5).getCell(c).value), ['Quotation No', 'Company Name', 'Status', null]);
       assert.equal(ws.getRow(6).getCell(1).value, 'Q-1');
       const main = seen.find((x) => /FROM quotation q/.test(x.sql));
       assert.match(main.sql, /AND q\.created_by_user_id = \?/);
@@ -98,7 +98,7 @@ describe('quotation export rows and layout', () => {
     const { buildQuotationExport } = await import('../../routes/export.js');
     const { default: db2 } = await import('../../db/index.js');
     const real = db2.prepare;
-    db2.prepare = () => ({ all: async () => rowsFor().map((r) => ({ ...r })), get: async () => ({ n: 0 }) });
+    db2.prepare = () => ({ all: async () => rowsFor().map((r) => ({ ...r })).reverse(), get: async () => ({ n: 0 }) });
     try {
       const { buffer } = await buildQuotationExport({ columns: 'quotation_number,customer_name,status' }, scope);
       const wb = new ExcelJS.Workbook();

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp, QuotationPoList, QuotationRevisionList } from '../api';
+import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp, QuotationPoList, QuotationRevisionList, QuotationInvoiceList } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
 import { DownloadIcon, FileTextIcon, MailIcon, PencilIcon, Trash2 } from 'lucide-react';
 import { SendEmailModal } from '../components/SendEmailModal';
 import { POReceivedModal } from '../components/POReceivedModal';
+import { InvoiceModal } from '../components/InvoiceModal';
 import { NegotiateModal } from '../components/NegotiateModal';
 import { quotationStatusLabel } from '../lib/quotationStatus';
 import { isManualOrderNumber } from '../lib/manualOrder';
@@ -41,6 +42,10 @@ export default function QuotationDetail() {
   // PO received (migration 008). null until loaded, and stays null while the database update has not been applied.
   const [poList, setPoList] = useState<QuotationPoList | null>(null);
   const [poModalOpen, setPoModalOpen] = useState(false);
+  // Invoices (migration 012). null until loaded, and stays null while the database update has not been applied.
+  const [invList, setInvList] = useState<QuotationInvoiceList | null>(null);
+  const [invModalOpen, setInvModalOpen] = useState(false);
+  const [invBusy, setInvBusy] = useState<number | null>(null);
   // Price negotiation: the history of what was sent in each round (migration 010; empty until it is applied).
   const [revs, setRevs] = useState<QuotationRevisionList | null>(null);
   const [negotiateOpen, setNegotiateOpen] = useState(false);
@@ -66,6 +71,7 @@ export default function QuotationDetail() {
   function load() {
     api.quotations.get(quotationId).then(setQuotation).catch((e) => setError(e.message));
     api.quotations.poReceived.list(quotationId).then(setPoList).catch(() => setPoList(null));
+    api.quotations.invoices.list(quotationId).then(setInvList).catch(() => setInvList(null));
     api.quotations.revisions(quotationId).then(setRevs).catch(() => setRevs(null));
     api.purchaseOrders.list().then((all) => setPos(all.filter((p) => p.quotation_id === quotationId)));
     api.performaInvoices.list().then((all) => setPis(all.filter((p) => p.quotation_id === quotationId)));
@@ -280,10 +286,21 @@ export default function QuotationDetail() {
         };
         const partial = sched && advance && balance;
         if (partial) steps.push(payStep(`Advance ${sched.advance_percent}% received`, advance));
-        steps.push([pis.length ? `PI ${pis[0].number}` : 'Performa invoice', pis.length > 0]);
+        // The performa invoice is optional (only some customers ask for one); the invoice follows.
+        const invs = invList?.invoices || [];
+        if (pis.length) steps.push([`PI ${pis[0].number}`, true]);
+        else steps.push(['Performa invoice', false, undefined, invs.length ? 'Skipped' : 'Optional']);
+        if (invList) {
+          steps.push([
+            invs.length ? `Invoice ${invs.map((i) => i.invoice_number).join(', ')}` : 'Invoice',
+            invs.length > 0,
+            undefined,
+            invs.length ? `Payment due ${fmtDay(invs[0].payment_due_date)}` : undefined,
+          ]);
+        }
         if (sched) steps.push(payStep('Payment received', partial ? balance : advance || balance));
         if (st === 'rejected') steps = [['Drafted', true], ['Sent', true], ['Rejected', true, 'ts-lost']];
-        const canRecordPayment = st !== 'rejected' && !!sched && sched.outstanding > 0 && pos.length > 0;
+        const canRecordPayment = st !== 'rejected' && !!sched && sched.outstanding > 0 && (pos.length > 0 || (poList?.pos.length || 0) > 0);
         const last = steps.reduce((acc, x, i) => (x[1] ? i : acc), 0), n = steps.length, inset = 50 / n, fillW = (last / (n - 1)) * (100 - 2 * inset);
         return (
           <div className="ts-card ts-white" style={{ ['--i' as string]: 0, marginBottom: 16 }}>
@@ -339,6 +356,16 @@ export default function QuotationDetail() {
                 {poList !== null && st !== 'rejected' && (
                   <button type="button" disabled={busyAction !== null} onClick={() => setPoModalOpen(true)} className="ts-btn ts-dark ts-xs">
                     {poList.pos.length ? '+ PO received (another)' : 'PO received'}
+                  </button>
+                )}
+                {st === 'accepted' && pis.length === 0 && (
+                  <button type="button" disabled={busyAction !== null} onClick={() => createPI(pos[0]?.id)} className="ts-btn ts-ghost ts-xs" title="Only for customers who ask for a performa invoice. Skip it otherwise.">
+                    {busyAction === 'pi' ? 'Creating PI…' : 'Move to PI (optional)'}
+                  </button>
+                )}
+                {st === 'accepted' && invList !== null && (
+                  <button type="button" disabled={busyAction !== null} onClick={() => setInvModalOpen(true)} className="ts-btn ts-dark ts-xs">
+                    {invList.invoices.length ? '+ Invoice (another)' : 'Invoice'}
                   </button>
                 )}
                 {(st === 'draft' || st === 'sent' || st === 'negotiation') && !manual && (
@@ -466,6 +493,65 @@ export default function QuotationDetail() {
                   {p.items.map((it) => `${it.part_no || it.description} × ${it.qty}${Number(it.qty) !== Number(it.quoted_qty) ? ` (quoted ${it.quoted_qty})` : ''}`).join('  ·  ')}
                 </div>
                 {p.notes && <div className="mt-1 text-[12px] text-faint">{p.notes}</div>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {invModalOpen && quotation && invList && (
+        <InvoiceModal
+          quotationId={quotationId}
+          quotationNumber={quotation.number}
+          items={quotation.items || []}
+          ordered={(poList?.pos || []).reduce<Record<number, number>>((acc, p) => {
+            for (const it of p.items) acc[it.quotation_item_id] = (acc[it.quotation_item_id] || 0) + Number(it.qty);
+            return acc;
+          }, {})}
+          invoiced={invList.invoices.reduce<Record<number, number>>((acc, inv) => {
+            for (const it of inv.items) acc[it.quotation_item_id] = (acc[it.quotation_item_id] || 0) + Number(it.qty);
+            return acc;
+          }, {})}
+          dueDays={Number(quotation.payment_due_days ?? 30)}
+          onClose={() => setInvModalOpen(false)}
+          onSaved={load}
+        />
+      )}
+
+      {/* Invoices (typed by hand), with the items billed and when the payment is due */}
+      {invList && invList.invoices.length > 0 && (
+        <section className="ts-card ts-white" style={{ ['--i' as string]: 0, marginBottom: 16 }}>
+          <div className="ts-ch">
+            <b>Invoices</b>
+            <span className="ts-muted" style={{ fontSize: 13, marginLeft: 10 }}>
+              {invList.invoices.length} {invList.invoices.length === 1 ? 'invoice' : 'invoices'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-3">
+            {invList.invoices.map((inv) => (
+              <div key={inv.id} className="rounded-lg border border-line2 bg-surface px-3 py-2.5">
+                <div className="flex flex-wrap items-center gap-3">
+                  <b className="text-fg">Invoice {inv.invoice_number}</b>
+                  <span className="text-[12.5px] text-subtle">{fmtDay(inv.invoice_date)}</span>
+                  <span className="ts-pill ts-up">Payment due {fmtDay(inv.payment_due_date)}</span>
+                  <span className="ts-grow" />
+                  <button
+                    type="button"
+                    className="ts-btn ts-ghost ts-xs"
+                    disabled={invBusy === inv.id}
+                    onClick={async () => {
+                      if (!window.confirm(`Remove invoice ${inv.invoice_number} from this quotation?`)) return;
+                      setInvBusy(inv.id);
+                      try { await api.quotations.invoices.remove(quotationId, inv.id); load(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not remove the invoice'); } finally { setInvBusy(null); }
+                    }}
+                  >
+                    <Trash2 className="size-3.5" /> Remove
+                  </button>
+                </div>
+                <div className="mt-1.5 text-[12.5px] text-subtle">
+                  {inv.items.map((it) => `${it.part_no || it.description} × ${it.qty}`).join('  ·  ')}
+                </div>
+                {inv.notes && <div className="mt-1 text-[12px] text-faint">{inv.notes}</div>}
               </div>
             ))}
           </div>

@@ -8,6 +8,7 @@ import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
 import { readInstrument, saveInstrument } from '../quotations/instrument.js';
 import { requirePoReceived, listPos, createPo, deletePo } from '../quotations/poReceived.js';
+import { requireInvoices, listInvoices, createInvoice, deleteInvoice } from '../quotations/invoices.js';
 import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, dropUnchangedRevision, listRevisions } from '../quotations/negotiation.js';
 import { requireSalesTeam, getSalesTeam, saveSalesTeam, validateTeam, setTeamFromIds, salesTeamReady } from '../quotations/salesTeam.js';
 import { collectPdf } from '../pdf/pdfBuffer.js';
@@ -1317,6 +1318,10 @@ router.put('/:id/sales-team', requireSalesTeam, async (req, res) => {
 router.get('/:id/po-received', requirePoReceived, listPos);
 router.post('/:id/po-received', requirePoReceived, createPo);
 router.delete('/:id/po-received/:poId', requirePoReceived, deletePo);
+// Invoices (migration 012): number, date, items billed and the payment due date.
+router.get('/:id/invoices', requireInvoices, listInvoices);
+router.post('/:id/invoices', requireInvoices, createInvoice);
+router.delete('/:id/invoices/:invoiceId', requireInvoices, deleteInvoice);
 
 async function createModuleQuotation(req, res) {
   try {

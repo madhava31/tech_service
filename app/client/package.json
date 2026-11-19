@@ -12,7 +12,8 @@
     "test:mail": "node --test \"api/_lib/mail/__tests__/*.test.mjs\"",
     "test:po": "node --test \"api/_lib/quotations/__tests__/*.test.mjs\"",
     "test:db": "node --test \"api/_lib/db/__tests__/*.test.mjs\"",
-    "test:live": "node --test \"api/_lib/export/__tests__/*.test.mjs\""
+    "test:live": "node --test \"api/_lib/export/__tests__/*.test.mjs\"",
+    "test:inventory": "node --test \"api/_lib/inventory/__tests__/*.test.mjs\""
   },
   "dependencies": {
     "@google/genai": "^2.17.1",
