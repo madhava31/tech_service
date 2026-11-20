@@ -7,7 +7,7 @@ import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
 import ProductImport from '../components/ProductImport';
 
-const empty: Partial<Product> = { part_no: '', description: '', make: '', default_price: 0, key_features: [''], hsn_sac: '', unit: 'Nos' };
+const empty: Partial<Product> = { part_no: '', description: '', make: '', default_price: '' as unknown as number, key_features: [''], hsn_sac: '', unit: 'Nos' };
 const PAGE_SIZE = 20;
 
 /** Checks the catalogue rules before saving; returns the first problem, or ''. */
@@ -210,8 +210,9 @@ export default function Products() {
               <input
                 type="number"
                 min="0"
-                value={editing.default_price ?? 0}
-                onChange={(e) => setEditing({ ...editing, default_price: e.target.value === '' ? 0 : Number(e.target.value) })}
+                placeholder="0"
+                value={editing.default_price ?? ''}
+                onChange={(e) => setEditing({ ...editing, default_price: e.target.value === '' ? ('' as unknown as number) : Number(e.target.value) })}
                 className="ts-fi ts-sel"
               />
             </label>
