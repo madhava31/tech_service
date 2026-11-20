@@ -94,6 +94,8 @@ export default function StockInward() {
   const [manualItems, setManualItems] = useState<ManualLineItem[]>([]);
   const [manualConfirmImmediately, setManualConfirmImmediately] = useState(true);
   const [manualMake, setManualMake] = useState('');
+  // The product list follows the company chosen: only that company's products, unless "show all products" is ticked.
+  const [manualShowAll, setManualShowAll] = useState(false);
   const [manualSaving, setManualSaving] = useState(false);
   const [manualError, setManualError] = useState('');
 
@@ -186,12 +188,28 @@ export default function StockInward() {
     ]);
     setManualConfirmImmediately(true);
     setManualMake('');
+    setManualShowAll(false);
     setManualError('');
     setManualModalOpen(true);
   };
 
+  const companyProducts = useMemo(
+    () => (manualMake && !manualShowAll ? products.filter((p) => (p.make || '').trim().toLowerCase() === manualMake.trim().toLowerCase()) : products),
+    [products, manualMake, manualShowAll]
+  );
+
+  // Choosing a company narrows the product lists; lines that hold a product of another company move to the first product of this one.
+  const chooseCompany = (value: string) => {
+    setManualMake(value);
+    setManualShowAll(false);
+    const list = value ? products.filter((p) => (p.make || '').trim().toLowerCase() === value.trim().toLowerCase()) : products;
+    setManualItems((prev) =>
+      prev.map((it) => (list.some((p) => p.id === it.productId) ? it : { ...it, productId: list[0]?.id || 0, partNo: list[0]?.part_no || '' }))
+    );
+  };
+
   const addManualItem = () => {
-    const firstProd = products[0];
+    const firstProd = companyProducts[0];
     setManualItems([
       ...manualItems,
       { productId: firstProd?.id || 0, partNo: firstProd?.part_no || '', quantity: '1', notes: '', serials: '' },
@@ -801,7 +819,7 @@ export default function StockInward() {
                     Company <span className="text-bad">*</span>{' '}
                     <span className="text-faint">(saved on every product in this receipt)</span>
                   </label>
-                  <CompanySelect id="manual-company" value={manualMake} onChange={setManualMake} />
+                  <CompanySelect id="manual-company" value={manualMake} onChange={chooseCompany} />
                 </div>
               </div>
 
@@ -811,6 +829,12 @@ export default function StockInward() {
                   <span className="text-xs font-semibold text-fg uppercase tracking-wider">
                     Receipt Line Items ({manualItems.length})
                   </span>
+                  {manualMake && (
+                    <label className="flex items-center gap-1.5 text-[11.5px] text-subtle cursor-pointer">
+                      <input type="checkbox" checked={manualShowAll} onChange={(e) => setManualShowAll(e.target.checked)} />
+                      {manualShowAll ? 'Showing all products' : `Showing ${companyProducts.length} ${manualMake} products. Show all`}
+                    </label>
+                  )}
                   <button
                     type="button"
                     onClick={addManualItem}
@@ -840,7 +864,8 @@ export default function StockInward() {
                               onChange={(e) => updateManualItem(idx, 'productId', e.target.value)}
                               className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
                             >
-                              {products.map((p) => (
+                              {companyProducts.length === 0 && <option value={0}>No products under this company yet</option>}
+                              {companyProducts.map((p) => (
                                 <option key={p.id} value={p.id}>
                                   {p.part_no} — {p.description} ({p.unit || 'Nos'})
                                 </option>
