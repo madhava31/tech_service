@@ -345,14 +345,37 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       const font = it.is_main ? B : R;
       doc.font(font).fontSize(8.5);
       const desc = String(it.product_name || it.description || '');
-      const h = Math.max(doc.heightOfString(desc, { width: IW[3] - 2 * PAD }), doc.heightOfString(String(it.part_no || ''), { width: IW[1] - 2 * PAD })) + 2 * PAD + 2;
+      const feats = features(it);
+      const dw = IW[3] - 2 * PAD;
+      let descH = doc.heightOfString(desc, { width: dw });
+      if (feats.length) {
+        // The key features sit under the description in small type, as on the standard layout.
+        descH += 4;
+        doc.font(B).fontSize(featSize);
+        descH += doc.heightOfString('Key features:', { width: dw });
+        doc.font(R);
+        for (const f of feats) descH += doc.heightOfString(`• ${f}`, { width: dw });
+        doc.font(font).fontSize(8.5);
+      }
+      const h = Math.max(descH, doc.heightOfString(String(it.part_no || ''), { width: IW[1] - 2 * PAD })) + 2 * PAD + 2;
       if (ty + h > BOTTOM) { doc.addPage(); ty = header(M); }
       grid(ty, h);
       doc.font(font).fontSize(8.5).fillColor('#000');
       doc.text(String(n + 1), IX[0] + PAD, ty + PAD + 1, { width: IW[0] - 2 * PAD });
       doc.text(String(it.part_no || ''), IX[1] + PAD, ty + PAD + 1, { width: IW[1] - 2 * PAD });
       doc.text(String(Number(it.qty) % 1 === 0 ? Number(it.qty) : fixed2(it.qty)), IX[2] + PAD, ty + PAD + 1, { width: IW[2] - 2 * PAD });
-      doc.text(desc, IX[3] + PAD, ty + PAD + 1, { width: IW[3] - 2 * PAD });
+      doc.text(desc, IX[3] + PAD, ty + PAD + 1, { width: dw });
+      if (feats.length) {
+        doc.font(B).fontSize(featSize).fillColor('#333');
+        doc.text('Key features:', IX[3] + PAD, doc.y + 4, { width: dw });
+        doc.font(R);
+        let fy = doc.y;
+        for (const f of feats) {
+          doc.text(`• ${f}`, IX[3] + PAD, fy, { width: dw });
+          fy = doc.y;
+        }
+        doc.fillColor('#000');
+      }
       ty += h;
     }
     return ty;

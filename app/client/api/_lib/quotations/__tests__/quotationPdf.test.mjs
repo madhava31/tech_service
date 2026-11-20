@@ -49,3 +49,28 @@ describe('the quotation PDF is produced either way', () => {
     for (const pdf of [none, some]) { assert.equal(pdf.subarray(0, 5).toString(), '%PDF-'); assert.ok(pdf.length > 1500); }
   });
 });
+
+describe('key features on the instrument layout', () => {
+  const line = (features) => ({ part_no: '440311', description: 'Biosafety Cabinet', product_name: 'Biosafety Cabinet Class II A2', qty: 1, unit: 'Nos', price: 1000, actual_unit_price: 1000, final_unit_price: 1000, final_line_total: 1000, amount: 1000, discount_type: 'none', discount_value: 0, is_main: true, key_features: features });
+  const render = async (type, features) => {
+    const out = new PassThrough();
+    const chunks = [];
+    out.on('data', (c) => chunks.push(c));
+    const done = new Promise((r) => out.on('end', r));
+    streamQuotationPdfV2(out, { quotation: { number: 'Q-2', date: '2026-11-19', company_name: 'Acme', tax_percent: 18, subtotal: 1000, taxable_amount: 1000, tax_amount: 180, total: 1180, pricing_mode: 'itemized', quotation_type: type, instrument_title: 'Biosafety Cabinet' }, items: [line(features)], settings: {} });
+    await Promise.race([done, new Promise((_, rej) => setTimeout(() => rej(new Error('PDF did not finish')), 8000))]);
+    return Buffer.concat(chunks);
+  };
+  const feats = Array.from({ length: 25 }, (_, i) => `Feature number ${i + 1}: supply voltage 220 V AC, frequency 50 Hz`);
+  test('the instrument PDF now carries the key features (it is larger with them), and long lists still produce a PDF', async () => {
+    const without = await render('instrument', []);
+    const withFeats = await render('instrument', feats);
+    assert.equal(withFeats.subarray(0, 5).toString(), '%PDF-');
+    assert.ok(withFeats.length > without.length + 500, `with ${withFeats.length} vs without ${without.length}`);
+  });
+  test('the standard layout still prints them too', async () => {
+    const without = await render('standard', []);
+    const withFeats = await render('standard', feats);
+    assert.ok(withFeats.length > without.length + 500);
+  });
+});

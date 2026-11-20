@@ -444,6 +444,14 @@ export default function QuotationNew() {
     }
   }
 
+  // The key features of a line: the product's saved ones whenever a different product is picked on the line (so another product's
+  // features never stay behind), kept as typed when the same product is picked again, so the user's additions are not lost.
+  function featuresOnPick(idx: number, p: Product) {
+    const line = items[idx];
+    const same = line && line.product_id === p.id && featuresText(line).trim();
+    return same ? {} : { key_features: p.key_features || [], features_text: undefined };
+  }
+
   function pickProductForItem(idx: number, partNo: string) {
     const trimmed = partNo.trim();
     const p = products.find((pr) => pr.part_no.toUpperCase() === trimmed.toUpperCase());
@@ -455,7 +463,7 @@ export default function QuotationNew() {
         hsn_sac: p.hsn_sac || '',
         actual_unit_price: p.default_price,
         price: p.default_price,
-        ...(featuresText(items[idx]).trim() ? {} : { key_features: p.key_features || [], features_text: undefined }),
+        ...featuresOnPick(idx, p),
       });
     } else {
       updateItem(idx, { product_id: null, part_no: trimmed });
@@ -477,7 +485,7 @@ export default function QuotationNew() {
         hsn_sac: p.hsn_sac || '',
         actual_unit_price: p.default_price,
         price: p.default_price,
-        ...(featuresText(items[idx]).trim() ? {} : { key_features: p.key_features || [], features_text: undefined }),
+        ...featuresOnPick(idx, p),
       });
     } else {
       updateItem(idx, { product_id: null, description: trimmed });
