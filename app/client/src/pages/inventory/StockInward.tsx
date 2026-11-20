@@ -12,6 +12,7 @@ import {
 } from '../../api';
 import { Pagination } from '../../components/Pagination';
 import { CompanySelect } from '../../components/CompanySelect';
+import SearchableSelect from '../../components/SearchableSelect';
 
 const PAGE_SIZE = 20;
 
@@ -196,6 +197,12 @@ export default function StockInward() {
   const companyProducts = useMemo(
     () => (manualMake && !manualShowAll ? products.filter((p) => (p.make || '').trim().toLowerCase() === manualMake.trim().toLowerCase()) : products),
     [products, manualMake, manualShowAll]
+  );
+
+  // The choices of the product picker: "part number — name (unit)". Typing part of the part number or the name narrows the list.
+  const productOptions = useMemo(
+    () => companyProducts.map((p) => ({ value: String(p.id), label: `${p.part_no} — ${p.description} (${p.unit || 'Nos'})` })),
+    [companyProducts]
   );
 
   // Choosing a company narrows the product lists; lines that hold a product of another company move to the first product of this one.
@@ -844,7 +851,7 @@ export default function StockInward() {
                   </button>
                 </div>
 
-                <div className="bg-surface border border-line2 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                <div className="bg-surface border border-line2 rounded-lg">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-line2 text-subtle uppercase bg-surface">
@@ -859,18 +866,13 @@ export default function StockInward() {
                         <React.Fragment key={idx}>
                         <tr>
                           <td className="py-2 px-3">
-                            <select
-                              value={item.productId}
-                              onChange={(e) => updateManualItem(idx, 'productId', e.target.value)}
-                              className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-accent2"
-                            >
-                              {companyProducts.length === 0 && <option value={0}>No products under this company yet</option>}
-                              {companyProducts.map((p) => (
-                                <option key={p.id} value={p.id}>
-                                  {p.part_no} — {p.description} ({p.unit || 'Nos'})
-                                </option>
-                              ))}
-                            </select>
+                            <SearchableSelect
+                              size="sm"
+                              options={productOptions}
+                              value={item.productId ? String(item.productId) : ''}
+                              onChange={(v) => updateManualItem(idx, 'productId', v)}
+                              placeholder={companyProducts.length === 0 ? 'No products under this company yet' : 'Type a part number or name…'}
+                            />
                           </td>
                           <td className="py-2 px-3 text-right">
                             <input
