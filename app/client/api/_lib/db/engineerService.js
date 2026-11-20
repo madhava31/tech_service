@@ -1,6 +1,8 @@
 import db from './index.js';
 import { receivedValueSql, preGstSql, runWithFallback } from '../quotations/poValue.js';
 import { salesTeamReady } from '../quotations/salesTeam.js';
+import { engineerConfirmed } from '../quotations/confirmedSales.js';
+import { paymentsReady } from '../payments/service.js';
 
 // Sales-person figures (quoted value, accepted value, target achievement) are counted before GST:
 // the taxable amount, i.e. after discounts and without tax. Quotations without a stored taxable
@@ -85,7 +87,7 @@ export async function getEngineerById(id, { financialYear = 'FY 2026-27' } = {})
     WHERE engineer_id = ? AND (financial_year = ? OR financial_year = ?) LIMIT 1
   `).get(engId, fy, rawFy);
 
-  const perf = buildPerformanceEntry(engineer, fy, quoteStats, targetRow);
+  const perf = buildPerformanceEntry(engineer, fy, quoteStats, targetRow, await engineerConfirmed(engId, fy));
 
   return {
     ...engineer,
@@ -147,15 +149,13 @@ export async function updateEngineer(id, { code, employeeCode, name, email, phon
   return getEngineerById(engId);
 }
 
-// "Confirmed sales" can only come from confirmed Sale Reports, and that feature doesn't exist in
-// this backend yet (separate, deferred migration). Rather than silently reporting 0 — which looks
-// identical to "this engineer genuinely closed no sales" — this is always 0 here, paired with the
-// `confirmed_sales_available: false` flag the frontend uses to show "not tracked yet" instead of a
-// real zero.
-function buildPerformanceEntry(eng, fy, quoteStats, targetRow) {
+// Confirmed sales = payments the user recorded with "Payment received" on the sales person's quotations (migration 004), before GST,
+// in the financial year of the payment date. Until migration 004 is applied this is 0 and `confirmed_sales_available` is false, so
+// the page shows "not tracked yet" instead of a real zero.
+function buildPerformanceEntry(eng, fy, quoteStats, targetRow, confirmed = { count: 0, value: 0 }) {
   const targetAmount = targetRow ? Number(targetRow.target_amount) : 0;
-  const confirmedSalesValue = 0;
-  const confirmedSalesCount = 0;
+  const confirmedSalesValue = Number(confirmed.value || 0);
+  const confirmedSalesCount = Number(confirmed.count || 0);
   const totalQuotedValue = Number(quoteStats?.total_quoted_value || 0);
   const totalQuotations = Number(quoteStats?.total_quotations || 0);
   const acceptedCount = Number(quoteStats?.accepted_count || 0);
@@ -223,7 +223,7 @@ export async function getEngineerPerformance({ financialYear, branchId = null, e
       WHERE engineer_id = ? AND (financial_year = ? OR financial_year = ?) LIMIT 1
     `).get(eng.id, fy, rawFy);
 
-    performanceList.push(buildPerformanceEntry(eng, fy, quoteStats, targetRow));
+    performanceList.push(buildPerformanceEntry(eng, fy, quoteStats, targetRow, await engineerConfirmed(eng.id, fy)));
   }
 
   const totalEngineers = performanceList.length;
@@ -242,7 +242,7 @@ export async function getEngineerPerformance({ financialYear, branchId = null, e
       total_accepted: totalAccepted,
       total_confirmed: totalConfirmedSales,
       overall_achievement_pct: overallAchievementPercent,
-      confirmed_sales_available: false,
+      confirmed_sales_available: await paymentsReady(),
     },
     engineers: performanceList,
   };
