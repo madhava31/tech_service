@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
-import db from '../client/api/_lib/db/index.js';
+import db, { releaseConnectionsAfterResponse } from '../client/api/_lib/db/index.js';
 import { requireAuth } from '../client/api/_lib/auth/middleware.js';
 
 import authRouter from '../client/api/_lib/routes/auth.js';
@@ -133,6 +133,8 @@ if (process.env.DATABASE_URL && process.env.NODE_ENV !== 'test') {
 }
 
 app.set('trust proxy', 1);
+// On Vercel, give the pool time to close idle connections after each response (see db/index.js).
+app.use(releaseConnectionsAfterResponse);
 // API responses are never cached (Cache-Control: no-store below), so ETags only produce 304 replies.
 // Turn them off so every successful API call answers 200.
 app.set('etag', false);

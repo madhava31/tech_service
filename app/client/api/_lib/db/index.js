@@ -28,7 +28,7 @@ const pool = new Pool({
   // Two connections per serverless instance (was three) and idle ones are given back after 2 s: a deploy leaves old instances
   // frozen with their connections still open, and every new instance asks for more, which is how the database hits its limit.
   max: isServerless ? 2 : 10,
-  idleTimeoutMillis: isServerless ? 2000 : 30000,
+  idleTimeoutMillis: isServerless ? 2000 : 30000, // keep equal to SERVERLESS_IDLE_MS below
   connectionTimeoutMillis: isServerless ? 5000 : 10000,
 });
 
@@ -96,6 +96,28 @@ export function connectionFailureReason(err) {
   if (/Connection terminated|server closed the connection|terminating connection/i.test(msg)) return 'connection-terminated';
   if (typeof err?.code === 'string' && /^[A-Z0-9_]{3,16}$/.test(err.code)) return `code-${err.code}`;
   return 'other';
+}
+
+const SERVERLESS_IDLE_MS = 2000;
+
+/**
+ * Express middleware for Vercel: keeps the function instance running for a moment after the response has been sent, so the pool's
+ * idle timer can close its connections BEFORE the instance is frozen. A frozen instance cannot run timers, so its connections
+ * stay open for as long as it lives, and after a deploy the old and the new instances together use up the database's connection
+ * limit ("too many clients"). Does nothing outside Vercel. Same idea as Vercel's attachDatabasePool.
+ */
+export function releaseConnectionsAfterResponse(req, res, next) {
+  try {
+    if (isServerless) {
+      const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.();
+      if (typeof ctx?.waitUntil === 'function') {
+        ctx.waitUntil(new Promise((resolve) => res.once('close', () => setTimeout(resolve, SERVERLESS_IDLE_MS + 250))));
+      }
+    }
+  } catch (err) {
+    console.warn('[db] could not schedule the connection release:', err?.message);
+  }
+  next();
 }
 
 export function isTransientConnectionError(err) {
