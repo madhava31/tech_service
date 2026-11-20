@@ -12,6 +12,9 @@ describe('connectionFailureReason', () => {
   test('short labels, never the message', () => {
     assert.equal(connectionFailureReason(new Error('timeout exceeded when trying to connect')), 'pool-timeout');
     assert.equal(connectionFailureReason(new Error('Tenant or user not found')), 'tenant-not-found');
+    assert.equal(connectionFailureReason(new Error('MaxClientsInSessionMode: max clients reached - in Session mode max clients are limited to pool_size')), 'pooler-session-mode-limit');
+    assert.equal(connectionFailureReason(new Error('sorry, too many clients already')), 'postgres-connection-limit');
+    assert.equal(connectionFailureReason(new Error('Max client connections reached')), 'pooler-client-limit');
     assert.equal(connectionFailureReason(new Error('Connection terminated unexpectedly')), 'connection-terminated');
     assert.equal(connectionFailureReason(Object.assign(new Error('x at db.example.com'), { code: 'ECONNRESET' })), 'code-ECONNRESET');
     assert.equal(connectionFailureReason(new Error('something at host db.example.com')), 'other');

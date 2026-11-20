@@ -81,13 +81,17 @@ async function withAcquireRetry(acquire) {
 // retried here (a failure part-way could repeat a write), except the "no connection yet" case above.
 const TRANSIENT_CODES = new Set(['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EPIPE', '57P01', '57P02', '57P03', '08000', '08001', '08003', '08004', '08006', '53300', 'XX000']);
 const TRANSIENT_TEXT = /Connection terminated|timeout exceeded when trying to connect|Tenant or user not found|terminating connection|too many clients|no more connections|max client|server closed the connection/i;
-const READ_RETRY_DELAYS_MS = [250, 800, 1800];
+const READ_RETRY_DELAYS_MS = [250, 800, 1800, 3500];
 
 /** A short label for a connection failure that is safe to show: a Postgres/network code, or the kind of failure. Never the message itself. */
 export function connectionFailureReason(err) {
   const msg = typeof err?.message === 'string' ? err.message : '';
   if (/timeout exceeded when trying to connect|connection timeout/i.test(msg)) return 'pool-timeout';
   if (/Tenant or user not found/i.test(msg)) return 'tenant-not-found';
+  // Which limit was hit: the pooler's session-mode cap (the connection string is on the session port), the pooler's client cap, or Postgres itself.
+  if (/session mode|MaxClientsInSession/i.test(msg)) return 'pooler-session-mode-limit';
+  if (/max client connections|max clients/i.test(msg)) return 'pooler-client-limit';
+  if (/too many clients already|remaining connection slots/i.test(msg)) return 'postgres-connection-limit';
   if (/too many clients|no more connections|max client/i.test(msg)) return 'too-many-clients';
   if (/Connection terminated|server closed the connection|terminating connection/i.test(msg)) return 'connection-terminated';
   if (typeof err?.code === 'string' && /^[A-Z0-9_]{3,16}$/.test(err.code)) return `code-${err.code}`;
