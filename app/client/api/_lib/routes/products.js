@@ -67,8 +67,7 @@ function readCatalogueProduct(body) {
   const rawPrice = body.default_price ?? body.list_price;
   const price = rawPrice === undefined || rawPrice === null || rawPrice === '' ? 0 : Number(rawPrice);
   if (!Number.isFinite(price) || price < 0) fail('List price must be 0 or more.');
-  const features = cleanFeatures(body.key_features);
-  if (!features.length) fail('Add at least one key feature.');
+  const features = cleanFeatures(body.key_features); // optional: a product may have none
   return {
     partNo,
     name,
@@ -108,6 +107,55 @@ router.get('/intelligence-summary', async (req, res) => {
         topUnitsProduct,
       },
     });
+  } catch (err) {
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
+
+// The catalogue as an Excel file, with the same search and company (make) filter as the Products page, so "all the parts of the
+// company I picked" is what you get. Same columns as the import template (plus Make), so the file can be edited and imported back.
+// Registered before /:id, same reason as /intelligence-summary above.
+router.get('/export.xlsx', async (req, res) => {
+  try {
+    const q = String(req.query.q ?? '').trim();
+    const make = String(req.query.make ?? '').trim();
+    const where = [];
+    const params = [];
+    if (q) {
+      where.push(`(description ILIKE ? OR part_no ILIKE ?)`);
+      params.push(`%${q}%`, `%${q}%`);
+    }
+    if (make) {
+      where.push(`make ILIKE ?`);
+      params.push(make);
+    }
+    const rows = await db
+      .prepare(`SELECT part_no, description, hsn_sac, unit, default_price, make FROM product ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY part_no`)
+      .all(...params);
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Product Catalogue');
+    sheet.columns = [
+      { header: 'Part Code', key: 'partNo', width: 20 },
+      { header: 'Description', key: 'productName', width: 48 },
+      { header: 'HSN/SAC', key: 'hsnSac', width: 16 },
+      { header: 'Unit', key: 'unit', width: 12 },
+      { header: 'Price', key: 'price', width: 16 },
+      { header: 'Make', key: 'make', width: 26 },
+    ];
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF141B34' } };
+    headerRow.alignment = { vertical: 'middle' };
+    for (const r of rows) {
+      sheet.addRow({ partNo: r.part_no, productName: r.description, hsnSac: r.hsn_sac || '', unit: r.unit || 'Nos', price: Number(r.default_price || 0), make: r.make || '' });
+    }
+    sheet.getColumn('partNo').numFmt = '@'; // part numbers like 00572561 keep their leading zeros
+    sheet.views = [{ state: 'frozen', ySplit: 1 }];
+    const label = (make || 'all').replace(/[^A-Za-z0-9 _-]/g, '').trim().replace(/\s+/g, '-') || 'all';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="products-${label}.xlsx"`);
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }

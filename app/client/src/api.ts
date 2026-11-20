@@ -1233,6 +1233,14 @@ export const api = {
     intelligence: (id: number) => request<ProductIntelligenceData>(`/products/${id}/intelligence`),
     intelligenceSummary: () => request<ProductIntelligenceSummaryData>('/products/intelligence-summary'),
     templateUrl: () => `${BASE}/products/import/template`,
+    /** The catalogue as Excel, filtered the same way as the Products page (search and company). */
+    exportUrl: (params?: { q?: string; make?: string }) => {
+      const qs = new URLSearchParams();
+      if (params?.q?.trim()) qs.set('q', params.q.trim());
+      if (params?.make?.trim()) qs.set('make', params.make.trim());
+      const str = qs.toString();
+      return `${BASE}/products/export.xlsx${str ? `?${str}` : ''}`;
+    },
     importPreview: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);

@@ -80,7 +80,6 @@ export async function buildQuotation(body) {
     const product = await db.prepare(`SELECT * FROM product WHERE UPPER(part_no) = UPPER(?)`).get(partNo);
     if (!product) fail(`Line ${n}: part number ${partNo} is not in the product catalogue.`);
     const features = cleanFeatures(product.key_features);
-    if (!features.length) fail(`Line ${n}: ${product.part_no} has no key features in the catalogue. Add them on the Products page first.`);
     const qty = Number(it.qty);
     if (!Number.isFinite(qty) || qty <= 0) fail(`Line ${n}: quantity must be more than 0.`);
     const unitPrice = Number(it.unit_price);

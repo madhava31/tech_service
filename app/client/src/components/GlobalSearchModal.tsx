@@ -352,6 +352,20 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
+                              {item.metadata && typeof item.metadata.on_hand === 'number' && (() => {
+                                const m = item.metadata as { on_hand: number; reserved: number; available: number; incoming?: number };
+                                const none = m.on_hand <= 0;
+                                return (
+                                  <span
+                                    className={`text-[11px] font-semibold px-2 py-0.5 rounded text-right leading-tight ${none ? 'bg-badbg text-bad' : m.available <= 0 ? 'bg-warnbg text-warn' : 'bg-goodbg text-good'}`}
+                                    title={`On hand ${m.on_hand}, reserved ${m.reserved}, available ${m.available}${m.incoming ? `, incoming ${m.incoming}` : ''}`}
+                                  >
+                                    {none ? 'Out of stock' : `In stock ${m.on_hand}`}
+                                    {!none && m.reserved > 0 && <small className="block text-[10px] font-normal">{m.available} available</small>}
+                                    {m.incoming ? <small className="block text-[10px] font-normal">+{m.incoming} incoming</small> : null}
+                                  </span>
+                                );
+                              })()}
                               <span className="text-[10px] font-mono text-faint group-hover:text-subtle">
                                 Press ↵
                               </span>

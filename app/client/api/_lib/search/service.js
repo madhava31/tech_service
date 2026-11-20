@@ -80,7 +80,8 @@ export async function searchGlobal(queryStr, { limit = 30 } = {}) {
     searchEntity('products', `
       SELECT p.id, p.part_no, p.description, p.default_price,
              COALESCE(SUM(s.on_hand_quantity), 0) AS total_on_hand,
-             COALESCE(SUM(s.reserved_quantity), 0) AS total_reserved
+             COALESCE(SUM(s.reserved_quantity), 0) AS total_reserved,
+             COALESCE(SUM(s.incoming_quantity), 0) AS total_incoming
       FROM product p LEFT JOIN inventory_stock s ON s.product_id = p.id
       WHERE p.part_no ILIKE ? OR p.part_no ILIKE ? OR p.description ILIKE ? OR p.description ILIKE ? OR p.description ILIKE ?
       GROUP BY p.id LIMIT 15`,
@@ -102,7 +103,7 @@ export async function searchGlobal(queryStr, { limit = 30 } = {}) {
         id: p.id,
         title: p.description,
         subtitle: `PN: ${p.part_no} • Avail: ${onHand - reserved} (Hand: ${onHand})`,
-        metadata: { part_no: p.part_no, price: num(p.default_price), on_hand: onHand, reserved, available: onHand - reserved },
+        metadata: { part_no: p.part_no, price: num(p.default_price), on_hand: onHand, reserved, available: onHand - reserved, incoming: num(p.total_incoming) },
         route: stockView ? `/inventory/stock/${p.id}` : `/products/${p.id}/intelligence`,
         score,
       };

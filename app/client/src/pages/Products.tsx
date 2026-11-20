@@ -15,7 +15,6 @@ function validate(p: Partial<Product>): string {
   if (!p.part_no?.trim()) return 'Part number is required.';
   if (!p.description?.trim()) return 'Product name is required.';
   if (p.default_price !== undefined && (Number.isNaN(Number(p.default_price)) || Number(p.default_price) < 0)) return 'List price must be 0 or more.';
-  if (!(p.key_features || []).some((f) => f.trim())) return 'Add at least one key feature.';
   return '';
 }
 
@@ -136,6 +135,11 @@ export default function Products() {
             {products.length} products in the catalogue. Each is identified by its part number.
           </p>
         </div>
+        <div className="flex gap-2 flex-wrap">
+          <a href={api.products.exportUrl({ q: search, make: makeFilter })} className="ts-btn ts-dark ts-xs" title="Downloads every part that matches the search and company shown here">
+            Export Excel{hasFilter ? ` (${filteredProducts.length})` : ` (${products.length})`}
+          </a>
+        </div>
         {isAdmin && (
           <div className="flex gap-2 flex-wrap">
             <a href={api.products.templateUrl()} className="ts-btn ts-ghost ts-xs">
@@ -212,7 +216,7 @@ export default function Products() {
               />
             </label>
             <div className="flex flex-col gap-2 md:col-span-2">
-              <span className="text-[11px] text-faint uppercase tracking-wider">Key features * (at least one)</span>
+              <span className="text-[11px] text-faint uppercase tracking-wider">Key features (optional)</span>
               {(editing.key_features || []).map((f, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="ts-muted text-[13px] w-4 text-right">•</span>
@@ -226,7 +230,6 @@ export default function Products() {
                   <button
                     type="button"
                     onClick={() => removeFeature(i)}
-                    disabled={(editing.key_features || []).length === 1}
                     className="ts-iconx"
                     aria-label={`Remove key feature ${i + 1}`}
                   >
@@ -333,7 +336,7 @@ export default function Products() {
                           {feats.length > 1 && <span className="ts-muted"> +{feats.length - 1} more</span>}
                         </>
                       ) : (
-                        <span className="text-warn">None yet: add before quoting</span>
+                        <span className="ts-muted">None</span>
                       )}
                     </td>
                     <td className="p-[11px_10px] text-right">
