@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
-import db from '../db/index.js';
+import db, { isTransientConnectionError, connectionFailureReason } from '../db/index.js';
 import { hashPassword, verifyPassword } from '../auth/password.js';
 import { getSessionUser } from '../auth/middleware.js';
 import { sendRouteError } from '../http/errors.js';
@@ -48,6 +48,13 @@ router.get('/me', async (req, res) => {
     // browser console stays clean on the login page. Protected routes still answer 401.
     res.json({ user: user || null });
   } catch (err) {
+    // Right after a deploy the database connection can fail for a few seconds. That is not "signed out" and not worth a red 500
+    // in the browser: answer "pending" (with a safe reason) and the page asks again. Anything else is still a real 500.
+    if (isTransientConnectionError(err)) {
+      const reason = connectionFailureReason(err);
+      console.warn('[auth] /me could not reach the database, answering pending:', reason, err?.message);
+      return res.json({ pending: true, reason });
+    }
     sendRouteError(res, err, 500, 'Unable to check authentication status. Please try again.');
   }
 });

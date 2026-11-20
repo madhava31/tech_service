@@ -23,14 +23,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // A brief server or database hiccup (common right after a deploy) must not look like "signed out": ask again a couple
       // of times, a moment apart, before giving up.
+      // The server answers "pending" while it is still connecting to its database (a few seconds after a deploy); the loading
+      // screen stays up and the check is repeated for up to about 15 seconds.
+      const DELAYS = [700, 1500, 2500, 4000, 6000];
       let res: Awaited<ReturnType<typeof api.auth.me>> | undefined;
       for (let attempt = 0; ; attempt++) {
         try {
           res = await api.auth.me();
+          if (res.pending) throw new Error('The server is still starting');
           break;
         } catch (err) {
-          if (attempt >= 2) throw err;
-          await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 700 : 1800));
+          if (attempt >= DELAYS.length) throw err;
+          await new Promise((resolve) => setTimeout(resolve, DELAYS[attempt]));
         }
       }
       const currentUser = res.user || null;

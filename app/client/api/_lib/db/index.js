@@ -81,6 +81,17 @@ const TRANSIENT_CODES = new Set(['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EPI
 const TRANSIENT_TEXT = /Connection terminated|timeout exceeded when trying to connect|Tenant or user not found|terminating connection|too many clients|no more connections|max client|server closed the connection/i;
 const READ_RETRY_DELAYS_MS = [250, 800, 1800];
 
+/** A short label for a connection failure that is safe to show: a Postgres/network code, or the kind of failure. Never the message itself. */
+export function connectionFailureReason(err) {
+  const msg = typeof err?.message === 'string' ? err.message : '';
+  if (/timeout exceeded when trying to connect|connection timeout/i.test(msg)) return 'pool-timeout';
+  if (/Tenant or user not found/i.test(msg)) return 'tenant-not-found';
+  if (/too many clients|no more connections|max client/i.test(msg)) return 'too-many-clients';
+  if (/Connection terminated|server closed the connection|terminating connection/i.test(msg)) return 'connection-terminated';
+  if (typeof err?.code === 'string' && /^[A-Z0-9_]{3,16}$/.test(err.code)) return `code-${err.code}`;
+  return 'other';
+}
+
 export function isTransientConnectionError(err) {
   return TRANSIENT_CODES.has(err?.code) || (typeof err?.message === 'string' && TRANSIENT_TEXT.test(err.message));
 }

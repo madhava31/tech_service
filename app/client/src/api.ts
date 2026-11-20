@@ -1587,7 +1587,7 @@ export const api = {
     remove: (year: number) => request<{ ok: true; year: number }>(`/analysis/${year}`, { method: 'DELETE' }),
   },
   auth: {
-    me: async (): Promise<{ needsSetup?: boolean; user?: AuthUser }> => {
+    me: async (): Promise<{ needsSetup?: boolean; user?: AuthUser | null; /** The server could not reach its database for a moment (right after a deploy): ask again, this is not "signed out". */ pending?: boolean; reason?: string }> => {
       // A server error here would otherwise look like "signed out" and show the login page, so it is
       // retried (same quiet retries as other reads) before giving up.
       for (let attempt = 0; ; attempt++) {
