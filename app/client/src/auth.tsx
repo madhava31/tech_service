@@ -21,7 +21,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function refresh() {
     try {
-      const res = await api.auth.me();
+      // A brief server or database hiccup (common right after a deploy) must not look like "signed out": ask again a couple
+      // of times, a moment apart, before giving up.
+      let res: Awaited<ReturnType<typeof api.auth.me>> | undefined;
+      for (let attempt = 0; ; attempt++) {
+        try {
+          res = await api.auth.me();
+          break;
+        } catch (err) {
+          if (attempt >= 2) throw err;
+          await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 700 : 1800));
+        }
+      }
       const currentUser = res.user || null;
       setUser(currentUser);
       queryClient.setUserScope(currentUser ? currentUser.id : null);
