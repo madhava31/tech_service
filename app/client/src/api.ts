@@ -11,8 +11,29 @@ const RETRY_DELAYS_MS = [400, 1200];
 const RETRYABLE_STATUSES = new Set([500, 502, 503, 504]);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// A page opens with a burst of reads (the dashboard asks for about eight things at once). Every concurrent request can start its own
+// server instance with its own database connections, and the database allows only so many ("too many clients"), most visibly right
+// after a deploy. Reads are therefore sent a few at a time; the rest wait their turn (a few milliseconds each).
+const MAX_CONCURRENT_READS = 4;
+let activeReads = 0;
+const waitingReads: Array<() => void> = [];
+async function withReadSlot<T>(run: () => Promise<T>): Promise<T> {
+  if (activeReads >= MAX_CONCURRENT_READS) await new Promise<void>((resolve) => waitingReads.push(resolve));
+  activeReads++;
+  try {
+    return await run();
+  } finally {
+    activeReads--;
+    waitingReads.shift()?.();
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const isRead = (options?.method || 'GET').toUpperCase() === 'GET';
+  return isRead ? withReadSlot(() => requestOnce<T>(path, options, isRead)) : requestOnce<T>(path, options, isRead);
+}
+
+async function requestOnce<T>(path: string, options: RequestInit | undefined, isRead: boolean): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(`${BASE}${path}`, {
       headers: { 'Content-Type': 'application/json' },

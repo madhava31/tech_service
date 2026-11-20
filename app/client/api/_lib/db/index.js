@@ -25,8 +25,10 @@ const pool = new Pool({
   // strictly verify the chain here without extra setup, so we accept the connection either way.
   // TLS: no verification by default (unchanged); full verification with DATABASE_CA_FILE (see db/ssl.js).
   ssl: sslFor(process.env.DATABASE_URL),
-  max: isServerless ? 3 : 10,
-  idleTimeoutMillis: isServerless ? 5000 : 30000,
+  // Two connections per serverless instance (was three) and idle ones are given back after 2 s: a deploy leaves old instances
+  // frozen with their connections still open, and every new instance asks for more, which is how the database hits its limit.
+  max: isServerless ? 2 : 10,
+  idleTimeoutMillis: isServerless ? 2000 : 30000,
   connectionTimeoutMillis: isServerless ? 5000 : 10000,
 });
 

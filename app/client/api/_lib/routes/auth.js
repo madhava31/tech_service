@@ -40,10 +40,11 @@ function setSessionCookie(res, token) {
 
 router.get('/me', async (req, res) => {
   try {
+    // One query for a signed-in browser (the usual case); the user count is only needed to tell "no account yet" from "signed out".
+    const user = await getSessionUser(req.cookies?.session);
+    if (user) return res.json({ user });
     const userCount = (await db.prepare(`SELECT COUNT(*) c FROM app_user`).get()).c;
     if (Number(userCount) === 0) return res.json({ needsSetup: true });
-
-    const user = await getSessionUser(req.cookies?.session);
     // Signed out is a normal answer to "who am I?", not an error: 200 with user null, so the
     // browser console stays clean on the login page. Protected routes still answer 401.
     res.json({ user: user || null });
