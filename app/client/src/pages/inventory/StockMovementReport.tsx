@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { api, type InventoryMovement, type MovementCell, type MovementReport, type Warehouse } from '../../api';
 import { Pagination } from '../../components/Pagination';
 import { NO_MAKE } from '../../lib/stockCompanies';
+import { StatementDownloadModal } from '../../components/StatementDownloadModal';
 
 const PAGE_SIZE = 50;
 const istToday = () => new Date(Date.now() + 330 * 60 * 1000).toISOString().slice(0, 10);
@@ -69,6 +70,7 @@ export default function StockMovementReport() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [detail, setDetail] = useState<{ title: string; rows: InventoryMovement[] | null; error?: string } | null>(null);
+  const [statementOpen, setStatementOpen] = useState(false);
 
   useEffect(() => {
     api.inventory.listWarehouses().then(setWarehouses).catch(() => {});
@@ -156,7 +158,10 @@ export default function StockMovementReport() {
           </div>
           <h1 className="ts-title ts-title-sm m-0">Stock In / Out Report</h1>
         </div>
-        <a className="ts-btn ts-dark ts-xs" href={api.inventory.movementReportXlsxUrl(params)}>Download Excel</a>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="ts-btn ts-dark ts-xs" onClick={() => setStatementOpen(true)} title="One Excel file in your stock-sheet layout, for any months, with customer, PO and invoice">Download for sending</button>
+          <a className="ts-btn ts-ghost ts-xs" href={api.inventory.movementReportXlsxUrl(params)}>This view as Excel</a>
+        </div>
       </div>
 
       {/* Period and filters */}
@@ -213,7 +218,7 @@ export default function StockMovementReport() {
             </span>
           ) : null}
           <span className="ts-grow" />
-          {data && <span><span className="text-good">+ in</span> · <span className="text-bad">− out</span> · • returns or corrections (hover) · {data.single_warehouse ? 'transfers count as in / out' : 'transfers between warehouses are not counted'}</span>}
+          {data && <span><span className="text-good">+ in</span> · <span className="text-bad">− out</span> · • returns or corrections (hover) · closing: <span className="text-good">green in stock</span> / <span className="text-warn">orange out of stock</span> · {data.single_warehouse ? 'transfers count as in / out' : 'transfers between warehouses are not counted'}</span>}
         </div>
       </div>
 
@@ -254,7 +259,9 @@ export default function StockMovementReport() {
                   <td className="ts-r text-bad">{p.totals.out ? fmt(p.totals.out) : ''}</td>
                   <td className="ts-r">{p.totals.ret ? fmt(p.totals.ret) : ''}</td>
                   <td className="ts-r">{p.totals.adj ? `${p.totals.adj > 0 ? '+' : ''}${fmt(p.totals.adj)}` : ''}</td>
-                  <td className="ts-r font-semibold">{fmt(p.closing)}</td>
+                  <td className={`ts-r font-semibold ${p.closing > 0 ? 'text-good' : 'text-warn'}`} title={p.closing > 0 ? 'In stock' : 'Out of stock'}>
+                    <span className={`inline-block rounded px-1.5 ${p.closing > 0 ? 'bg-goodbg' : 'bg-warnbg'}`}>{fmt(p.closing)}</span>
+                  </td>
                   {data.buckets.map((b) => {
                     const c = p.cells[b.key];
                     return (
@@ -294,6 +301,10 @@ export default function StockMovementReport() {
         <div className="flex justify-center">
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
+      )}
+
+      {statementOpen && (
+        <StatementDownloadModal warehouses={warehouses} makes={makes} initialWarehouseId={warehouseId} initialMake={make} onClose={() => setStatementOpen(false)} />
       )}
 
       {/* What moved in one cell */}

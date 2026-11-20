@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, DeliveryChallanListRow, PerformaInvoice, PurchaseOrder, Quotation, QuotationFollowUp, QuotationPoList, QuotationRevisionList, QuotationInvoiceList } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
@@ -47,6 +47,10 @@ export default function QuotationDetail() {
   const [invList, setInvList] = useState<QuotationInvoiceList | null>(null);
   const [invModalOpen, setInvModalOpen] = useState(false);
   const [invBusy, setInvBusy] = useState<number | null>(null);
+  // "Dispatch" from the waiting orders opens the invoice dialog with the items that can ship, already filled in.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [dispatchPrefill, setDispatchPrefill] = useState<Record<number, number> | null>(null);
+  const dispatchHandled = useRef(false);
   const [editingPi, setEditingPi] = useState<PerformaInvoice | null>(null);
   // Price negotiation: the history of what was sent in each round (migration 010; empty until it is applied).
   const [revs, setRevs] = useState<QuotationRevisionList | null>(null);
@@ -69,6 +73,25 @@ export default function QuotationDetail() {
   const [outcomeNotes, setOutcomeNotes] = useState('');
   // Bumped by the workflow's "Payment received" button: opens the record-payment form on the Payments card.
   const [paymentFormSignal, setPaymentFormSignal] = useState(0);
+
+  // Opens the invoice dialog once, when the page was reached from a Dispatch link (?dispatch=itemId:qty,itemId:qty).
+  useEffect(() => {
+    const raw = searchParams.get('dispatch');
+    if (!raw || dispatchHandled.current || !quotation || !invList || !poList) return;
+    dispatchHandled.current = true;
+    const map: Record<number, number> = {};
+    for (const part of raw.split(',')) {
+      const [id, qty] = part.split(':').map(Number);
+      if (Number.isInteger(id) && id > 0 && Number.isFinite(qty) && qty > 0) map[id] = qty;
+    }
+    if (Object.keys(map).length) {
+      setDispatchPrefill(map);
+      setInvModalOpen(true);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('dispatch');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, quotation, invList, poList, setSearchParams]);
 
   function load() {
     api.quotations.get(quotationId).then(setQuotation).catch((e) => setError(e.message));
@@ -505,6 +528,7 @@ export default function QuotationDetail() {
 
       {invModalOpen && quotation && invList && (
         <InvoiceModal
+          prefill={dispatchPrefill}
           quotationId={quotationId}
           quotationNumber={quotation.number}
           items={quotation.items || []}
@@ -517,7 +541,7 @@ export default function QuotationDetail() {
             return acc;
           }, {})}
           dueDays={Number(quotation.payment_due_days ?? 30)}
-          onClose={() => setInvModalOpen(false)}
+          onClose={() => { setInvModalOpen(false); setDispatchPrefill(null); }}
           onSaved={load}
         />
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, Warehouse } from '../api';
 import { MovementDateField, todayIST } from './MovementDateField';
+import { WaitingMatches } from './WaitingMatches';
 
 export interface RestockProduct {
   productId: number;
@@ -36,6 +37,8 @@ export default function RestockModal({ product, suggestedQty, defaultWarehouseId
   const [date, setDate] = useState(todayIST());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  // Set once the stock is saved: the pop-up then shows which customers are waiting for it.
+  const [saved, setSaved] = useState('');
 
   useEffect(() => {
     if (warehouses && warehouses.length) { setList(warehouses); return; }
@@ -66,12 +69,30 @@ export default function RestockModal({ product, suggestedQty, defaultWarehouseId
         items: [{ productId: product.productId, quantity: n }],
         confirmImmediately: true,
       });
-      onDone(`Added ${n} ${unit} of ${product.partNo} to stock.`);
+      setSaved(`Added ${n} ${unit} of ${product.partNo} to stock.`);
     } catch (err: any) {
       setError(err?.message || 'Could not add the stock. Please try again.');
       setSaving(false);
     }
   };
+
+  if (saved) {
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]" role="dialog" aria-modal="true">
+        <div className="ts-card ts-white max-w-3xl w-full space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="border-b border-line2 pb-3">
+            <h3 className="text-[16px] font-semibold">Stock added</h3>
+            <p className="text-[13px] text-subtle mt-1">{saved}</p>
+          </div>
+          {/* No customer waiting: this closes by itself. Otherwise the waiting customers are listed with a Dispatch button. */}
+          <WaitingMatches productIds={[product.productId]} onNone={() => onDone(saved)} />
+          <div className="flex justify-end">
+            <button type="button" className="ts-btn ts-dark ts-xs" onClick={() => onDone(saved)}>Done</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]" role="dialog" aria-modal="true">

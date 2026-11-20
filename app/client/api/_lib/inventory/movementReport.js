@@ -365,3 +365,6 @@ export async function buildMovementReportExcel(query = {}) {
   const tag = period.view === 'month' ? period.month : period.label.replace(/\s+/g, '_');
   return { buffer, filename: `TECHNICON_Stock_In_Out_${tag}.xlsx` };
 }
+
+// Shared with the Excel stock statement (inventory/stockStatement.js).
+export { loadGrid as loadMovementGrid, productFilters, cleanParams, LOCAL_TIME };

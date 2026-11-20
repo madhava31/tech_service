@@ -14,6 +14,8 @@ import {
 } from '../../api';
 import { Pagination } from '../../components/Pagination';
 import RestockModal from '../../components/RestockModal';
+import { StockLimitsModal } from '../../components/StockLimitsModal';
+import { useAuth } from '../../auth';
 import {
   Search,
   RotateCcw,
@@ -194,6 +196,8 @@ export default function StockIntelligence() {
 
   // Restock pop-up: adds stock straight into the database (a confirmed stock receipt) without leaving this page.
   const [restockItem, setRestockItem] = useState<StockIntelligenceItem | null>(null);
+  const [limitsItem, setLimitsItem] = useState<StockIntelligenceItem | null>(null);
+  const isAdmin = useAuth().user?.role === 'admin';
   const [restockDone, setRestockDone] = useState('');
 
   const openRestock = (p: StockIntelligenceItem) => setRestockItem(p);
@@ -725,6 +729,11 @@ export default function StockIntelligence() {
                               <span>Sales</span>
                               <ExternalLink className="w-2.5 h-2.5" />
                             </Link>
+                            {isAdmin && (
+                              <button type="button" onClick={() => setLimitsItem(p)} className="ts-btn ts-ghost ts-xs" title={`Low ${p.lowStockThreshold}, critical ${p.criticalStockThreshold}`}>
+                                Limits
+                              </button>
+                            )}
                             {(p.recommendation === 'RESTOCK_NOW' || p.recommendation === 'RESTOCK_SOON' || p.suggestedRestockQty > 0) && (
                               <button
                                 type="button"
@@ -1507,6 +1516,10 @@ export default function StockIntelligence() {
           <span className="text-[13px]">{restockDone}</span>
           <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setRestockDone('')}>OK</button>
         </div>
+      )}
+
+      {limitsItem && (
+        <StockLimitsModal product={limitsItem} onClose={() => setLimitsItem(null)} onSaved={() => { setLimitsItem(null); fetchIntelligence(); }} />
       )}
 
       {restockItem && (

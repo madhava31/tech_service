@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, InventoryOverviewData, InventoryMovementType } from '../../api';
+import { TodayPanel } from '../../components/TodayPanel';
 
 function formatNumber(n: number | undefined | null) {
   return Number(n || 0).toLocaleString('en-IN');
@@ -134,6 +135,9 @@ export default function InventoryOverview() {
           </Link>
         </div>
       </div>
+
+      {/* Today: what came in and went out, and what is ready to ship */}
+      <TodayPanel />
 
       {/* Main KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

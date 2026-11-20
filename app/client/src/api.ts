@@ -393,6 +393,37 @@ export interface QuotationInvoice {
   stock_movements?: { product_id: number; part_no: string | null; qty: number; warehouse_name: string }[];
   items: { quotation_invoice_id: number; quotation_item_id: number; qty: number; part_no: string | null; description: string; quoted_qty: number }[];
 }
+export interface SerialUnit {
+  id: number;
+  product_id: number;
+  part_no: string;
+  description: string;
+  hsn_sac: string | null;
+  make: string | null;
+  serial_number: string;
+  inward_date: string;
+  outward_date: string | null;
+  invoice_number: string | null;
+  in_hand: 0 | 1;
+}
+export interface SerialListParams {
+  q?: string;
+  make?: string;
+  status?: '' | 'in_stock' | 'sent';
+  from?: string;
+  to?: string;
+}
+function serialQuery(p?: SerialListParams) {
+  const qs = new URLSearchParams();
+  if (p?.q?.trim()) qs.set('q', p.q.trim());
+  if (p?.make?.trim()) qs.set('make', p.make.trim());
+  if (p?.status) qs.set('status', p.status);
+  if (p?.from) qs.set('from', p.from);
+  if (p?.to) qs.set('to', p.to);
+  const s = qs.toString();
+  return s ? `?${s}` : '';
+}
+
 export interface QuotationInvoiceList {
   quoted_items: number;
   invoices: QuotationInvoice[];
@@ -1348,8 +1379,8 @@ export const api = {
       list: (id: number) => request<QuotationInvoiceList>(`/quotations/${id}/invoices`),
       /** Stock on hand and available of each line, in the warehouse (the default one when none is given). */
       stock: (id: number, warehouseId?: number) =>
-        request<{ warehouse: { id: number; name: string } | null; items: { quotation_item_id: number; tracked: boolean; on_hand: number; available: number }[] }>(`/quotations/${id}/invoice-stock${warehouseId ? `?warehouseId=${warehouseId}` : ''}`),
-      create: async (id: number, data: { invoice_number: string; invoice_date?: string; payment_due_date?: string; notes?: string; warehouse_id?: number; items: { quotation_item_id: number; qty: number }[] }) => {
+        request<{ warehouse: { id: number; name: string } | null; items: { quotation_item_id: number; tracked: boolean; on_hand: number; available: number; serials?: { id: number; serial_number: string }[] }[] }>(`/quotations/${id}/invoice-stock${warehouseId ? `?warehouseId=${warehouseId}` : ''}`),
+      create: async (id: number, data: { invoice_number: string; invoice_date?: string; payment_due_date?: string; notes?: string; warehouse_id?: number; items: { quotation_item_id: number; qty: number }[]; /** Serial numbers picked per quotation item id, for products kept by serial number. */ serials?: Record<number, number[]> }) => {
         const res = await request<{ id: number; invoice_number: string; payment_due_date: string; invoiced_items: number; stock?: { warehouse: string | null; deducted: number; untracked: number } }>(`/quotations/${id}/invoices`, { method: 'POST', body: JSON.stringify(data) });
         clearCache('quotations');
         return res;
@@ -1796,6 +1827,24 @@ export const api = {
     /** Stock in / out per day of a month or per month of a year (financial or calendar). */
     movementReport: (params: MovementReportParams) => request<MovementReport>(`/inventory/movement-report?${movementReportQuery(params)}`),
     movementReportXlsxUrl: (params: MovementReportParams) => `${BASE}/inventory/movement-report.xlsx?${movementReportQuery({ ...params, limit: undefined, offset: undefined })}`,
+    /** Customer orders waiting to be invoiced and what can ship now (oldest PO first). */
+    waitingOrders: (params?: WaitingOrdersParams) => request<WaitingOrdersResponse>(`/inventory/waiting-orders${waitingOrdersQuery(params)}`),
+    /** The stock statement for sending: one sheet per month plus a Movements sheet. Months are 'YYYY-MM'. */
+    stockStatementXlsxUrl: (p: { from: string; to: string; warehouseId?: number; make?: string; all?: boolean }) => {
+      const q = new URLSearchParams({ from: p.from, to: p.to });
+      if (p.warehouseId) q.set('warehouseId', String(p.warehouseId));
+      if (p.make) q.set('make', p.make);
+      if (p.all) q.set('all', '1');
+      return `${BASE}/inventory/stock-statement.xlsx?${q.toString()}`;
+    },
+    /** Reads pasted "part number, quantity" lines and finds the products. Nothing is saved. */
+    quickEntryPreview: (text: string) => request<QuickEntryPreview>('/inventory/quick-entry/preview', { method: 'POST', body: JSON.stringify({ text }) }),
+    today: () => request<TodayStock>('/inventory/today'),
+    serials: (params?: SerialListParams) => request<{ available: boolean; rows: SerialUnit[] }>(`/inventory/serials${serialQuery(params)}`),
+    serialsXlsxUrl: (params?: SerialListParams) => `${BASE}/inventory/serials.xlsx${serialQuery(params)}`,
+    /** Sets a product's low and critical stock limits (admin). */
+    setLimits: (productId: number, low: number, critical: number) => request<{ productId: number; lowStockThreshold: number; criticalStockThreshold: number }>(`/inventory/stock/${productId}/limits`, { method: 'PUT', body: JSON.stringify({ low, critical }) }),
+    waitingOrdersXlsxUrl: (params?: WaitingOrdersParams) => `${BASE}/inventory/waiting-orders.xlsx${waitingOrdersQuery(params)}`,
     getStockIntelligence: (params?: { warehouseId?: number; productId?: number; period?: number; start?: string; end?: string; limit?: number; offset?: number }) => {
 
       const q = new URLSearchParams();
@@ -1828,7 +1877,7 @@ export const api = {
         sourceType?: string;
         sourceReference?: string;
         notes?: string;
-        items: { productId?: number; partNo?: string; quantity: number; notes?: string }[];
+        items: { productId?: number; partNo?: string; quantity: number; notes?: string; /** One serial number per unit (Mettler). */ serials?: string[] }[];
         confirmImmediately?: boolean;
         /** Company (product make) saved on every product in the receipt. */
         make?: string;
@@ -1883,6 +1932,8 @@ export const api = {
       previewRows: (data: { warehouseId: number; rows: { partNo: string; quantity: number | string; notes?: string; rowNumber?: number }[] }) =>
         request<ExcelPreviewResponse>('/inventory/receipts/preview-rows', { method: 'POST', body: JSON.stringify(data) }),
       delete: (id: number) => request<{ success: boolean; id: number }>(`/inventory/receipts/${id}`, { method: 'DELETE' }),
+      /** Undoes a confirmed receipt with a correcting entry (the history is kept). Admin only. */
+      void: (id: number, reason?: string) => request<StockReceiptDetailResponse>(`/inventory/receipts/${id}/void`, { method: 'POST', body: JSON.stringify({ reason }) }),
       bulkDelete: (ids: number[]) =>
         request<{ success: boolean; deletedCount: number }>('/inventory/receipts/bulk-delete', {
           method: 'POST',
@@ -2366,6 +2417,80 @@ export type InventoryMovementType =
   | 'TRANSFER_IN'
   | 'TRANSFER_OUT'
   | 'OPENING_STOCK';
+
+/** One line of a customer order that is waiting to be invoiced, with what the warehouse can ship for it now. */
+export interface WaitingOrder {
+  quotation_id: number;
+  quotation_number: string;
+  company_id: number;
+  company_name: string;
+  quotation_item_id: number;
+  product_id: number;
+  part_no: string | null;
+  description: string;
+  unit: string | null;
+  ordered: number;
+  invoiced: number;
+  pending: number;
+  /** Stock available for this product (on hand minus reserved). */
+  available: number;
+  /** What can be shipped now once older orders for the same product have been served. */
+  can_ship: number;
+  /** What is still missing and has to be ordered from the supplier. */
+  short: number;
+  status: 'ready' | 'partly' | 'waiting';
+  po_date: string | null;
+  po_numbers: string | null;
+}
+export interface WaitingOrdersResponse {
+  summary: { lines: number; ready: number; partly: number; waiting: number; customers: number; units_to_order: number };
+  orders: WaitingOrder[];
+}
+/** One line of a quick entry (pasted "part number, quantity") after the product has been looked up. */
+export interface QuickEntryLine {
+  line: number;
+  part: string;
+  qty: number;
+  merged: number;
+  status: 'matched' | 'ambiguous' | 'not_found';
+  product?: { id: number; part_no: string; description: string; unit: string | null; make: string | null };
+  candidates?: { id: number; part_no: string; description: string; unit: string | null; make: string | null }[];
+}
+export interface QuickEntryPreview {
+  lines: QuickEntryLine[];
+  problems: { line: number; text: string; problem: string }[];
+  summary: { lines: number; matched: number; ambiguous: number; not_found: number; units: number };
+}
+
+/** Today's stock at a glance (India day): what came in, what went out, what is ready to ship and the latest movements. */
+export interface TodayStock {
+  date: string;
+  received: { lines: number; units: number; receipts: number };
+  sent: { lines: number; units: number; invoices: number };
+  returned: { lines: number; units: number };
+  adjusted: { lines: number; units: number };
+  waiting: { lines: number; ready: number; partly: number; waiting: number; customers: number; units_to_order: number } | null;
+  movements: { at: string; part_no: string; description: string; movement_type: string; change: number; reference_type: string | null; reference_id: string | null; reason: string | null }[];
+}
+
+export interface WaitingOrdersParams {
+  status?: 'ready' | 'partly' | 'waiting';
+  q?: string;
+  warehouseId?: number;
+  productId?: number;
+  /** Comma-separated product ids. */
+  productIds?: string;
+}
+export function waitingOrdersQuery(p?: WaitingOrdersParams) {
+  const q = new URLSearchParams();
+  if (p?.status) q.set('status', p.status);
+  if (p?.q) q.set('q', p.q);
+  if (p?.warehouseId) q.set('warehouseId', String(p.warehouseId));
+  if (p?.productId) q.set('productId', String(p.productId));
+  if (p?.productIds) q.set('productIds', p.productIds);
+  const s = q.toString();
+  return s ? `?${s}` : '';
+}
 
 export interface MovementReportParams {
   view: 'month' | 'year';

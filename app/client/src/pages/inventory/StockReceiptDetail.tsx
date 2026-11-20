@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, StockReceiptDetailResponse, InventoryMovementType } from '../../api';
+import { WaitingMatches } from '../../components/WaitingMatches';
+import { useAuth } from '../../auth';
 
 function formatNumber(n: number | undefined | null) {
   return Number(n || 0).toLocaleString('en-IN');
@@ -57,6 +59,9 @@ export default function StockReceiptDetail() {
   const [error, setError] = useState('');
   const [actionBusy, setActionBusy] = useState(false);
   const [actionError, setActionError] = useState('');
+  const { user } = useAuth();
+  const [voidOpen, setVoidOpen] = useState(false);
+  const [voidReason, setVoidReason] = useState('');
 
   const loadData = () => {
     if (!receiptId) return;
@@ -100,6 +105,23 @@ export default function StockReceiptDetail() {
       setReceipt(updated);
     } catch (err: any) {
       setActionError(err.message || 'Failed to cancel receipt');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  // Undo a confirmed receipt: the stock it added comes out again with correcting entries, and the history is kept.
+  const handleVoid = async () => {
+    if (!receipt || actionBusy) return;
+    setActionBusy(true);
+    setActionError('');
+    try {
+      const updated = await api.inventory.receipts.void(receipt.id, voidReason.trim() || undefined);
+      setReceipt(updated);
+      setVoidOpen(false);
+      setVoidReason('');
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to void the receipt');
     } finally {
       setActionBusy(false);
     }
@@ -229,6 +251,18 @@ export default function StockReceiptDetail() {
             </>
           )}
 
+          {receipt.status === 'CONFIRMED' && user?.role === 'admin' && (
+            <button
+              type="button"
+              disabled={actionBusy}
+              onClick={() => { setActionError(''); setVoidOpen(true); }}
+              className="px-3.5 py-2 bg-badbg hover:bg-badbg text-bad border border-badbg rounded-lg text-xs font-semibold transition-colors"
+              title="Undo this receipt: the stock it added comes out again, and the history is kept"
+            >
+              Void receipt
+            </button>
+          )}
+
           <Link
             to={`/inventory/warehouses/${receipt.warehouse_id}`}
             className="px-3 py-2 bg-tile hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-medium transition-colors"
@@ -274,6 +308,11 @@ export default function StockReceiptDetail() {
           </span>
         </div>
       </div>
+
+      {/* Who needs this stock: the customers waiting for these products, with a Dispatch button each */}
+      {receipt.status === 'CONFIRMED' && (receipt.items?.length || 0) > 0 && (
+        <WaitingMatches productIds={(receipt.items || []).map((it) => it.product_id)} />
+      )}
 
       {/* Line Items Table */}
       <div className="ts-card ts-white ts-tbl overflow-hidden">
@@ -426,6 +465,26 @@ export default function StockReceiptDetail() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {voidOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-label="Void receipt">
+          <div className="ts-modal max-w-md w-full space-y-4">
+            <h3 className="m-0 text-[15px] font-medium text-fg">Void receipt {receipt.receipt_number}?</h3>
+            <p className="text-sm text-fg m-0">
+              The {formatNumber(receipt.totalQuantity ?? 0)} units this receipt added are taken out of stock again, with a correcting entry for each product. The receipt and its history stay on record, marked cancelled.
+            </p>
+            <p className="text-[12.5px] text-subtle m-0">If some of that stock has already been sold, moved or reserved, the void is refused and nothing changes.</p>
+            <div>
+              <label htmlFor="void-reason" className="ts-lbl">Reason (optional)</label>
+              <input id="void-reason" className="ts-fi" maxLength={200} value={voidReason} onChange={(e) => setVoidReason(e.target.value)} placeholder="e.g. entered twice, wrong delivery" autoFocus />
+            </div>
+            {actionError && <div className="ts-warnbox">{actionError}</div>}
+            <div className="flex items-center justify-end gap-3 pt-1">
+              <button type="button" className="ts-btn ts-ghost" onClick={() => setVoidOpen(false)} disabled={actionBusy}>Keep the receipt</button>
+              <button type="button" className="ts-btn ts-dark" onClick={handleVoid} disabled={actionBusy}>{actionBusy ? 'Voiding…' : 'Yes, void it'}</button>
+            </div>
           </div>
         </div>
       )}

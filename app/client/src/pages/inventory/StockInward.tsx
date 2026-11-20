@@ -1,4 +1,5 @@
 import { MovementDateField, todayIST } from '../../components/MovementDateField';
+import { QuickEntryModal } from '../../components/QuickEntryModal';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -56,7 +57,13 @@ interface ManualLineItem {
   partNo: string;
   quantity: string;
   notes: string;
+  /** Serial numbers, one per line (Mettler only). */
+  serials: string;
 }
+
+/** Serial numbers typed or pasted: one per line (commas and semicolons also separate them). */
+const parseSerials = (text: string) => text.split(/[\r\n,;]+/).map((s) => s.trim().replace(/\s+/g, ' ')).filter(Boolean);
+const isMettler = (make: string) => /mettler/i.test(make);
 
 export default function StockInward() {
   const navigate = useNavigate();
@@ -64,6 +71,7 @@ export default function StockInward() {
   const [receipts, setReceipts] = useState<StockReceipt[]>([]);
   const [total, setTotal] = useState(0);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -174,7 +182,7 @@ export default function StockInward() {
     setManualSourceRef('');
     setManualNotes('');
     setManualItems([
-      { productId: products[0]?.id || 0, partNo: products[0]?.part_no || '', quantity: '10', notes: '' },
+      { productId: products[0]?.id || 0, partNo: products[0]?.part_no || '', quantity: '10', notes: '', serials: '' },
     ]);
     setManualConfirmImmediately(true);
     setManualMake('');
@@ -186,7 +194,7 @@ export default function StockInward() {
     const firstProd = products[0];
     setManualItems([
       ...manualItems,
-      { productId: firstProd?.id || 0, partNo: firstProd?.part_no || '', quantity: '1', notes: '' },
+      { productId: firstProd?.id || 0, partNo: firstProd?.part_no || '', quantity: '1', notes: '', serials: '' },
     ]);
   };
 
@@ -204,6 +212,10 @@ export default function StockInward() {
         productId: Number(value),
         partNo: prod?.part_no || '',
       };
+    } else if (field === 'serials') {
+      // The quantity follows the serial numbers: one unit each.
+      const n = parseSerials(String(value)).length;
+      updated[index] = { ...updated[index], serials: String(value), ...(n > 0 ? { quantity: String(n) } : {}) };
     } else {
       updated[index] = { ...updated[index], [field]: value };
     }
@@ -234,19 +246,45 @@ export default function StockInward() {
       }
     }
 
+    // Mettler units are received one serial number each: one serial number per unit, none typed twice.
+    if (isMettler(manualMake)) {
+      if (!manualConfirmImmediately) {
+        setManualError('Mettler stock is saved with its serial numbers, so confirm the receipt straight away.');
+        return;
+      }
+      const seen = new Set<string>();
+      for (let i = 0; i < manualItems.length; i++) {
+        const list = parseSerials(manualItems[i].serials);
+        if (list.length !== Number(manualItems[i].quantity)) {
+          setManualError(`Row ${i + 1}: enter ${manualItems[i].quantity} serial number${Number(manualItems[i].quantity) === 1 ? '' : 's'}, one per unit (${list.length} entered).`);
+          return;
+        }
+        for (const s of list) {
+          const k = `${manualItems[i].productId}|${s.toLowerCase()}`;
+          if (seen.has(k)) {
+            setManualError(`Serial number ${s} is entered twice for the same product.`);
+            return;
+          }
+          seen.add(k);
+        }
+      }
+    }
+
     // Aggregate duplicate products before submission
-    const aggregated = new Map<number, { productId: number; quantity: number; notes: string }>();
+    const aggregated = new Map<number, { productId: number; quantity: number; notes: string; serials: string[] }>();
     for (const item of manualItems) {
       const qty = Number(item.quantity);
       if (aggregated.has(item.productId)) {
         const existing = aggregated.get(item.productId)!;
         existing.quantity += qty;
+        existing.serials.push(...(isMettler(manualMake) ? parseSerials(item.serials) : []));
         if (item.notes && !existing.notes) existing.notes = item.notes;
       } else {
         aggregated.set(item.productId, {
           productId: item.productId,
           quantity: qty,
           notes: item.notes,
+          serials: isMettler(manualMake) ? parseSerials(item.serials) : [],
         });
       }
     }
@@ -262,7 +300,7 @@ export default function StockInward() {
         sourceReference: manualSourceRef.trim() || undefined,
         receiptDate: manualDate || undefined,
         notes: manualNotes.trim() || undefined,
-        items: Array.from(aggregated.values()),
+        items: Array.from(aggregated.values()).map((it) => ({ ...it, serials: it.serials.length ? it.serials : undefined })),
         confirmImmediately: manualConfirmImmediately,
         make: manualMake.trim(),
       });
@@ -440,6 +478,14 @@ export default function StockInward() {
           </p>
         </div>
         <div className="flex gap-2.5 flex-wrap">
+          <button
+            onClick={() => setQuickOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent2 hover:bg-accent2/85 text-onaccent font-semibold rounded-lg text-xs transition-colors"
+            title="Paste or type part number and quantity lines to receive a whole delivery at once"
+          >
+            <span>⚡</span>
+            <span>Quick entry (paste list)</span>
+          </button>
           <button
             onClick={openManualModal}
             className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface hover:bg-tile text-fg border border-line2 rounded-lg text-xs font-semibold transition-colors"
@@ -646,6 +692,14 @@ export default function StockInward() {
       )}
 
       {/* --- MODAL 1: MANUAL STOCK RECEIPT --- */}
+      {quickOpen && (
+        <QuickEntryModal
+          warehouses={warehouses}
+          onClose={() => setQuickOpen(false)}
+          onSaved={(id) => { setQuickOpen(false); loadReceipts(); navigate(`/inventory/stock-inward/${id}`); }}
+        />
+      )}
+
       {manualModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in overflow-y-auto">
           <div className="ts-card ts-white ts-tbl w-full max-w-3xl overflow-hidden my-8">
@@ -778,7 +832,8 @@ export default function StockInward() {
                     </thead>
                     <tbody className="divide-y divide-line2">
                       {manualItems.map((item, idx) => (
-                        <tr key={idx}>
+                        <React.Fragment key={idx}>
+                        <tr>
                           <td className="py-2 px-3">
                             <select
                               value={item.productId}
@@ -824,6 +879,23 @@ export default function StockInward() {
                             )}
                           </td>
                         </tr>
+                        {isMettler(manualMake) && (
+                          <tr>
+                            <td colSpan={4} className="px-3 pb-3">
+                              <label className="block text-[11px] text-subtle mb-1">
+                                Serial numbers: one per line, one per unit ({parseSerials(item.serials).length} entered). The quantity follows the count.
+                              </label>
+                              <textarea
+                                rows={Math.min(6, Math.max(2, parseSerials(item.serials).length + 1))}
+                                value={item.serials}
+                                onChange={(e) => updateManualItem(idx, 'serials', e.target.value)}
+                                placeholder={'C601903939\nC601903940'}
+                                className="w-full bg-surface2 border border-line2 rounded px-2 py-1.5 text-xs font-mono text-fg focus:outline-none focus:border-accent2"
+                              />
+                            </td>
+                          </tr>
+                        )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
@@ -1462,6 +1534,11 @@ export default function StockInward() {
                     <p className="text-xs text-subtle mt-1 max-w-md">
                       Physical inventory stock levels, movements, and stock intelligence metrics have been updated atomically.
                     </p>
+                    {createdReceiptId && (
+                      <Link to={`/inventory/stock-inward/${createdReceiptId}`} className="ts-btn ts-dark ts-xs mt-3 inline-flex" title="Shows which customers are waiting for this stock, with a Dispatch button each">
+                        Who needs this stock? →
+                      </Link>
+                    )}
                   </div>
 
                   {/* Summary Card */}

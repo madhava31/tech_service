@@ -10,6 +10,7 @@ import { poReceivedReady } from './poReceived.js';
 import { resolveUserId } from '../db/inventorySchema.js';
 import { recordStockOut, recordStockIn } from '../inventory/service.js';
 import { todayIST } from '../inventory/movementReport.js';
+import { SerialError, serialsReady, trackedProducts, planInvoiceSerials, assignInvoiceSerials, releaseInvoiceSerials, serialsInStock } from '../inventory/serials.js';
 
 export const INVOICE_COLUMNS = {
   quotation_invoice: ['id', 'quotation_id', 'invoice_number', 'invoice_date', 'payment_due_date', 'notes', 'created_by_user_id', 'created_at'],
@@ -274,6 +275,25 @@ export async function createInvoice(req, res) {
     }
     const stockUserId = await resolveUserId(req.user);
 
+    // Serial numbers: a product that is tracked by serial number (Mettler instruments) needs one picked serial number per unit.
+    let serialPlan = [];
+    if (plan.deduct.length) {
+      const tracked = await trackedProducts([...new Set(plan.deduct.map((d) => d.product_id))]);
+      if (tracked.size) { // tracked: product id -> serial-numbered units in stock
+        const labels = new Map((await db.prepare(`SELECT id, part_no FROM quotation_item WHERE quotation_id = ?`).all(id)).map((r) => [Number(r.id), r.part_no]));
+        try {
+          serialPlan = planInvoiceSerials(
+            plan.deduct.map((d) => ({ quotation_item_id: d.quotation_item_id, product_id: d.product_id, qty: d.qty, label: labels.get(d.quotation_item_id) })),
+            req.body?.serials,
+            tracked
+          );
+        } catch (err) {
+          if (err instanceof SerialError) return res.status(err.status).json({ error: err.message });
+          throw err;
+        }
+      }
+    }
+
     let invoiceId;
     try {
       invoiceId = await db.transaction(async () => {
@@ -297,9 +317,11 @@ export async function createInvoice(req, res) {
             occurredOn: parsed.invoice_date <= todayIST() ? parsed.invoice_date : undefined,
           });
         }
+        if (serialPlan.length) await assignInvoiceSerials(serialPlan, { invoiceId: newId, outwardDate: parsed.invoice_date });
         return newId;
       });
     } catch (err) {
+      if (err instanceof SerialError) return res.status(err.status).json({ error: err.message });
       if (err?.code === '23505') return res.status(409).json({ error: `Invoice ${parsed.invoice_number} is already recorded for this quotation` });
       throw err;
     }
@@ -340,6 +362,7 @@ export async function restoreInvoiceStock(invoices, userId, why = 'removed') {
       units += Number(m.quantity);
     }
   }
+  await releaseInvoiceSerials(invoices.map((i) => i.id)); // serial-numbered units go back into stock too
   return units;
 }
 
@@ -378,7 +401,17 @@ export async function invoiceStock(req, res) {
           WHERE qi.quotation_id = ? ORDER BY qi.id`
       )
       .all(warehouse?.id ?? 0, Number(req.params.id));
-    res.json({ warehouse, items: rows.map((r) => ({ quotation_item_id: Number(r.quotation_item_id), tracked: !!r.tracked, on_hand: Number(r.on_hand), available: Number(r.available) })) });
+    const productRows = (await serialsReady()) ? await db.prepare(`SELECT id, product_id FROM quotation_item WHERE quotation_id = ? AND product_id IS NOT NULL`).all(Number(req.params.id)) : [];
+    const serials = await serialsInStock([...new Set(productRows.map((r) => Number(r.product_id)))], warehouse?.id ?? null);
+    const productOfLine = new Map(productRows.map((r) => [Number(r.id), Number(r.product_id)]));
+    res.json({
+      warehouse,
+      items: rows.map((r) => {
+        const pid = productOfLine.get(Number(r.quotation_item_id));
+        const list = pid ? serials[pid] : undefined;
+        return { quotation_item_id: Number(r.quotation_item_id), tracked: !!r.tracked, on_hand: Number(r.on_hand), available: Number(r.available), ...(list ? { serials: list } : {}) };
+      }),
+    });
   } catch (err) {
     sendRouteError(res, err, 500, 'Something went wrong. Please try again.');
   }

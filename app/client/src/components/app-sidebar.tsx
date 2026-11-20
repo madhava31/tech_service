@@ -81,6 +81,8 @@ const INVENTORY_NAV: NavItemDef[] = [
       { label: 'Warehouses', path: '/inventory/warehouses' },
       { label: 'Stock', path: '/inventory/stock' },
       { label: 'Stock Inward', path: '/inventory/stock-inward' },
+      { label: 'Waiting Orders', path: '/inventory/waiting-orders' },
+      { label: 'Serial Numbers', path: '/inventory/serial-numbers' },
       { label: 'Reservations', path: '/inventory/reservations' },
       { label: 'Stock Intelligence', path: '/inventory/intelligence' },
       { label: 'Stock In / Out Report', path: '/inventory/movement-report' },

@@ -20,6 +20,8 @@ export const NAV: NavEntry[] = [
     { label: 'Warehouses', path: '/inventory/warehouses', desc: 'Facilities and locations' },
     { label: 'Stock', path: '/inventory/stock', desc: 'On hand, reserved, available' },
     { label: 'Stock inward', path: '/inventory/stock-inward', desc: 'Receive and restock' },
+    { label: 'Waiting orders', path: '/inventory/waiting-orders', desc: 'Who is waiting and what can ship' },
+    { label: 'Serial numbers', path: '/inventory/serial-numbers', desc: 'Mettler units with inward and outward dates' },
     { label: 'Reservations', path: '/inventory/reservations', desc: 'Commit stock to orders' },
     { label: 'Stock intelligence', path: '/inventory/intelligence', desc: 'Demand and restock advice' },
     { label: 'Stock in / out', path: '/inventory/movement-report', desc: 'Daily and monthly stock in and out' },

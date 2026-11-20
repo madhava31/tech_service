@@ -5,8 +5,14 @@ import ExcelJS from 'exceljs';
 import db from '../db/index.js';
 import { requireAuth } from '../auth/middleware.js';
 import { ensureInventorySchema, getUserTable, resolveUserId } from '../db/inventorySchema.js';
-import { getMovementReport, buildMovementReportExcel } from '../inventory/movementReport.js';
+import { getMovementReport, buildMovementReportExcel, todayIST } from '../inventory/movementReport.js';
 import { movementTimestamp } from '../inventory/movementDate.js';
+import { loadWaitingOrders, buildWaitingOrdersExcel } from '../inventory/waitingOrders.js';
+import { buildStockStatementExcel } from '../inventory/stockStatement.js';
+import { previewQuickEntry } from '../inventory/quickEntry.js';
+import { getToday } from '../inventory/today.js';
+import { getStockIntelligence, setLimits } from '../inventory/intelligence.js';
+import { serialsReady, checkReceiptSerials, assertSerialsFree, insertReceiptSerials, deleteReceiptSerials, listSerials, buildSerialsExcel } from '../inventory/serials.js';
 import { sendExcelResponse } from './export.js';
 import * as inventory from '../inventory/service.js';
 import { sendRouteError } from '../http/errors.js';
@@ -137,154 +143,29 @@ router.get('/overview', requireAuth, async (req, res) => {
 
 /**
  * GET /api/inventory/intelligence
+ * Real demand (stock that went out) and per-product limits. ?period=30&warehouseId=&productId=&start=&end=
  */
 router.get('/intelligence', requireAuth, async (req, res) => {
   try {
     await ensureDefaultWarehouse();
-    const { warehouseId, days = 30 } = req.query;
-
-    const whId = warehouseId ? Number(warehouseId) : null;
-    const [warehouses, products] = await Promise.all([
-      db.prepare(`SELECT * FROM warehouse WHERE is_active = 1 ORDER BY is_default DESC, id ASC`).all(),
-      db.prepare(`
-        SELECT 
-          p.id, p.part_no, p.description, p.unit, p.hsn_sac, p.default_price,
-          COALESCE(SUM(s.on_hand_quantity), 0) AS on_hand_quantity,
-          COALESCE(SUM(s.reserved_quantity), 0) AS reserved_quantity,
-          COALESCE(SUM(s.incoming_quantity), 0) AS incoming_quantity
-        FROM product p
-        LEFT JOIN inventory_stock s ON s.product_id = p.id ${whId ? 'AND s.warehouse_id = ' + whId : ''}
-        GROUP BY p.id, p.part_no, p.description, p.unit, p.hsn_sac, p.default_price
-        ORDER BY p.part_no ASC
-      `).all(),
-    ]);
-
-    const totalProducts = products.length;
-    let withStock = 0;
-    let lowStock = 0;
-    let criticalStock = 0;
-    let outOfStock = 0;
-    let totalOnHand = 0;
-    let totalReserved = 0;
-    let totalIncoming = 0;
-
-    const intelProducts = products.map((p) => {
-      const onHand = Number(p.on_hand_quantity || 0);
-      const reserved = Number(p.reserved_quantity || 0);
-      const incoming = Number(p.incoming_quantity || 0);
-      const available = Math.max(0, onHand - reserved);
-
-      totalOnHand += onHand;
-      totalReserved += reserved;
-      totalIncoming += incoming;
-
-      let status = 'HEALTHY';
-      if (onHand <= 0) {
-        status = 'OUT_OF_STOCK';
-        outOfStock++;
-      } else if (available <= 5) {
-        status = 'CRITICAL';
-        criticalStock++;
-        withStock++;
-      } else if (available <= 10) {
-        status = 'LOW_STOCK';
-        lowStock++;
-        withStock++;
-      } else {
-        withStock++;
-      }
-
-      const recommendation = status === 'OUT_OF_STOCK' || status === 'CRITICAL' ? 'RESTOCK_NOW' : status === 'LOW_STOCK' ? 'RESTOCK_SOON' : 'SUFFICIENT';
-
-      return {
-        id: p.id,
-        productId: p.id,
-        part_no: p.part_no,
-        partNo: p.part_no,
-        description: p.description,
-        unit: p.unit || 'Nos',
-        hsn_sac: p.hsn_sac || '',
-        hsnSac: p.hsn_sac || '',
-        default_price: Number(p.default_price || 0),
-        defaultPrice: Number(p.default_price || 0),
-        onHandQuantity: onHand,
-        reservedQuantity: reserved,
-        availableQuantity: available,
-        incomingQuantity: incoming,
-        status,
-        recommendation,
-        trend: 'STABLE',
-        demandTrend: 'STABLE',
-        dailySalesRate: 0,
-        coverageDays: available > 0 ? 30 : 0,
-      };
-    });
-
-    const totalAvailable = Math.max(0, totalOnHand - totalReserved);
-    const needsRestock = outOfStock + criticalStock + lowStock;
-
-    res.json({
-      summary: {
-        totalProducts,
-        productsAnalyzed: totalProducts,
-        productsSelling: 0,
-        withStock,
-        lowStock,
-        criticalStock,
-        outOfStock,
-        needsRestock,
-        productsRequiringRestock: needsRestock,
-        averageStockCoverage: 30,
-        incomingUnits: totalIncoming,
-        totalOnHand,
-        totalReserved,
-        totalAvailable,
-        totalIncoming,
-      },
-      health: {
-        healthy: Math.max(0, totalProducts - needsRestock),
-        low: lowStock,
-        critical: criticalStock,
-        outOfStock,
-        incoming: totalIncoming,
-      },
-      demand: [],
-      velocity: [],
-      coverage: [],
-      recommendations: intelProducts
-        .filter((p) => p.status !== 'HEALTHY')
-        .map((p) => ({
-          productId: p.id,
-          partNo: p.partNo,
-          description: p.description,
-          currentStock: p.onHandQuantity,
-          availableStock: p.availableQuantity,
-          recommendedOrderQuantity: Math.max(20, 50 - p.availableQuantity),
-          reason: p.status === 'OUT_OF_STOCK' ? 'Out of stock - Immediate replenishment needed' : 'Stock level below safety threshold',
-          urgency: p.status === 'OUT_OF_STOCK' || p.status === 'CRITICAL' ? 'HIGH' : 'MEDIUM',
-        })),
-      incomingImpact: [],
-      overstock: [],
-      products: intelProducts,
-      recentSales: [],
-      warehouses: warehouses.map((w) => ({
-        id: w.id,
-        name: w.name,
-        code: w.code,
-        address: w.address || '',
-        city: w.city || '',
-        state: w.state || '',
-        is_default: Number(w.is_default || 0),
-        is_active: Number(w.is_active || 0),
-      })),
-      meta: {
-        periodDays: Number(days),
-        warehouseId: whId,
-      },
-    });
+    res.json(await getStockIntelligence(req.query));
   } catch (err) {
     console.error('Failed to get inventory intelligence:', err);
     sendRouteError(res, err, 500, 'Failed to fetch inventory intelligence');
+  }
+});
+
+/**
+ * PUT /api/inventory/stock/:productId/limits  { low, critical }  (admin)
+ */
+router.put('/stock/:productId/limits', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Only an admin can change stock limits.' });
+    const id = Number(req.params.productId);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid product.' });
+    res.json(await setLimits(id, req.body?.low, req.body?.critical));
+  } catch (err) {
+    sendRouteError(res, err, err?.status || 500, err?.status ? err.message : 'Failed to save the limits');
   }
 });
 
@@ -1252,6 +1133,22 @@ async function deleteStockReceipts(receiptIds) {
   const numIds = receiptIds.map(Number).filter(Boolean);
   if (numIds.length === 0) return 0;
 
+  // A receipt that has added stock has history (its movements). Deleting it would erase that history and leave the stock
+  // figures wrong, so only receipts without any movement (drafts) can be deleted. Void a confirmed receipt instead.
+  const withHistory = await db
+    .prepare(
+      `SELECT DISTINCT r.receipt_number FROM stock_receipt r
+        WHERE r.id = ANY(?::int[]) AND EXISTS (
+          SELECT 1 FROM inventory_movement m WHERE m.reference_type IN ('STOCK_RECEIPT', 'STOCK_RECEIPT_VOID') AND m.reference_id = r.id::text)`
+    )
+    .all(`{${numIds.join(',')}}`);
+  if (withHistory.length) {
+    throw Object.assign(
+      new Error(`${withHistory.map((r) => r.receipt_number).slice(0, 3).join(', ')} added stock, so ${withHistory.length === 1 ? 'it' : 'they'} cannot be deleted (the stock history would be lost). Void the receipt instead.`),
+      { status: 409 }
+    );
+  }
+
   await db.transaction(async () => {
     const confirmedItems = await db.prepare(`
       SELECT sri.product_id, sri.quantity, r.warehouse_id
@@ -1614,6 +1511,15 @@ router.post('/receipts', requireAuth, async (req, res) => {
 
     // The date the stock came in (today when not given); a past date is recorded for that day.
     const when = movementTimestamp(req.body.receiptDate || req.body.date);
+
+    // Serial numbers (Mettler units): checked before anything is saved. One serial number per unit, none already recorded.
+    let checkedSerials = [];
+    if (items.some((it) => it && it.serials && (Array.isArray(it.serials) ? it.serials.length : String(it.serials).trim()))) {
+      if (!confirmImmediately) return res.status(400).json({ error: 'Serial numbers can be saved only when the receipt is confirmed straight away.' });
+      if (!(await serialsReady())) return res.status(503).json({ error: 'Serial numbers need a database update (migration 014) that has not been applied yet. Please contact your administrator.', code: 'MIGRATION_REQUIRED' });
+      checkedSerials = checkReceiptSerials(items);
+      await assertSerialsFree(checkedSerials);
+    }
     const recNum = receiptNumber && receiptNumber.trim() ? receiptNumber.trim() : await getNextReceiptNumber('REC');
     const status = confirmImmediately ? 'CONFIRMED' : 'DRAFT';
 
@@ -1700,6 +1606,8 @@ router.post('/receipts', requireAuth, async (req, res) => {
       await inventory.setProductsMake(items.map((it) => it.productId), make);
       apiCache.invalidateTags(['products']);
     }
+
+    if (checkedSerials.length) await insertReceiptSerials(checkedSerials, { receiptId, warehouseId: whId, inwardDate: when ? when.slice(0, 10) : todayIST() });
 
     const detail = await fetchStockReceiptDetail(receiptId);
     res.status(201).json(detail);
@@ -1795,6 +1703,74 @@ router.post('/receipts/:id/cancel', requireAuth, async (req, res) => {
 });
 
 /**
+ * POST /api/inventory/receipts/:id/void  { reason? }
+ * Undoes a CONFIRMED receipt without erasing history: the stock it added is taken out again with one correcting Adjustment
+ * per product (reference STOCK_RECEIPT_VOID), and the receipt becomes CANCELLED. Refused when some of that stock has already
+ * left (sold, transferred or reserved), because the stock would go below what is really there. Admin only.
+ */
+router.post('/receipts/:id/void', requireAuth, async (req, res) => {
+  try {
+    if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Only an admin can void a receipt.' });
+    const recId = Number(req.params.id);
+    if (!Number.isInteger(recId) || recId <= 0) return res.status(400).json({ error: 'Invalid receipt ID' });
+    const r = await db.prepare(`SELECT * FROM stock_receipt WHERE id = ?`).get(recId);
+    if (!r) return res.status(404).json({ error: 'Stock receipt not found' });
+    if (r.status === 'DRAFT') return res.status(400).json({ error: 'A draft receipt has not added any stock. Cancel it instead.' });
+    if (r.status !== 'CONFIRMED') return res.status(400).json({ error: 'This receipt is already cancelled.' });
+    // eslint-disable-next-line no-control-regex
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 200) : '';
+    const userId = await resolveUserId(req.user);
+
+    await db.transaction(async () => {
+      const items = await db
+        .prepare(`SELECT product_id, SUM(quantity)::float8 AS quantity FROM stock_receipt_item WHERE receipt_id = ? GROUP BY product_id HAVING SUM(quantity) > 0`)
+        .all(recId);
+      // Lock the stock rows, then check that all of the received stock is still there.
+      const plan = [];
+      const short = [];
+      for (const it of items) {
+        const st = await db
+          .prepare(`SELECT on_hand_quantity, reserved_quantity FROM inventory_stock WHERE warehouse_id = ? AND product_id = ? FOR UPDATE`)
+          .get(r.warehouse_id, it.product_id);
+        const onHand = Number(st?.on_hand_quantity || 0);
+        const reserved = Number(st?.reserved_quantity || 0);
+        const qty = Number(it.quantity);
+        if (onHand - qty < reserved - 1e-9 || onHand < qty - 1e-9) short.push({ product_id: it.product_id, qty, onHand, reserved });
+        else plan.push({ product_id: it.product_id, qty, onHand });
+      }
+      if (short.length) {
+        const names = await db.prepare(`SELECT id, part_no FROM product WHERE id = ANY(?::int[])`).all(`{${short.map((s) => s.product_id).join(',')}}`);
+        const part = new Map(names.map((n) => [Number(n.id), n.part_no]));
+        const lines = short.slice(0, 3).map((s) => `${part.get(Number(s.product_id)) || 'a part'} (${s.qty} received, only ${Math.max(0, s.onHand - s.reserved)} still free)`);
+        throw Object.assign(
+          new Error(`Cannot void ${r.receipt_number}: some of its stock has already left or is reserved: ${lines.join('; ')}${short.length > 3 ? ' …' : ''}. Put that stock back first, or leave the receipt as it is.`),
+          { status: 409 }
+        );
+      }
+      for (const p of plan) {
+        await inventory.adjustStock({
+          warehouseId: r.warehouse_id,
+          productId: p.product_id,
+          newOnHandQuantity: p.onHand - p.qty,
+          reason: `Receipt ${r.receipt_number} voided${reason ? ` - ${reason}` : ''}`,
+          referenceType: 'STOCK_RECEIPT_VOID',
+          referenceId: recId,
+          userId,
+        });
+      }
+      const note = `${(r.notes || '').trim()}${r.notes ? ' | ' : ''}Voided ${new Date().toISOString().slice(0, 10)}${reason ? `: ${reason}` : ''}`.slice(0, 500);
+      await db.prepare(`UPDATE stock_receipt SET status = 'CANCELLED', notes = ? WHERE id = ?`).run(note, recId);
+      if (await serialsReady()) await deleteReceiptSerials(recId);
+    });
+    apiCache.invalidateTags(['products']);
+    res.json(await fetchStockReceiptDetail(recId));
+  } catch (err) {
+    console.error('Failed to void receipt:', err);
+    sendRouteError(res, err, 400, 'Failed to void the receipt');
+  }
+});
+
+/**
  * GET /api/inventory/movements
  */
 
@@ -1829,6 +1805,89 @@ router.get('/movement-report', requireAuth, async (req, res) => {
     res.json(await getMovementReport(req.query));
   } catch (err) {
     sendError(res, err, 'Failed to build the stock in / out report');
+  }
+});
+
+/** GET /api/inventory/today : stock in and out today, what is ready to ship, and the latest movements (panel on the overview). */
+router.get('/today', requireAuth, async (req, res) => {
+  try {
+    res.json(await getToday({ userId: req.user.id, isAdmin: req.user.role === 'admin' }));
+  } catch (err) {
+    sendError(res, err, 'Failed to load the stock for today');
+  }
+});
+
+/**
+ * POST /api/inventory/quick-entry/preview  { text }
+ * Reads pasted lines ("part number, quantity") and finds the products, so a delivery can be entered in one step. Nothing is
+ * saved here: the user checks the list and then saves it as a normal stock receipt.
+ */
+router.post('/quick-entry/preview', requireAuth, async (req, res) => {
+  try {
+    res.json(await previewQuickEntry(req.body?.text));
+  } catch (err) {
+    sendError(res, err, 'Failed to read the pasted lines');
+  }
+});
+
+/**
+ * GET /api/inventory/stock-statement.xlsx?from=2026-01&to=2026-11&warehouseId=&make=&q=&all=1
+ * The stock sheet to send: one sheet per month (in / out by day, opening and closing) and a Movements sheet with customer,
+ * PO and invoice. See inventory/stockStatement.js.
+ */
+router.get('/stock-statement.xlsx', requireAuth, async (req, res) => {
+  try {
+    const wh = Number(req.query.warehouseId) > 0 ? await db.prepare(`SELECT name FROM warehouse WHERE id = ?`).get(Number(req.query.warehouseId)) : null;
+    const { buffer, filename } = await buildStockStatementExcel(req.query, { warehouseName: wh?.name || null });
+    sendExcelResponse(res, buffer, filename);
+  } catch (err) {
+    sendError(res, err, 'Failed to build the stock statement');
+  }
+});
+
+/**
+ * GET /api/inventory/waiting-orders?status=ready|partly|waiting&q=&productIds=1,2&warehouseId=
+ * The customer orders (PO received) not yet invoiced, and what the warehouse can ship for each now. Users who are not
+ * admins see only the quotations they made.
+ */
+router.get('/waiting-orders', requireAuth, async (req, res) => {
+  try {
+    res.json(await loadWaitingOrders(req.query, { userId: req.user.id, isAdmin: req.user.role === 'admin' }));
+  } catch (err) {
+    sendError(res, err, 'Failed to load the waiting orders');
+  }
+});
+
+/**
+ * GET /api/inventory/serials : the serial-numbered units (Mettler), with their inward and outward dates. ?q=&make=&status=in_stock|sent&from=&to=
+ * GET /api/inventory/serials.xlsx : the same list as an Excel file.
+ */
+router.get('/serials', requireAuth, async (req, res) => {
+  try {
+    if (!(await serialsReady())) return res.json({ available: false, rows: [] });
+    res.json({ available: true, rows: await listSerials(req.query) });
+  } catch (err) {
+    sendError(res, err, 'Failed to load the serial numbers');
+  }
+});
+
+router.get('/serials.xlsx', requireAuth, async (req, res) => {
+  try {
+    if (!(await serialsReady())) return res.status(503).json({ error: 'Serial numbers need a database update (migration 014) that has not been applied yet.', code: 'MIGRATION_REQUIRED' });
+    const { buffer, filename } = await buildSerialsExcel(req.query);
+    sendExcelResponse(res, buffer, filename);
+  } catch (err) {
+    sendError(res, err, 'Failed to build the serial numbers file');
+  }
+});
+
+/** GET /api/inventory/waiting-orders.xlsx : the same list as an Excel file to send. */
+router.get('/waiting-orders.xlsx', requireAuth, async (req, res) => {
+  try {
+    const { buffer, filename } = await buildWaitingOrdersExcel(req.query, { userId: req.user.id, isAdmin: req.user.role === 'admin' });
+    sendExcelResponse(res, buffer, filename);
+  } catch (err) {
+    sendError(res, err, 'Failed to download the waiting orders');
   }
 });
 
