@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { DownloadLink } from '../../components/DownloadLink';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api, type InventoryMovement, type MovementCell, type MovementReport, type Warehouse } from '../../api';
 import { Pagination } from '../../components/Pagination';
@@ -160,7 +161,7 @@ export default function StockMovementReport() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" className="ts-btn ts-dark ts-xs" onClick={() => setStatementOpen(true)} title="One Excel file in your stock-sheet layout, for any months, with customer, PO and invoice">Download for sending</button>
-          <a className="ts-btn ts-ghost ts-xs" href={api.inventory.movementReportXlsxUrl(params)}>This view as Excel</a>
+          <DownloadLink className="ts-btn ts-ghost ts-xs" href={api.inventory.movementReportXlsxUrl(params)}>This view as Excel</DownloadLink>
         </div>
       </div>
 

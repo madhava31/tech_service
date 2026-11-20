@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { DownloadLink } from '../components/DownloadLink';
 import { Link } from 'react-router-dom';
 import { api, SalesEngineer, EngineerPerformanceSummary, EngineerPerformance } from '../api';
 import { queryClient } from '../lib/queryClient';
@@ -287,14 +288,14 @@ export default function EngineerList() {
           </button>
 
           {/* Export Button */}
-          <a
+          <DownloadLink
             href={api.export.engineersPerformanceUrl(fiscalYear)}
             download
             className="ts-btn ts-ghost ts-xs"
           >
             <Download className="w-4 h-4" />
             <span>Export Excel</span>
-          </a>
+          </DownloadLink>
 
           {/* Delete Mode / Bulk Delete Controls */}
           {isSelectionMode ? (

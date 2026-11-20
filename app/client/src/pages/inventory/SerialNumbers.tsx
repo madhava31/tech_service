@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DownloadLink } from '../../components/DownloadLink';
 import { Link } from 'react-router-dom';
 import { api, type SerialUnit } from '../../api';
 
@@ -65,7 +66,7 @@ export default function SerialNumbers() {
           <h1 className="ts-title ts-title-sm m-0">Serial numbers</h1>
           <p className="m-0 mt-1 text-[13px] text-subtle">Each Mettler unit with the date it came in and the date it went out. Serial numbers are entered on Stock Inward and picked on the invoice.</p>
         </div>
-        {available && <a className="ts-btn ts-dark ts-xs" href={api.inventory.serialsXlsxUrl(params)}>Download Excel{rows.length ? ` (${rows.length})` : ''}</a>}
+        {available && <DownloadLink className="ts-btn ts-dark ts-xs" href={api.inventory.serialsXlsxUrl(params)}>Download Excel{rows.length ? ` (${rows.length})` : ''}</DownloadLink>}
       </div>
 
       {!available && (

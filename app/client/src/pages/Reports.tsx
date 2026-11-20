@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { DownloadLink } from '../components/DownloadLink';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api, Company, Product } from '../api';
 import { HorizontalBarChart } from '../components/BarChart';
@@ -348,12 +349,12 @@ export default function Reports() {
           ))}
         </div>
         {(tab === 'companies' || tab === 'products') && (
-          <a
+          <DownloadLink
             href={api.reports.exportUrl(tab)}
             className="ts-btn ts-ghost ts-xs"
           >
             Export to Excel →
-          </a>
+          </DownloadLink>
         )}
       </div>
 

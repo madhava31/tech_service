@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { DownloadLink } from '../components/DownloadLink';
 import { Link } from 'react-router-dom';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { api, clearCache, Product } from '../api';
@@ -136,15 +137,15 @@ export default function Products() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <a href={api.products.exportUrl({ q: search, make: makeFilter })} className="ts-btn ts-dark ts-xs" title="Downloads every part that matches the search and company shown here">
+          <DownloadLink href={api.products.exportUrl({ q: search, make: makeFilter })} className="ts-btn ts-dark ts-xs" title="Downloads every part that matches the search and company shown here">
             Export Excel{hasFilter ? ` (${filteredProducts.length})` : ` (${products.length})`}
-          </a>
+          </DownloadLink>
         </div>
         {isAdmin && (
           <div className="flex gap-2 flex-wrap">
-            <a href={api.products.templateUrl()} className="ts-btn ts-ghost ts-xs">
+            <DownloadLink href={api.products.templateUrl()} className="ts-btn ts-ghost ts-xs">
               Download Excel Template
-            </a>
+            </DownloadLink>
             <button
               type="button"
               onClick={() => {

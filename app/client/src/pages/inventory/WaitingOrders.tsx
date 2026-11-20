@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DownloadLink } from '../../components/DownloadLink';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api, type WaitingOrdersResponse, type Warehouse } from '../../api';
 import { WaitingOrdersTable } from '../../components/WaitingOrdersTable';
@@ -57,7 +58,7 @@ export default function WaitingOrders() {
           <h1 className="ts-title ts-title-sm m-0">Waiting orders</h1>
           <p className="m-0 mt-1 text-[13px] text-subtle">Customer orders not yet invoiced, and what you can ship for each from the stock you have now (oldest PO first).</p>
         </div>
-        <a className="ts-btn ts-dark ts-xs" href={api.inventory.waitingOrdersXlsxUrl(params)}>Download Excel</a>
+        <DownloadLink className="ts-btn ts-dark ts-xs" href={api.inventory.waitingOrdersXlsxUrl(params)}>Download Excel</DownloadLink>
       </div>
 
       <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
