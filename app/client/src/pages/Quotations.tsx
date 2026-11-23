@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { api, AdminUser, Quotation, QuotationPageResponse } from '../api';
+import { api, SalesEngineer, Quotation, QuotationPageResponse } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
 import { useAuth } from '../auth';
@@ -52,10 +52,11 @@ export default function Quotations() {
   const isAdmin = user?.role === 'admin';
   // Admin only: everyone who can create quotations, for the "Sales person" filter
   const [exportOpen, setExportOpen] = useState(false);
-  const [salesPeople, setSalesPeople] = useState<AdminUser[]>([]);
+  // The "Sales person" column and filter are the sales engineer named on each quotation.
+  const [salesPeople, setSalesPeople] = useState<SalesEngineer[]>([]);
   const [salesPersonFilter, setSalesPersonFilter] = useState('');
   useEffect(() => {
-    if (isAdmin) api.admin.listUsers().then(setSalesPeople).catch(() => setSalesPeople([]));
+    if (isAdmin) api.engineers.list().then(setSalesPeople).catch(() => setSalesPeople([]));
   }, [isAdmin]);
 
   // Data & Pagination state
@@ -129,7 +130,7 @@ export default function Quotations() {
         dateEnd: dateRange?.end,
         minAmount: debouncedMinAmount ? Number(debouncedMinAmount) : undefined,
         maxAmount: debouncedMaxAmount ? Number(debouncedMaxAmount) : undefined,
-        createdBy: isAdmin && salesPersonFilter ? Number(salesPersonFilter) : undefined,
+        salesEngineerId: isAdmin && salesPersonFilter ? Number(salesPersonFilter) : undefined,
         paginated: true,
       };
 
@@ -428,7 +429,7 @@ export default function Quotations() {
           {isAdmin && (
             <select className="ts-fi ts-sel" value={salesPersonFilter} onChange={(e) => setSalesPersonFilter(e.target.value)} aria-label="Filter by sales person">
               <option value="">All sales people</option>
-              {salesPeople.map((u) => <option key={u.id} value={u.id}>{u.username}</option>)}
+              {salesPeople.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
             </select>
           )}
           <button
@@ -519,8 +520,8 @@ export default function Quotations() {
                       <td>{q.company_name || '—'}</td>
                       <td className="ts-muted font-mono text-[12px]" style={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.items_part_nos || ''}>{q.items_part_nos || '—'}</td>
                       <td className="ts-r num">{money(q.total)}</td>
-                      {isAdmin && <td className="ts-muted">{q.created_by_username || '—'}</td>}
-                      <td><span className={`ts-st ts-${q.status}`}>{quotationStatusLabel(q.status)}</span></td>
+                      {isAdmin && <td className="ts-muted">{q.sales_engineer_name || '—'}</td>}
+                      <td><span className={`ts-st ts-${q.status}`}>{quotationStatusLabel(q.status, q.pi_count)}</span></td>
                       <td className="ts-r">
                         <div className="ts-racts">
                           <Link to={`/quotations/${q.id}`} className="ts-btn ts-ghost ts-xs">View</Link>

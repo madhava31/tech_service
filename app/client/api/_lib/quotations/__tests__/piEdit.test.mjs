@@ -40,11 +40,19 @@ beforeEach(() => {
     { id: 5, number: 'TSPI2627/1', date: '2026-11-19', created_by_user_id: 10 },
     { id: 6, number: 'TSPI2627/2', date: '2026-11-20', created_by_user_id: 20 },
   ];
+  db.transaction = async (fn) => fn(); // no real connection: the delete runs its statements inside a transaction
   db.prepare = (sql) => {
     const q = sql.replace(/\s+/g, ' ').trim();
     const rows = (params) => {
       if (placeholders(q) !== params.length) throw new Error(`parameter count mismatch in: ${q.slice(0, 100)}`);
       if (/^SELECT pi\.id, pi\.number, pi\.date, q\.created_by_user_id FROM performa_invoice pi JOIN quotation q/.test(q)) return pis.filter((p) => p.id === params[0]);
+      if (/^SELECT id, number FROM performa_invoice WHERE id = \?/.test(q)) return pis.filter((p) => p.id === params[0]);
+      if (/^UPDATE sale_report SET source_pi_id = NULL WHERE source_pi_id = \?/.test(q)) return [];
+      if (/^DELETE FROM performa_invoice WHERE id = \?/.test(q)) {
+        const idx = pis.findIndex((x) => x.id === params[0]);
+        if (idx >= 0) pis.splice(idx, 1);
+        return [];
+      }
       if (/^SELECT id FROM performa_invoice WHERE LOWER\(BTRIM\(number\)\) = LOWER\(\?\) AND id <> \?/.test(q)) return pis.filter((p) => p.number.trim().toLowerCase() === String(params[0]).toLowerCase() && p.id !== params[1]);
       if (/^UPDATE performa_invoice SET number = \?, date = \? WHERE id = \?/.test(q)) { updates.push(params); const p = pis.find((x) => x.id === params[2]); p.number = params[0]; p.date = params[1]; return []; }
       if (/^SELECT \* FROM performa_invoice WHERE id = \?/.test(q)) return pis.filter((p) => p.id === params[0]);
@@ -59,6 +67,20 @@ beforeEach(() => {
     return { get: async (...p) => rows(p)[0], all: async (...p) => rows(p), run: async (...p) => { rows(p); return { changes: 1, lastInsertRowid: undefined }; } };
   };
 });
+
+async function del(id, user) {
+  const app = express();
+  app.use(express.json());
+  app.use((req, _res, next) => { req.user = user; next(); });
+  app.use('/api/performa-invoices', router);
+  const server = await new Promise((r) => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
+  try {
+    const res = await fetch(`http://127.0.0.1:${server.address().port}/api/performa-invoices/${id}`, { method: 'DELETE' });
+    return { status: res.status, body: await res.json().catch(() => null) };
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
+}
 
 async function put(id, body, user) {
   const app = express();
@@ -121,5 +143,33 @@ describe('PUT /api/performa-invoices/:id', () => {
     assert.equal((await put(999, { number: 'TSPI2627/9', date: '2026-11-19' }, admin)).status, 404);
     assert.equal((await put('abc', { number: 'TSPI2627/9', date: '2026-11-19' }, admin)).status, 400);
     assert.equal(updates.length, 0);
+  });
+});
+
+describe('DELETE /api/performa-invoices/:id', () => {
+  test('an admin can permanently delete a performa invoice', async () => {
+    assert.equal(pis.length, 2);
+    const r = await del(5, admin);
+    assert.equal(r.status, 200);
+    assert.equal(r.body.success, true);
+    assert.equal(pis.length, 1);
+    assert.equal(pis[0].id, 6);
+  });
+
+  test('a non-admin is forbidden from deleting', async () => {
+    const r = await del(5, { id: 10, role: 'staff' });
+    assert.equal(r.status, 403);
+    assert.match(r.body.error, /Only administrators/);
+    assert.equal(pis.length, 2);
+  });
+
+  test('deleting an unknown PI returns 404', async () => {
+    const r = await del(999, admin);
+    assert.equal(r.status, 404);
+  });
+
+  test('invalid id returns 400', async () => {
+    const r = await del('abc', admin);
+    assert.equal(r.status, 400);
   });
 });

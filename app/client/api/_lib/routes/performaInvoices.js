@@ -145,6 +145,37 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/performa-invoices/:id
+ * Permanently deletes a performa invoice from the database.
+ * Restricted to administrators only.
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid PI id' });
+
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Only administrators can delete performa invoices.' });
+    }
+
+    const pi = await db.prepare(`SELECT id, number FROM performa_invoice WHERE id = ?`).get(id);
+    if (!pi) return res.status(404).json({ error: 'Performa invoice not found' });
+
+    await db.transaction(async () => {
+      // Unlink any sale_report referencing this performa invoice
+      await db.prepare(`UPDATE sale_report SET source_pi_id = NULL WHERE source_pi_id = ?`).run(id);
+      // Permanently delete the performa invoice
+      await db.prepare(`DELETE FROM performa_invoice WHERE id = ?`).run(id);
+    });
+
+    res.json({ success: true, id, message: `Performa invoice ${pi.number} deleted successfully.` });
+  } catch (err) {
+    console.error('Failed to delete performa invoice:', err);
+    res.status(500).json({ error: 'Unable to delete the performa invoice. Please try again.' });
+  }
+});
+
 router.get('/:id/pdf', async (req, res) => {
   try {
     const result = await fullPI(req.params.id);

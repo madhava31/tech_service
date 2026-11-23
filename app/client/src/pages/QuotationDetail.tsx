@@ -255,7 +255,7 @@ export default function QuotationDetail() {
           <Link to="/quotations" className="ts-back">← Quotations</Link>
           <div className="flex items-center gap-3 flex-wrap">
             <h1>{quotation.number}</h1>
-            <span className={`ts-st ts-${quotation.status}`}>{quotationStatusLabel(quotation.status)}</span>
+            <span className={`ts-st ts-${quotation.status}`}>{quotationStatusLabel(quotation.status, quotation.pi_count)}</span>
             {manual && <span className="ts-pill ts-up" title="A PO or PI typed in by hand, with no quotation before it">Manual order</span>}
           </div>
         </div>
@@ -865,6 +865,24 @@ export default function QuotationDetail() {
                   </div>
                   <span className="flex items-center gap-3">
                     <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setEditingPi(pi)} title="Change the PI number or date">Edit</button>
+                    {user?.role === 'admin' && (
+                      <button
+                        type="button"
+                        className="ts-btn ts-ghost ts-xs text-bad hover:bg-bad/10"
+                        onClick={async () => {
+                          if (!window.confirm(`Are you sure you want to permanently delete Performa Invoice "${pi.number}"?\n\nThis will remove it permanently from the ERP and database.`)) return;
+                          try {
+                            await api.performaInvoices.delete(pi.id);
+                            load();
+                          } catch (e: any) {
+                            setError(e.message || 'Failed to delete PI');
+                          }
+                        }}
+                        title="Permanently delete this performa invoice"
+                      >
+                        Delete
+                      </button>
+                    )}
                     <span className="text-fg text-[12px] capitalize">{pi.status}</span>
                   </span>
                 </div>

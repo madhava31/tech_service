@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
 import { api, PerformaInvoice } from '../api';
+import { useAuth } from '../auth';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
-import { pdfFileName } from '../lib/savePdf';
+import { pdfFileName, showToast } from '../lib/savePdf';
 import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
 import { PIEditModal } from '../components/PIEditModal';
@@ -50,6 +51,8 @@ const PI_STATUS_TONES: Record<string, string> = {
 };
 
 export default function PerformaInvoices() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [rows, setRows] = useState<PerformaInvoice[]>([]);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -57,11 +60,33 @@ export default function PerformaInvoices() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<PerformaInvoice | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const load = () => api.performaInvoices.list().then(setRows).catch((e) => setError(e.message));
   useEffect(() => {
     load();
   }, []);
+
+  async function handleDelete(id: number, number: string) {
+    if (
+      !window.confirm(
+        `Are you sure you want to permanently delete Performa Invoice "${number}"?\n\nThis will remove it permanently from the ERP and the database. This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(id);
+    setError('');
+    try {
+      await api.performaInvoices.delete(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      showToast(`Performa invoice ${number} was permanently deleted.`);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to delete performa invoice.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   useEffect(() => {
     setPage(1);
@@ -264,6 +289,17 @@ export default function PerformaInvoices() {
                       <DownloadPdfButton url={api.performaInvoices.pdfUrl(pi.id)} fileName={pdfFileName(pi.number)} kind="performa-invoice" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline" title="Save the PDF to a folder">
                         Save
                       </DownloadPdfButton>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(pi.id, pi.number)}
+                          disabled={deletingId === pi.id}
+                          className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-bad hover:underline disabled:opacity-50"
+                          title="Permanently delete this performa invoice"
+                        >
+                          {deletingId === pi.id ? 'Deleting…' : 'Delete'}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

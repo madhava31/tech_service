@@ -44,6 +44,7 @@ const isModuleRequest = (body) => Array.isArray(body?.terms);
 const moduleGuard = (req, res, next) => (isModuleRequest(req.body) ? requireQuotationModule(req, res, next) : next());
 
 const LIST_COLUMNS = `q.*, c.name AS company_name, e.name AS sales_engineer_name, u.username AS created_by_username,
+           (SELECT COUNT(*) FROM performa_invoice pi WHERE pi.quotation_id = q.id)::int AS pi_count,
            (SELECT string_agg(qi.part_no, ', ' ORDER BY qi.id) FROM quotation_item qi WHERE qi.quotation_id = q.id) AS items_part_nos`;
 
 function getItemPrice(it) {
@@ -414,6 +415,11 @@ router.get('/', async (req, res) => {
       whereClauses.push(`q.created_by_user_id = ?`);
       params.push(Number(req.query.createdBy));
     }
+    // The sales person named on the quotation (the sales engineer), as shown in the "Sales person" column.
+    if (isAdmin(req) && req.query.salesEngineerId && /^\d+$/.test(String(req.query.salesEngineerId))) {
+      whereClauses.push(`q.sales_engineer_id = ?`);
+      params.push(Number(req.query.salesEngineerId));
+    }
 
     if (status && status !== 'all' && status !== '') {
       whereClauses.push(`q.status = ?`);
@@ -512,6 +518,7 @@ const QUOTATION_DETAIL_SELECT = `
          e.name AS sales_engineer_name, e.employee_code AS sales_engineer_code,
          e.phone AS sales_engineer_phone, e.email AS sales_engineer_email,
          u.username AS created_by_username,
+         (SELECT COUNT(*) FROM performa_invoice pi WHERE pi.quotation_id = q.id)::int AS pi_count,
          f.firm_name, f.firm_code, f.legal_name AS firm_legal_name,
          f.address_line_1 AS firm_address_line_1, f.address_line_2 AS firm_address_line_2,
          f.city AS firm_city, f.state AS firm_state, f.pincode AS firm_pincode,

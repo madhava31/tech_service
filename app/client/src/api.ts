@@ -512,6 +512,8 @@ export interface Quotation {
   company_name?: string;
   sales_engineer_id?: number | null;
   sales_engineer_name?: string | null;
+  /** How many performa invoices this quotation has (the status then shows "PI generated"). */
+  pi_count?: number;
   sales_engineer_code?: string | null;
   /** The sales people who worked on this quotation with their share of the sales target; empty with a single sales person. */
   sales_team?: { sales_engineer_id: number; name: string; code: string | null; share_percent: number; is_primary: boolean }[];
@@ -653,6 +655,8 @@ export interface QuotationListParams {
   paginated?: boolean;
   /** Admin only: quotations created by this user id. */
   createdBy?: number;
+  /** Admin only: quotations whose sales person (sales engineer) is this one. */
+  salesEngineerId?: number;
 }
 
 export interface QuotationPageResponse {
@@ -1324,6 +1328,7 @@ export const api = {
       if (params.maxAmount !== undefined) q.set('maxAmount', String(params.maxAmount));
       if (params.paginated) q.set('paginated', 'true');
       if (params.createdBy) q.set('createdBy', String(params.createdBy));
+      if (params.salesEngineerId) q.set('salesEngineerId', String(params.salesEngineerId));
       const qs = q.toString();
       return request<QuotationPageResponse>(`/quotations${qs ? `?${qs}` : ''}`, { signal });
     }) as {
@@ -1475,6 +1480,8 @@ export const api = {
     /** Changes the PI number and date; the PDF shows the change at once. */
     update: (id: number, data: { number: string; date: string }) =>
       request<PerformaInvoice>(`/performa-invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) =>
+      request<{ success: boolean; id: number; message?: string }>(`/performa-invoices/${id}`, { method: 'DELETE' }),
     pdfUrl: (id: number) => `${BASE}/performa-invoices/${id}/pdf`,
     openPdf: (id: number) => openPdfDocument(`/performa-invoices/${id}/pdf`),
   },
