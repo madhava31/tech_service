@@ -233,22 +233,33 @@ export default function SentPoForm() {
         </div>
       </div>
 
-      {/* Header: party on the left, number and dates on the right */}
-      <section className="ts-card ts-white grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-        <div className="ts-fld">
-          <label>Party (supplier) *</label>
-          <SearchableSelect
-            options={companyOptions}
-            value={companyId === '' ? newSupplier : String(companyId)}
-            onChange={(v) => { if (/^\d+$/.test(v)) { setCompanyId(Number(v)); setNewSupplier(''); } }}
-            allowCustom
-            onCreateCustom={(name) => { setCompanyId(''); setNewSupplier(name); }}
-            customLabel={(name) => `Add new supplier "${name}"`}
-            placeholder="Search or type the supplier name…"
-          />
-          {newSupplier && !companyId && <small className="ts-hint">New supplier: "{newSupplier}" is saved as a supplier with the PO.</small>}
+      {/* Header, like the quotation form: party and state of supply on the first row, number and dates on the second */}
+      <section className="ts-card ts-white">
+        <div className="ts-ch">Order details</div>
+        <div className="ts-fgrid ts-g3">
+          <div className="ts-fld ts-span2">
+            <label>Party (supplier) *</label>
+            <SearchableSelect
+              options={companyOptions}
+              value={companyId === '' ? newSupplier : String(companyId)}
+              onChange={(v) => { if (/^\d+$/.test(v)) { setCompanyId(Number(v)); setNewSupplier(''); } }}
+              allowCustom
+              onCreateCustom={(name) => { setCompanyId(''); setNewSupplier(name); }}
+              customLabel={(name) => `Add new supplier "${name}"`}
+              placeholder="Search or type the supplier name…"
+            />
+            {newSupplier && !companyId && <small className="ts-hint">New supplier: "{newSupplier}" is saved as a supplier with the PO.</small>}
+          </div>
+          <div className="ts-fld">
+            <label htmlFor="spo-state">State of supply</label>
+            <select id="spo-state" className="ts-fi" value={stateOfSupply} onChange={(e) => chooseState(e.target.value)}>
+              <option value="">Choose…</option>
+              {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {ourState && <small className="ts-hint">{ourState}: GST (CGST + SGST). Other states: IGST.</small>}
+          </div>
         </div>
-        <div className="grid gap-3" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div className="ts-fgrid ts-g4">
           <div className="ts-fld">
             <label htmlFor="spo-prefix">Order no. prefix</label>
             <input id="spo-prefix" className="ts-fi" maxLength={20} value={prefix} onChange={(e) => { prefixTouched.current = true; setPrefix(e.target.value); }} placeholder="e.g. TSMTPO" />
@@ -265,14 +276,6 @@ export default function SentPoForm() {
           <div className="ts-fld">
             <label htmlFor="spo-due">Due date</label>
             <input id="spo-due" type="date" className="ts-fi" min={orderDate} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-          </div>
-          <div className="ts-fld" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="spo-state">State of supply</label>
-            <select id="spo-state" className="ts-fi" value={stateOfSupply} onChange={(e) => chooseState(e.target.value)}>
-              <option value="">Choose…</option>
-              {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            {ourState && <small className="ts-hint">Same state as yours ({ourState}): GST (CGST + SGST). Other states: IGST.</small>}
           </div>
         </div>
       </section>
