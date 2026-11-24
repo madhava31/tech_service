@@ -53,8 +53,19 @@ export function WaitingOrdersTable({ orders, compact = false }: { orders: Waitin
                 <span className="text-[12px] text-subtle">Nothing to ship yet</span>
               )}
             </div>
-            <div className="ts-tblwrap !mt-0">
-              <table className="!min-w-[640px]">
+            <div className="ts-tblwrap ts-tbl !mt-0">
+              {/* Fixed column widths: every order card lines its columns up the same way. */}
+              <table className="!min-w-[680px]" style={{ tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col />
+                  <col style={{ width: 84 }} />
+                  {!compact && <col style={{ width: 84 }} />}
+                  <col style={{ width: 84 }} />
+                  <col style={{ width: 84 }} />
+                  <col style={{ width: 84 }} />
+                  <col style={{ width: 84 }} />
+                  <col style={{ width: 150 }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Part</th>
@@ -71,8 +82,8 @@ export function WaitingOrdersTable({ orders, compact = false }: { orders: Waitin
                   {lines.map((l) => (
                     <tr key={l.quotation_item_id}>
                       <td>
-                        <span className="font-mono text-[12.5px] text-fg">{l.part_no || '—'}</span>
-                        <small className="block text-[11.5px] text-subtle max-w-[260px] truncate" title={l.description}>{l.description}</small>
+                        <span className="block truncate font-mono text-[12.5px] text-fg" title={l.part_no || ''}>{l.part_no || '—'}</span>
+                        <small className="block text-[11.5px] text-subtle truncate" title={l.description}>{l.description}</small>
                       </td>
                       <td className="ts-r">{n(l.ordered)}</td>
                       {!compact && <td className="ts-r">{n(l.invoiced)}</td>}
