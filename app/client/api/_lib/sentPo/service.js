@@ -26,8 +26,9 @@ export async function sentPoReady() {
 const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g;
 const str = (v, max, field, { multiline = false } = {}) => {
   if (v === undefined || v === null) return null;
-  let s = String(v).replace(CONTROL, '');
-  if (!multiline) s = s.replace(/[\r\n]+/g, ' ');
+  // Tabs and invisible characters (pasted from Excel or Word) would print as boxes on the PDF: tabs become one space.
+  let s = String(v).replace(/[\u200b-\u200d\u2060\ufeff\u00ad]/g, '').replace(/[\t\u00a0]+/g, ' ').replace(CONTROL, '');
+  s = multiline ? s.replace(/\r\n?/g, '\n').split('\n').map((l) => l.replace(/ {2,}/g, ' ').trimEnd()).join('\n') : s.replace(/[\r\n]+/g, ' ');
   s = s.trim();
   if (s.length > max) throw new SentPoError(`${field} can be at most ${max} characters.`);
   return s || null;

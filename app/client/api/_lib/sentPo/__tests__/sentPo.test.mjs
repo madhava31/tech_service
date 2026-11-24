@@ -7,7 +7,7 @@ import { PassThrough } from 'node:stream';
 process.env.DATABASE_URL = 'postgres://nobody:nobody@127.0.0.1:1/none';
 const { lineFigures, poFigures, defaultTax } = await import('../calc.js');
 const { parseSentPoRequest, SENT_PO_COLUMNS } = await import('../service.js');
-const { streamSentPoPdf, sentPoLayout, taxRows } = await import('../../pdf/sentPoPdf.js');
+const { streamSentPoPdf, sentPoLayout, taxRows, cleanPdfText } = await import('../../pdf/sentPoPdf.js');
 const { default: express } = await import('express');
 const { default: router } = await import('../../routes/sentPos.js');
 const { default: db } = await import('../../db/index.js');
@@ -225,3 +225,4 @@ describe('routes', () => {
     assert.match(r.body.error, /at least one item/);
   });
 });
+

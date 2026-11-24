@@ -23,6 +23,24 @@ function ddmmyyyy(d) {
   const [y, m, day] = s.split('-');
   return y && m && day ? `${day}/${m}/${y}` : s;
 }
+/**
+ * Text pasted from Excel or Word carries tabs (between cells) and invisible characters that the PDF font cannot draw, so they
+ * print as boxes and make the text wrap badly. Tabs become one space, invisible characters go, spaces are collapsed and each
+ * line is trimmed; empty lines at the start and end are dropped.
+ */
+export function cleanPdfText(value) {
+  return String(value ?? '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u200b-\u200d\u2060\ufeff\u00ad]/g, '')
+    .replace(/[\t\u00a0\u2000-\u200a\u202f\u205f\u3000]+/g, ' ')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .split('\n')
+    .map((l) => l.replace(/ {2,}/g, ' ').trim())
+    .join('\n')
+    .replace(/^\n+|\n+$/g, '');
+}
+
 const taxLabel = (it) => (it.tax_type === 'IGST' ? `IGST ${pct(it.tax_percent)}%` : it.tax_type === 'GST' ? `GST ${pct(it.tax_percent)}%` : it.tax_type === 'EXEMPT' ? 'Exempt' : '');
 
 /**
@@ -140,7 +158,7 @@ export function streamSentPoPdf(res, { po, items = [], settings = {} }) {
   };
   const rowHeight = (it) => {
     doc.font(R).fontSize(8);
-    const hd = doc.heightOfString(String(it.description || ''), { width: C.desc.w - 4 });
+    const hd = doc.heightOfString(cleanPdfText(it.description), { width: C.desc.w - 4 });
     doc.font(B);
     const hi = doc.heightOfString(String(it.part_no || '-'), { width: C.item.w - 4 });
     doc.font(R);
@@ -158,7 +176,7 @@ export function streamSentPoPdf(res, { po, items = [], settings = {} }) {
     const cell = (key, t, font = R, size = 8) => doc.font(font).fontSize(size).fillColor('#000').text(t, C[key].x + 2, top, { width: C[key].w - 4, align: C[key].align });
     cell('sno', String(i + 1));
     cell('item', String(it.part_no || '-'), B);
-    cell('desc', String(it.description || ''));
+    cell('desc', cleanPdfText(it.description));
     cell('hsn', String(it.hsn_sac || ''));
     cell('qty', qtyText(it.qty));
     cell('unit', String(it.unit || 'Nos'));
@@ -216,25 +234,36 @@ export function streamSentPoPdf(res, { po, items = [], settings = {} }) {
   y += 14;
 
   // ---- terms and payment (left), signatory (right) ----
-  const leftW = W * 0.62;
+  // The whole PO stays on one page: the terms use the largest type size (8 down to 5.5) that fits the space left. Only terms too
+  // long for even the smallest size carry on to a second page.
+  const leftW = W - 175;
   const blocks = [];
-  if (po.terms_text) blocks.push([String(po.terms_title || 'Terms & Conditions'), String(po.terms_text)]);
+  const terms = cleanPdfText(po.terms_text);
+  if (terms) blocks.push([cleanPdfText(po.terms_title) || 'Terms & Conditions', terms]);
   const pay = [
-    po.payment_type ? `Payment type: ${po.payment_type}` : null,
-    po.payment_reference ? `Reference No.: ${po.payment_reference}` : null,
-    po.payment_description ? String(po.payment_description) : null,
+    po.payment_type ? `Payment type: ${cleanPdfText(po.payment_type)}` : null,
+    po.payment_reference ? `Reference No.: ${cleanPdfText(po.payment_reference)}` : null,
+    po.payment_description ? cleanPdfText(po.payment_description) : null,
   ].filter(Boolean);
   if (pay.length) blocks.push(['Payment', pay.join('\n')]);
-  let need = 70;
-  doc.fontSize(8);
-  for (const [, body] of blocks) need += 16 + doc.heightOfString(body, { width: leftW });
-  if (y + Math.min(need, BOTTOM - M) > BOTTOM) { doc.addPage(); y = M; }
+  const heightAt = (size) => {
+    let h = 0;
+    for (const [, body] of blocks) {
+      h += 13 + 6;
+      doc.font(R).fontSize(size);
+      h += doc.heightOfString(body, { width: leftW, lineGap: 0.5 });
+    }
+    return h;
+  };
+  const room = BOTTOM - y;
+  const sizes = [8, 7.5, 7, 6.5, 6, 5.5];
+  const size = sizes.find((sz) => heightAt(sz) <= room) ?? 5.5;
+  if (heightAt(5.5) > room && room < 120) { doc.addPage(); y = M; }
   const sigY = y;
   for (const [title, body] of blocks) {
-    if (y + 30 > BOTTOM) { doc.addPage(); y = M; }
-    doc.font(B).fontSize(9).fillColor('#000').text(title, M, y, { width: leftW });
-    doc.font(R).fontSize(8).fillColor('#222').text(body, M, doc.y + 3, { width: leftW });
-    y = doc.y + 10;
+    doc.font(B).fontSize(Math.min(9, size + 1)).fillColor('#000').text(title, M, y, { width: leftW });
+    doc.font(R).fontSize(size).fillColor('#222').text(body, M, doc.y + 2, { width: leftW, lineGap: 0.5 });
+    y = doc.y + 6;
   }
 
   const rx = M + leftW + 10, rightW = W - leftW - 10;
