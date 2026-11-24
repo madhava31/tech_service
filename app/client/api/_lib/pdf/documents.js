@@ -1,4 +1,5 @@
 import { piReferenceLines } from '../quotations/poRefs.js';
+import { pdfImageBytes } from './imageShrink.js';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
@@ -142,7 +143,8 @@ export function imageBuffer(dataUri) {
   if (!dataUri || typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return null;
   const base64 = dataUri.split(',')[1];
   if (!base64) return null;
-  try { return Buffer.from(base64, 'base64'); } catch { return null; }
+  // A big PNG is shrunk to print size here, so a logo saved at full resolution no longer adds about 1 MB to every PDF.
+  try { return pdfImageBytes(Buffer.from(base64, 'base64')); } catch { return null; }
 }
 
 // The built-in Helvetica only covers WinAnsi, so '₹' (U+20B9) came out as a space plus '¹'
