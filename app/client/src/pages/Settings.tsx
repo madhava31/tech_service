@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, CompanySettings } from '../api';
 import { pdfFirstPageToPng } from '../lib/pdfToImage';
+import { shrinkImage, dataUrlKb, LOGO_LIMITS, SIGNATURE_LIMITS } from '../lib/shrinkImage';
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -62,10 +63,33 @@ export default function Settings() {
     try {
       // A PDF (e.g. a scanned signature or stamp) becomes an image of its first page.
       const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-      const dataUrl = isPdf ? await pdfFirstPageToPng(file) : await toPdfSafeImage(file);
+      const raw = isPdf ? await pdfFirstPageToPng(file) : await toPdfSafeImage(file);
+      // Small enough for the PDFs (a large logo made every PDF about 1 MB).
+      const dataUrl = await shrinkImage(raw, field === 'logo_image' ? LOGO_LIMITS : SIGNATURE_LIMITS);
       setSettings({ ...settings, [field]: dataUrl });
     } catch (e) {
       setError(e instanceof Error && e.message ? `Could not read that file: ${e.message}` : 'Could not read that file.');
+    }
+  }
+
+  // The images saved before they were made smaller on upload: shrink them here, then Save.
+  const [shrinking, setShrinking] = useState(false);
+  const [shrunkNote, setShrunkNote] = useState('');
+  async function shrinkSaved() {
+    if (!settings) return;
+    setShrinking(true);
+    setError('');
+    try {
+      const before = dataUrlKb(settings.logo_image) + dataUrlKb(settings.signature_image);
+      const logo = settings.logo_image ? await shrinkImage(settings.logo_image, LOGO_LIMITS) : settings.logo_image;
+      const sig = settings.signature_image ? await shrinkImage(settings.signature_image, SIGNATURE_LIMITS) : settings.signature_image;
+      setSettings({ ...settings, logo_image: logo, signature_image: sig });
+      const after = dataUrlKb(logo) + dataUrlKb(sig);
+      setShrunkNote(`Images reduced from ${before} KB to ${after} KB. Click Save Settings to use them on the PDFs.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not make the images smaller.');
+    } finally {
+      setShrinking(false);
     }
   }
 
@@ -226,6 +250,16 @@ export default function Settings() {
           <span>Branding Assets</span>
         </h2>
         
+        {dataUrlKb(settings.logo_image) + dataUrlKb(settings.signature_image) > 200 && (
+          <div className="ts-warnbox !mb-4 flex flex-wrap items-center gap-3">
+            <span>
+              The logo and signature are {dataUrlKb(settings.logo_image) + dataUrlKb(settings.signature_image)} KB. They are put in every quotation, PO and PI
+              PDF, which makes each PDF about 1 MB.
+            </span>
+            <button type="button" className="ts-btn ts-dark ts-xs" onClick={shrinkSaved} disabled={shrinking}>{shrinking ? 'Reducing…' : 'Make them smaller'}</button>
+          </div>
+        )}
+        {shrunkNote && <div className="ts-card !mb-4 text-[13px] text-good">{shrunkNote}</div>}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="ts-card">
             <label className="ts-lbl">Company Logo</label>
@@ -238,6 +272,7 @@ export default function Settings() {
             {settings.logo_image && (
               <div className="mt-4 p-3 bg-tile rounded-[14px] inline-block">
                 <img src={settings.logo_image} alt="Logo preview" className="max-h-16 max-w-[200px] object-contain" />
+                <small className="block mt-1 text-[11px] text-subtle">{dataUrlKb(settings.logo_image)} KB</small>
               </div>
             )}
           </div>
@@ -254,6 +289,7 @@ export default function Settings() {
             {settings.signature_image && (
               <div className="mt-4 p-3 bg-tile rounded-[14px] inline-block">
                 <img src={settings.signature_image} alt="Signature preview" className="max-h-16 max-w-[200px] object-contain" />
+                <small className="block mt-1 text-[11px] text-subtle">{dataUrlKb(settings.signature_image)} KB</small>
               </div>
             )}
           </div>
