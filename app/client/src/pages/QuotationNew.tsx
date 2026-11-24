@@ -1470,6 +1470,27 @@ export default function QuotationNew() {
                     value={t.text}
                     onChange={(e) => { setTermsCustom(true); setTerms((prev) => prev.map((x, j) => (j === i ? { ...x, text: e.target.value } : x))); }}
                   />
+                  {/* Move the term up or down: the PDF prints them in this order. */}
+                  <button
+                    type="button"
+                    className="ts-btn ts-ghost ts-xs !px-2"
+                    aria-label={`Move term ${i + 1} up`}
+                    title="Move up"
+                    disabled={i === 0}
+                    onClick={() => { setTermsCustom(true); setTerms((prev) => { const n = [...prev]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; return n; }); }}
+                  >
+                    <ChevronUpIcon className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    className="ts-btn ts-ghost ts-xs !px-2"
+                    aria-label={`Move term ${i + 1} down`}
+                    title="Move down"
+                    disabled={i === terms.length - 1}
+                    onClick={() => { setTermsCustom(true); setTerms((prev) => { const n = [...prev]; [n[i], n[i + 1]] = [n[i + 1], n[i]]; return n; }); }}
+                  >
+                    <ChevronDownIcon className="size-3.5" />
+                  </button>
                   <button
                     type="button"
                     className="ts-btn ts-ghost ts-xs"
