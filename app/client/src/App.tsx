@@ -26,6 +26,7 @@ const DeliveryChallans = lazy(() => import('./pages/DeliveryChallans'));
 const DeliveryChallanForm = lazy(() => import('./pages/DeliveryChallanForm'));
 const DeliveryChallanPreview = lazy(() => import('./pages/DeliveryChallanPreview'));
 const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
+const SentPoForm = lazy(() => import('./pages/SentPoForm'));
 const PerformaInvoices = lazy(() => import('./pages/PerformaInvoices'));
 const Reports = lazy(() => import('./pages/Reports'));
 const InactiveCustomers = lazy(() => import('./pages/InactiveCustomers'));
@@ -130,6 +131,8 @@ export default function App() {
             <Route path="/delivery-challans/:id/preview" element={<DeliveryChallanPreview />} />
             <Route path="/quotations/:id" element={<QuotationDetail />} />
             <Route path="/purchase-orders" element={<PurchaseOrders />} />
+            <Route path="/purchase-orders/sent/new" element={<SentPoForm />} />
+            <Route path="/purchase-orders/sent/:id/edit" element={<SentPoForm />} />
             <Route path="/purchase-orders/:id" element={<PurchaseOrders />} />
             <Route path="/performa-invoices" element={<PerformaInvoices />} />
             <Route path="/performa-invoices/:id" element={<PerformaInvoices />} />

@@ -11,6 +11,7 @@ import companiesRouter from '../client/api/_lib/routes/companies.js';
 import productsRouter from '../client/api/_lib/routes/products.js';
 import quotationsRouter from '../client/api/_lib/routes/quotations.js';
 import purchaseOrdersRouter from '../client/api/_lib/routes/purchaseOrders.js';
+import sentPosRouter from '../client/api/_lib/routes/sentPos.js';
 import performaInvoicesRouter from '../client/api/_lib/routes/performaInvoices.js';
 import dashboardRouter from '../client/api/_lib/routes/dashboard.js';
 import reportsRouter from '../client/api/_lib/routes/reports.js';
@@ -233,6 +234,8 @@ app.use('/api/companies', requireAuth, companiesRouter);
 app.use('/api/products', requireAuth, productsRouter);
 app.use('/api/quotations', requireAuth, quotationsRouter);
 app.use('/api/purchase-orders', requireAuth, purchaseOrdersRouter);
+// POs Technicon sends to its suppliers (migration 016).
+app.use('/api/sent-pos', requireAuth, sentPosRouter);
 app.use('/api/performa-invoices', requireAuth, performaInvoicesRouter);
 app.use('/api/dashboard', requireAuth, dashboardRouter);
 app.use('/api/reports', requireAuth, reportsRouter);
