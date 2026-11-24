@@ -156,6 +156,67 @@ export async function createPo(req, res) {
   }
 }
 
+/**
+ * PUT /api/quotations/:id/po-received/:poId : changes a PO received (number, date, notes, items and quantities), checked like a
+ * new one. A quantity cannot drop below what invoices have already billed for that item.
+ */
+export async function updatePo(req, res) {
+  try {
+    if (!isId(req.params.id) || !isId(req.params.poId)) return res.status(400).json({ error: 'Invalid id' });
+    const id = Number(req.params.id);
+    const poId = Number(req.params.poId);
+    const po = await db.prepare(`SELECT id FROM quotation_po WHERE id = ? AND quotation_id = ?`).get(poId, id);
+    if (!po) return res.status(404).json({ error: 'PO not found' });
+    const lines = await db.prepare(`SELECT id, part_no, description FROM quotation_item WHERE quotation_id = ?`).all(id);
+    let parsed;
+    try {
+      parsed = parsePoRequest(req.body, new Set(lines.map((l) => Number(l.id))));
+    } catch (err) {
+      if (err instanceof PoRequestError) return res.status(err.status).json({ error: err.message });
+      throw err;
+    }
+
+    // Ordered after the change (this PO's new quantities plus the other POs) must still cover what was invoiced.
+    let invoiced = [];
+    try {
+      invoiced = await db
+        .prepare(`SELECT ii.quotation_item_id, SUM(ii.qty)::float8 AS qty FROM quotation_invoice_item ii JOIN quotation_invoice i ON i.id = ii.quotation_invoice_id WHERE i.quotation_id = ? GROUP BY ii.quotation_item_id`)
+        .all(id);
+    } catch {
+      invoiced = []; // no invoices table yet (migration 012): nothing to protect
+    }
+    if (invoiced.length) {
+      const others = await db
+        .prepare(`SELECT pi.quotation_item_id, SUM(pi.qty)::float8 AS qty FROM quotation_po_item pi JOIN quotation_po p ON p.id = pi.quotation_po_id WHERE p.quotation_id = ? AND p.id <> ? GROUP BY pi.quotation_item_id`)
+        .all(id, poId);
+      const ordered = new Map(others.map((o) => [Number(o.quotation_item_id), Number(o.qty)]));
+      for (const it of parsed.items) ordered.set(it.quotation_item_id, (ordered.get(it.quotation_item_id) || 0) + it.qty);
+      for (const inv of invoiced) {
+        const have = ordered.get(Number(inv.quotation_item_id)) || 0;
+        if (Number(inv.qty) > have + 1e-9) {
+          const line = lines.find((l) => Number(l.id) === Number(inv.quotation_item_id));
+          return res.status(409).json({ error: `${line?.part_no || line?.description || 'An item'}: ${inv.qty} already invoiced, so the POs must order at least that many.` });
+        }
+      }
+    }
+
+    try {
+      await db.transaction(async () => {
+        await db.prepare(`UPDATE quotation_po SET po_number = ?, po_date = ?, notes = ? WHERE id = ?`).run(parsed.po_number, parsed.po_date, parsed.notes, poId);
+        await db.prepare(`DELETE FROM quotation_po_item WHERE quotation_po_id = ?`).run(poId);
+        const insertItem = db.prepare(`INSERT INTO quotation_po_item (quotation_po_id, quotation_item_id, qty) VALUES (?, ?, ?)`);
+        for (const it of parsed.items) await insertItem.run(poId, it.quotation_item_id, it.qty);
+      });
+    } catch (err) {
+      if (err?.code === '23505') return res.status(409).json({ error: `PO number ${parsed.po_number} is already recorded for this quotation` });
+      throw err;
+    }
+    res.json({ id: poId, po_number: parsed.po_number, ordered_items: parsed.items.length });
+  } catch (err) {
+    sendRouteError(res, err, 500, 'Unable to save the PO. Please try again.');
+  }
+}
+
 /** DELETE /api/quotations/:id/po-received/:poId : removes a PO recorded by mistake. */
 export async function deletePo(req, res) {
   try {

@@ -544,3 +544,6 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
 
   doc.end();
 }
+
+// Shared with the Sent PO PDF (pdf/sentPoPdf.js): the same letterhead details.
+export { resolveCompanyDetails, LOGO_PATH };

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
 import { api, PurchaseOrder } from '../api';
@@ -7,6 +7,9 @@ import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
 import { Pagination } from '../components/Pagination';
 import { ExpandableSearch } from '../components/ExpandableSearch';
+import { EditPoReceivedModal } from '../components/EditPoReceivedModal';
+import { SentPosList } from '../components/SentPosList';
+import { showToast } from '../lib/savePdf';
 
 const PAGE_SIZE = 20;
 
@@ -48,7 +51,29 @@ const PO_STATUS_TONES: Record<string, string> = {
   completed: 'rgb(var(--good))',
 };
 
+/**
+ * Purchase Orders has two sections: Received POs (customer POs entered from a quotation, and manual orders) and Sent POs
+ * (the POs Technicon sends to its suppliers). ?tab=sent opens the second.
+ */
 export default function PurchaseOrders() {
+  const [sp, setSp] = useSearchParams();
+  const tab = sp.get('tab') === 'sent' ? 'sent' : 'received';
+  const go = (t: 'received' | 'sent') => setSp(t === 'sent' ? { tab: 'sent' } : {}, { replace: true });
+  return (
+    <div className="ts-page-pad flex flex-col gap-4 pb-6">
+      <div className="flex gap-2" role="tablist" aria-label="Purchase order sections">
+        <button type="button" role="tab" aria-selected={tab === 'received'} className={`ts-btn ts-xs ${tab === 'received' ? 'ts-dark' : 'ts-ghost'}`} onClick={() => go('received')}>Received POs</button>
+        <button type="button" role="tab" aria-selected={tab === 'sent'} className={`ts-btn ts-xs ${tab === 'sent' ? 'ts-dark' : 'ts-ghost'}`} onClick={() => go('sent')}>Sent POs</button>
+      </div>
+      {tab === 'sent' ? <SentPosList /> : <ReceivedPos />}
+    </div>
+  );
+}
+
+/** Received POs: the customer POs recorded with "PO received" (and manual orders), then the older purchase order records. */
+function ReceivedPos() {
+  const [editing, setEditing] = useState<{ quotationId: number; poId: number } | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [rows, setRows] = useState<(PurchaseOrder & { received?: boolean })[]>([]);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -56,15 +81,32 @@ export default function PurchaseOrders() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    // The POs received (PO received and manual orders) come first, then the older purchase order records.
+  // The POs received (PO received and manual orders) come first, then the older purchase order records.
+  const load = () =>
     Promise.all([
       api.purchaseOrders.received().catch(() => [] as PurchaseOrder[]),
       api.purchaseOrders.list(),
     ])
       .then(([received, older]) => setRows([...received.map((r) => ({ ...r, received: true })), ...older]))
       .catch((e) => setError(e.message));
+  useEffect(() => {
+    load();
   }, []);
+
+  async function removeReceived(po: PurchaseOrder) {
+    if (!window.confirm(`Delete PO ${po.number} of ${po.quotation_number || 'this quotation'}? It is removed for good. If it was the quotation's only PO, the quotation goes back to "sent".`)) return;
+    setDeletingId(po.id);
+    setError('');
+    try {
+      await api.quotations.poReceived.remove(po.quotation_id, po.id);
+      showToast(`PO ${po.number} deleted.`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not delete the PO.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   useEffect(() => {
     setPage(1);
@@ -109,15 +151,16 @@ export default function PurchaseOrders() {
   }, [rows]);
 
   return (
-    <div className="ts-page-pad flex flex-col gap-4 pb-6">
+    <div className="flex flex-col gap-4">
+      {editing && <EditPoReceivedModal quotationId={editing.quotationId} poId={editing.poId} onClose={() => setEditing(null)} onSaved={load} />}
       {/* Header & KPI Summary */}
       <div className="ts-phead !mb-2 justify-between">
         <div className="flex flex-col gap-1.5">
           <h1>
-            Purchase Orders
+            Received POs
           </h1>
           <p className="ts-muted m-0 mt-1.5 text-[14px]">
-            Customer POs received, and POs entered by hand.
+            Customer POs received from quotations, and POs entered by hand.
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link to="/quotations/new?type=order&doc=po" className="ts-btn ts-dark"><Plus className="size-4" /> Manual PO</Link>
@@ -217,7 +260,7 @@ export default function PurchaseOrders() {
                   Status
                 </th>
                 <th className="ts-r">
-                  PDF
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -241,7 +284,12 @@ export default function PurchaseOrders() {
                       <span className={`ts-st ts-${String(po.status).toLowerCase().replace(/\s+/g, '_')}`}>{po.status}</span>
                     </td>
                     <td className="p-[11px_10px] text-right">
-                      {po.received ? <span className="text-[12px] text-faint">—</span> : (<>
+                      {po.received ? (
+                        <span className="whitespace-nowrap">
+                          <button type="button" className="cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline" onClick={() => setEditing({ quotationId: po.quotation_id, poId: po.id })}>Edit</button>
+                          <button type="button" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-bad hover:underline disabled:opacity-50" disabled={deletingId === po.id} onClick={() => removeReceived(po)}>{deletingId === po.id ? 'Deleting…' : 'Delete'}</button>
+                        </span>
+                      ) : (<>
                       <a
                         href={api.purchaseOrders.pdfUrl(po.id)}
                         target="_blank"

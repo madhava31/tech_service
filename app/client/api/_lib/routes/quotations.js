@@ -8,7 +8,7 @@ import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
 import { readLumpSum, splitLumpSum, savePricingMode } from '../quotations/lumpSum.js';
 import { readInstrument, saveInstrument } from '../quotations/instrument.js';
-import { requirePoReceived, listPos, createPo, deletePo } from '../quotations/poReceived.js';
+import { requirePoReceived, listPos, createPo, deletePo, updatePo } from '../quotations/poReceived.js';
 import { requireInvoices, listInvoices, createInvoice, deleteInvoice, invoiceStock, invoicesReady, restoreInvoiceStock } from '../quotations/invoices.js';
 import { resolveUserId } from '../db/inventorySchema.js';
 import { NEGOTIATION, ALL_STATUSES, EDITABLE_STATUSES, MODULE_EDITABLE_STATUSES, statusChangeError, takeRevisionSnapshot, dropUnchangedRevision, listRevisions } from '../quotations/negotiation.js';
@@ -1364,6 +1364,7 @@ router.put('/:id/sales-team', requireSalesTeam, async (req, res) => {
 
 router.get('/:id/po-received', requirePoReceived, listPos);
 router.post('/:id/po-received', requirePoReceived, createPo);
+router.put('/:id/po-received/:poId', requirePoReceived, updatePo);
 router.delete('/:id/po-received/:poId', requirePoReceived, deletePo);
 // Invoices (migration 012): number, date, items billed and the payment due date.
 router.get('/:id/invoices', requireInvoices, listInvoices);

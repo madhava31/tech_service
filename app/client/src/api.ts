@@ -832,6 +832,69 @@ export interface PurchaseOrder {
   total?: number;
 }
 
+export type SentPoTaxType = 'NONE' | 'GST' | 'IGST' | 'EXEMPT';
+export interface SentPoLine {
+  id?: number;
+  product_id?: number | null;
+  part_no: string | null;
+  description: string | null;
+  hsn_sac: string | null;
+  qty: number;
+  unit: string | null;
+  price: number;
+  discount_percent: number;
+  discount_amount: number;
+  tax_type: SentPoTaxType;
+  tax_percent: number;
+  taxable_amount?: number;
+  tax_amount?: number;
+  amount?: number;
+}
+export interface SentPoInput {
+  company_id?: number | null;
+  supplier_name?: string | null;
+  prefix: string;
+  seq: number | null;
+  order_date: string;
+  due_date?: string | null;
+  state_of_supply?: string | null;
+  price_includes_tax: boolean;
+  round_off_enabled: boolean;
+  advance_amount: number;
+  terms_title?: string | null;
+  terms_text?: string | null;
+  payment_type?: string | null;
+  payment_reference?: string | null;
+  payment_description?: string | null;
+  notes?: string | null;
+  items: SentPoLine[];
+}
+export interface SentPo extends Omit<SentPoInput, 'items'> {
+  id: number;
+  number: string;
+  supplier_name: string;
+  total: number;
+  balance: number;
+  total_tax: number;
+  sub_total: number;
+  round_off: number;
+  items: SentPoLine[];
+  created_by_username?: string | null;
+}
+export interface SentPoListRow {
+  id: number;
+  number: string;
+  order_date: string;
+  due_date: string | null;
+  supplier_name: string;
+  company_id: number | null;
+  state_of_supply: string | null;
+  total: number;
+  advance_amount: number;
+  balance: number;
+  lines: number;
+}
+
 export interface PerformaInvoice {
   id: number;
   number: string;
@@ -1438,6 +1501,12 @@ export const api = {
         clearCache('quotations');
         return res;
       },
+      /** Changes a PO received: number, date, notes, items and quantities. */
+      update: async (id: number, poId: number, data: { po_number: string; po_date?: string; notes?: string; items: { quotation_item_id: number; qty: number }[] }) => {
+        const res = await request<{ id: number; po_number: string; ordered_items: number }>(`/quotations/${id}/po-received/${poId}`, { method: 'PUT', body: JSON.stringify(data) });
+        clearCache('quotations');
+        return res;
+      },
     },
     stockAnalysis: (data: { warehouse_id?: number; items: { product_id?: number; part_no?: string; qty: number }[] }) =>
       request<QuotationStockAnalysisResponse>('/quotations/stock-analysis', { method: 'POST', body: JSON.stringify(data) }),
@@ -1469,6 +1538,26 @@ export const api = {
       request<PurchaseOrder>('/purchase-orders', { method: 'POST', body: JSON.stringify(data) }),
     pdfUrl: (id: number) => `${BASE}/purchase-orders/${id}/pdf`,
     openPdf: (id: number) => openPdfDocument(`/purchase-orders/${id}/pdf`),
+  },
+  /** POs Technicon sends to its suppliers (migration 016). */
+  sentPos: {
+    list: (params?: { q?: string; from?: string; to?: string }) => {
+      const qs = new URLSearchParams();
+      if (params?.q?.trim()) qs.set('q', params.q.trim());
+      if (params?.from) qs.set('from', params.from);
+      if (params?.to) qs.set('to', params.to);
+      const str = qs.toString();
+      return request<SentPoListRow[]>(`/sent-pos${str ? `?${str}` : ''}`);
+    },
+    get: (id: number) => request<SentPo>(`/sent-pos/${id}`),
+    nextNumber: (prefix?: string) =>
+      request<{ prefix: string; seq: number; last_prefix: string | null; last_terms_title: string | null; last_terms_text: string | null }>(
+        `/sent-pos/next-number${prefix !== undefined ? `?prefix=${encodeURIComponent(prefix)}` : ''}`
+      ),
+    create: (data: SentPoInput) => request<SentPo>('/sent-pos', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: SentPoInput) => request<SentPo>(`/sent-pos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id: number) => request<{ ok: boolean }>(`/sent-pos/${id}`, { method: 'DELETE' }),
+    pdfUrl: (id: number) => `${BASE}/sent-pos/${id}/pdf`,
   },
   performaInvoices: {
     list: (params?: { quotation_id?: number }) => {
