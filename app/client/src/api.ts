@@ -1418,8 +1418,9 @@ export const api = {
       },
     },
     /** The standard Terms & Conditions for an advance % and due days (what prints unless the user edits them). */
-    termsDefaults: (params?: { advance_percent?: number; payment_due_days?: number }) => {
+    termsDefaults: (params?: { advance_percent?: number; payment_due_days?: number; /** 0 = No GST: the terms add "GST: 18% extra". */ tax_percent?: number }) => {
       const q = new URLSearchParams();
+      if (params?.tax_percent !== undefined && Number.isFinite(params.tax_percent)) q.set('tax_percent', String(params.tax_percent));
       if (params?.advance_percent !== undefined && Number.isFinite(params.advance_percent)) q.set('advance_percent', String(params.advance_percent));
       if (params?.payment_due_days !== undefined && Number.isFinite(params.payment_due_days)) q.set('payment_due_days', String(params.payment_due_days));
       const qs = q.toString();

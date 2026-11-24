@@ -246,6 +246,8 @@ export default function QuotationDetail() {
   }
 
   const statusColor = STAGE_COLORS[quotation.status] || 'rgb(var(--muted))';
+  // "No GST" (saved as GST rate 0): prices are before GST, no GST columns or rows, and the terms say "GST: 18% extra".
+  const noGst = quotation.tax_percent !== undefined && quotation.tax_percent !== null && Number(quotation.tax_percent) === 0;
 
   return (
     <div className="ts-page-pad flex flex-col gap-4 pb-6">
@@ -637,7 +639,7 @@ export default function QuotationDetail() {
           </div>
         )}
 
-        {/* Items Table */}
+        {/* Items Table. A "No GST" quotation (rate 0) has no Taxable amount or GST columns: the last column is the total price. */}
         <div className="ts-tbl ts-tblwrap">
           <table className="w-full min-w-[900px] border-collapse text-[12.5px]">
             <thead>
@@ -650,9 +652,9 @@ export default function QuotationDetail() {
                 <th className="text-center">Unit</th>
                 <th className="ts-r">Price/Unit</th>
                 <th className="ts-r">Discount</th>
-                <th className="ts-r">Taxable amount</th>
-                <th className="ts-r">GST</th>
-                <th className="ts-r">Amount</th>
+                {!noGst && <th className="ts-r">Taxable amount</th>}
+                {!noGst && <th className="ts-r">GST</th>}
+                <th className="ts-r">{noGst ? 'Total price' : 'Amount'}</th>
               </tr>
             </thead>
             <tbody>
@@ -684,18 +686,20 @@ export default function QuotationDetail() {
                     <td className="p-2.5 text-right font-medium">{it.qty}</td>
                     <td className="p-2.5 text-center text-subtle">{it.unit || 'Nos'}</td>
                     {lumpSum ? (
-                      <td colSpan={5} className="p-2.5 text-right text-[12px] text-faint">Included in total</td>
+                      <td colSpan={noGst ? 3 : 5} className="p-2.5 text-right text-[12px] text-faint">Included in total</td>
                     ) : (<>
                     <td className="p-2.5 text-right font-medium text-fg">{inr(actualPrice)}</td>
                     <td className="p-2.5 text-right text-fg">
                       {inr(lineDiscount)}
                       {lineDiscount > 0.004 && <div className="text-[11px] text-subtle">({discountPct}%)</div>}
                     </td>
-                    <td className="p-2.5 text-right font-medium text-fg">{inr(lineTotal)}</td>
-                    <td className="p-2.5 text-right text-fg">
-                      {inr(gstAmt)}
-                      <div className="text-[11px] text-subtle">({taxRate}%)</div>
-                    </td>
+                    {!noGst && <td className="p-2.5 text-right font-medium text-fg">{inr(lineTotal)}</td>}
+                    {!noGst && (
+                      <td className="p-2.5 text-right text-fg">
+                        {inr(gstAmt)}
+                        <div className="text-[11px] text-subtle">({taxRate}%)</div>
+                      </td>
+                    )}
                     <td className="p-2.5 text-right font-medium text-fg">{inr(lineTotal + gstAmt)}</td>
                     </>)}
                   </tr>
@@ -718,8 +722,8 @@ export default function QuotationDetail() {
                     <td className="p-2.5 text-right">{t.qty}</td>
                     <td colSpan={2}></td>
                     <td className="p-2.5 text-right">{f(t.disc)}</td>
-                    <td className="p-2.5 text-right">{f(t.taxable)}</td>
-                    <td className="p-2.5 text-right">{f(gst)}</td>
+                    {!noGst && <td className="p-2.5 text-right">{f(t.taxable)}</td>}
+                    {!noGst && <td className="p-2.5 text-right">{f(gst)}</td>}
                     <td className="p-2.5 text-right">{f(t.taxable + gst)}</td>
                   </tr>
                 </tfoot>
@@ -767,14 +771,21 @@ export default function QuotationDetail() {
           )}
 
           <div className="flex justify-between w-72 text-subtle font-medium pt-1 border-t border-line2">
-            <span>Net Taxable Subtotal:</span>
+            <span>{noGst ? 'Subtotal:' : 'Net Taxable Subtotal:'}</span>
             <span>₹{Number(quotation.net_subtotal || quotation.taxable_amount || quotation.subtotal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           </div>
 
-          <div className="flex justify-between w-72 text-subtle">
-            <span>GST Tax ({quotation.tax_percent}%):</span>
-            <span>₹{Number(quotation.tax_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-          </div>
+          {noGst ? (
+            <div className="flex justify-between w-72 text-subtle">
+              <span>GST:</span>
+              <span>18% extra</span>
+            </div>
+          ) : (
+            <div className="flex justify-between w-72 text-subtle">
+              <span>GST Tax ({quotation.tax_percent}%):</span>
+              <span>₹{Number(quotation.tax_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
+          )}
 
           {quotation.round_off !== undefined && quotation.round_off !== null && Number(quotation.round_off) !== 0 && (
             <div className="flex justify-between w-72 text-subtle">
@@ -784,7 +795,7 @@ export default function QuotationDetail() {
           )}
 
           <div className="flex justify-between w-72 font-bold text-fg text-[15px] border-t border-line2 pt-1.5 mt-1">
-            <span>Grand Total:</span>
+            <span>{noGst ? 'Total Price:' : 'Grand Total:'}</span>
             <span className="text-fg">₹{Number(quotation.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>

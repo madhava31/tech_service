@@ -24,6 +24,12 @@ const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g;
  * The standard terms: Payment (from the quotation's advance %, else the text in Settings), Delivery (when Settings has a
  * delivery time) and Validity. q needs advance_percent and payment_due_days when known.
  */
+/** The term a No GST quotation prints: the prices do not include GST, which is charged on top at 18%. */
+export const NO_GST_TERM = { label: 'GST', text: '18% extra' };
+
+/** True for a quotation saved as "No GST" (GST rate 0). */
+export const isNoGst = (q = {}) => q.tax_percent !== undefined && q.tax_percent !== null && q.tax_percent !== '' && Number(q.tax_percent) === 0;
+
 export function defaultTerms(q = {}, settings = {}) {
   const s = settings || {};
   const hasAdvance = q.advance_percent !== undefined && q.advance_percent !== null && q.advance_percent !== '';
@@ -33,6 +39,7 @@ export function defaultTerms(q = {}, settings = {}) {
       : s.payment_terms ? { label: 'Payment', text: String(s.payment_terms) } : null,
     s.delivery_time ? { label: 'Delivery', text: String(s.delivery_time) } : null,
     { label: 'Validity', text: `${Number(s.quotation_validity_days) || 15} days from the quotation date` },
+    isNoGst(q) ? { ...NO_GST_TERM } : null,
   ].filter(Boolean);
 }
 

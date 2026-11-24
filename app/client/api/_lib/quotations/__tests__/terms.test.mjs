@@ -12,6 +12,13 @@ const { default: db } = await import('../../db/index.js');
 const SETTINGS = { quotation_validity_days: 15, delivery_time: '', payment_terms: 'Old global text' };
 
 describe('defaultTerms', () => {
+  test('No GST (rate 0) adds "GST: 18% extra" last; a GST quotation does not', () => {
+    const noGst = defaultTerms({ advance_percent: 100, payment_due_days: 30, tax_percent: 0 }, SETTINGS);
+    assert.deepEqual(noGst[noGst.length - 1], { label: 'GST', text: '18% extra' });
+    assert.ok(!defaultTerms({ advance_percent: 100, tax_percent: 18 }, SETTINGS).some((t) => t.label === 'GST'));
+    assert.ok(!defaultTerms({ advance_percent: 100 }, SETTINGS).some((t) => t.label === 'GST'), 'rate not given: no GST line');
+    assert.ok(defaultTerms({ tax_percent: '0' }, SETTINGS).some((t) => t.label === 'GST'), 'rate 0 as text from a query string');
+  });
   test('payment from the quotation, validity from Settings, no delivery line when Settings has none', () => {
     assert.deepEqual(defaultTerms({ advance_percent: 100, payment_due_days: 30 }, SETTINGS), [
       { label: 'Payment', text: '100% advance' },

@@ -372,7 +372,7 @@ textarea.ts-fi{resize:vertical; min-height:100px; line-height:1.5}
 .ts-lb.ts-cat{background:rgb(var(--tile)); color:rgb(var(--fg))}
 .ts-lb.ts-saved{background:rgb(var(--good-bg)); color:rgb(var(--good))}
 .ts-ql-a{grid-template-columns:minmax(0,1.6fr) minmax(0,1.2fr) minmax(0,.8fr)}
-.ts-ql-b{grid-template-columns:minmax(70px,.6fr) minmax(0,1.1fr) minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.1fr); align-items:start}
+.ts-ql-b{grid-template-columns:minmax(70px,.6fr) minmax(96px,.8fr) minmax(0,1.1fr) minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.1fr); align-items:start}
 .ts-ltotw{text-align:right; align-items:flex-end}
 .ts-ltot{font-size:19px; font-weight:500; padding-top:8px; font-variant-numeric:tabular-nums; letter-spacing:-.01em}
 .ts-lalloc{font-size:11.5px; color:rgb(var(--muted))}

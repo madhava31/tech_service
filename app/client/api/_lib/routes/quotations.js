@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db from '../db/index.js';
 import { nextNumber } from '../db/numbering.js';
 import { streamQuotationPdfV2 } from '../pdf/quotationPdf.js';
+import { quotationUnitReady, cleanUnit, quotationItemsWithUnit } from '../quotations/quotationUnit.js';
 import { requireQuotationModule, buildQuotation, nextQuotationNumber, headerValues, insertItems, cleanFeatures } from '../quotations/module.js';
 import apiCache from '../cache/apiCache.js';
 import { sendRouteError } from '../http/errors.js';
@@ -558,7 +559,7 @@ function enrichQuotationFirm(quotation) {
 }
 
 /**
- * GET /api/quotations/terms-defaults?advance_percent=&payment_due_days=
+ * GET /api/quotations/terms-defaults?advance_percent=&payment_due_days=&tax_percent=  (tax_percent=0 is "No GST": adds "GST: 18% extra")
  * The standard Terms & Conditions the quotation form shows (and the PDF prints unless the user edits them).
  * Registered before '/:id' so "terms-defaults" is not read as a quotation id.
  */
@@ -570,6 +571,7 @@ router.get('/terms-defaults', async (req, res) => {
     const q = {
       advance_percent: adv !== undefined && adv !== '' && Number.isFinite(Number(adv)) ? Number(adv) : undefined,
       payment_due_days: days !== undefined && days !== '' && Number.isFinite(Number(days)) ? Number(days) : undefined,
+      tax_percent: req.query.tax_percent !== undefined && req.query.tax_percent !== '' && Number.isFinite(Number(req.query.tax_percent)) ? Number(req.query.tax_percent) : undefined,
     };
     res.json({ terms: defaultTerms(q, settings) });
   } catch (err) {
@@ -585,7 +587,7 @@ router.get('/:id', async (req, res) => {
     if (!rawQuotation) return res.status(404).json({ error: 'Quotation not found' });
     const quotation = enrichQuotationFirm(rawQuotation);
     // unit comes from the product (Nos, Pkt, ...), for the Unit column of the quotation table and PDF.
-    const items = await db.prepare(`SELECT qi.*, p.unit AS unit FROM quotation_item qi LEFT JOIN product p ON p.id = qi.product_id WHERE qi.quotation_id = ? ORDER BY qi.id`).all(req.params.id);
+    const items = await quotationItemsWithUnit(req.params.id);
     // Payment schedule and payments received, once migration 004 has been applied.
     const payment = (await paymentsReady()) ? await getQuotationPayments(req.params.id) : null;
     res.json({
@@ -722,12 +724,14 @@ router.post('/', moduleGuard, async (req, res) => {
       if (Array.isArray(req.body.co_sales_engineer_ids) && req.body.co_sales_engineer_ids.length) {
         await setTeamFromIds(qId, sales_engineer_id, req.body.co_sales_engineer_ids);
       }
+      // The line's unit (migration 015) is saved once the column exists.
+      const withUnit = await quotationUnitReady();
       const insertItem = db.prepare(
         `INSERT INTO quotation_item (
           quotation_id, product_id, part_no, description, hsn_sac, make, qty, price, amount,
           actual_unit_price, discount_type, discount_value, product_discount_amount,
-          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total, key_features
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)`
+          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total, key_features${withUnit ? ', unit' : ''}
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb${withUnit ? ', ?' : ''})`
       );
 
       for (const it of processedItems) {
@@ -781,7 +785,8 @@ router.post('/', moduleGuard, async (req, res) => {
           it.final_unit_price,
           it.final_line_total,
           // Key features typed on the form for this line; null when the caller sent none (older callers).
-          Array.isArray(it.key_features) || typeof it.key_features === 'string' ? JSON.stringify(cleanFeatures(it.key_features)) : null
+          Array.isArray(it.key_features) || typeof it.key_features === 'string' ? JSON.stringify(cleanFeatures(it.key_features)) : null,
+          ...(withUnit ? [cleanUnit(it.unit)] : [])
         );
 
         // Update product master default price when modified in quotation
@@ -906,12 +911,14 @@ router.put('/:id', moduleGuard, async (req, res) => {
       }
 
       await db.prepare(`DELETE FROM quotation_item WHERE quotation_id = ?`).run(req.params.id);
+      // The line's unit (migration 015) is saved once the column exists.
+      const withUnit = await quotationUnitReady();
       const insertItem = db.prepare(
         `INSERT INTO quotation_item (
           quotation_id, product_id, part_no, description, hsn_sac, make, qty, price, amount,
           actual_unit_price, discount_type, discount_value, product_discount_amount,
-          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total, key_features
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)`
+          after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total, key_features${withUnit ? ', unit' : ''}
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb${withUnit ? ', ?' : ''})`
       );
 
       for (const it of processedItems) {
@@ -965,7 +972,8 @@ router.put('/:id', moduleGuard, async (req, res) => {
           it.final_unit_price,
           it.final_line_total,
           // Key features typed on the form for this line; null when the caller sent none (older callers).
-          Array.isArray(it.key_features) || typeof it.key_features === 'string' ? JSON.stringify(cleanFeatures(it.key_features)) : null
+          Array.isArray(it.key_features) || typeof it.key_features === 'string' ? JSON.stringify(cleanFeatures(it.key_features)) : null,
+          ...(withUnit ? [cleanUnit(it.unit)] : [])
         );
 
         // Update product master default price when modified in quotation
@@ -1272,7 +1280,7 @@ router.get('/:id/pdf', async (req, res) => {
     if (!rawQuotation) return res.status(404).json({ error: 'Quotation not found' });
     const quotation = enrichQuotationFirm(rawQuotation);
     // unit comes from the product (Nos, Pkt, ...), for the Unit column of the quotation table and PDF.
-    const items = await db.prepare(`SELECT qi.*, p.unit AS unit FROM quotation_item qi LEFT JOIN product p ON p.id = qi.product_id WHERE qi.quotation_id = ? ORDER BY qi.id`).all(req.params.id);
+    const items = await quotationItemsWithUnit(req.params.id);
     const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
 
     // Every quotation prints in the approved layout. A quotation saved before the quotation module
@@ -1306,7 +1314,7 @@ async function loadQuotationForEmail(id) {
   const rawQuotation = await db.prepare(`${QUOTATION_DETAIL_SELECT} WHERE q.id = ?`).get(id);
   if (!rawQuotation) return null;
   const quotation = enrichQuotationFirm(rawQuotation);
-  const items = await db.prepare(`SELECT qi.*, p.unit AS unit FROM quotation_item qi LEFT JOIN product p ON p.id = qi.product_id WHERE qi.quotation_id = ? ORDER BY qi.id`).all(id);
+  const items = await quotationItemsWithUnit(id);
   const settings = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
   let printable = await printableForPdf(quotation, items, settings);
   const special = String(printable.quotation.notes || '').trim();

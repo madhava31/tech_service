@@ -7,6 +7,7 @@ import { ADVANCE_PRESETS, QuotationContactPayment, type NewContactDraft } from '
 import SearchableSelect from '../components/SearchableSelect';
 import { SalesTeamEditor, type TeamMember } from '../components/SalesTeamEditor';
 import EditableCombo from '../components/EditableCombo';
+import { unitOptions } from '../lib/units';
 import { MANUAL_ORDER_PREFIX } from '../lib/manualOrder';
 import StockAnalysisWidget from '../components/StockAnalysisWidget';
 
@@ -56,6 +57,9 @@ export default function QuotationNew() {
 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [taxPercent, setTaxPercent] = useState(18);
+  // "No GST": prices are before GST and no GST is added (saved as GST rate 0); the terms then say "GST: 18% extra".
+  const [noGst, setNoGst] = useState(false);
+  const gstRate = noGst ? 0 : taxPercent;
   const [discountType, setDiscountType] = useState<'none' | 'percentage' | 'amount'>('none');
   const [discountValue, setDiscountValue] = useState<number | string>(0);
   const [notes, setNotes] = useState('');
@@ -188,7 +192,12 @@ export default function QuotationNew() {
           setFirmId(q.firm_id || '');
           setBranchId(q.branch_id || '');
           setDate(q.date);
-          setTaxPercent(q.tax_percent);
+          if (Number(q.tax_percent) === 0) {
+            setNoGst(true);
+            setTaxPercent(18);
+          } else {
+            setTaxPercent(q.tax_percent);
+          }
           const oType = (q.overall_discount_type || q.discount_type || 'none') as 'none' | 'percentage' | 'amount';
           setDiscountType(oType);
           setDiscountValue(q.overall_discount_value ?? q.discount_value ?? q.discount_percent ?? 0);
@@ -239,12 +248,12 @@ export default function QuotationNew() {
     let live = true;
     const timer = setTimeout(() => {
       api.quotations
-        .termsDefaults({ advance_percent: Number(advancePercent), payment_due_days: Number(dueDays === '' ? 30 : dueDays) })
+        .termsDefaults({ advance_percent: Number(advancePercent), payment_due_days: Number(dueDays === '' ? 30 : dueDays), tax_percent: gstRate })
         .then((r) => { if (live) setTerms(r.terms); })
         .catch(() => {});
     }, 250);
     return () => { live = false; clearTimeout(timer); };
-  }, [advancePercent, dueDays, termsCustom]);
+  }, [advancePercent, dueDays, termsCustom, gstRate]);
 
   function fetchNextNumber(d: string, pref: string, fId?: number | '', bId?: number | '') {
     if (isManual) pref = MANUAL_ORDER_PREFIX;
@@ -452,6 +461,18 @@ export default function QuotationNew() {
     return same ? {} : { key_features: p.key_features || [], features_text: undefined };
   }
 
+  // GST or No GST. Edited terms get the "GST: 18% extra" line added (No GST) or taken out again (GST, if it was not changed).
+  function chooseGst(none: boolean) {
+    setNoGst(none);
+    if (none && !taxPercent) setTaxPercent(18);
+    if (!termsCustom) return;
+    setTerms((prev) => {
+      const isGstRow = (t: QuotationTerm) => t.label.trim().toLowerCase() === 'gst';
+      if (none) return prev.some(isGstRow) ? prev : [...prev, { label: 'GST', text: '18% extra' }];
+      return prev.filter((t) => !(isGstRow(t) && t.text.trim() === '18% extra'));
+    });
+  }
+
   function pickProductForItem(idx: number, partNo: string) {
     const trimmed = partNo.trim();
     const p = products.find((pr) => pr.part_no.toUpperCase() === trimmed.toUpperCase());
@@ -463,6 +484,7 @@ export default function QuotationNew() {
         hsn_sac: p.hsn_sac || '',
         actual_unit_price: p.default_price,
         price: p.default_price,
+        unit: items[idx]?.product_id === p.id && items[idx]?.unit ? items[idx].unit : p.unit || 'Nos',
         ...featuresOnPick(idx, p),
       });
     } else {
@@ -485,6 +507,7 @@ export default function QuotationNew() {
         hsn_sac: p.hsn_sac || '',
         actual_unit_price: p.default_price,
         price: p.default_price,
+        unit: items[idx]?.product_id === p.id && items[idx]?.unit ? items[idx].unit : p.unit || 'Nos',
         ...featuresOnPick(idx, p),
       });
     } else {
@@ -634,7 +657,7 @@ export default function QuotationNew() {
   overallDiscountAmount = Math.min(overallDiscountAmount, subtotalAfterProductDiscounts);
 
   const netSubtotal = Math.max(0, subtotalAfterProductDiscounts - overallDiscountAmount);
-  const taxAmount = (netSubtotal * taxPercent) / 100;
+  const taxAmount = (netSubtotal * gstRate) / 100;
   const exactTotal = netSubtotal + taxAmount;
   const total = Math.round(exactTotal);
   const roundOff = total - exactTotal;
@@ -713,7 +736,7 @@ export default function QuotationNew() {
         firm_id: firmId ? Number(firmId) : null,
         branch_id: branchId ? Number(branchId) : null,
         date,
-        tax_percent: taxPercent,
+        tax_percent: gstRate,
         overall_discount_type: discountType,
         overall_discount_value: numOverallDiscountVal,
         discount_type: discountType,
@@ -752,6 +775,7 @@ export default function QuotationNew() {
             discount_type: it.discount_type || 'none',
             discount_value: Number(it.discount_value) || 0,
             key_features: featuresList(featuresText(it)),
+            unit: (it.unit || products.find((pr) => pr.id === it.product_id)?.unit || 'Nos').trim(),
             is_main: isInstrument && it.is_main === true,
           };
         }),
@@ -990,11 +1014,20 @@ export default function QuotationNew() {
                 <input id="q-date" type="date" className="ts-fi" value={date} onChange={(e) => setDate(e.target.value)} />
               </div>
               <div className="ts-fld">
-                <label htmlFor="q-gst">GST rate</label>
-                <div className="ts-suffix">
-                  <input id="q-gst" type="number" className="ts-fi ts-r" value={!taxPercent || taxPercent === 0 ? '' : taxPercent} onFocus={(e) => e.target.select()} onChange={(e) => setTaxPercent(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="18" />
-                  <span>%</span>
+                <label htmlFor="q-gst">GST</label>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex rounded-full border border-line2 p-0.5" role="group" aria-label="GST or No GST">
+                    <button type="button" className={`ts-btn ts-xs ${!noGst ? 'ts-dark' : 'ts-ghost'}`} aria-pressed={!noGst} onClick={() => chooseGst(false)}>GST</button>
+                    <button type="button" className={`ts-btn ts-xs ${noGst ? 'ts-dark' : 'ts-ghost'}`} aria-pressed={noGst} onClick={() => chooseGst(true)}>No GST</button>
+                  </span>
+                  {!noGst && (
+                    <div className="ts-suffix" style={{ maxWidth: 110 }}>
+                      <input id="q-gst" type="number" className="ts-fi ts-r" value={!taxPercent || taxPercent === 0 ? '' : taxPercent} onFocus={(e) => e.target.select()} onChange={(e) => setTaxPercent(e.target.value === '' ? 0 : Number(e.target.value))} placeholder="18" aria-label="GST rate" />
+                      <span>%</span>
+                    </div>
+                  )}
                 </div>
+                <small className="ts-hint">{noGst ? 'Prices are before GST; the terms say "GST: 18% extra".' : 'GST is added to the prices.'}</small>
               </div>
             </div>
             {/* Quotation number: its own row, so the series picker and the number each get room */}
@@ -1308,7 +1341,17 @@ export default function QuotationNew() {
                       <div className="ts-fld">
                         <label>Quantity</label>
                         <input type="number" min="1" className="ts-fi ts-r" value={!it.qty || it.qty === 0 ? '' : it.qty} onFocus={(e) => e.target.select()} onChange={(e) => updateItem(idx, { qty: e.target.value === '' ? 0 : Number(e.target.value) })} placeholder="1" />
-                        <small className="ts-hint">Unit: {products.find((p) => p.id === it.product_id)?.unit || 'Nos'}</small>
+                      </div>
+                      <div className="ts-fld">
+                        <label>Unit</label>
+                        <EditableCombo
+                          options={unitOptions(it.unit)}
+                          value={it.unit ?? products.find((p) => p.id === it.product_id)?.unit ?? 'Nos'}
+                          onTextChange={(text) => updateItem(idx, { unit: text })}
+                          onPick={(u) => updateItem(idx, { unit: u })}
+                          placeholder="Nos"
+                          ariaLabel={`Unit of line ${idx + 1}`}
+                        />
                       </div>
                       {!lumpSum && (<>
                       <div className="ts-fld">
@@ -1328,11 +1371,11 @@ export default function QuotationNew() {
                         <input type="number" min="0" step="0.01" className="ts-fi ts-r" disabled={noDisc} value={!it.discount_value || it.discount_value === 0 ? '' : it.discount_value} onFocus={(e) => e.target.select()} onChange={(e) => updateItem(idx, { discount_value: e.target.value === '' ? 0 : Number(e.target.value) })} placeholder="0" />
                       </div>
                       <div className="ts-fld ts-ltotw">
-                        <span className="ts-lbl" style={{ fontSize: 11.5, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgb(var(--muted))', fontWeight: 500 }}>Taxable amount</span>
+                        <span className="ts-lbl" style={{ fontSize: 11.5, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgb(var(--muted))', fontWeight: 500 }}>{noGst ? 'Total price' : 'Taxable amount'}</span>
                         <div className="ts-ltot">{money2(it.after_product_discount_amount)}</div>
                         {it.product_discount_amount > 0 && <small className="ts-lalloc">Saves {money2(it.product_discount_amount)}</small>}
-                        <small className="ts-lalloc">GST ({taxPercent}%): {money2((it.after_product_discount_amount * taxPercent) / 100)}</small>
-                        <small className="ts-lalloc">Amount: <b>{money2(it.after_product_discount_amount + (it.after_product_discount_amount * taxPercent) / 100)}</b></small>
+                        {!noGst && <small className="ts-lalloc">GST ({gstRate}%): {money2((it.after_product_discount_amount * gstRate) / 100)}</small>}
+                        {!noGst && <small className="ts-lalloc">Amount: <b>{money2(it.after_product_discount_amount + (it.after_product_discount_amount * gstRate) / 100)}</b></small>}
                       </div>
                       </>)}
                     </div>
@@ -1470,11 +1513,11 @@ export default function QuotationNew() {
               <div><dt>{lumpSum ? `Total amount (${items.length} ${items.length === 1 ? 'item' : 'items'})` : 'Gross subtotal'}</dt><dd>{money2(grossSubtotal)}</dd></div>
               {!lumpSum && <div><dt>Product discounts</dt><dd>− {money2(productDiscountTotal)}</dd></div>}
               <div><dt>Overall discount</dt><dd>− {money2(overallDiscountAmount)}</dd></div>
-              <div className="ts-sep"><dt>Net taxable subtotal</dt><dd>{money2(netSubtotal)}</dd></div>
-              <div><dt>GST ({taxPercent}%)</dt><dd>{money2(taxAmount)}</dd></div>
+              <div className="ts-sep"><dt>{noGst ? 'Subtotal' : 'Net taxable subtotal'}</dt><dd>{money2(netSubtotal)}</dd></div>
+              {noGst ? <div><dt>GST</dt><dd>18% extra</dd></div> : <div><dt>GST ({gstRate}%)</dt><dd>{money2(taxAmount)}</dd></div>}
               {Math.abs(roundOff) > 0.001 && <div><dt>Round off</dt><dd>₹{roundOff.toFixed(2)}</dd></div>}
             </dl>
-            <div className="ts-grand"><span>Grand total</span><b className="num"><CountUp value={total} format={money2} duration={500} /></b></div>
+            <div className="ts-grand"><span>{noGst ? 'Total price' : 'Grand total'}</span><b className="num"><CountUp value={total} format={money2} duration={500} /></b></div>
             <div className="ts-qmeta">
               <div><span>Customer</span><b>{custName || 'Not selected'}</b></div>
               {contactsEnabled && (

@@ -99,10 +99,21 @@ const STD = Object.fromEntries(STD_COLS.map((c) => [c.key, c]));
 /**
  * The standard table's columns with their x positions. The Discount column is only printed when at least one line has a
  * discount; without it the column is left out and its width goes to the description, so the table still fills the page.
+ * A "No GST" quotation (showGst false) has no Taxable amount or GST columns either: the last column is the line's Total Price.
  */
-export function stdLayout(showDiscount) {
-  const cols = STD_COLS.filter((c) => showDiscount || c.key !== 'discount').map((c) => ({ ...c }));
-  if (!showDiscount) cols.find((c) => c.key === 'desc').w += STD_COLS.find((c) => c.key === 'discount').w;
+export function stdLayout(showDiscount, showGst = true) {
+  const drop = new Set([...(showDiscount ? [] : ['discount']), ...(showGst ? [] : ['taxable', 'gst'])]);
+  const cols = STD_COLS.filter((c) => !drop.has(c.key)).map((c) => ({ ...c }));
+  const desc = cols.find((c) => c.key === 'desc');
+  for (const key of drop) desc.w += STD_COLS.find((c) => c.key === key).w;
+  if (!showGst) cols.find((c) => c.key === 'amount').label = 'Total\nPrice';
+  // No GST: the description has room to spare, so the Unit column gets more of it and units like "Pack of 100" fit on one line.
+  // GST quotations keep today's widths exactly.
+  if (!showGst) {
+    const unit = cols.find((c) => c.key === 'unit');
+    unit.w += 22;
+    desc.w -= 22;
+  }
   let x = M;
   for (const c of cols) { c.x = x; x += c.w; }
   return { cols, byKey: Object.fromEntries(cols.map((c) => [c.key, c])) };
@@ -193,6 +204,8 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
   const lumpSum = quotation.pricing_mode === 'lump_sum';
   const isInstrument = quotation.quotation_type === 'instrument';
   const taxRate = Number(quotation.tax_percent || 0);
+  // "No GST" (rate 0): prices are before GST, no GST is worked out, and the terms say GST is extra.
+  const noGst = quotation.tax_percent !== undefined && quotation.tax_percent !== null && quotation.tax_percent !== '' && taxRate === 0;
 
   // Standard format: the PO / PI columns. Each line shows its taxable amount (after the product
   // discount), the GST on it and the amount; the overall discount is taken in the totals below.
@@ -234,7 +247,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
   };
   // Only print the Discount column when a line has a discount (a lump-sum quotation has no per-line figures at all).
   const showDiscount = !lumpSum && items.some((it) => lineFigures(it).discount > 0.004);
-  const { cols: COLS, byKey: STD } = stdLayout(showDiscount);
+  const { cols: COLS, byKey: STD } = stdLayout(showDiscount, !noGst);
   const discountPct = (it, gross, discount) => {
     const base = gross * Number(it.qty || 0);
     const p = it.discount_type === 'percentage' && Number(it.discount_value) > 0 ? Number(it.discount_value) : base > 0 ? (discount / base) * 100 : 0;
@@ -255,9 +268,11 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       num('price', rupees(gross));
       // A line without a discount leaves its Discount cell empty instead of printing a zero.
       if (showDiscount && discount > 0.004) num('discount', `${rupees(discount)}\n(${discountPct(it, gross, discount)}%)`);
-      num('taxable', rupees(taxable));
-      num('gst', rupees(gstAmt)); // the amount only; the GST rate is shown with the totals
-      num('amount', rupees(taxable + gstAmt));
+      if (!noGst) {
+        num('taxable', rupees(taxable));
+        num('gst', rupees(gstAmt)); // the amount only; the GST rate is shown with the totals
+      }
+      num('amount', rupees(taxable + gstAmt)); // with No GST this is the line's total price
     }
     // Description (name, then the key features below it in small type)
     const dx = STD.desc.x + 2, dw = STD.desc.w - 4;
@@ -302,8 +317,10 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       const tot = (key, v) => doc.font(B).fontSize(7.5).fillColor('#000').text(v, STD[key].x + 2, y, { width: STD[key].w - 4, align: 'right', lineBreak: false });
       tot('qty', Number.isInteger(t.qty) ? String(t.qty) : fixed2(t.qty));
       if (showDiscount) tot('discount', rupees(t.discount));
-      tot('taxable', rupees(t.taxable));
-      tot('gst', rupees(t.gst));
+      if (!noGst) {
+        tot('taxable', rupees(t.taxable));
+        tot('gst', rupees(t.gst));
+      }
       tot('amount', rupees(t.taxable + t.gst));
       y += 18;
     }
@@ -410,7 +427,7 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       ...(overall > 0.004
         ? [{ label: 'Net Taxable Subtotal', value: Number(quotation.taxable_amount ?? quotation.net_subtotal ?? 0), fill: SHADE, bold: true }]
         : []),
-      { label: `GST @ ${pct(quotation.tax_percent)}%`, value: quotation.tax_amount, fill: SHADE, bold: false },
+      ...(noGst ? [] : [{ label: `GST @ ${pct(quotation.tax_percent)}%`, value: quotation.tax_amount, fill: SHADE, bold: false }]),
       ...(Math.abs(roundOff) > 0.004 ? [{ label: 'Round Off', value: roundOff, fill: SHADE, bold: false }] : []),
       { label: 'Grand Total', value: quotation.total, fill: SHADE_DARK, bold: true },
     ];
@@ -446,7 +463,9 @@ export function streamQuotationPdfV2(res, { quotation, items, settings = {} }) {
       rows.push([quotation.overall_discount_type === 'percentage' ? `Discount (${pct(quotation.overall_discount_value)}%)` : 'Discount', -overall]);
       rows.push(['Taxable Amount', Number(quotation.taxable_amount ?? quotation.net_subtotal ?? 0)]);
     }
-    if (sameState === null) rows.push([`GST@${rate}%`, taxAmount]);
+    // No GST: no GST rows at all (the terms say "GST: 18% extra").
+    if (noGst) { /* nothing */ }
+    else if (sameState === null) rows.push([`GST@${rate}%`, taxAmount]);
     else if (sameState) rows.push([`CGST@${half}%`, taxAmount / 2], [`SGST@${half}%`, taxAmount / 2]);
     else rows.push([`IGST@${rate}%`, taxAmount]);
     rows.push(['Round off', roundOff]);

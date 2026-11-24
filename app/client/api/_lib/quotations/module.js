@@ -1,4 +1,5 @@
 import db from '../db/index.js';
+import { quotationUnitReady, cleanUnit } from './quotationUnit.js';
 import { createSchemaGuard } from '../db/schemaGuard.js';
 
 // Quotation module (migration 002): catalogue-only lines, TS/<FY>/<6-digit> numbering, editable
@@ -96,6 +97,8 @@ export async function buildQuotation(body) {
       make: product.make || null,
       key_features: features,
       hsn_sac: product.hsn_sac || null,
+      // The unit picked or typed on the form, else the product's.
+      unit: cleanUnit(it.unit) || product.unit || null,
       qty,
       unit_price: unitPrice,
       discount_percent: discount,
@@ -141,18 +144,20 @@ export function headerValues(q) {
 }
 
 export async function insertItems(quotationId, items) {
+  const withUnit = await quotationUnitReady(); // migration 015
   const insert = db.prepare(
     `INSERT INTO quotation_item (
        quotation_id, product_id, part_no, description, product_name, make, key_features, hsn_sac,
        qty, price, amount, actual_unit_price, discount_type, discount_value, product_discount_amount,
-       after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total
-     ) VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, 'percentage', ?, ?, ?, 0, ?, ?)`
+       after_product_discount_amount, overall_discount_allocated, final_unit_price, final_line_total${withUnit ? ', unit' : ''}
+     ) VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, 'percentage', ?, ?, ?, 0, ?, ?${withUnit ? ', ?' : ''})`
   );
   for (const it of items) {
     await insert.run(
       quotationId, it.product_id, it.part_no, it.product_name, it.product_name, it.make, JSON.stringify(it.key_features), it.hsn_sac,
       it.qty, it.unit_price, it.line_total, it.unit_price, it.discount_percent, it.discount_amount,
-      it.line_total, it.unit_sales_price, it.line_total
+      it.line_total, it.unit_sales_price, it.line_total,
+      ...(withUnit ? [cleanUnit(it.unit)] : [])
     );
   }
 }
