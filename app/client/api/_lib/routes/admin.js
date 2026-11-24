@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import db from '../db/index.js';
 import { requireAdmin } from '../auth/middleware.js';
+import { USERNAME_RULE, PASSWORD_MIN, PASSWORD_MAX } from './auth.js';
 import { hashPassword } from '../auth/password.js';
 
 const router = Router();
@@ -134,9 +135,13 @@ router.get('/users', async (req, res) => {
 
 router.post('/users', async (req, res) => {
   try {
-    const { username, password, role } = req.body;
-    if (!username || !username.trim()) return res.status(400).json({ error: 'Username is required' });
-    if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    const { username, password, role } = req.body || {};
+    if (typeof username !== 'string' || !USERNAME_RULE.test(username.trim())) {
+      return res.status(400).json({ error: 'Username must be 3-32 characters: letters, digits, dot, underscore, hyphen or @' });
+    }
+    if (typeof password !== 'string' || password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
+      return res.status(400).json({ error: `Password must be ${PASSWORD_MIN}-${PASSWORD_MAX} characters` });
+    }
     const finalRole = role === 'admin' ? 'admin' : 'staff';
 
     const { salt, hash } = hashPassword(password);
@@ -183,8 +188,10 @@ router.delete('/users/:id', async (req, res) => {
 
 router.post('/users/:id/reset-password', async (req, res) => {
   try {
-    const { password } = req.body;
-    if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    const { password } = req.body || {};
+    if (typeof password !== 'string' || password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
+      return res.status(400).json({ error: `Password must be ${PASSWORD_MIN}-${PASSWORD_MAX} characters` });
+    }
 
     const target = await db.prepare(`SELECT * FROM app_user WHERE id = ?`).get(req.params.id);
     if (!target) return res.status(404).json({ error: 'User not found' });

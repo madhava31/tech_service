@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { resolveCorsOrigin } from '../client/api/_lib/http/cors.js';
 import cookieParser from 'cookie-parser';
 
 import db, { releaseConnectionsAfterResponse } from '../client/api/_lib/db/index.js';
@@ -140,7 +141,7 @@ app.use(releaseConnectionsAfterResponse);
 // Turn them off so every successful API call answers 200.
 app.set('etag', false);
 
-const allowedOrigin = process.env.CLIENT_ORIGIN || true;
+const allowedOrigin = resolveCorsOrigin();
 
 app.use(
   cors({
@@ -186,6 +187,10 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+  }
 
   if (req.path.startsWith('/api')) {
     res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');

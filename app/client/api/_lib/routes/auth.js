@@ -4,6 +4,7 @@ import db, { isTransientConnectionError, connectionFailureReason } from '../db/i
 import { hashPassword, verifyPassword } from '../auth/password.js';
 import { getSessionUser } from '../auth/middleware.js';
 import { sendRouteError } from '../http/errors.js';
+import { loginIpLimiter, clientIp, lockedMinutes, recordFailedLogin, recordSuccessfulLogin } from '../auth/loginGuard.js';
 
 const router = Router();
 const SESSION_DAYS = 30;
@@ -65,9 +66,13 @@ router.post('/setup', async (req, res) => {
     const userCount = (await db.prepare(`SELECT COUNT(*) c FROM app_user`).get()).c;
     if (Number(userCount) > 0) return res.status(403).json({ error: 'Setup already completed' });
 
-    const { username, password } = req.body;
-    if (!username || !username.trim()) return res.status(400).json({ error: 'Username is required' });
-    if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    const { username, password } = req.body || {};
+    if (typeof username !== 'string' || !USERNAME_RULE.test(username.trim())) {
+      return res.status(400).json({ error: 'Username must be 3-32 characters: letters, digits, dot, underscore, hyphen or @' });
+    }
+    if (typeof password !== 'string' || password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
+      return res.status(400).json({ error: `Password must be ${PASSWORD_MIN}-${PASSWORD_MAX} characters` });
+    }
 
     const { salt, hash } = hashPassword(password);
     const info = await db
@@ -83,14 +88,28 @@ router.post('/setup', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
+    const { username, password } = req.body || {};
+    if (typeof username !== 'string' || typeof password !== 'string' || !username.trim() || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+    // Oversized input is refused before the slow password hash runs.
+    if (username.length > 64 || password.length > PASSWORD_MAX) return res.status(401).json({ error: 'Invalid username or password' });
+
+    const ip = clientIp(req);
+    if (loginIpLimiter.blocked(ip)) return res.status(429).json({ error: 'Too many sign-in attempts. Please try again in a few minutes.' });
 
     const row = await db.prepare(`SELECT * FROM app_user WHERE username = ?`).get(username.trim());
+    const waitMinutes = lockedMinutes(row);
+    if (waitMinutes > 0) {
+      return res.status(429).json({ error: `Too many wrong passwords. This account is locked for ${waitMinutes} more minute${waitMinutes === 1 ? '' : 's'}.` });
+    }
     if (!row || !verifyPassword(password, row.password_salt, row.password_hash)) {
+      loginIpLimiter.fail(ip);
+      if (row) await recordFailedLogin(row.id);
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
+    await recordSuccessfulLogin(row);
     await createSession(row.id, res);
     res.json({ user: { id: row.id, username: row.username, role: row.role } });
   } catch (err) {
