@@ -1538,6 +1538,12 @@ export const api = {
       request<PurchaseOrder>('/purchase-orders', { method: 'POST', body: JSON.stringify(data) }),
     pdfUrl: (id: number) => `${BASE}/purchase-orders/${id}/pdf`,
     openPdf: (id: number) => openPdfDocument(`/purchase-orders/${id}/pdf`),
+    /** Deletes a purchase order record made with "Create PO" on a quotation. */
+    remove: async (id: number) => {
+      const res = await request<{ ok: boolean }>(`/purchase-orders/${id}`, { method: 'DELETE' });
+      clearCache('quotations');
+      return res;
+    },
   },
   /** POs Technicon sends to its suppliers (migration 016). */
   sentPos: {

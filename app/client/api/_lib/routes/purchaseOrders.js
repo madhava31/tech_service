@@ -116,6 +116,36 @@ router.post('/', async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/purchase-orders/:id : removes a purchase order record made with "Create PO" on a quotation. Links to it from sale
+ * reports and procurement are cleared first. If the quotation has no other PO left (of either kind), it goes back to "sent",
+ * like deleting a PO received.
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid purchase order' });
+    const po = await db.prepare(`SELECT id, number, quotation_id FROM purchase_order WHERE id = ?`).get(id);
+    if (!po) return res.status(404).json({ error: 'Purchase order not found' });
+    await db.transaction(async () => {
+      await db.prepare(`UPDATE sale_report SET source_po_id = NULL WHERE source_po_id = ?`).run(id);
+      await db.prepare(`UPDATE procurement_requirement SET purchase_order_id = NULL WHERE purchase_order_id = ?`).run(id);
+      await db.prepare(`DELETE FROM purchase_order WHERE id = ?`).run(id);
+      if (po.quotation_id) {
+        const older = Number((await db.prepare(`SELECT COUNT(*) AS n FROM purchase_order WHERE quotation_id = ?`).get(po.quotation_id)).n);
+        const received = (await poReceivedReady())
+          ? Number((await db.prepare(`SELECT COUNT(*) AS n FROM quotation_po WHERE quotation_id = ?`).get(po.quotation_id)).n)
+          : 0;
+        if (older + received === 0) await db.prepare(`UPDATE quotation SET status = 'sent' WHERE id = ? AND status = 'accepted'`).run(po.quotation_id);
+      }
+    });
+    res.json({ ok: true, id, number: po.number });
+  } catch (err) {
+    console.error('Failed to delete purchase order:', err);
+    res.status(500).json({ error: 'Unable to delete the purchase order. Please try again.' });
+  }
+});
+
 router.get('/:id/pdf', async (req, res) => {
   try {
     const result = await fullPO(req.params.id);

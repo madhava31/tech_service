@@ -220,7 +220,6 @@ export default function SentPoForm() {
 
   if (loading) return <div className="ts-page-pad ts-muted" style={{ paddingTop: 30 }}>Loading…</div>;
 
-  const cellIn = 'w-full bg-transparent border border-transparent hover:border-line2 focus:border-accent2 rounded px-1.5 py-1 text-[12.5px] text-fg outline-none';
   return (
     <div className="ts-page-pad flex flex-col gap-4 pb-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -278,90 +277,98 @@ export default function SentPoForm() {
         </div>
       </section>
 
-      {/* Items */}
-      <section className="ts-card ts-white ts-tbl flex flex-col gap-3">
+      {/* Items: one card per line, like the quotation form */}
+      <section className="ts-card ts-white flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <b className="text-fg text-[14px]">Items</b>
-          <label className="flex items-center gap-2 text-[12.5px] text-subtle">
-            Price/Unit is
-            <select className="ts-fi !py-1 !w-auto" value={priceIncludesTax ? 'with' : 'without'} onChange={(e) => setPriceIncludesTax(e.target.value === 'with')}>
+          <div className="ts-ch !mb-0">Items <span className="ts-muted" style={{ fontSize: 13, marginLeft: 8 }}>{lines.length} {lines.length === 1 ? 'line' : 'lines'}</span></div>
+          <div className="ts-fld !mb-0" style={{ minWidth: 200 }}>
+            <label htmlFor="spo-pit">Price/Unit is</label>
+            <select id="spo-pit" className="ts-fi" value={priceIncludesTax ? 'with' : 'without'} onChange={(e) => setPriceIncludesTax(e.target.value === 'with')}>
               <option value="without">Without tax</option>
               <option value="with">With tax</option>
             </select>
-          </label>
+          </div>
         </div>
-        <div className="ts-tblwrap !mt-0">
-          <table className="!min-w-[1150px]">
-            <thead>
-              <tr>
-                <th style={{ width: 28 }}>#</th>
-                <th style={{ width: 150 }}>Item</th>
-                <th>Description</th>
-                <th style={{ width: 80 }}>HSN</th>
-                <th className="ts-r" style={{ width: 64 }}>Qty</th>
-                <th style={{ width: 110 }}>Unit</th>
-                <th className="ts-r" style={{ width: 100 }}>Price/Unit</th>
-                <th className="ts-r" style={{ width: 64 }}>Disc %</th>
-                <th className="ts-r" style={{ width: 90 }}>Disc ₹</th>
-                <th style={{ width: 110 }}>Tax</th>
-                <th className="ts-r" style={{ width: 90 }}>Tax ₹</th>
-                <th className="ts-r" style={{ width: 110 }}>Amount</th>
-                <th style={{ width: 34 }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l, i) => {
-                const f = figures.lines[i];
-                return (
-                  <tr key={l.key}>
-                    <td className="text-subtle text-[12px]">{i + 1}</td>
-                    <td>
-                      <EditableCombo options={partOptions} value={l.part_no} onTextChange={(t) => patch(l.key, { part_no: t, product_id: null })} onPick={(v) => pickPart(l.key, v)} onCommit={(t) => pickPart(l.key, t)} placeholder="Part no." ariaLabel={`Item of line ${i + 1}`} />
-                    </td>
-                    <td><input className={cellIn} value={l.description} maxLength={500} onChange={(e) => patch(l.key, { description: e.target.value })} aria-label={`Description of line ${i + 1}`} /></td>
-                    <td><input className={cellIn} value={l.hsn_sac} maxLength={20} onChange={(e) => patch(l.key, { hsn_sac: e.target.value })} aria-label={`HSN of line ${i + 1}`} /></td>
-                    <td><input className={`${cellIn} text-right`} inputMode="decimal" value={l.qty} onChange={(e) => patch(l.key, { qty: e.target.value })} aria-label={`Quantity of line ${i + 1}`} /></td>
-                    <td><EditableCombo options={unitOptions(l.unit)} value={l.unit} onTextChange={(t) => patch(l.key, { unit: t })} onPick={(u) => patch(l.key, { unit: u })} placeholder="Nos" ariaLabel={`Unit of line ${i + 1}`} /></td>
-                    <td><input className={`${cellIn} text-right`} inputMode="decimal" value={l.price} onChange={(e) => patch(l.key, { price: e.target.value })} placeholder="0.00" aria-label={`Price of line ${i + 1}`} /></td>
-                    <td><input className={`${cellIn} text-right`} inputMode="decimal" value={l.discount_percent} onChange={(e) => patch(l.key, { discount_percent: e.target.value, discount_amount: '' })} placeholder={f && f.discount_amount > 0 && !l.discount_percent ? String(f.discount_percent) : ''} aria-label={`Discount % of line ${i + 1}`} /></td>
-                    <td><input className={`${cellIn} text-right`} inputMode="decimal" value={l.discount_amount} onChange={(e) => patch(l.key, { discount_amount: e.target.value, discount_percent: '' })} placeholder={f && f.discount_amount > 0 && !l.discount_amount ? inr(f.discount_amount) : ''} aria-label={`Discount amount of line ${i + 1}`} /></td>
-                    <td>
-                      <select className="ts-fi !py-1 text-[12.5px]" value={taxValue(l.tax_type, l.tax_percent)} onChange={(e) => patch(l.key, parseTax(e.target.value))} aria-label={`Tax of line ${i + 1}`}>
-                        {TAX_CHOICES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                      </select>
-                    </td>
-                    <td className="ts-r num text-[12.5px]">{f ? inr(f.tax_amount) : ''}</td>
-                    <td className="ts-r num text-[12.5px] font-medium">{f ? inr(f.amount) : ''}</td>
-                    <td>
-                      <button type="button" className="ts-iconx" aria-label={`Remove line ${i + 1}`} onClick={() => setLines((prev) => (prev.length > 1 ? prev.filter((x) => x.key !== l.key) : [blankLine()]))}>
-                        <Trash2 className="size-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="font-semibold text-fg">
-                <td colSpan={2}><button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setLines((prev) => [...prev, blankLine()])}><Plus className="size-3.5" /> Add row</button></td>
-                <td className="ts-r" colSpan={2}>Total</td>
-                <td className="ts-r num">{figures.qty}</td>
-                <td colSpan={3}></td>
-                <td className="ts-r num">{inr(figures.discount)}</td>
-                <td></td>
-                <td className="ts-r num">{inr(figures.tax)}</td>
-                <td className="ts-r num">{inr(figures.total - figures.roundOff)}</td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
+
+        <div className="flex flex-col gap-3">
+          {lines.map((l, i) => {
+            const f = figures.lines[i];
+            const inCatalogue = !!l.product_id;
+            return (
+              <div key={l.key} className="ts-qline">
+                <div className="ts-ql-h">
+                  <b>Item {i + 1}</b>
+                  {l.part_no.trim() && <span className={`ts-lb ${inCatalogue ? 'ts-cat' : 'ts-new'}`}>{inCatalogue ? 'From catalogue' : 'Not in catalogue'}</span>}
+                  <span className="ts-grow" />
+                  <button type="button" className="ts-iconx" aria-label={`Remove item ${i + 1}`} title="Remove this item" onClick={() => setLines((prev) => (prev.length > 1 ? prev.filter((x) => x.key !== l.key) : [blankLine()]))}>
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+                <div className="ts-fgrid ts-ql-a" style={{ marginTop: 14 }}>
+                  <div className="ts-fld">
+                    <label>Item (part number)</label>
+                    <EditableCombo options={partOptions} value={l.part_no} onTextChange={(t) => patch(l.key, { part_no: t, product_id: null })} onPick={(v) => pickPart(l.key, v)} onCommit={(t) => pickPart(l.key, t)} placeholder="Search part number…" ariaLabel={`Item of line ${i + 1}`} />
+                  </div>
+                  <div className="ts-fld">
+                    <label>Description</label>
+                    <input className="ts-fi" value={l.description} maxLength={500} onChange={(e) => patch(l.key, { description: e.target.value })} placeholder="Product description" />
+                  </div>
+                  <div className="ts-fld">
+                    <label>HSN/SAC</label>
+                    <input className="ts-fi" value={l.hsn_sac} maxLength={20} inputMode="numeric" onChange={(e) => patch(l.key, { hsn_sac: e.target.value })} placeholder="HSN" />
+                  </div>
+                </div>
+                <div className="ts-fgrid ts-spo-b" style={{ marginTop: 12 }}>
+                  <div className="ts-fld">
+                    <label>Quantity</label>
+                    <input className="ts-fi ts-r" inputMode="decimal" value={l.qty} onFocus={(e) => e.target.select()} onChange={(e) => patch(l.key, { qty: e.target.value })} placeholder="1" />
+                  </div>
+                  <div className="ts-fld">
+                    <label>Unit</label>
+                    <EditableCombo options={unitOptions(l.unit)} value={l.unit} onTextChange={(t) => patch(l.key, { unit: t })} onPick={(u) => patch(l.key, { unit: u })} placeholder="Nos" ariaLabel={`Unit of line ${i + 1}`} />
+                  </div>
+                  <div className="ts-fld">
+                    <label>Price/Unit (₹)</label>
+                    <input className="ts-fi ts-r" inputMode="decimal" value={l.price} onFocus={(e) => e.target.select()} onChange={(e) => patch(l.key, { price: e.target.value })} placeholder="0.00" />
+                  </div>
+                  <div className="ts-fld">
+                    <label>Disc %</label>
+                    <input className="ts-fi ts-r" inputMode="decimal" value={l.discount_percent} onChange={(e) => patch(l.key, { discount_percent: e.target.value, discount_amount: '' })} placeholder={f && f.discount_amount > 0 && !l.discount_percent ? String(f.discount_percent) : '0'} />
+                  </div>
+                  <div className="ts-fld">
+                    <label>Disc ₹</label>
+                    <input className="ts-fi ts-r" inputMode="decimal" value={l.discount_amount} onChange={(e) => patch(l.key, { discount_amount: e.target.value, discount_percent: '' })} placeholder={f && f.discount_amount > 0 && !l.discount_amount ? inr(f.discount_amount) : '0.00'} />
+                  </div>
+                  <div className="ts-fld">
+                    <label>Tax</label>
+                    <select className="ts-fi" value={taxValue(l.tax_type, l.tax_percent)} onChange={(e) => patch(l.key, parseTax(e.target.value))} aria-label={`Tax of line ${i + 1}`}>
+                      {TAX_CHOICES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="ts-fld ts-ltotw">
+                    <span className="ts-lbl" style={{ fontSize: 11.5, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgb(var(--muted))', fontWeight: 500 }}>Amount</span>
+                    <div className="ts-ltot">₹{f ? inr(f.amount) : '0.00'}</div>
+                    {f && f.discount_amount > 0 && <small className="ts-lalloc">Discount ₹{inr(f.discount_amount)}</small>}
+                    {f && f.tax_amount > 0 && <small className="ts-lalloc">Tax ₹{inr(f.tax_amount)} on ₹{inr(f.taxable_amount)}</small>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button type="button" className="ts-btn ts-ghost ts-xs ts-addline !mt-0" onClick={() => setLines((prev) => [...prev, blankLine()])}><Plus className="size-3.5" /> Add item</button>
+          <span className="text-[13px] text-subtle">
+            Qty <b className="text-fg num">{figures.qty}</b> · Discount <b className="text-fg num">₹{inr(figures.discount)}</b> · Tax <b className="text-fg num">₹{inr(figures.tax)}</b> · Amount <b className="text-fg num">₹{inr(figures.total - figures.roundOff)}</b>
+          </span>
         </div>
       </section>
 
       {/* Terms, payment, totals */}
       <section className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
         <div className="ts-card ts-white flex flex-col gap-2">
-          <b className="text-fg text-[14px]">Terms & Conditions</b>
+          <div className="ts-ch">Terms & Conditions</div>
           <div className="ts-fld">
             <label htmlFor="spo-ttitle">Title</label>
             <input id="spo-ttitle" className="ts-fi" maxLength={80} value={termsTitle} onChange={(e) => setTermsTitle(e.target.value)} placeholder="Purchase Order" />
@@ -369,7 +376,7 @@ export default function SentPoForm() {
           <textarea className="ts-fi" rows={7} maxLength={5000} style={{ height: 'auto', resize: 'vertical', lineHeight: 1.5 }} value={termsText} onChange={(e) => setTermsText(e.target.value)} placeholder="Type the terms for this PO. They print on the PDF exactly as written." aria-label="Terms and conditions" />
         </div>
         <div className="ts-card ts-white flex flex-col gap-2">
-          <b className="text-fg text-[14px]">Payment</b>
+          <div className="ts-ch">Payment</div>
           <div className="ts-fld">
             <label htmlFor="spo-ptype">Payment type</label>
             <input id="spo-ptype" className="ts-fi" maxLength={100} value={paymentType} onChange={(e) => setPaymentType(e.target.value)} placeholder="e.g. Bank transfer" />
@@ -384,7 +391,7 @@ export default function SentPoForm() {
           </div>
         </div>
         <div className="ts-card ts-white flex flex-col gap-2 text-[13px]">
-          <b className="text-fg text-[14px]">Totals</b>
+          <div className="ts-ch">Totals</div>
           <div className="flex justify-between text-subtle"><span>Sub total</span><span className="num">₹{inr(figures.subTotal)}</span></div>
           <div className="flex justify-between text-subtle"><span>Tax</span><span className="num">₹{inr(figures.tax)}</span></div>
           <label className="flex justify-between items-center text-subtle">

@@ -93,6 +93,21 @@ function ReceivedPos() {
     load();
   }, []);
 
+  async function removeOlder(po: PurchaseOrder) {
+    if (!window.confirm(`Delete purchase order ${po.number}? It is removed for good. If the quotation has no other PO, it goes back to "sent".`)) return;
+    setDeletingId(-po.id);
+    setError('');
+    try {
+      await api.purchaseOrders.remove(po.id);
+      showToast(`Purchase order ${po.number} deleted.`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not delete the purchase order.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   async function removeReceived(po: PurchaseOrder) {
     if (!window.confirm(`Delete PO ${po.number} of ${po.quotation_number || 'this quotation'}? It is removed for good. If it was the quotation's only PO, the quotation goes back to "sent".`)) return;
     setDeletingId(po.id);
@@ -301,6 +316,9 @@ function ReceivedPos() {
                       <DownloadPdfButton url={api.purchaseOrders.pdfUrl(po.id)} fileName={pdfFileName(po.number)} kind="purchase-order" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline" title="Save the PDF to a folder">
                         Save
                       </DownloadPdfButton>
+                      <button type="button" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-bad hover:underline disabled:opacity-50" disabled={deletingId === -po.id} onClick={() => removeOlder(po)}>
+                        {deletingId === -po.id ? 'Deleting…' : 'Delete'}
+                      </button>
                       </>)}
                     </td>
                   </tr>
