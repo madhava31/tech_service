@@ -1348,7 +1348,7 @@ export const api = {
       clearCache('products');
       return res;
     },
-    makes: () => request<string[]>('/products/makes'),
+    makes: () => cachedFetch('products_makes', () => request<string[]>('/products/makes'), 300000),
     intelligence: (id: number) => request<ProductIntelligenceData>(`/products/${id}/intelligence`),
     intelligenceSummary: () => request<ProductIntelligenceSummaryData>('/products/intelligence-summary'),
     templateUrl: () => `${BASE}/products/import/template`,
@@ -1668,8 +1668,15 @@ export const api = {
   },
   settings: {
     /** lite leaves out the logo and signature images, which make the full response about 1 MB. */
-    get: (opts?: { lite?: boolean }) => request<CompanySettings>(opts?.lite ? '/settings?lite=1' : '/settings'),
-    update: (data: Partial<CompanySettings>) => request<CompanySettings>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    get: (opts?: { lite?: boolean }) =>
+      opts?.lite
+        ? cachedFetch('settings_lite', () => request<CompanySettings>('/settings?lite=1'), 300000)
+        : request<CompanySettings>('/settings'),
+    update: async (data: Partial<CompanySettings>) => {
+      const res = await request<CompanySettings>('/settings', { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('settings');
+      return res;
+    },
   },
   imports: {
     list: () => request<any[]>('/imports'),
@@ -2358,20 +2365,56 @@ export const api = {
     },
   },
   firms: {
-    list: () => request<Firm[]>('/firms'),
+    list: () => cachedFetch('firms_list', () => request<Firm[]>('/firms'), 300000),
     get: (id: number) => request<Firm & { branches: Branch[] }>(`/firms/${id}`),
-    create: (data: Partial<Firm>) => request<Firm>('/firms', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: Partial<Firm>) => request<Firm>(`/firms/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    delete: (id: number) => request<{ ok: boolean }>(`/firms/${id}`, { method: 'DELETE' }),
-    deleteMany: (ids: number[]) => request<{ ok: boolean; deletedCount: number }>('/firms/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
-    branches: (firmId?: number) => request<Branch[]>(`/branches${firmId ? `?firm_id=${firmId}` : ''}`),
+    create: async (data: Partial<Firm>) => {
+      const res = await request<Firm>('/firms', { method: 'POST', body: JSON.stringify(data) });
+      clearCache('firms');
+      return res;
+    },
+    update: async (id: number, data: Partial<Firm>) => {
+      const res = await request<Firm>(`/firms/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('firms');
+      return res;
+    },
+    delete: async (id: number) => {
+      const res = await request<{ ok: boolean }>(`/firms/${id}`, { method: 'DELETE' });
+      clearCache('firms');
+      return res;
+    },
+    deleteMany: async (ids: number[]) => {
+      const res = await request<{ ok: boolean; deletedCount: number }>('/firms/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) });
+      clearCache('firms');
+      return res;
+    },
+    branches: (firmId?: number) =>
+      cachedFetch(`firms_branches_${firmId || 0}`, () => request<Branch[]>(`/branches${firmId ? `?firm_id=${firmId}` : ''}`), 300000),
     getBranch: (id: number) => request<Branch & { document_settings: BranchDocumentSettings }>(`/branches/${id}`),
-    createBranch: (data: Partial<Branch>) => request<Branch>('/branches', { method: 'POST', body: JSON.stringify(data) }),
-    updateBranch: (id: number, data: Partial<Branch>) => request<Branch>(`/branches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteBranch: (id: number) => request<{ ok: boolean }>(`/branches/${id}`, { method: 'DELETE' }),
-    deleteManyBranches: (ids: number[]) => request<{ ok: boolean; deletedCount: number }>('/branches/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
-    updateBranchDocumentSettings: (branchId: number, data: Partial<BranchDocumentSettings>) =>
-      request<BranchDocumentSettings>(`/branches/${branchId}/document-settings`, { method: 'PUT', body: JSON.stringify(data) }),
+    createBranch: async (data: Partial<Branch>) => {
+      const res = await request<Branch>('/branches', { method: 'POST', body: JSON.stringify(data) });
+      clearCache('firms');
+      return res;
+    },
+    updateBranch: async (id: number, data: Partial<Branch>) => {
+      const res = await request<Branch>(`/branches/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('firms');
+      return res;
+    },
+    deleteBranch: async (id: number) => {
+      const res = await request<{ ok: boolean }>(`/branches/${id}`, { method: 'DELETE' });
+      clearCache('firms');
+      return res;
+    },
+    deleteManyBranches: async (ids: number[]) => {
+      const res = await request<{ ok: boolean; deletedCount: number }>('/branches/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) });
+      clearCache('firms');
+      return res;
+    },
+    updateBranchDocumentSettings: async (branchId: number, data: Partial<BranchDocumentSettings>) => {
+      const res = await request<BranchDocumentSettings>(`/branches/${branchId}/document-settings`, { method: 'PUT', body: JSON.stringify(data) });
+      clearCache('firms');
+      return res;
+    },
   },
   export: {
     quotationsUrl: (params?: { status?: string; start?: string; end?: string; columns?: string }) => {
