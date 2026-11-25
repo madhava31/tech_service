@@ -3,6 +3,7 @@ import db from '../db/index.js';
 import { requireAdmin } from '../auth/middleware.js';
 import { USERNAME_RULE, PASSWORD_MIN, PASSWORD_MAX } from './auth.js';
 import { hashPassword } from '../auth/password.js';
+import { createBackupHandler } from '../backup/dataBackup.js';
 
 const router = Router();
 router.use(requireAdmin);
@@ -14,13 +15,22 @@ router.get('/stats', async (req, res) => {
     const tables = ['company', 'product', 'quotation', 'purchase_order', 'performa_invoice', 'sales_record', 'import_batch', 'app_user'];
     const counts = {};
     for (const t of tables) counts[t === 'app_user' ? 'user' : t] = (await db.prepare(`SELECT COUNT(*) c FROM ${t}`).get()).c;
-    // Postgres has no local db file to size, and Postgres backups belong to the hosting
-    // provider (e.g. Supabase's built-in backups) rather than a file download from the app.
-    res.json({ counts, dbSizeBytes: 0 });
+    // The size of the whole database (0 if the database will not say).
+    let dbSizeBytes = 0;
+    try {
+      dbSizeBytes = Number((await db.prepare(`SELECT pg_database_size(current_database()) AS size`).get())?.size) || 0;
+    } catch {
+      dbSizeBytes = 0;
+    }
+    res.json({ counts, dbSizeBytes });
   } catch (err) {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 });
+
+// ---------- Data backup (every table in one Excel file; admin only through router.use above) ----------
+
+router.get('/backup', createBackupHandler({ db }));
 
 // ---------- Import batches ----------
 
