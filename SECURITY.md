@@ -15,7 +15,7 @@ What the code already does, and the steps only the account owner can do.
 ## Your steps
 1. **Two-factor sign-in** on GitHub (Settings > Password and authentication), Vercel (Account Settings > Authentication) and Supabase (Account > Security).
 2. **Run migration 018** in the Supabase SQL Editor (the login lock).
-3. **Check row level security** in the Supabase SQL Editor. This should return no rows:
+3. **Run migration 020** (`app/client/api/_lib/db/migrations/020_enable_rls_all_tables.sql`) in the Supabase SQL Editor. Supabase's security advisor reports "RLS Disabled in Public" for the older tables (including `app_user` and `session`); the migration turns RLS on for every table and removes the API roles' access. The ERP is not affected because it connects directly as the table owner. Afterwards check that this returns no rows:
    ```sql
    select tablename from pg_tables where schemaname = 'public' and not rowsecurity;
    ```
