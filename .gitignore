@@ -27,3 +27,7 @@ app/client/scripts/inventory-ddl-for-test.sql
 # Stray saved `git diff` output at the repo root
 /tech_service*
 
+
+# Database dumps contain all customer data: never commit them.
+*.dump
+backup.dump

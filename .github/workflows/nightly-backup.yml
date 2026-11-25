@@ -1,0 +1,66 @@
+# Nightly copy of the database into the client's SharePoint. Setup: docs/sharepoint-backup-setup.md
+#
+# - Runs every night at 02:00 IST (20:30 UTC) and on demand (Actions > Nightly database backup > Run workflow).
+# - Only "schedule" and "workflow_dispatch" start it. There is no pull_request trigger, so a fork can never reach the secrets.
+# - This repository is PUBLIC: the dump is never stored as a GitHub artifact (anyone could download it). It goes only to
+#   SharePoint, and the runner is thrown away afterwards.
+name: Nightly database backup
+
+on:
+  schedule:
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Dump the database
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "$BACKUP_DATABASE_URL" ]; then echo "BACKUP_DATABASE_URL is not set in the repository secrets"; exit 1; fi
+          # pg_dump 17 can dump any older Postgres. The URL must be the Supabase session pooler (port 5432).
+          docker run --rm --user "$(id -u):$(id -g)" -e PGURL="$BACKUP_DATABASE_URL" -v "$PWD:/out" postgres:17 \
+            sh -c 'pg_dump "$PGURL" --schema=public --no-owner --no-acl --format=custom --file=/out/backup.dump'
+          ls -l backup.dump
+
+      - name: Check the dump is complete and readable
+        run: |
+          set -euo pipefail
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/out" postgres:17 pg_restore --list /out/backup.dump > toc.txt
+          for t in company product quotation app_user; do
+            grep -qE "TABLE public $t " toc.txt || { echo "The dump has no table $t. It will not be uploaded."; exit 1; }
+          done
+          size=$(stat -c %s backup.dump)
+          if [ "$size" -lt 20000 ]; then echo "The dump is only $size bytes. It will not be uploaded."; exit 1; fi
+          tables=$(grep -cE "; TABLE public " toc.txt || true)
+          echo "Dump OK: $size bytes, $tables tables" | tee -a "$GITHUB_STEP_SUMMARY"
+          rm -f toc.txt
+
+      - name: Upload to SharePoint
+        env:
+          BACKUP_TENANT_ID: ${{ secrets.BACKUP_TENANT_ID }}
+          BACKUP_CLIENT_ID: ${{ secrets.BACKUP_CLIENT_ID }}
+          BACKUP_CLIENT_SECRET: ${{ secrets.BACKUP_CLIENT_SECRET }}
+          BACKUP_SHAREPOINT_SITE: ${{ secrets.BACKUP_SHAREPOINT_SITE }}
+        run: node app/client/scripts/backup/uploadToSharePoint.mjs backup.dump
+
+      - name: Remove the local copy
+        if: always()
+        run: rm -f backup.dump toc.txt
