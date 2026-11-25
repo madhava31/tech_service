@@ -36,9 +36,9 @@ describe('DELETE /api/purchase-orders/:id', () => {
     };
   });
 
-  async function del(id) {
+  async function del(id, role = 'admin') {
     const app = express();
-    app.use((req, _res, next) => { req.user = { id: 2, role: 'staff' }; next(); });
+    app.use((req, _res, next) => { req.user = { id: 2, role }; next(); });
     app.use('/api/purchase-orders', router);
     const server = await new Promise((r) => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
     try {
@@ -68,5 +68,12 @@ describe('DELETE /api/purchase-orders/:id', () => {
   test('unknown or invalid ids', async () => {
     assert.equal((await del(99)).status, 404);
     assert.equal((await del('abc')).status, 400);
+  });
+
+  test('a staff user cannot delete a purchase order (admin only)', async () => {
+    const r = await del(5, 'staff');
+    assert.equal(r.status, 403);
+    assert.match(r.body.error, /Only an administrator can delete purchase orders/);
+    assert.equal(state.pos.length, 3, 'nothing was deleted');
   });
 });

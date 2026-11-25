@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { fmtDay } from '../components/ds/format';
+import { useAuth } from '../auth';
 import { api, PurchaseOrder } from '../api';
 import { DownloadPdfButton } from '../components/DownloadPdfButton';
 import { pdfFileName } from '../lib/savePdf';
@@ -72,6 +73,7 @@ export default function PurchaseOrders() {
 
 /** Received POs: the customer POs recorded with "PO received" (and manual orders), then the older purchase order records. */
 function ReceivedPos() {
+  const isAdmin = useAuth().user?.role === 'admin';
   const [editing, setEditing] = useState<{ quotationId: number; poId: number } | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [rows, setRows] = useState<(PurchaseOrder & { received?: boolean })[]>([]);
@@ -316,9 +318,11 @@ function ReceivedPos() {
                       <DownloadPdfButton url={api.purchaseOrders.pdfUrl(po.id)} fileName={pdfFileName(po.number)} kind="purchase-order" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-subtle hover:text-fg hover:underline" title="Save the PDF to a folder">
                         Save
                       </DownloadPdfButton>
-                      <button type="button" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-bad hover:underline disabled:opacity-50" disabled={deletingId === -po.id} onClick={() => removeOlder(po)}>
+                      {isAdmin && (
+                        <button type="button" className="ml-3 cursor-pointer border-0 bg-transparent p-0 text-[12px] text-bad hover:underline disabled:opacity-50" disabled={deletingId === -po.id} onClick={() => removeOlder(po)}>
                         {deletingId === -po.id ? 'Deleting…' : 'Delete'}
                       </button>
+                      )}
                       </>)}
                     </td>
                   </tr>

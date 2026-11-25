@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
-import { requireAuth } from '../auth/middleware.js';
+import { requireAuth, requireAdminFor } from '../auth/middleware.js';
 import { sendRouteError } from '../http/errors.js';
 import { resolveUserId } from '../db/inventorySchema.js';
 import { createSchemaGuard } from '../db/schemaGuard.js';
@@ -745,7 +745,7 @@ router.post('/:id/cancel', requireAuth, async (req, res) => {
  * POST /api/sale-reports/bulk-delete
  * Delete multiple Sale Reports and their line items
  */
-router.post('/bulk-delete', requireAuth, async (req, res) => {
+router.post('/bulk-delete', requireAuth, requireAdminFor('delete sale reports'), async (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -771,7 +771,7 @@ router.post('/bulk-delete', requireAuth, async (req, res) => {
  * DELETE /api/sale-reports/:id
  * Delete a single Sale Report and its line items
  */
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requireAdminFor('delete sale reports'), async (req, res) => {
   try {
     const reportId = Number(req.params.id);
     if (!reportId) return res.status(400).json({ error: 'Invalid report ID' });

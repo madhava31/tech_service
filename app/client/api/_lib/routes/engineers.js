@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sendRouteError } from '../http/errors.js';
+import { requireAdminFor } from '../auth/middleware.js';
 import {
   getEngineers,
   getEngineerById,
@@ -57,7 +58,7 @@ router.get('/targets', async (req, res) => {
   }
 });
 
-router.post('/targets', async (req, res) => {
+router.post('/targets', requireAdminFor('set sales targets'), async (req, res) => {
   try {
     const result = await setEngineerTarget({
       engineer_id: req.body.engineer_id,
@@ -89,7 +90,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAdminFor('add sales engineers'), async (req, res) => {
   try {
     const engineer = await createEngineer(req.body);
     res.status(201).json(engineer);
@@ -98,7 +99,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdminFor('edit sales engineers'), async (req, res) => {
   try {
     const engineer = await updateEngineer(req.params.id, req.body);
     res.json(engineer);

@@ -3,6 +3,7 @@ import db from '../db/index.js';
 import { poReceivedReady } from '../quotations/poReceived.js';
 import { nextNumber } from '../db/numbering.js';
 import { streamPurchaseOrderPdf } from '../pdf/documents.js';
+import { requireAdminFor } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -121,7 +122,7 @@ router.post('/', async (req, res) => {
  * reports and procurement are cleared first. If the quotation has no other PO left (of either kind), it goes back to "sent",
  * like deleting a PO received.
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdminFor('delete purchase orders'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid purchase order' });

@@ -3,6 +3,7 @@ import db from '../db/index.js';
 import { sendRouteError } from '../http/errors.js';
 import { createSchemaGuard } from '../db/schemaGuard.js';
 import { cleanSeriesPrefix, seriesFromBody } from '../quotations/series.js';
+import { requireAdminFor } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -226,7 +227,7 @@ router.get('/:id', async (req, res) => {
 /**
  * POST /api/branches
  */
-router.post('/', async (req, res) => {
+router.post('/', requireAdminFor('add branches'), async (req, res) => {
   try {
     const {
       firm_id, firmId, code, branchCode, name, branchName,
@@ -298,7 +299,7 @@ router.post('/', async (req, res) => {
 /**
  * PUT /api/branches/:id
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdminFor('edit branches'), async (req, res) => {
   try {
     const branchId = Number(req.params.id);
     const existing = await db.prepare(`SELECT * FROM branch WHERE id = ?`).get(branchId);
@@ -363,7 +364,7 @@ router.put('/:id', async (req, res) => {
 /**
  * PUT /api/branches/:id/document-settings
  */
-router.put('/:id/document-settings', async (req, res) => {
+router.put('/:id/document-settings', requireAdminFor('change branch document settings'), async (req, res) => {
   try {
     const branchId = Number(req.params.id);
     const branch = await db.prepare(`SELECT * FROM branch WHERE id = ?`).get(branchId);
@@ -456,7 +457,7 @@ async function deleteBranchInternal(branchId) {
 /**
  * DELETE /api/branches/:id
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdminFor('delete branches'), async (req, res) => {
   try {
     const branchId = Number(req.params.id);
     await deleteBranchInternal(branchId);
@@ -470,7 +471,7 @@ router.delete('/:id', async (req, res) => {
 /**
  * POST /api/branches/bulk-delete
  */
-router.post('/bulk-delete', async (req, res) => {
+router.post('/bulk-delete', requireAdminFor('delete branches'), async (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {

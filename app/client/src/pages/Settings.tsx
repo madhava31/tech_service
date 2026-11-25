@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, CompanySettings } from '../api';
+import { useAuth } from '../auth';
 import { pdfFirstPageToPng } from '../lib/pdfToImage';
 import { shrinkImage, dataUrlKb, LOGO_LIMITS, SIGNATURE_LIMITS } from '../lib/shrinkImage';
 
@@ -32,6 +33,7 @@ async function toPdfSafeImage(file: File): Promise<string> {
 }
 
 export default function Settings() {
+  const isAdmin = useAuth().user?.role === 'admin';
   const [settings, setSettings] = useState<CompanySettings | null>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
@@ -113,10 +115,12 @@ export default function Settings() {
           <p className="ts-muted m-0 mt-1.5 text-[14px]">
             Configure organisation details, branding, default quotation terms, and invoice numbering.
           </p>
+          {!isAdmin && <p className="m-0 mt-1 text-[12.5px] text-warn">Only an administrator can change these settings. You can view them here.</p>}
         </div>
         <button
           onClick={save}
-          disabled={saving}
+          disabled={saving || !isAdmin}
+          title={isAdmin ? undefined : 'Only an administrator can change the company settings'}
           className="ts-btn ts-dark"
         >
           {saving ? (
@@ -505,7 +509,8 @@ export default function Settings() {
       <div className="flex justify-end pt-2">
         <button
           onClick={save}
-          disabled={saving}
+          disabled={saving || !isAdmin}
+          title={isAdmin ? undefined : 'Only an administrator can change the company settings'}
           className="ts-btn ts-dark"
         >
           {saving ? 'Saving...' : 'Save All Settings'}
