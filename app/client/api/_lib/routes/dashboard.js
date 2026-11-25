@@ -3,6 +3,7 @@ import db from '../db/index.js';
 import { paymentsReady, listOutstanding } from '../payments/service.js';
 import { classifyHealthStatus } from './companies.js';
 import { receivedValueSql, runWithFallback } from '../quotations/poValue.js';
+import { pendingSalesRequests } from '../integration/requestSchema.js';
 
 const router = Router();
 
@@ -232,6 +233,19 @@ router.get('/attention', async (req, res) => {
     // Urgent follow-ups are pushed first so they sort ahead of the other 'high' priority items
     // below (the sort is a stable sort by priority only) — the most time-sensitive condition on
     // the dashboard, without changing any existing item's own priority value.
+    // A salesperson has asked for a quotation (from the Technicon Sales app): first, because staff are waiting on it.
+    const salesRequests = await pendingSalesRequests(db);
+    if (salesRequests.count > 0) {
+      items.push({
+        type: 'sales_quotation_request',
+        priority: 'high',
+        title: `${plural(salesRequests.count, 'quotation request')} from the sales team`,
+        description: `${salesRequests.latest.requested_by} is asking for a quotation for ${salesRequests.latest.company_name}${salesRequests.count > 1 ? ` and ${salesRequests.count - 1} more` : ''}.`,
+        count: salesRequests.count,
+        route: '/sales-requests',
+      });
+    }
+
     if (overdueFollowUps > 0) {
       items.push({
         type: 'follow_up_overdue',

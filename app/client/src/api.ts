@@ -3997,3 +3997,39 @@ export async function searchGlobalApi(q: string, limit: number = 30, signal?: Ab
 
 
 
+
+// Quotation requests from the Technicon Sales app: a salesperson asks, and the staff who prepare quotations see it.
+export interface SalesQuotationRequest {
+  id: number;
+  sales_request_id: number;
+  opportunity_code: string;
+  opportunity_title: string | null;
+  requested_by: string;
+  salesperson: string | null;
+  company_name: string;
+  company_city: string | null;
+  company_state: string | null;
+  company_gstin: string | null;
+  erp_company_id: number | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  oems: string[];
+  products: { part_no: string | null; name: string | null; oem: string | null }[];
+  estimated_value: string | number | null;
+  expected_close_date: string | null;
+  notes: string | null;
+  requested_at: string | null;
+  received_at: string;
+  status: 'pending' | 'done' | 'dismissed';
+  handled_at: string | null;
+  handled_note: string | null;
+}
+
+export async function fetchSalesRequests(status: 'pending' | 'done' | 'dismissed' | 'all' = 'pending'): Promise<SalesQuotationRequest[]> {
+  return request<SalesQuotationRequest[]>(`/sales-requests?status=${status}`);
+}
+
+export async function handleSalesRequest(id: number, action: 'done' | 'dismiss', note?: string): Promise<SalesQuotationRequest> {
+  return request<SalesQuotationRequest>(`/sales-requests/${id}/${action}`, { method: 'POST', body: JSON.stringify({ note }) });
+}
