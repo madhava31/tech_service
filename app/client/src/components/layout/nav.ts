@@ -38,6 +38,7 @@ export const NAV: NavEntry[] = [
   ] },
   { kind: 'group', key: 'pipeline', label: 'Pipeline', items: [
     { label: 'Pipeline control', path: '/sales/pipeline', desc: 'Deals by stage', exact: true },
+    { label: 'Quotation requests', path: '/sales-requests', desc: 'Quotations the sales team has asked for' },
     { label: 'Due today', path: '/follow-ups/due-today', desc: 'Follow-ups scheduled for today', also: ['/follow-ups-due-today'] },
     { label: 'Overdue follow-ups', path: '/follow-ups/overdue', desc: 'Follow-ups that slipped', also: ['/overdue-follow-ups'] },
     { label: 'Sales overview', path: '/sales', desc: 'Orders, pending and reports', exact: true, also: ['/sales/orders', '/sales/pending', '/sales/reports'] },

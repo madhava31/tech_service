@@ -36,6 +36,7 @@ const PurchaseOrdersNotInvoiced = lazy(() => import('./pages/PurchaseOrdersNotIn
 const PaymentsDue = lazy(() => import('./pages/PaymentsDue'));
 const FlaggedSalesRecords = lazy(() => import('./pages/FlaggedSalesRecords'));
 const OverdueFollowUps = lazy(() => import('./pages/OverdueFollowUps'));
+const SalesRequests = lazy(() => import('./pages/SalesRequests'));
 const FollowUpsDueToday = lazy(() => import('./pages/FollowUpsDueToday'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Admin = lazy(() => import('./pages/Admin'));
@@ -182,6 +183,7 @@ export default function App() {
             <Route path="/payments-due" element={<PaymentsDue />} />
             <Route path="/flagged-sales-records" element={<FlaggedSalesRecords />} />
             <Route path="/overdue-follow-ups" element={<OverdueFollowUps />} />
+            <Route path="/sales-requests" element={<SalesRequests />} />
             <Route path="/follow-ups/overdue" element={<OverdueFollowUps />} />
             <Route path="/follow-ups-due-today" element={<FollowUpsDueToday />} />
             <Route path="/follow-ups/due-today" element={<FollowUpsDueToday />} />
