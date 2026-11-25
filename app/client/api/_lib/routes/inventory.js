@@ -3,7 +3,7 @@ import path from 'path';
 import multer from 'multer';
 import ExcelJS from 'exceljs';
 import db from '../db/index.js';
-import { requireAuth } from '../auth/middleware.js';
+import { requireAuth, requireAdminFor } from '../auth/middleware.js';
 import { ensureInventorySchema, getUserTable, resolveUserId } from '../db/inventorySchema.js';
 import { getMovementReport, buildMovementReportExcel, todayIST } from '../inventory/movementReport.js';
 import { movementTimestamp } from '../inventory/movementDate.js';
@@ -351,7 +351,7 @@ router.patch('/warehouses/:id', requireAuth, async (req, res) => {
 /**
  * POST /api/inventory/warehouses/bulk-delete
  */
-router.post('/warehouses/bulk-delete', requireAuth, async (req, res) => {
+router.post('/warehouses/bulk-delete', requireAuth, requireAdminFor('delete warehouses'), async (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -411,7 +411,7 @@ router.post('/warehouses/bulk-delete', requireAuth, async (req, res) => {
 /**
  * DELETE /api/inventory/warehouses/:id
  */
-router.delete('/warehouses/:id', requireAuth, async (req, res) => {
+router.delete('/warehouses/:id', requireAuth, requireAdminFor('delete warehouses'), async (req, res) => {
   try {
     const whId = Number(req.params.id);
     if (!whId) return res.status(400).json({ error: 'Invalid warehouse ID' });
@@ -592,7 +592,7 @@ router.get('/stock/template', async (req, res) => {
  * POST /api/inventory/stock/import-excel
  * Fully functional import of stock ledger from Excel (.xlsx) only
  */
-router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), async (req, res) => {
+router.post('/stock/import-excel', requireAuth, requireAdminFor('overwrite stock from an Excel file'), uploadExcel.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No Excel file uploaded (.xlsx format required)' });
   }
@@ -790,7 +790,7 @@ router.post('/stock/import-excel', requireAuth, uploadExcel.single('file'), asyn
 /**
  * POST /api/inventory/stock/bulk-delete
  */
-router.post('/stock/bulk-delete', requireAuth, async (req, res) => {
+router.post('/stock/bulk-delete', requireAuth, requireAdminFor('delete stock items'), async (req, res) => {
   try {
     const { productIds } = req.body;
     if (!Array.isArray(productIds) || productIds.length === 0) {
@@ -808,7 +808,7 @@ router.post('/stock/bulk-delete', requireAuth, async (req, res) => {
 /**
  * DELETE /api/inventory/stock/:productId
  */
-router.delete('/stock/:productId', requireAuth, async (req, res) => {
+router.delete('/stock/:productId', requireAuth, requireAdminFor('delete stock items'), async (req, res) => {
   try {
     const prodId = Number(req.params.productId);
     if (!prodId) return res.status(400).json({ error: 'Invalid product ID' });
@@ -1432,7 +1432,7 @@ router.post('/receipts/import-excel', requireAuth, uploadExcel.single('file'), a
 /**
  * POST /api/inventory/receipts/bulk-delete
  */
-router.post('/receipts/bulk-delete', requireAuth, async (req, res) => {
+router.post('/receipts/bulk-delete', requireAuth, requireAdminFor('delete stock receipts'), async (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -1450,7 +1450,7 @@ router.post('/receipts/bulk-delete', requireAuth, async (req, res) => {
 /**
  * DELETE /api/inventory/receipts/:id
  */
-router.delete('/receipts/:id', requireAuth, async (req, res) => {
+router.delete('/receipts/:id', requireAuth, requireAdminFor('delete stock receipts'), async (req, res) => {
   try {
     const recId = Number(req.params.id);
     if (!recId) return res.status(400).json({ error: 'Invalid receipt ID' });

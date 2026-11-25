@@ -3,6 +3,7 @@ import db from '../db/index.js';
 import { sendRouteError } from '../http/errors.js';
 import { createSchemaGuard } from '../db/schemaGuard.js';
 import { cleanSeriesPrefix, seriesFromBody } from '../quotations/series.js';
+import { requireAdminFor } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -99,7 +100,7 @@ router.get('/:id', async (req, res) => {
 /**
  * POST /api/firms
  */
-router.post('/', async (req, res) => {
+router.post('/', requireAdminFor('add firms'), async (req, res) => {
   try {
     const { code, firmCode, name, firmName, legal_name, legalName, gstin, pan, email, phone, isDefault } = req.body;
     const codeVal = (code || firmCode) ? String(code || firmCode).trim().toUpperCase() : null;
@@ -146,7 +147,7 @@ router.post('/', async (req, res) => {
 /**
  * PUT /api/firms/:id
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdminFor('edit firms'), async (req, res) => {
   try {
     const firmId = Number(req.params.id);
     const existing = await db.prepare(`SELECT * FROM firm WHERE id = ?`).get(firmId);
@@ -228,7 +229,7 @@ async function deleteFirmInternal(firmId) {
 /**
  * DELETE /api/firms/:id
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdminFor('delete firms'), async (req, res) => {
   try {
     const firmId = Number(req.params.id);
     await deleteFirmInternal(firmId);
@@ -242,7 +243,7 @@ router.delete('/:id', async (req, res) => {
 /**
  * POST /api/firms/bulk-delete
  */
-router.post('/bulk-delete', async (req, res) => {
+router.post('/bulk-delete', requireAdminFor('delete firms'), async (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {

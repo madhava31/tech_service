@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db/index.js';
+import { requireAdminFor } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.put('/', async (req, res) => {
+router.put('/', requireAdminFor('change the company settings'), async (req, res) => {
   try {
     const existing = await db.prepare(`SELECT * FROM company_settings WHERE id = 1`).get();
     const merged = { ...existing };

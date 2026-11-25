@@ -43,3 +43,16 @@ export async function requireAdmin(req, res, next) {
     next();
   });
 }
+
+/**
+ * Role check for a route that is already behind requireAuth (req.user is set): only an admin may continue.
+ * Example: router.delete('/:id', requireAdminFor('delete firms'), handler)
+ */
+export const requireAdminFor = (action) => {
+  const guard = (req, res, next) => {
+    if (req.user?.role !== 'admin') return res.status(403).json({ error: `Only an administrator can ${action}.` });
+    next();
+  };
+  guard.adminAction = action; // lets a test prove which routes carry the guard
+  return guard;
+};

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, AdminUser } from '../api';
 import { useAuth } from '../auth';
 import AccountSettings from '../components/AccountSettings';
+import { DownloadLink } from '../components/DownloadLink';
 
 type Tab = 'users' | 'data' | 'config' | 'account';
 
@@ -388,22 +389,29 @@ export default function Admin() {
             </div>
           )}
 
+          {/* Data backup */}
+          <div className="ts-card ts-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="m-0 text-[15px] font-medium text-fg">Download data backup</h3>
+              <p className="ts-muted m-0 mt-1.5 text-[14px] max-w-2xl">
+                Every table (customers, products, quotations, POs, invoices, stock and more) in one Excel file, one sheet per table. Passwords,
+                login sessions and API keys are not included. This is a readable copy of the data; to restore the whole database use the
+                Supabase backups or the nightly backup.
+              </p>
+            </div>
+            <DownloadLink href={api.admin.backupUrl()} className="ts-btn ts-dark ts-xs whitespace-nowrap">
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download Backup (Excel)
+            </DownloadLink>
+          </div>
+
           {/* Import Batches */}
           <div className="ts-card ts-white ts-tbl overflow-hidden">
-            <div className="p-6 border-b border-line2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="m-0 text-[15px] font-medium text-fg">Excel Import Batches</h3>
-                <p className="ts-muted m-0 mt-1.5 text-[14px]">Historical sales imports logged in database</p>
-              </div>
-              <a
-                href={api.admin.backupUrl()}
-                className="ts-btn ts-ghost ts-xs"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download SQL Database Backup
-              </a>
+            <div className="p-6 border-b border-line2">
+              <h3 className="m-0 text-[15px] font-medium text-fg">Excel Import Batches</h3>
+              <p className="ts-muted m-0 mt-1.5 text-[14px]">Historical sales imports logged in database</p>
             </div>
 
             <div className="ts-tblwrap">
