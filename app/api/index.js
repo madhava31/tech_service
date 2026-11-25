@@ -25,6 +25,7 @@ import saleReportsRouter from '../client/api/_lib/routes/saleReports.js';
 import inventoryRouter from '../client/api/_lib/routes/inventory.js';
 import analysisRouter from '../client/api/_lib/routes/analysis.js';
 import exportRouter from '../client/api/_lib/routes/export.js';
+import integrationRouter from '../client/api/_lib/routes/integration.js';
 import { liveFeedRouter, keysRouter } from '../client/api/_lib/export/liveExport.js';
 import firmsRouter from '../client/api/_lib/routes/firms.js';
 import branchesRouter from '../client/api/_lib/routes/branches.js';
@@ -234,6 +235,8 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/events', requireAuth, handleSseConnection);
 
 // Core PostgreSQL API routes
+// Read-only data for the Technicon Sales app, opened by a key (ERP_INTEGRATION_KEY), not a login. 404 while the key is unset.
+app.use('/api/integration/v1', integrationRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/companies', requireAuth, companiesRouter);
 app.use('/api/products', requireAuth, productsRouter);
