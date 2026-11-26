@@ -450,6 +450,15 @@ export interface QuotationInvoiceList {
   invoices: QuotationInvoice[];
 }
 
+/** An address the ERP may send quotation emails from (the From list of the Send Email dialog). */
+export interface EmailSender {
+  address: string;
+  label: string;
+  default: boolean;
+  /** false while that mailbox has not been connected yet */
+  available: boolean;
+}
+
 export interface QuotationEmailResult {
   ok: boolean;
   status: 'SIMULATED_NOT_SENT' | 'SENT';
@@ -1453,8 +1462,10 @@ export const api = {
     downloadPdfUrl: (id: number) => `${BASE}/quotations/${id}/pdf?download=1`,
     openPdf: (id: number) => openPdfDocument(`/quotations/${id}/pdf`),
     /** Admin only. Emails the quotation PDF; with the mock provider the result is SIMULATED_NOT_SENT and nothing is sent. */
-    sendEmail: (id: number, data: { to: string; cc?: string; subject: string; message: string }) =>
+    sendEmail: (id: number, data: { to: string; cc?: string; subject: string; message: string; sender?: string }) =>
       request<QuotationEmailResult>(`/quotations/${id}/send-email`, { method: 'POST', body: JSON.stringify(data) }),
+    /** Admin only. The addresses the Send Email dialog may send from, and whether each is connected. */
+    emailSenders: () => request<EmailSender[]>('/quotations/send-email/senders'),
     /** PO received (migration 008): the customer POs of a quotation, typed by hand, with the items each one ordered. */
     salesTeam: {
       save: async (id: number, members: { sales_engineer_id: number; share_percent: number }[]) => {

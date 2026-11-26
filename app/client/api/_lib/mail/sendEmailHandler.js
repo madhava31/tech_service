@@ -18,7 +18,7 @@ export function requireAdminRole(req, res, next) {
 
 const GENERIC = 'Something went wrong. Please try again.';
 
-export function createSendEmailHandler({ loadQuotation, renderPdf, getProvider, getSender, log, guard }) {
+export function createSendEmailHandler({ loadQuotation, renderPdf, getProvider, getSender, resolveSender, log, guard }) {
   return async function sendEmail(req, res) {
     const idText = String(req.params.id ?? '');
     if (!/^\d{1,9}$/.test(idText) || Number(idText) < 1) return res.status(400).json({ error: 'Invalid quotation id' });
@@ -39,6 +39,16 @@ export function createSendEmailHandler({ loadQuotation, renderPdf, getProvider, 
     } catch (err) {
       console.error('[send-email] mail provider unavailable:', err?.code || err?.message);
       return res.status(503).json({ error: 'Email sending is not configured yet. Please contact your administrator.', code: 'MAIL_NOT_CONFIGURED' });
+    }
+
+    // The sender: one of the allowed addresses (resolveSender refuses any other), or the single default sender.
+    let from;
+    try {
+      from = resolveSender ? resolveSender(request.sender) : getSender();
+    } catch (err) {
+      if (err instanceof ValidationError) return res.status(err.status).json({ error: err.message });
+      console.error('[send-email] sender could not be resolved:', err);
+      return res.status(500).json({ error: GENERIC });
     }
 
     const lock = guard.acquire(req.user.id, quotationId);
@@ -74,7 +84,7 @@ export function createSendEmailHandler({ loadQuotation, renderPdf, getProvider, 
       let result;
       try {
         result = await provider.send({
-          from: getSender(),
+          from,
           to: request.to,
           cc: request.cc,
           subject: request.subject,

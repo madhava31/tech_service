@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { PaperclipIcon } from 'lucide-react';
-import { api } from '../api';
+import { api, type EmailSender } from '../api';
 import { pdfFileName, showToast } from '../lib/savePdf';
 
 const DEFAULT_MESSAGE = `Dear Customer,
@@ -42,10 +42,24 @@ export function SendEmailModal({
   const [cc, setCc] = useState('');
   const [subject, setSubject] = useState(`Quotation ${quotationNumber} from Technicon Services`);
   const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [senders, setSenders] = useState<EmailSender[]>([]);
+  const [sender, setSender] = useState('');
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
   const sendingRef = useRef(false); // blocks a second submit even before React re-renders
   const fileName = pdfFileName(quotationNumber, `quotation-${quotationId}`);
+
+  // The From list. If it cannot be loaded the dialog still works: the server then uses its default sender.
+  useEffect(() => {
+    let live = true;
+    api.quotations.emailSenders().then((list) => {
+      if (!live) return;
+      setSenders(list);
+      const first = list.find((s) => s.default && s.available) || list.find((s) => s.available);
+      if (first) setSender(first.address);
+    }).catch(() => {});
+    return () => { live = false; };
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -59,6 +73,7 @@ export function SendEmailModal({
     e.preventDefault();
     if (sendingRef.current) return;
     const problem =
+      (senders.length > 0 && !sender ? 'No sender address is connected yet. Ask your administrator.' : '') ||
       checkAddresses(to, 'To', true) ||
       checkAddresses(cc, 'CC', false) ||
       (!subject.trim() ? 'Subject is required.' : '') ||
@@ -72,7 +87,7 @@ export function SendEmailModal({
     sendingRef.current = true;
     setSending(true);
     try {
-      const result = await api.quotations.sendEmail(quotationId, { to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), message });
+      const result = await api.quotations.sendEmail(quotationId, { to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), message, sender: sender || undefined });
       showToast(result.message);
       onClose();
     } catch (err) {
@@ -94,6 +109,18 @@ export function SendEmailModal({
           <button type="button" className="ts-btn ts-ghost ts-xs !px-2.5" aria-label="Close" onClick={onClose} disabled={sending}>×</button>
         </div>
 
+        {senders.length > 0 && (
+          <div className="ts-fld">
+            <label htmlFor="se-from">From *</label>
+            <select id="se-from" className="ts-fi" value={sender} onChange={(e) => setSender(e.target.value)}>
+              {senders.map((s) => (
+                <option key={s.address} value={s.address} disabled={!s.available}>
+                  {s.label} ({s.address}){s.available ? '' : ' - not connected yet'}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="ts-fld">
           <label htmlFor="se-to">To *</label>
           <input id="se-to" className="ts-fi" type="text" inputMode="email" autoComplete="off" value={to} onChange={(e) => setTo(e.target.value)} placeholder="customer@company.com" autoFocus={!to} />

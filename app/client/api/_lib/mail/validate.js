@@ -85,7 +85,13 @@ export function parseEmailRequest(body) {
   const cc = parseAddresses(body.cc, 'CC', { required: false });
   const subject = parseSubject(body.subject);
   const message = parseMessage(body.message);
-  return { to, cc, subject, message };
+  const out = { to, cc, subject, message };
+  // Which allowed sender address to send from. Only checked for shape here; senders.js decides if it is an allowed one.
+  if (body.sender !== undefined && body.sender !== null && body.sender !== '') {
+    if (typeof body.sender !== 'string' || CONTROL.test(body.sender) || body.sender.length > LIMITS.maxAddressLength) throw new ValidationError('Invalid sender');
+    out.sender = body.sender.trim();
+  }
+  return out;
 }
 
 /** The attachment name: the quotation number as the PDF route names it (slashes become dashes), plus .pdf. */
