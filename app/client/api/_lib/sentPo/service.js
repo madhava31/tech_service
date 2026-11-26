@@ -176,7 +176,8 @@ async function insertLines(poId, parsed) {
 const duplicate = (err, number) => (err?.code === '23505' ? new SentPoError(`PO number ${number} is already used. Choose another number.`, 409) : err);
 
 export async function createSentPo(body, userId) {
-  const parsed = parseSentPoRequest(body);
+  // A new PO always has prices before GST: the discount comes off, then GST is added on top (as on quotations).
+  const parsed = parseSentPoRequest({ ...(body || {}), price_includes_tax: false });
   try {
     return await db.transaction(async () => {
       const supplier = await resolveSupplier(parsed);
@@ -192,11 +193,14 @@ export async function createSentPo(body, userId) {
 }
 
 export async function updateSentPo(id, body) {
-  const parsed = parseSentPoRequest(body);
+  let parsed = parseSentPoRequest({ ...(body || {}), price_includes_tax: false });
   try {
     return await db.transaction(async () => {
-      const exists = await db.prepare(`SELECT id FROM sent_po WHERE id = ? FOR UPDATE`).get(id);
+      const exists = await db.prepare(`SELECT id, price_includes_tax FROM sent_po WHERE id = ? FOR UPDATE`).get(id);
       if (!exists) throw new SentPoError('PO not found', 404);
+      // An older PO saved with prices that already include GST may keep that, or be changed to prices before GST.
+      // A PO can never be changed to "prices include GST": that is how GST ended up not being added.
+      if (exists.price_includes_tax === true && body?.price_includes_tax === true) parsed = parseSentPoRequest(body);
       const supplier = await resolveSupplier(parsed);
       await db
         .prepare(`UPDATE sent_po SET ${HEADER_COLUMNS.map((c) => `${c} = ?`).join(', ')}, updated_at = NOW() WHERE id = ?`)

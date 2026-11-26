@@ -134,16 +134,16 @@ describe('routes', () => {
         if (/^INSERT INTO sent_po \(/.test(q)) {
           const number = p[2];
           if (state.pos.some((x) => x.number.toLowerCase() === String(number).toLowerCase())) throw Object.assign(new Error('dup'), { code: '23505' });
-          const po = { id: state.nextId++, prefix: p[0], seq: p[1], number, company_id: p[3], supplier_name: p[4], total: p[15], items: [] };
+          const po = { id: state.nextId++, prefix: p[0], seq: p[1], number, company_id: p[3], supplier_name: p[4], price_includes_tax: p[8], total: p[15], items: [] };
           state.pos.push(po);
           return [{ id: po.id }];
         }
-        if (/^SELECT id FROM sent_po WHERE id = \? FOR UPDATE/.test(q)) return state.pos.filter((x) => x.id === p[0]);
+        if (/^SELECT id, price_includes_tax FROM sent_po WHERE id = \? FOR UPDATE/.test(q)) return state.pos.filter((x) => x.id === p[0]);
         if (/^UPDATE sent_po SET/.test(q)) {
           const id = p[p.length - 1];
           const po = state.pos.find((x) => x.id === id);
           if (state.pos.some((x) => x.id !== id && x.number.toLowerCase() === String(p[2]).toLowerCase())) throw Object.assign(new Error('dup'), { code: '23505' });
-          Object.assign(po, { prefix: p[0], seq: p[1], number: p[2], supplier_name: p[4], total: p[15] });
+          Object.assign(po, { prefix: p[0], seq: p[1], number: p[2], supplier_name: p[4], price_includes_tax: p[8], total: p[15] });
           return [];
         }
         if (/^DELETE FROM sent_po_item/.test(q)) { state.items = state.items.filter((i) => i.sent_po_id !== p[0]); return []; }
@@ -190,6 +190,34 @@ describe('routes', () => {
     assert.equal(state.pos[0].total, 100536);
     assert.equal(state.companies[0].is_supplier, 1);
     assert.equal(state.items.length, 1);
+  });
+  test('GST is always added after the discount on a new PO, even if "price includes tax" is sent', async () => {
+    // 1 x 85,200 with IGST 18%: 85,200 + 15,336 = 1,00,536 (not 85,200 with the GST inside it).
+    const r = await call('POST', '/', staff, po({ company_id: 10, price_includes_tax: true }));
+    assert.equal(r.status, 201);
+    assert.equal(state.pos[0].price_includes_tax, false);
+    assert.equal(state.pos[0].total, 100536);
+  });
+  test('the example: 50 less 15% = 42.50, plus 18% GST 7.65 = 50.15', async () => {
+    const r = await call('POST', '/', staff, po({ company_id: 10, items: [{ part_no: 'AX', qty: 1, price: 50, discount_percent: 15, tax_type: 'IGST', tax_percent: 18 }] }));
+    assert.equal(r.status, 201);
+    assert.equal(state.pos[0].total, 50.15);
+  });
+  test('an older PO saved "price includes GST" may keep that or switch to adding GST, never the other way', async () => {
+    await call('POST', '/', staff, po({ company_id: 10 }));
+    state.pos[0].price_includes_tax = true; // as saved before this change
+    const keep = await call('PUT', '/1', staff, po({ company_id: 10, price_includes_tax: true }));
+    assert.equal(keep.status, 200);
+    assert.equal(state.pos[0].price_includes_tax, true);
+    assert.equal(state.pos[0].total, 85200, 'the GST stays inside the price, as it was');
+    const change = await call('PUT', '/1', staff, po({ company_id: 10, price_includes_tax: false }));
+    assert.equal(change.status, 200);
+    assert.equal(state.pos[0].price_includes_tax, false);
+    assert.equal(state.pos[0].total, 100536);
+    const back = await call('PUT', '/1', staff, po({ company_id: 10, price_includes_tax: true }));
+    assert.equal(back.status, 200);
+    assert.equal(state.pos[0].price_includes_tax, false, 'it cannot be switched back to "includes GST"');
+    assert.equal(state.pos[0].total, 100536);
   });
   test('a typed new party is saved as a supplier company', async () => {
     const r = await call('POST', '/', staff, po({ supplier_name: 'PerkinElmer India' }));

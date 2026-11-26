@@ -41,24 +41,26 @@ export function cleanPdfText(value) {
     .replace(/^\n+|\n+$/g, '');
 }
 
-const taxLabel = (it) => (it.tax_type === 'IGST' ? `IGST ${pct(it.tax_percent)}%` : it.tax_type === 'GST' ? `GST ${pct(it.tax_percent)}%` : it.tax_type === 'EXEMPT' ? 'Exempt' : '');
+/** A line's taxable amount (after its discount): its amount without the tax. */
+const taxableOf = (it) => (it.taxable_amount !== undefined && it.taxable_amount !== null ? n(it.taxable_amount) : Math.round((n(it.amount) - n(it.tax_amount)) * 100) / 100);
 
 /**
- * The table columns. Discount and Tax are only printed when a line has them; their width then goes to the description.
- * Widths add up to W.
+ * The table columns, with the same price columns as the quotation PDF: Price/Unit, Discount, Taxable amount, GST, Amount.
+ * Discount is only printed when a line has one; Taxable amount and GST when a line has tax. Their width then goes to the
+ * description. Widths add up to W.
  */
 export function sentPoLayout(showDiscount, showTax) {
   const base = [
     { key: 'sno', label: '#', w: 20, align: 'left' },
-    { key: 'item', label: 'Item', w: 62, align: 'left' },
+    { key: 'item', label: 'Item', w: 58, align: 'left' },
     { key: 'desc', label: 'Description', w: 0, align: 'left' },
-    { key: 'hsn', label: 'HSN', w: 38, align: 'left' },
-    { key: 'qty', label: 'Qty', w: 30, align: 'right' },
-    { key: 'unit', label: 'Unit', w: 40, align: 'center' },
-    { key: 'price', label: 'Price/\nUnit', w: 60, align: 'right' },
-    ...(showDiscount ? [{ key: 'disc', label: 'Discount', w: 54, align: 'right' }] : []),
-    ...(showTax ? [{ key: 'tax', label: 'Tax', w: 62, align: 'right' }] : []),
-    { key: 'amount', label: 'Amount', w: 66, align: 'right' },
+    { key: 'hsn', label: 'HSN', w: 34, align: 'left' },
+    { key: 'qty', label: 'Qty', w: 28, align: 'right' },
+    { key: 'unit', label: 'Unit', w: 28, align: 'center' },
+    { key: 'price', label: 'Price/\nUnit', w: 58, align: 'right' },
+    ...(showDiscount ? [{ key: 'disc', label: 'Discount', w: 50, align: 'right' }] : []),
+    ...(showTax ? [{ key: 'taxable', label: 'Taxable\namount', w: 58, align: 'right' }, { key: 'tax', label: 'GST', w: 54, align: 'right' }] : []),
+    { key: 'amount', label: 'Amount', w: 64, align: 'right' },
   ];
   const used = base.reduce((a, c) => a + c.w, 0);
   base.find((c) => c.key === 'desc').w = W - used;
@@ -83,6 +85,16 @@ export function taxRows(items) {
       rows.push([`CGST @ ${pct(Number(rate) / 2)}%`, amt / 2], [`SGST @ ${pct(Number(rate) / 2)}%`, amt / 2]);
     } else rows.push([`IGST @ ${pct(rate)}%`, amt]);
   }
+  return rows;
+}
+
+/**
+ * The rows above "Total", as on the quotation PDF: Sub Total (the taxable amount, after the line discounts), one row per tax
+ * rate, and Round off when round off is on (shown even when it is 0.00).
+ */
+export function summaryRows(po, items) {
+  const rows = [['Sub Total', n(po.sub_total)], ...taxRows(items)];
+  if (po.round_off_enabled) rows.push(['Round off', n(po.round_off)]);
   return rows;
 }
 
@@ -182,7 +194,11 @@ export function streamSentPoPdf(res, { po, items = [], settings = {} }) {
     cell('unit', String(it.unit || 'Nos'));
     cell('price', rupees(it.price), R, 7.5);
     if (showDiscount && n(it.discount_amount) > 0.004) cell('disc', `${rupees(it.discount_amount)}\n(${pct(it.discount_percent)}%)`, R, 7.5);
-    if (showTax && taxLabel(it)) cell('tax', `${rupees(it.tax_amount)}\n${taxLabel(it)}`, R, 7.5);
+    if (showTax) {
+      // The taxable amount (after the discount) and the GST on it; the GST rate is shown with the totals, as on the quotation.
+      cell('taxable', rupees(taxableOf(it)), R, 7.5);
+      cell('tax', rupees(it.tax_amount), R, 7.5);
+    }
     cell('amount', rupees(it.amount), R, 7.5);
     doc.moveTo(M, y + h - 1).lineTo(M + W, y + h - 1).lineWidth(0.4).strokeColor('#cfcfcf').stroke();
     y += h;
@@ -195,13 +211,15 @@ export function streamSentPoPdf(res, { po, items = [], settings = {} }) {
   doc.font(B).fontSize(7.5).fillColor('#000').text('Total', C.desc.x + 2, y, { width: C.desc.w - 4, lineBreak: false });
   tot('qty', qtyText(po.total_qty));
   if (showDiscount) tot('disc', rupees(po.total_discount));
-  if (showTax) tot('tax', rupees(po.total_tax));
+  if (showTax) {
+    tot('taxable', rupees(po.sub_total));
+    tot('tax', rupees(po.total_tax));
+  }
   tot('amount', rupees(n(po.total) - n(po.round_off)));
   y += 22;
 
   // ---- totals (right) and amount in words (left) ----
-  const rows = [['Sub Total', n(po.sub_total)], ...taxRows(items)];
-  if (po.round_off_enabled && Math.abs(n(po.round_off)) > 0.004) rows.push(['Round off', n(po.round_off)]);
+  const rows = summaryRows(po, items);
   const sumW = 210;
   const sumX = M + W - sumW;
   const rowH = 15;
