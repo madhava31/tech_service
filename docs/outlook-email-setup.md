@@ -1,5 +1,7 @@
 # Sending quotation emails from Outlook (Microsoft 365)
 
+> Use this only when the company's mailboxes are on **Microsoft 365**. If the mail is on Google Workspace (Gmail), even when staff read it in the Outlook app, use `docs/google-email-setup.md` instead.
+
 The **Send Email** button on a quotation sends the quotation PDF from one shared company mailbox in Microsoft 365. The email
 is sent through Microsoft Graph and is saved in that mailbox's **Sent Items**, so it shows in Outlook like any other email.
 Until the settings below are in Vercel, the button keeps working in "simulated" mode (nothing is sent).

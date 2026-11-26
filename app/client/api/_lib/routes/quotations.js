@@ -17,6 +17,7 @@ import { defaultTerms, saveCustomTerms, storedTerms } from '../quotations/terms.
 import { collectPdf } from '../pdf/pdfBuffer.js';
 import { createSendEmailHandler, requireAdminRole } from '../mail/sendEmailHandler.js';
 import { getMailProvider, getSender } from '../mail/index.js';
+import { listSenders, resolveSender } from '../mail/senders.js';
 import { createSendGuard } from '../mail/sendGuard.js';
 import { emailLog, requireEmailLog } from '../mail/emailLog.js';
 import { applyQuotationContactAndTerms, paymentsReady, requirePayments, getQuotationPayments, recordPayment, paymentTermsText } from '../payments/service.js';
@@ -1332,10 +1333,15 @@ const sendEmailHandler = createSendEmailHandler({
   renderPdf: (q, { maxBytes }) => collectPdf((sink) => streamQuotationPdfV2(sink, { ...q.printable, settings: q.settings }), { maxBytes }),
   getProvider: getMailProvider,
   getSender,
+  resolveSender: (requested) => resolveSender(requested),
   log: emailLog,
   guard: createSendGuard(),
 });
 router.post('/:id/send-email', requireAdminRole, requireEmailLog, sendEmailHandler);
+// The addresses the Send Email dialog may offer in its From list, and whether each one can send right now (admin only).
+router.get('/send-email/senders', requireAdminRole, (req, res) => {
+  res.json(listSenders().map(({ address, label, default: isDefault, available }) => ({ address, label, default: isDefault, available })));
+});
 
 // PO received (migration 008): the customer POs of a quotation, typed by hand, with the items each one ordered.
 // The sales people who worked on a quotation and each one's share of the sales target (migration 011).
