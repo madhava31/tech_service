@@ -10,6 +10,7 @@ import { Seg } from '../components/ds/Seg';
 import { ExportQuotationsModal } from '../components/ExportQuotationsModal';
 import { fmtDay } from '../components/ds/format';
 import { quotationStatusLabel } from '../lib/quotationStatus';
+import { seriesOptions, BASE_SERIES, type SeriesOption } from '../lib/quotationSeries';
 
 const PAGE_SIZE = 25;
 
@@ -93,6 +94,12 @@ export default function Quotations() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
+  // The firm's number series (TSQOT, TSAPQOT, ...); empty = all firms.
+  const [seriesFilter, setSeriesFilter] = useState('');
+  const [seriesList, setSeriesList] = useState<SeriesOption[]>(BASE_SERIES);
+  useEffect(() => {
+    api.firms.list().then((firms) => setSeriesList(seriesOptions(firms))).catch(() => {});
+  }, []);
 
   // Debounced input terms
   const [debouncedNumber, setDebouncedNumber] = useState('');
@@ -131,6 +138,7 @@ export default function Quotations() {
         minAmount: debouncedMinAmount ? Number(debouncedMinAmount) : undefined,
         maxAmount: debouncedMaxAmount ? Number(debouncedMaxAmount) : undefined,
         salesEngineerId: isAdmin && salesPersonFilter ? Number(salesPersonFilter) : undefined,
+        series: seriesFilter || undefined,
         paginated: true,
       };
 
@@ -194,7 +202,7 @@ export default function Quotations() {
         }
       }
     },
-    [statusFilter, debouncedNumber, debouncedCompany, dateFilter, debouncedMinAmount, debouncedMaxAmount, isAdmin, salesPersonFilter]
+    [statusFilter, debouncedNumber, debouncedCompany, dateFilter, debouncedMinAmount, debouncedMaxAmount, isAdmin, salesPersonFilter, seriesFilter]
   );
 
   // Trigger reset load on filter or search changes
@@ -309,11 +317,13 @@ export default function Quotations() {
     dateFilter !== 'all' ||
     minAmount !== '' ||
     maxAmount !== '' ||
-    salesPersonFilter !== '';
+    salesPersonFilter !== '' ||
+    seriesFilter !== '';
 
   const hasAnyActiveFilters = hasSearchFilters || statusFilter !== '';
 
   function resetFilters() {
+    setSeriesFilter('');
     setSalesPersonFilter('');
     setSearchNumber('');
     setSearchCompany('');
@@ -324,6 +334,7 @@ export default function Quotations() {
   }
 
   function clearSearchPanelFilters() {
+    setSeriesFilter('');
     setSalesPersonFilter('');
     setSearchNumber('');
     setSearchCompany('');
@@ -426,6 +437,10 @@ export default function Quotations() {
             <Search className="size-4" />
             <input value={searchCompany} onChange={(e) => setSearchCompany(e.target.value)} placeholder="Search customer" aria-label="Search customer" />
           </label>
+          <select className="ts-fi ts-sel" value={seriesFilter} onChange={(e) => setSeriesFilter(e.target.value)} aria-label="Filter by firm (number series)" title="Show only the quotations of one firm">
+            <option value="">All firms</option>
+            {seriesList.map((s) => <option key={s.prefix} value={s.prefix}>{s.label}</option>)}
+          </select>
           {isAdmin && (
             <select className="ts-fi ts-sel" value={salesPersonFilter} onChange={(e) => setSalesPersonFilter(e.target.value)} aria-label="Filter by sales person">
               <option value="">All sales people</option>
