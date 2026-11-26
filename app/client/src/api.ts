@@ -666,6 +666,8 @@ export interface QuotationListParams {
   createdBy?: number;
   /** Admin only: quotations whose sales person (sales engineer) is this one. */
   salesEngineerId?: number;
+  /** The firm's number series, e.g. TSQOT or TSAPQOT: only quotations numbered with that prefix. */
+  series?: string;
 }
 
 export interface QuotationPageResponse {
@@ -1385,7 +1387,7 @@ export const api = {
   },
   quotations: {
     list: ((params?: QuotationListParams, signal?: AbortSignal) => {
-      if (!params || (!params.page && !params.pageSize && !params.paginated && !params.searchNumber && !params.searchCompany && !params.status && !params.dateStart && !params.dateEnd && params.minAmount === undefined && params.maxAmount === undefined)) {
+      if (!params || (!params.page && !params.pageSize && !params.paginated && !params.searchNumber && !params.searchCompany && !params.status && !params.dateStart && !params.dateEnd && params.minAmount === undefined && params.maxAmount === undefined && !params.series)) {
         return request<Quotation[]>('/quotations', { signal });
       }
       const q = new URLSearchParams();
@@ -1401,6 +1403,7 @@ export const api = {
       if (params.paginated) q.set('paginated', 'true');
       if (params.createdBy) q.set('createdBy', String(params.createdBy));
       if (params.salesEngineerId) q.set('salesEngineerId', String(params.salesEngineerId));
+      if (params.series) q.set('series', params.series);
       const qs = q.toString();
       return request<QuotationPageResponse>(`/quotations${qs ? `?${qs}` : ''}`, { signal });
     }) as {

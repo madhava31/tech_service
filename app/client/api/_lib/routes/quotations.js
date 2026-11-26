@@ -45,6 +45,16 @@ router.param('quotationId', ownQuotationParam);
 const isModuleRequest = (body) => Array.isArray(body?.terms);
 const moduleGuard = (req, res, next) => (isModuleRequest(req.body) ? requireQuotationModule(req, res, next) : next());
 
+/**
+ * The number series (firm) filter of the list: "TSQOT" matches TSQOT2627/12 but not TSAPQOT2627/3 (the character after the
+ * prefix must not be a letter). Returns the regular expression for q.number, or null when the value is not a plausible prefix.
+ */
+export function seriesPattern(value) {
+  const prefix = typeof value === 'string' ? value.trim() : '';
+  if (!/^[A-Za-z0-9_-]{1,20}$/.test(prefix)) return null;
+  return `^${prefix}([^A-Za-z]|$)`;
+}
+
 const LIST_COLUMNS = `q.*, c.name AS company_name, e.name AS sales_engineer_name, u.username AS created_by_username,
            (SELECT COUNT(*) FROM performa_invoice pi WHERE pi.quotation_id = q.id)::int AS pi_count,
            (SELECT string_agg(qi.part_no, ', ' ORDER BY qi.id) FROM quotation_item qi WHERE qi.quotation_id = q.id) AS items_part_nos`;
@@ -403,6 +413,7 @@ router.get('/', async (req, res) => {
       dateEnd,
       minAmount,
       maxAmount,
+      series,
     } = req.query;
 
     const numTerm = (searchNumber || qNum || '').trim();
@@ -421,6 +432,13 @@ router.get('/', async (req, res) => {
     if (isAdmin(req) && req.query.salesEngineerId && /^\d+$/.test(String(req.query.salesEngineerId))) {
       whereClauses.push(`q.sales_engineer_id = ?`);
       params.push(Number(req.query.salesEngineerId));
+    }
+
+    // The firm's number series (TSQOT, TSAPQOT, ...): only quotations whose number starts with that prefix.
+    const seriesRe = seriesPattern(series);
+    if (seriesRe) {
+      whereClauses.push(`q.number ~* ?`);
+      params.push(seriesRe);
     }
 
     if (status && status !== 'all' && status !== '') {
@@ -483,9 +501,14 @@ router.get('/', async (req, res) => {
 
     // Global stage counts aggregated in database
     const stageCounts = { All: 0, Draft: 0, Sent: 0, Negotiation: 0, Accepted: 0, 'PO received': 0, Rejected: 0 };
-    const globalCountRows = isAdmin(req)
-      ? await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation GROUP BY status`).all()
-      : await db.prepare(`SELECT status, COUNT(*) AS count FROM quotation WHERE created_by_user_id = ? GROUP BY status`).all(req.user.id);
+    // The stage counts follow the chosen number series (and the user's own quotations when not an admin), nothing else.
+    const countWhere = [];
+    const countParams = [];
+    if (!isAdmin(req)) { countWhere.push('created_by_user_id = ?'); countParams.push(req.user.id); }
+    if (seriesRe) { countWhere.push('number ~* ?'); countParams.push(seriesRe); }
+    const globalCountRows = await db
+      .prepare(`SELECT status, COUNT(*) AS count FROM quotation ${countWhere.length ? `WHERE ${countWhere.join(' AND ')}` : ''} GROUP BY status`)
+      .all(...countParams);
     let totalAll = 0;
     for (const r of globalCountRows) {
       const c = Number(r.count || 0);
