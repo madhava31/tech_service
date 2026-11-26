@@ -52,7 +52,10 @@ export default function SentPoForm() {
   const [orderDate, setOrderDate] = useState(today());
   const [dueDate, setDueDate] = useState('');
   const [stateOfSupply, setStateOfSupply] = useState('');
+  // New POs: prices are before GST and GST is added after the discount (as on quotations). Only an older PO saved with
+  // prices that include GST keeps the choice, so it can be changed to prices before GST.
   const [priceIncludesTax, setPriceIncludesTax] = useState(false);
+  const [savedWithTax, setSavedWithTax] = useState(false);
   const [roundOff, setRoundOff] = useState(false);
   const [advanceOn, setAdvanceOn] = useState(false);
   const [advance, setAdvance] = useState('');
@@ -93,6 +96,7 @@ export default function SentPoForm() {
           setDueDate(po.due_date ? String(po.due_date).slice(0, 10) : '');
           setStateOfSupply(po.state_of_supply || '');
           setPriceIncludesTax(!!po.price_includes_tax);
+          setSavedWithTax(!!po.price_includes_tax);
           setRoundOff(!!po.round_off_enabled);
           setAdvanceOn(Number(po.advance_amount) > 0);
           setAdvance(Number(po.advance_amount) > 0 ? String(Number(po.advance_amount)) : '');
@@ -284,14 +288,22 @@ export default function SentPoForm() {
       <section className="ts-card ts-white flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="ts-ch !mb-0">Items <span className="ts-muted" style={{ fontSize: 13, marginLeft: 8 }}>{lines.length} {lines.length === 1 ? 'line' : 'lines'}</span></div>
-          <div className="ts-fld !mb-0" style={{ minWidth: 200 }}>
-            <label htmlFor="spo-pit">Price/Unit is</label>
-            <select id="spo-pit" className="ts-fi" value={priceIncludesTax ? 'with' : 'without'} onChange={(e) => setPriceIncludesTax(e.target.value === 'with')}>
-              <option value="without">Without tax</option>
-              <option value="with">With tax</option>
-            </select>
-          </div>
+          {!savedWithTax && <small className="ts-hint !m-0">Prices are before GST: the discount comes off, then GST is added.</small>}
         </div>
+        {savedWithTax && (
+          <div className="ts-warnbox flex flex-wrap items-center gap-3">
+            <span>
+              {priceIncludesTax
+                ? 'This PO was saved with prices that already include GST, so GST is taken out of the price instead of added on top.'
+                : 'Prices are now before GST: the discount comes off, then GST is added. Save to keep this.'}
+            </span>
+            {priceIncludesTax ? (
+              <button type="button" className="ts-btn ts-dark ts-xs" onClick={() => setPriceIncludesTax(false)}>Add GST on top instead</button>
+            ) : (
+              <button type="button" className="ts-btn ts-ghost ts-xs" onClick={() => setPriceIncludesTax(true)}>Undo</button>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           {lines.map((l, i) => {
